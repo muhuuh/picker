@@ -23,6 +23,8 @@
 - [x] Add provider-neutral evidence packet schema and artifact writer.
 - [x] Add SEC EDGAR provider integration.
 - [x] Run live SEC EDGAR smoke test.
+- [x] Add yfinance provider integration and live smoke test.
+- [x] Add Exa search/contents provider integration and live smoke tests.
 - [ ] Validate updated architecture with user.
 
 ## Key Decisions and Why
@@ -42,6 +44,8 @@
 - 2026-05-03: Added provider-neutral evidence schema so SEC, Exa, X.com, yfinance, FMP, Polygon, Alpha Vantage, macro, and future providers can emit the same packet format.
 - 2026-05-03: Added SEC EDGAR provider. It needs no API key, but live requests require `SEC_USER_AGENT` or `--user-agent`.
 - 2026-05-03: SEC live smoke test passed for AAPL. The provider now handles SEC gzip-compressed responses and writes validated raw/evidence artifacts.
+- 2026-05-03: Exa should be exposed as deterministic provider tools first, then wrapped by specialist agents. This keeps provider behavior auditable and reusable by Codex, orchestrators, and specialists.
+- 2026-05-03: yfinance and Exa provider tools were added. yfinance live AAPL smoke passed. Exa live search/contents smoke passed after adding explicit `User-Agent` and `Accept` headers.
 
 ## What We Learned
 
@@ -64,6 +68,9 @@
 - SEC command exists: `python -m stock_research sec company --ticker AAPL --run-id 2026-05-09_weekly`.
 - SEC live smoke command succeeded after adding compressed-response decoding: `python -m stock_research sec company --ticker AAPL --run-id 2026-05-09_weekly`.
 - Live SEC AAPL artifacts exist under `agents/runs/2026-05-09_weekly/raw/sec_edgar/` and `agents/runs/2026-05-09_weekly/evidence_packets/`.
+- yfinance command exists: `python -m stock_research yfinance company --ticker AAPL --run-id 2026-05-09_weekly`.
+- Exa commands exist: `python -m stock_research exa search ...` and `python -m stock_research exa contents ...`.
+- Live yfinance AAPL and Exa smoke artifacts exist under `agents/runs/2026-05-09_weekly/`.
 - `python -m unittest discover -s tests` is the working test command in this repo.
 - Cursor SDK is promising for coding-agent automation, but it is public beta and TypeScript-first; it looks better for repo maintenance agents than for the core stock-research runtime.
 - OpenAI Agents SDK supports the repo's manager/specialist pattern, tracing, guardrails, Pydantic outputs, sessions, and non-OpenAI model routing via Any-LLM/LiteLLM, but provider capability gaps must be tested.
@@ -83,7 +90,7 @@
 ## Next Steps
 
 - Review updated `docs/descriptions/investment_agent_workflow.md` and `docs/plans/investment_agent_backlog.md` with the user if needed.
-- Next implementation work should add the next provider integration such as Exa or yfinance.
+- Next implementation work should add X.com/xAI or paid market-data cross-check providers such as FMP, Polygon, or Alpha Vantage.
 - Before Priority 4 agent implementation, run a thin spike comparing OpenAI Agents SDK vs Pydantic AI for one evidence-packet specialist and one orchestrator call.
 - Consider LangGraph only if the first spike shows that explicit resumable graph state is needed earlier than planned.
 - Add README and SETUP when runtime dependencies are introduced.
@@ -98,9 +105,13 @@
 - Do not choose Cursor SDK as the main research runtime unless its beta API proves strong for non-coding tool orchestration, source capture, and Python integration.
 - Any multi-provider SDK path needs provider-specific tests for tool calling, structured outputs, usage/cost reporting, and streaming.
 - SEC may return compressed responses even for JSON endpoints; keep compression decoding in provider fetch helpers.
+- Exa requests can fail with HTTP 403 code 1010 if the default Python HTTP client headers are too sparse. Keep explicit `User-Agent` and `Accept: application/json` headers.
+- yfinance is useful for quick snapshots but should be cross-checked before high-impact decisions.
 
 ## Commands / Environment Notes
 
 - `rg --files` failed with Access denied in this environment; PowerShell `Get-ChildItem` worked.
 - Current repo path: `C:\Users\valen\Documents\Code\stocks`.
 - SEC live smoke test output packet: `agents/runs/2026-05-09_weekly/evidence_packets/2026-05-03_sec_edgar_company_aapl.json`.
+- yfinance live smoke packet: `agents/runs/2026-05-09_weekly/evidence_packets/2026-05-03_yfinance_company_aapl.json`.
+- Exa live smoke packets: `agents/runs/2026-05-09_weekly/evidence_packets/2026-05-03_exa_industry_semiconductors.json`, `agents/runs/2026-05-09_weekly/evidence_packets/2026-05-03_exa_theme_sec_edgar_docs.json`.

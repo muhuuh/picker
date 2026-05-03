@@ -136,11 +136,11 @@ This is the clear task backlog for building the stock tracking and investment re
   - Description: store provider-neutral evidence packets under `agents/runs/{run_id}/evidence_packets/`.
 - [x] Implement SEC EDGAR tool.
   - Description: US filings, submissions, and XBRL facts. Live AAPL smoke test passed on 2026-05-03.
-- [ ] Implement Exa tools.
-  - Description: company news, industry research, market discovery.
+- [x] Implement Exa tools.
+  - Description: company news, industry research, market discovery, and content extraction. Implemented as deterministic provider tools first, to be wrapped by specialists later.
 - [ ] Implement X.com tools.
   - Description: stock sentiment and industry sentiment/discovery.
-- [ ] Implement market data tools.
+- [x] Implement market data tools.
   - Description: yfinance first, then cross-check FMP, Polygon, and Alpha Vantage where configured.
 - [ ] Evaluate additional sources.
   - Description: OpenBB, Twelve Data, EODHD, Finnhub, Nasdaq Data Link, FRED, ECB, Eurostat, Companies House, and future ESMA ESAP.
@@ -149,13 +149,22 @@ This is the clear task backlog for building the stock tracking and investment re
 
 - `stock_research/evidence.py`
 - `stock_research/providers/sec_edgar.py`
+- `stock_research/providers/exa.py`
+- `stock_research/providers/yfinance_provider.py`
 - `docs/descriptions/evidence_schema.md`
 - `docs/descriptions/sec_edgar_provider.md`
+- `docs/descriptions/exa_provider.md`
+- `docs/descriptions/yfinance_provider.md`
 - `python -m stock_research evidence new ...`
 - `python -m stock_research evidence validate ...`
 - `python -m stock_research sec company --ticker TICKER --run-id RUN_ID`
+- `python -m stock_research yfinance company --ticker TICKER --run-id RUN_ID`
+- `python -m stock_research exa search --query QUERY --subject-type TYPE --subject-id ID --run-id RUN_ID`
+- `python -m stock_research exa contents --url URL --subject-type TYPE --subject-id ID --run-id RUN_ID`
 - `tests/test_evidence.py`
 - `tests/test_sec_edgar_provider.py`
+- `tests/test_exa_provider.py`
+- `tests/test_yfinance_provider.py`
 - Live SEC smoke artifact: `agents/runs/2026-05-09_weekly/evidence_packets/2026-05-03_sec_edgar_company_aapl.json`
 
 ## Priority 5: Specialist Agents
@@ -218,3 +227,4 @@ This is the clear task backlog for building the stock tracking and investment re
 - Human approval gates for file writes, stock movement, and strategy changes.
 - First test stock universe.
 - Agent SDK/framework choice: OpenAI Agents SDK, Pydantic AI, LangGraph, Cursor SDK, or a hybrid approach.
+- Live Exa smoke test after `EXA_API_KEY` is configured.

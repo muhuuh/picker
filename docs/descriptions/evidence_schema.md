@@ -8,7 +8,11 @@ All provider tools and specialist agents should return the same evidence packet 
 
 Implementation: `stock_research/evidence.py`.
 
-First provider using this schema: `stock_research/providers/sec_edgar.py`.
+Providers currently using this schema:
+
+- `stock_research/providers/sec_edgar.py`
+- `stock_research/providers/exa.py`
+- `stock_research/providers/yfinance_provider.py`
 
 ## Packet Fields
 

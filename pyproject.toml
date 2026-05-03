@@ -3,7 +3,12 @@ name = "stock-research"
 version = "0.1.0"
 description = "Deterministic stock tracking and research repo tooling."
 requires-python = ">=3.10"
-dependencies = []
+dependencies = [
+    "yfinance>=1.2.2",
+]
 
 [tool.pytest.ini_options]
 pythonpath = ["."]
+
+[tool.setuptools.packages.find]
+include = ["stock_research*"]

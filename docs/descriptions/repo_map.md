@@ -53,6 +53,8 @@ This file tells Codex, the orchestrator, and future agents where to find and upd
 - `docs/descriptions/investment_agent_workflow.md`: full planned automated workflow.
 - `docs/descriptions/evidence_schema.md`: shared source/evidence packet schema for all providers and specialists.
 - `docs/descriptions/sec_edgar_provider.md`: SEC EDGAR provider behavior and setup.
+- `docs/descriptions/exa_provider.md`: Exa search/contents provider behavior and best practices.
+- `docs/descriptions/yfinance_provider.md`: yfinance provider behavior and setup.
 - `docs/plans/investment_agent_backlog.md`: prioritized implementation backlog.
 - `docs/plans/investment_agent_workflow_plan.md`: high-level implementation plan.
 - `agents/orchestrator/`: future main orchestrator implementation.
@@ -73,6 +75,9 @@ This file tells Codex, the orchestrator, and future agents where to find and upd
 - `python -m stock_research evidence new ...`: create a provider-neutral evidence packet.
 - `python -m stock_research evidence validate ...`: validate an evidence packet.
 - `python -m stock_research sec company --ticker TICKER --run-id RUN_ID`: fetch SEC submissions into evidence artifacts.
+- `python -m stock_research yfinance company --ticker TICKER --run-id RUN_ID`: fetch yfinance market-data snapshot artifacts.
+- `python -m stock_research exa search --query "..." --subject-type TYPE --subject-id ID --run-id RUN_ID`: run Exa search into evidence artifacts.
+- `python -m stock_research exa contents --url URL --subject-type TYPE --subject-id ID --run-id RUN_ID`: run Exa contents extraction into evidence artifacts.
 - `tests/`: unit tests for current deterministic core.
 
 ## Where To Put Common User Requests

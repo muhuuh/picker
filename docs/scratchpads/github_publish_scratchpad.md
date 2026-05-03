@@ -17,6 +17,7 @@
 - 2026-05-03: Treat this as a first publish because the folder is not currently a Git repository.
 - 2026-05-03: Exclude `.env` before Git initialization because stock repo rules forbid storing secrets or credentials in tracked files.
 - 2026-05-03: Use `main` as the initial branch because the target GitHub repository had no default branch or refs.
+- 2026-05-03: Ignore generated run artifacts under `agents/runs/*/raw/`, `agents/runs/*/evidence_packets/`, and common generated JSON files so GitHub commits stay focused on code, docs, templates, and curated state.
 
 ## What we learned
 - GitHub CLI is installed and authenticated as `muhuuh`.
@@ -35,6 +36,7 @@
 - Do not commit `.env` or other private account/API data.
 - If the remote already has commits, avoid overwriting history without explicit user approval.
 - Check `git status --ignored` before future broad staging; `.env` should remain ignored.
+- Generated run artifacts are useful locally for validation, but should be intentionally promoted to docs or summaries before committing.
 
 ## Commands / environment notes
 - Repo path: `C:\Users\valen\Documents\Code\stocks`.

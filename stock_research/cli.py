@@ -9,7 +9,17 @@ from .config import get_config_value
 from .evidence import default_packet_path, new_packet, read_packet, validate_packet, write_packet
 from .human import append_human_request, classify_request
 from .manifest import build_weekly_manifest, write_manifest
+from .providers.exa import (
+    ExaContentsOptions,
+    ExaError,
+    ExaSearchOptions,
+    build_exa_contents_packet,
+    build_exa_search_packet,
+    default_exa_run_id,
+    resolve_exa_api_key,
+)
 from .providers.sec_edgar import SecEdgarError, build_sec_company_packet, default_sec_run_id, resolve_sec_user_agent
+from .providers.yfinance_provider import YFinanceError, build_yfinance_company_packet, default_yfinance_run_id
 from .repo import load_repo_state
 from .router import route_request
 from .staleness import scan_stale_data
@@ -74,6 +84,46 @@ def main(argv: list[str] | None = None) -> int:
     sec_company.add_argument("--user-agent", help="SEC-required User-Agent. Or set SEC_USER_AGENT.")
     sec_company.add_argument("--include-facts", action="store_true", help="Also fetch XBRL companyfacts.")
     sec_company.add_argument("--today", help="Override current date as YYYY-MM-DD.")
+
+    yfinance_parser = subparsers.add_parser("yfinance", help="yfinance market data provider tools.")
+    yfinance_subparsers = yfinance_parser.add_subparsers(dest="yfinance_command", required=True)
+
+    yfinance_company = yfinance_subparsers.add_parser("company", help="Fetch yfinance market data and write an evidence packet.")
+    yfinance_company.add_argument("--ticker", required=True)
+    yfinance_company.add_argument("--run-id", help="Run ID for output artifacts. Defaults to YYYY-MM-DD_manual-yfinance.")
+    yfinance_company.add_argument("--period", default="5d", help="yfinance history period, e.g. 5d, 1mo, 1y.")
+    yfinance_company.add_argument("--today", help="Override current date as YYYY-MM-DD.")
+
+    exa_parser = subparsers.add_parser("exa", help="Exa search and contents provider tools.")
+    exa_subparsers = exa_parser.add_subparsers(dest="exa_command", required=True)
+
+    exa_search = exa_subparsers.add_parser("search", help="Run Exa search and write an evidence packet.")
+    exa_search.add_argument("--query", required=True)
+    exa_search.add_argument("--subject-type", required=True, choices=["company", "industry", "theme", "macro", "strategy", "portfolio"])
+    exa_search.add_argument("--subject-id", required=True)
+    exa_search.add_argument("--run-id", help="Run ID for output artifacts. Defaults to YYYY-MM-DD_manual-exa.")
+    exa_search.add_argument("--mode", default="general", choices=["general", "company", "news", "industry"])
+    exa_search.add_argument("--type", default="auto", choices=["auto", "fast", "instant", "deep-lite", "deep", "deep-reasoning"])
+    exa_search.add_argument("--num-results", type=int, default=10)
+    exa_search.add_argument("--start-published-date")
+    exa_search.add_argument("--end-published-date")
+    exa_search.add_argument("--include-domain", action="append", default=[])
+    exa_search.add_argument("--exclude-domain", action="append", default=[])
+    exa_search.add_argument("--max-age-hours", type=int)
+    exa_search.add_argument("--api-key", help="Exa API key. Or set EXA_API_KEY.")
+    exa_search.add_argument("--today", help="Override current date as YYYY-MM-DD.")
+
+    exa_contents = exa_subparsers.add_parser("contents", help="Run Exa contents extraction and write an evidence packet.")
+    exa_contents.add_argument("--url", action="append", required=True, help="URL to extract. Repeat for multiple URLs.")
+    exa_contents.add_argument("--subject-type", required=True, choices=["company", "industry", "theme", "macro", "strategy", "portfolio"])
+    exa_contents.add_argument("--subject-id", required=True)
+    exa_contents.add_argument("--run-id", help="Run ID for output artifacts. Defaults to YYYY-MM-DD_manual-exa.")
+    exa_contents.add_argument("--highlights-query", default="")
+    exa_contents.add_argument("--text-max-characters", type=int)
+    exa_contents.add_argument("--max-age-hours", type=int)
+    exa_contents.add_argument("--livecrawl-timeout", type=int, default=12000)
+    exa_contents.add_argument("--api-key", help="Exa API key. Or set EXA_API_KEY.")
+    exa_contents.add_argument("--today", help="Override current date as YYYY-MM-DD.")
 
     args = parser.parse_args(argv)
     state = load_repo_state(args.root)
@@ -180,6 +230,73 @@ def main(argv: list[str] | None = None) -> int:
                 return 1
             print(json.dumps({"packet_id": packet.packet_id, "paths": [str(path) for path in paths]}, indent=2))
             return 0
+
+    if args.command == "yfinance":
+        if args.yfinance_command == "company":
+            request_date = parse_cli_date(args.today)
+            run_id = args.run_id or default_yfinance_run_id(request_date)
+            try:
+                packet, paths = build_yfinance_company_packet(
+                    ticker=args.ticker,
+                    run_id=run_id,
+                    root=state.root,
+                    current_date=request_date,
+                    period=args.period,
+                )
+            except YFinanceError as exc:
+                print(f"ERROR: {exc}")
+                return 1
+            print(json.dumps({"packet_id": packet.packet_id, "paths": [str(path) for path in paths]}, indent=2))
+            return 0
+
+    if args.command == "exa":
+        request_date = parse_cli_date(args.today)
+        run_id = args.run_id or default_exa_run_id(request_date)
+        try:
+            api_key = resolve_exa_api_key(args.api_key or get_config_value(state.root, "EXA_API_KEY"))
+            if args.exa_command == "search":
+                packet, paths = build_exa_search_packet(
+                    options=ExaSearchOptions(
+                        query=args.query,
+                        subject_type=args.subject_type,
+                        subject_id=args.subject_id,
+                        search_mode=args.mode,
+                        search_type=args.type,
+                        num_results=args.num_results,
+                        start_published_date=args.start_published_date or "",
+                        end_published_date=args.end_published_date or "",
+                        include_domains=tuple(args.include_domain),
+                        exclude_domains=tuple(args.exclude_domain),
+                        max_age_hours=args.max_age_hours,
+                    ),
+                    api_key=api_key,
+                    run_id=run_id,
+                    root=state.root,
+                    current_date=request_date,
+                )
+            elif args.exa_command == "contents":
+                packet, paths = build_exa_contents_packet(
+                    options=ExaContentsOptions(
+                        urls=tuple(args.url),
+                        subject_type=args.subject_type,
+                        subject_id=args.subject_id,
+                        highlights_query=args.highlights_query,
+                        text_max_characters=args.text_max_characters,
+                        max_age_hours=args.max_age_hours,
+                        livecrawl_timeout=args.livecrawl_timeout,
+                    ),
+                    api_key=api_key,
+                    run_id=run_id,
+                    root=state.root,
+                    current_date=request_date,
+                )
+            else:
+                return 1
+        except ExaError as exc:
+            print(f"ERROR: {exc}")
+            return 1
+        print(json.dumps({"packet_id": packet.packet_id, "paths": [str(path) for path in paths]}, indent=2))
+        return 0
 
     return 1
 

@@ -80,3 +80,8 @@ Use this file for information we should not lose across sessions.
   - decision/fact: SEC EDGAR live smoke test passed for AAPL after adding compressed-response handling. The run wrote raw submissions JSON and a provider-neutral evidence packet.
   - evidence artifact path(s): `agents/runs/2026-05-09_weekly/raw/sec_edgar/AAPL_submissions.json`, `agents/runs/2026-05-09_weekly/evidence_packets/2026-05-03_sec_edgar_company_aapl.json`, `stock_research/providers/sec_edgar.py`, `tests/test_sec_edgar_provider.py`
   - status: active
+
+- 2026-05-03:
+  - decision/fact: yfinance and Exa provider tools are implemented. yfinance live smoke test passed for AAPL. Exa search and contents live smoke tests passed after adding explicit `User-Agent` and `Accept` headers.
+  - evidence artifact path(s): `stock_research/providers/yfinance_provider.py`, `stock_research/providers/exa.py`, `docs/descriptions/yfinance_provider.md`, `docs/descriptions/exa_provider.md`, `agents/runs/2026-05-09_weekly/evidence_packets/2026-05-03_yfinance_company_aapl.json`, `agents/runs/2026-05-09_weekly/evidence_packets/2026-05-03_exa_industry_semiconductors.json`, `agents/runs/2026-05-09_weekly/evidence_packets/2026-05-03_exa_theme_sec_edgar_docs.json`
+  - status: active

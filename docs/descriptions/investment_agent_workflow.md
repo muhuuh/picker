@@ -107,6 +107,7 @@ The initial deterministic Python core was added on 2026-05-03 under `stock_resea
 The provider-neutral evidence schema was added on 2026-05-03 under `stock_research/evidence.py` and `docs/descriptions/evidence_schema.md`.
 
 The first provider integration, SEC EDGAR, was added on 2026-05-03 under `stock_research/providers/sec_edgar.py`.
+The next provider tools, yfinance and Exa, were added on 2026-05-03 under `stock_research/providers/yfinance_provider.py` and `stock_research/providers/exa.py`.
 
 ## Human Interaction Layer
 
@@ -201,8 +202,8 @@ Current implementation status:
 
 - Implemented: repo state loader, CSV schema validator, stock-info file indexer, human input queue loader, research priorities loader, human review queue loader, stale-data scanner, rejected-stock cooldown summary, weekly manifest generator.
 - Implemented: deterministic request classifier, human input queue appender, request router, human review queue writer, and manual run manifest creation.
-- Implemented provider: SEC EDGAR submissions and optional companyfacts evidence packet writer.
-- Pending: Exa, X.com/xAI, market-data providers, LLM specialists, orchestrator runtime, scheduled execution, immediate manual research runs.
+- Implemented providers: SEC EDGAR submissions and optional companyfacts evidence packet writer, yfinance market-data snapshots, and Exa search/contents evidence packet writers.
+- Pending: X.com/xAI, FMP, Polygon, Alpha Vantage, macro providers, LLM specialists, orchestrator runtime, scheduled execution, immediate manual research runs.
 
 ### Layer 2: Specialist research agents
 

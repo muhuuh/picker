@@ -52,8 +52,8 @@ Detailed backlog: `docs/plans/investment_agent_backlog.md`.
 - [x] Implement provider-neutral evidence packet schema.
 - [x] Implement evidence packet JSON artifact writer.
 - [x] Implement and live-smoke-test SEC EDGAR submissions and XBRL fetch tools.
-- [ ] Implement market data tool for prices and ratios.
-- [ ] Implement Exa company and industry search tools.
+- [x] Implement yfinance market data tool for prices and ratios.
+- [x] Implement Exa company, news, industry, and contents tools.
 - [ ] Implement X.com stock sentiment tool.
 - [ ] Implement X.com industry sentiment/discovery tool.
 - [ ] Evaluate extra data providers: OpenBB, Twelve Data, EODHD, Finnhub, Nasdaq Data Link, FRED, ECB, Eurostat, Companies House, future ESMA ESAP.
@@ -124,4 +124,5 @@ Detailed backlog: `docs/plans/investment_agent_backlog.md`.
 - 2026-05-03: Added provider-neutral source/evidence packet schema and evidence packet CLI.
 - 2026-05-03: Added SEC EDGAR provider integration. Live use requires `SEC_USER_AGENT` or `--user-agent`, no API key.
 - 2026-05-03: Live SEC smoke test passed for AAPL and wrote a validated evidence packet. Added compressed-response handling for SEC JSON responses.
+- 2026-05-03: Added yfinance and Exa provider tools. Exa was implemented after reviewing the requested current Exa search/company/news/contents docs, with highlights-first search and separate contents extraction.
 - 2026-05-03: Started SDK/framework review before agent runtime work. Current finding: Cursor SDK is likely a coding-agent automation adjunct, not the core stock-research orchestration runtime; OpenAI Agents SDK, Pydantic AI, and LangGraph remain the main candidates.

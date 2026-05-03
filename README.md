@@ -60,6 +60,21 @@ python -m stock_research sec company --ticker AAPL --run-id 2026-05-09_weekly
 
 SEC does not require an API key, but it does require a declared `User-Agent`. Set `SEC_USER_AGENT` in `.env` or pass `--user-agent`.
 
+Fetch yfinance market data into an evidence packet:
+
+```powershell
+python -m stock_research yfinance company --ticker AAPL --run-id 2026-05-09_weekly
+```
+
+Run Exa search or content extraction into evidence packets:
+
+```powershell
+python -m stock_research exa search --mode news --query "semiconductor supply chain disruptions Europe" --subject-type industry --subject-id semiconductors --run-id 2026-05-09_weekly
+python -m stock_research exa contents --url https://example.com/article --subject-type company --subject-id AAPL --run-id 2026-05-09_weekly --highlights-query "investment relevance and risks"
+```
+
+Exa requires `EXA_API_KEY` in `.env` or `--api-key`.
+
 Add a request to the human input queue:
 
 ```powershell
@@ -95,10 +110,12 @@ Implemented:
 - deterministic request router for stock, industry, theme, strategy, alert-review, manual-run, and status-move requests.
 - provider-neutral evidence packet schema and JSON artifact writer.
 - SEC EDGAR submissions provider with optional companyfacts retrieval, live-smoke-tested against AAPL.
+- yfinance market-data snapshot provider.
+- Exa search and contents provider tools.
 
 Not implemented yet:
 
-- Exa, X.com/xAI, yfinance, FMP, Polygon, Alpha Vantage, and macro provider integrations,
+- X.com/xAI, FMP, Polygon, Alpha Vantage, and macro provider integrations,
 - LLM specialist agents,
 - orchestrator runtime,
 - automated scheduled execution,

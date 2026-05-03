@@ -5,7 +5,13 @@ Last updated: 2026-05-03
 ## Requirements
 
 - Python 3.10 or newer.
-- No external Python dependencies are required for the current deterministic core.
+- `yfinance` is required for live yfinance market-data snapshots.
+
+Install declared dependencies:
+
+```powershell
+python -m pip install -e .
+```
 
 ## Verify Python
 
@@ -62,6 +68,12 @@ SEC_USER_AGENT="Stock Research your.email@example.com"
 
 Use a real contact email or domain you control.
 
+Exa requires an API key:
+
+```text
+EXA_API_KEY="..."
+```
+
 Provider integrations planned later may use:
 
 - Exa,
@@ -87,6 +99,28 @@ Include XBRL company facts:
 
 ```powershell
 python -m stock_research sec company --ticker AAPL --run-id 2026-05-09_weekly --include-facts
+```
+
+## yfinance
+
+Fetch a market-data snapshot:
+
+```powershell
+python -m stock_research yfinance company --ticker AAPL --run-id 2026-05-09_weekly
+```
+
+## Exa
+
+Run a news/industry/company search:
+
+```powershell
+python -m stock_research exa search --mode news --query "semiconductor supply chain disruptions Europe" --subject-type industry --subject-id semiconductors --run-id 2026-05-09_weekly
+```
+
+Extract contents from a URL:
+
+```powershell
+python -m stock_research exa contents --url https://example.com/article --subject-type company --subject-id AAPL --run-id 2026-05-09_weekly --highlights-query "investment relevance and risks"
 ```
 
 ## Generated Run Artifacts

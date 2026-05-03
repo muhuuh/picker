@@ -8,9 +8,16 @@ __pycache__/
 *.py[cod]
 .pytest_cache/
 .ruff_cache/
+*.egg-info/
+build/
+dist/
 
 # Local agent/runtime output
 .codex/
+agents/runs/*/raw/
+agents/runs/*/evidence_packets/
+agents/runs/*/manifest.json
+agents/runs/*/metrics.json
 
 # OS/editor noise
 .DS_Store
