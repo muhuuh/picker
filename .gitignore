@@ -1,0 +1,19 @@
+# Local environment and credentials
+.env
+.env.*
+!.env.example
+
+# Python cache/output
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+
+# Local agent/runtime output
+.codex/
+
+# OS/editor noise
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
