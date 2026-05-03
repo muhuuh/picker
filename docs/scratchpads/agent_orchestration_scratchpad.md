@@ -18,6 +18,11 @@
 - [x] Decide first implementation slice.
 - [x] Create repo templates and file conventions.
 - [x] Add human-to-system intake layer planning files.
+- [x] Add stdlib-only deterministic Python core and CLI.
+- [x] Add deterministic human request router.
+- [x] Add provider-neutral evidence packet schema and artifact writer.
+- [x] Add SEC EDGAR provider integration.
+- [x] Run live SEC EDGAR smoke test.
 - [ ] Validate updated architecture with user.
 
 ## Key Decisions and Why
@@ -32,6 +37,11 @@
 - 2026-04-30: Created CSV headers, category state files, company template, strategy starter files, and market research folder READMEs.
 - 2026-05-03: Reviewed agent SDK options before runtime implementation; OpenAI Agents SDK remains plausible, but final choice should consider Pydantic AI, LangGraph, and Cursor SDK based on provider routing, durability, and repo-writing needs.
 - 2026-05-03: User validated need for a formal human-to-system intake layer. Codex chat is planned as the main interface; proactive user requests go to `docs/plans/human_research_requests.md`, while system approval items go to `agents/human_review_queue.md`.
+- 2026-05-03: Added `stock_research/` deterministic core before agent framework work. No external dependencies.
+- 2026-05-03: Added deterministic request router. It routes clear requests into monitoring rows/company files, industry/theme research files, research priorities, human review items, or manual run manifests.
+- 2026-05-03: Added provider-neutral evidence schema so SEC, Exa, X.com, yfinance, FMP, Polygon, Alpha Vantage, macro, and future providers can emit the same packet format.
+- 2026-05-03: Added SEC EDGAR provider. It needs no API key, but live requests require `SEC_USER_AGENT` or `--user-agent`.
+- 2026-05-03: SEC live smoke test passed for AAPL. The provider now handles SEC gzip-compressed responses and writes validated raw/evidence artifacts.
 
 ## What We Learned
 
@@ -47,6 +57,14 @@
 - Human interaction docs now exist: `docs/descriptions/human_interaction_workflow.md` and `docs/descriptions/repo_map.md`.
 - Recurring user research priorities live in `strategy/research_priorities.md`.
 - Human input and human review are intentionally separate queues.
+- Deterministic CLI commands now exist: `summary`, `validate`, `stale`, `manifest`, `classify-request`, and `add-request`.
+- `route-request` now appends to the human input queue and updates target artifacts where deterministic routing is safe.
+- Evidence packets are JSON files under `agents/runs/{run_id}/evidence_packets/`.
+- `python -m stock_research evidence new ...` and `evidence validate ...` are available.
+- SEC command exists: `python -m stock_research sec company --ticker AAPL --run-id 2026-05-09_weekly`.
+- SEC live smoke command succeeded after adding compressed-response decoding: `python -m stock_research sec company --ticker AAPL --run-id 2026-05-09_weekly`.
+- Live SEC AAPL artifacts exist under `agents/runs/2026-05-09_weekly/raw/sec_edgar/` and `agents/runs/2026-05-09_weekly/evidence_packets/`.
+- `python -m unittest discover -s tests` is the working test command in this repo.
 - Cursor SDK is promising for coding-agent automation, but it is public beta and TypeScript-first; it looks better for repo maintenance agents than for the core stock-research runtime.
 - OpenAI Agents SDK supports the repo's manager/specialist pattern, tracing, guardrails, Pydantic outputs, sessions, and non-OpenAI model routing via Any-LLM/LiteLLM, but provider capability gaps must be tested.
 - Pydantic AI is a strong Python-native alternative for this repo because it is type-first, model-agnostic, OpenRouter-aware, and fits the planned evidence packet schemas.
@@ -65,7 +83,7 @@
 ## Next Steps
 
 - Review updated `docs/descriptions/investment_agent_workflow.md` and `docs/plans/investment_agent_backlog.md` with the user if needed.
-- Start deterministic core with human input queue/research priorities loading included from the beginning.
+- Next implementation work should add the next provider integration such as Exa or yfinance.
 - Before Priority 4 agent implementation, run a thin spike comparing OpenAI Agents SDK vs Pydantic AI for one evidence-packet specialist and one orchestrator call.
 - Consider LangGraph only if the first spike shows that explicit resumable graph state is needed earlier than planned.
 - Add README and SETUP when runtime dependencies are introduced.
@@ -79,8 +97,10 @@
 - Data providers can disagree on metrics; preserve provider/source metadata.
 - Do not choose Cursor SDK as the main research runtime unless its beta API proves strong for non-coding tool orchestration, source capture, and Python integration.
 - Any multi-provider SDK path needs provider-specific tests for tool calling, structured outputs, usage/cost reporting, and streaming.
+- SEC may return compressed responses even for JSON endpoints; keep compression decoding in provider fetch helpers.
 
 ## Commands / Environment Notes
 
 - `rg --files` failed with Access denied in this environment; PowerShell `Get-ChildItem` worked.
 - Current repo path: `C:\Users\valen\Documents\Code\stocks`.
+- SEC live smoke test output packet: `agents/runs/2026-05-09_weekly/evidence_packets/2026-05-03_sec_edgar_company_aapl.json`.

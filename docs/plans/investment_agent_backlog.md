@@ -79,40 +79,63 @@ This is the clear task backlog for building the stock tracking and investment re
   - Description: persistent recurring topics for future discovery and market research.
 - [x] Create human review queue.
   - Description: separate approval queue for system-generated decisions.
-- [ ] Implement human request classifier.
+- [x] Implement human request classifier.
   - Description: classify user requests into stock research, industry research, theme tracking, strategy change, alert review, manual run, stock status move, or other.
-- [ ] Implement request router.
+- [x] Implement request router.
   - Description: update the right repo artifact based on request type.
-- [ ] Implement human input queue loader.
+- [x] Implement human input queue loader.
   - Description: deterministic core reads `docs/plans/human_research_requests.md` and includes queued items in run manifests.
-- [ ] Implement research priorities loader.
+- [x] Implement research priorities loader.
   - Description: deterministic core reads `strategy/research_priorities.md` before market discovery.
-- [ ] Implement human review queue writer.
+- [x] Implement human review queue writer.
   - Description: orchestrator and quality reviewer can add approval items without mixing them into the input queue.
-- [ ] Implement manual run path.
-  - Description: allow Codex to trigger one-off research runs and save artifacts under `agents/runs/YYYY-MM-DD_manual-*`.
+- [x] Implement manual run manifest path.
+  - Description: allow Codex to create one-off manual run manifests under `agents/runs/YYYY-MM-DD_manual-*`.
+
+## Priority 2 Outputs
+
+- `python -m stock_research route-request "..."`
+- Stock requests can create monitoring CSV rows and company stubs.
+- Industry/theme requests can create market research files and research priority rows.
+- Strategy/status move requests can create human review queue items.
+- Manual run requests can create manual run manifests.
 
 ## Priority 3: Deterministic Core
 
-- [ ] Implement repo state loader.
+- [x] Implement repo state loader.
   - Description: read CSVs, category state files, company files, strategy files, scratchpads, plan files, and memory.
-- [ ] Implement schema validator.
+- [x] Implement schema validator.
   - Description: validate CSV columns, dates, paths, status values, and cooldown fields.
-- [ ] Implement stale-data scanner.
+- [x] Implement stale-data scanner.
   - Description: detect old company files, stale prices, missing filing checks, and old category state.
-- [ ] Implement rejected cooldown checker.
+- [x] Implement rejected cooldown checker.
   - Description: suppress rejected candidates until 6 weeks after rejection.
-- [ ] Implement weekly run manifest.
+- [x] Implement weekly run manifest.
   - Description: generate Saturday run plan with tracked stocks, industries, providers, human input queue items, research priorities, tasks, and expected outputs.
-- [ ] Implement run artifact storage.
+- [x] Implement run artifact storage.
   - Description: save each run under `agents/runs/YYYY-MM-DD_run-id/`.
+
+## Priority 3 Outputs
+
+- `stock_research/`: deterministic Python package.
+- `python -m stock_research summary`
+- `python -m stock_research validate`
+- `python -m stock_research stale`
+- `python -m stock_research manifest`
+- `python -m stock_research classify-request "..."`
+- `python -m stock_research add-request "..."`
+- `README.md`
+- `SETUP.md`
+- `tests/`
 
 ## Priority 4: Provider and Tool Layer
 
-- [ ] Implement source normalization.
+- [x] Implement source normalization and evidence packet schema.
   - Description: every provider result becomes a consistent source object with URL, publisher, date, accessed_at, provider, and confidence notes.
-- [ ] Implement SEC EDGAR tool.
-  - Description: US filings, submissions, and XBRL facts.
+- [x] Implement evidence packet artifact writer.
+  - Description: store provider-neutral evidence packets under `agents/runs/{run_id}/evidence_packets/`.
+- [x] Implement SEC EDGAR tool.
+  - Description: US filings, submissions, and XBRL facts. Live AAPL smoke test passed on 2026-05-03.
 - [ ] Implement Exa tools.
   - Description: company news, industry research, market discovery.
 - [ ] Implement X.com tools.
@@ -122,10 +145,23 @@ This is the clear task backlog for building the stock tracking and investment re
 - [ ] Evaluate additional sources.
   - Description: OpenBB, Twelve Data, EODHD, Finnhub, Nasdaq Data Link, FRED, ECB, Eurostat, Companies House, and future ESMA ESAP.
 
+## Priority 4 Outputs
+
+- `stock_research/evidence.py`
+- `stock_research/providers/sec_edgar.py`
+- `docs/descriptions/evidence_schema.md`
+- `docs/descriptions/sec_edgar_provider.md`
+- `python -m stock_research evidence new ...`
+- `python -m stock_research evidence validate ...`
+- `python -m stock_research sec company --ticker TICKER --run-id RUN_ID`
+- `tests/test_evidence.py`
+- `tests/test_sec_edgar_provider.py`
+- Live SEC smoke artifact: `agents/runs/2026-05-09_weekly/evidence_packets/2026-05-03_sec_edgar_company_aapl.json`
+
 ## Priority 5: Specialist Agents
 
-- [ ] Define evidence packet schema.
-  - Description: Pydantic model for all specialist outputs.
+- [x] Define evidence packet schema.
+  - Description: provider-neutral schema for all specialist outputs; currently implemented with stdlib dataclasses.
 - [ ] Build company news specialist.
 - [ ] Build SEC filing specialist.
 - [ ] Build financial data specialist.

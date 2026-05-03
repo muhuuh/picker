@@ -33,23 +33,25 @@ Detailed backlog: `docs/plans/investment_agent_backlog.md`.
 
 ## Priority 2: Build Deterministic Core
 
-- [ ] Implement human input queue loader.
-- [ ] Implement research priorities loader.
-- [ ] Include human-request items in weekly run manifest generation.
-- [ ] Include human review queue in repo state loading.
+- [x] Implement human input queue loader.
+- [x] Implement research priorities loader.
+- [x] Include human-request items in weekly run manifest generation.
+- [x] Include human review queue in repo state loading.
 
-- [ ] Implement repo state loader.
-- [ ] Implement CSV schema validator.
-- [ ] Implement stock-info file indexer.
-- [ ] Implement stale-data scanner.
-- [ ] Implement rejected-stock 6-week cooldown checker.
-- [ ] Implement run manifest generation.
-- [ ] Implement run artifact persistence under `agents/runs/`.
-- [ ] Add tests for file discovery, CSV validation, and manifest generation.
+- [x] Implement repo state loader.
+- [x] Implement CSV schema validator.
+- [x] Implement stock-info file indexer.
+- [x] Implement stale-data scanner.
+- [x] Implement rejected-stock 6-week cooldown checker.
+- [x] Implement run manifest generation.
+- [x] Implement run artifact persistence under `agents/runs/`.
+- [x] Add tests for file discovery, CSV validation, and manifest generation.
 
 ## Priority 3: Build Data Tools
 
-- [ ] Implement SEC EDGAR submissions and XBRL fetch tools.
+- [x] Implement provider-neutral evidence packet schema.
+- [x] Implement evidence packet JSON artifact writer.
+- [x] Implement and live-smoke-test SEC EDGAR submissions and XBRL fetch tools.
 - [ ] Implement market data tool for prices and ratios.
 - [ ] Implement Exa company and industry search tools.
 - [ ] Implement X.com stock sentiment tool.
@@ -60,7 +62,7 @@ Detailed backlog: `docs/plans/investment_agent_backlog.md`.
 
 ## Priority 4: Build Agents
 
-- [ ] Implement evidence packet Pydantic schemas.
+- [x] Implement evidence packet schemas.
 - [ ] Implement human request triage specialist.
 - [ ] Implement company news specialist.
 - [ ] Implement SEC filing specialist.
@@ -80,13 +82,13 @@ Detailed backlog: `docs/plans/investment_agent_backlog.md`.
 ## Priority 5: Build Orchestration
 
 - [ ] Implement scheduled runner.
-- [ ] Implement Codex chat intake routing for user requests.
+- [x] Implement deterministic Codex chat intake routing for user requests.
 - [ ] Implement market research sub-orchestrator.
 - [ ] Implement company research sub-orchestrator.
 - [ ] Implement portfolio review sub-orchestrator.
 - [ ] Implement main orchestrator synthesis.
-- [ ] Implement human review queue.
-- [ ] Implement manual run path for immediate user-requested research.
+- [x] Implement human review queue writer.
+- [x] Implement manual run manifest path for immediate user-requested research.
 - [ ] Implement final run summary.
 - [ ] Add tracing IDs and run metrics to artifacts.
 
@@ -117,4 +119,9 @@ Detailed backlog: `docs/plans/investment_agent_backlog.md`.
 - 2026-04-30: User confirmed US and Europe scope, alert + discovery goals, initial provider set, Saturday weekly cadence, and 6-week rejected-stock cooldown.
 - 2026-04-30: Completed Priority 1 repo templates and file conventions.
 - 2026-05-03: Added human-to-system intake layer with Codex chat as primary interface, human input queue, repo map, research priorities, and human review queue.
+- 2026-05-03: Added stdlib-only `stock_research` deterministic core, CLI, README, SETUP, and unit tests.
+- 2026-05-03: Added deterministic request router for human intake requests.
+- 2026-05-03: Added provider-neutral source/evidence packet schema and evidence packet CLI.
+- 2026-05-03: Added SEC EDGAR provider integration. Live use requires `SEC_USER_AGENT` or `--user-agent`, no API key.
+- 2026-05-03: Live SEC smoke test passed for AAPL and wrote a validated evidence packet. Added compressed-response handling for SEC JSON responses.
 - 2026-05-03: Started SDK/framework review before agent runtime work. Current finding: Cursor SDK is likely a coding-agent automation adjunct, not the core stock-research orchestration runtime; OpenAI Agents SDK, Pydantic AI, and LangGraph remain the main candidates.

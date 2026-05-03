@@ -55,3 +55,28 @@ Use this file for information we should not lose across sessions.
   - decision/fact: The repo is published to GitHub at `https://github.com/muhuuh/picker` with `main` as the tracked branch. Local `.env` files are ignored and should not be committed.
   - evidence artifact path(s): `.gitignore`, `docs/scratchpads/github_publish_scratchpad.md`
   - status: active
+
+- 2026-05-03:
+  - decision/fact: A stdlib-only Python deterministic core now exists under `stock_research/`. It can summarize repo state, validate CSV schemas, load human requests/research priorities/review queue, classify and queue human requests, scan stale rows, summarize rejected cooldowns, and generate weekly manifests.
+  - evidence artifact path(s): `stock_research/`, `README.md`, `SETUP.md`, `tests/`
+  - status: active
+
+- 2026-05-03:
+  - decision/fact: Human request routing is implemented in `stock_research.router`. The CLI can now append and route requests into durable artifacts with `python -m stock_research route-request "..."`.
+  - evidence artifact path(s): `stock_research/router.py`, `stock_research/cli.py`, `tests/test_request_router.py`, `README.md`, `SETUP.md`
+  - status: active
+
+- 2026-05-03:
+  - decision/fact: Provider-neutral source and evidence packet schemas are implemented in `stock_research.evidence`. Future provider tools should output this schema and store packets under `agents/runs/{run_id}/evidence_packets/`.
+  - evidence artifact path(s): `stock_research/evidence.py`, `docs/descriptions/evidence_schema.md`, `tests/test_evidence.py`, `README.md`, `SETUP.md`
+  - status: active
+
+- 2026-05-03:
+  - decision/fact: SEC EDGAR is the first provider integration. It uses official SEC JSON APIs, needs no API key, and requires a declared `User-Agent` via `SEC_USER_AGENT`, `STOCK_RESEARCH_SEC_USER_AGENT`, or `--user-agent`.
+  - evidence artifact path(s): `stock_research/providers/sec_edgar.py`, `docs/descriptions/sec_edgar_provider.md`, `.env.example`, `tests/test_sec_edgar_provider.py`
+  - status: active
+
+- 2026-05-03:
+  - decision/fact: SEC EDGAR live smoke test passed for AAPL after adding compressed-response handling. The run wrote raw submissions JSON and a provider-neutral evidence packet.
+  - evidence artifact path(s): `agents/runs/2026-05-09_weekly/raw/sec_edgar/AAPL_submissions.json`, `agents/runs/2026-05-09_weekly/evidence_packets/2026-05-03_sec_edgar_company_aapl.json`, `stock_research/providers/sec_edgar.py`, `tests/test_sec_edgar_provider.py`
+  - status: active

@@ -102,6 +102,12 @@ The stock tracking templates and starter files were created on 2026-04-30.
 
 The human interaction intake layer was added on 2026-05-03.
 
+The initial deterministic Python core was added on 2026-05-03 under `stock_research/`.
+
+The provider-neutral evidence schema was added on 2026-05-03 under `stock_research/evidence.py` and `docs/descriptions/evidence_schema.md`.
+
+The first provider integration, SEC EDGAR, was added on 2026-05-03 under `stock_research/providers/sec_edgar.py`.
+
 ## Human Interaction Layer
 
 The user should normally interact with this repo through Codex chat, not by manually editing files.
@@ -190,6 +196,13 @@ These are code-driven steps, not open-ended reasoning:
 - Filing availability checker.
 - Market calendar and earnings calendar checker.
 - Rejected-stock cooldown checker.
+
+Current implementation status:
+
+- Implemented: repo state loader, CSV schema validator, stock-info file indexer, human input queue loader, research priorities loader, human review queue loader, stale-data scanner, rejected-stock cooldown summary, weekly manifest generator.
+- Implemented: deterministic request classifier, human input queue appender, request router, human review queue writer, and manual run manifest creation.
+- Implemented provider: SEC EDGAR submissions and optional companyfacts evidence packet writer.
+- Pending: Exa, X.com/xAI, market-data providers, LLM specialists, orchestrator runtime, scheduled execution, immediate manual research runs.
 
 ### Layer 2: Specialist research agents
 
@@ -359,12 +372,21 @@ Every specialist should return a structured packet with:
 - `recommended_updates`: target_file, update_type, summary, needs_human_review.
 - `unknowns`: concrete missing facts or source gaps.
 
+Implementation status:
+
+- Implemented in `stock_research/evidence.py`.
+- Stored as JSON under `agents/runs/{run_id}/evidence_packets/{packet_id}.json`.
+- CLI support:
+  - `python -m stock_research evidence new ...`
+  - `python -m stock_research evidence validate ...`
+- Full schema description: `docs/descriptions/evidence_schema.md`.
+
 ## Tooling Proposal
 
 Initial Python implementation:
 
 - OpenAI Agents SDK for orchestrator and specialists. Status 2026-05-03: still a candidate, not locked; compare against Pydantic AI and LangGraph before Priority 4 agent implementation.
-- Pydantic for evidence packet schemas.
+- Current evidence schemas use stdlib dataclasses in `stock_research/evidence.py`; Pydantic can be introduced later if runtime agent integrations need stricter model validation.
 - Pandas or Python CSV module for overview CSV validation.
 - Approved initial providers: Exa, X.com, SEC, yfinance, FMP, Polygon, and Alpha Vantage.
 - SEC EDGAR official APIs for US filings and XBRL data.

@@ -10,6 +10,8 @@ This file tells Codex, the orchestrator, and future agents where to find and upd
 
 - `AGENTS.md`: repo-wide workflow rules.
 - `MEMORY.md`: durable decisions and high-impact facts.
+- `README.md`: current repo purpose, commands, and implementation status.
+- `SETUP.md`: local setup and verification commands.
 - `docs/descriptions/`: architecture and behavior descriptions.
 - `docs/scratchpads/`: short topic memory.
 - `docs/plans/`: backlog, plans, and human input queue.
@@ -49,12 +51,29 @@ This file tells Codex, the orchestrator, and future agents where to find and upd
 ## Agent Architecture
 
 - `docs/descriptions/investment_agent_workflow.md`: full planned automated workflow.
+- `docs/descriptions/evidence_schema.md`: shared source/evidence packet schema for all providers and specialists.
+- `docs/descriptions/sec_edgar_provider.md`: SEC EDGAR provider behavior and setup.
 - `docs/plans/investment_agent_backlog.md`: prioritized implementation backlog.
 - `docs/plans/investment_agent_workflow_plan.md`: high-level implementation plan.
 - `agents/orchestrator/`: future main orchestrator implementation.
 - `agents/specialists/`: future specialist agent implementations.
 - `agents/runs/`: future run artifacts.
 - `agents/memory/`: future operational agent memory.
+
+## Runtime Tooling
+
+- `stock_research/`: stdlib-only deterministic Python core.
+- `python -m stock_research summary`: print repo state summary.
+- `python -m stock_research validate`: validate CSV schemas and required files.
+- `python -m stock_research stale`: scan stock rows for stale dates.
+- `python -m stock_research manifest`: generate weekly run manifest.
+- `python -m stock_research classify-request "..."`
+- `python -m stock_research add-request "..."`
+- `python -m stock_research route-request "..."`: append and route a user request into target repo artifacts.
+- `python -m stock_research evidence new ...`: create a provider-neutral evidence packet.
+- `python -m stock_research evidence validate ...`: validate an evidence packet.
+- `python -m stock_research sec company --ticker TICKER --run-id RUN_ID`: fetch SEC submissions into evidence artifacts.
+- `tests/`: unit tests for current deterministic core.
 
 ## Where To Put Common User Requests
 

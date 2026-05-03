@@ -29,6 +29,28 @@ Manual file edits are allowed, but the normal path should be chat first.
    - performs immediate manual research if asked,
    - or asks for clarification when the request cannot be safely routed.
 
+## Current Implementation
+
+The deterministic Python core can classify and queue human requests:
+
+```powershell
+python -m stock_research classify-request "Research ASML, TSM, AMD, and SAP"
+python -m stock_research add-request "Look into European grid infrastructure suppliers" --priority high
+python -m stock_research route-request "Research ASML, TSM, AMD, and SAP" --priority high
+```
+
+The current classifier and router are keyword-based and deterministic. They are useful for intake plumbing, but they are not a replacement for a future specialist triage agent.
+
+Current routing behavior:
+
+- stock research: adds monitoring CSV rows and creates company stub files,
+- industry research: creates an industry research file and adds a research priority,
+- theme tracking: creates a theme research file and adds a research priority,
+- strategy change: appends a strategy input and creates a human review item,
+- alert review: records the request only,
+- manual run: creates a manual run manifest,
+- stock status move: creates a human review item instead of moving the stock automatically.
+
 ## Two Separate Queues
 
 ### Human Input Queue

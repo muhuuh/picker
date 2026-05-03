@@ -1,0 +1,50 @@
+{
+  "claims": [
+    {
+      "claim": "AAPL SEC submissions were retrieved.",
+      "confidence": "high",
+      "evidence": "Company name: Apple Inc.; CIK: 0000320193; exchange: Nasdaq.",
+      "impact": "medium",
+      "novelty": "new",
+      "source_ids": [
+        "sec_submissions"
+      ]
+    },
+    {
+      "claim": "Latest SEC filing forms for AAPL: 10-Q filed 2026-05-01, 8-K filed 2026-04-30, SCHEDULE 13G filed 2026-04-29, 4 filed 2026-04-27, 144 filed 2026-04-23.",
+      "confidence": "high",
+      "evidence": "[{\"accessionNumber\": \"0000320193-26-000013\", \"filingDate\": \"2026-05-01\", \"filingUrl\": \"https://www.sec.gov/Archives/edgar/data/320193/000032019326000013/aapl-20260328.htm\", \"form\": \"10-Q\", \"primaryDocument\": \"aapl-20260328.htm\", \"reportDate\": \"2026-03-28\"}, {\"accessionNumber\": \"0000320193-26-000011\", \"filingDate\": \"2026-04-30\", \"filingUrl\": \"https://www.sec.gov/Archives/edgar/data/320193/000032019326000011/aapl-20260430.htm\", \"form\": \"8-K\", \"primaryDocument\": \"aapl-20260430.htm\", \"reportDate\": \"2026-04-30\"}, {\"accessionNumber\": \"0002100119-26-000139\", \"filingDate\": \"2026-04-29\", \"filingUrl\": \"https://www.sec.gov/Archives/edgar/data/2100119/000210011926000139/xslSCHEDULE_13G_X02/primary_doc.xml\", \"form\": \"SCHEDULE 13G\", \"primaryDocument\": \"xslSCHEDULE_13G_X02/primary_doc.xml\", \"reportDate\": \"\"}, {\"accessionNumber\": \"0001140361-26-017175\", \"filingDate\": \"2026-04-27\", \"filingUrl\": \"https://www.sec.gov/Archives/edgar/data/1140361/000114036126017175/xslF345X06/form4.xml\", \"form\": \"4\", \"primaryDocument\": \"xslF345X06/form4.xml\", \"reportDate\": \"2026-04-23\"}, {\"accessionNumber\": \"0001950047-26-003721\", \"filingDate\": \"2026-04-23\", \"filingUrl\": \"https://www.sec.gov/Archives/edgar/data/1950047/000195004726003721/xsl144X01/primary_doc.xml\", \"form\": \"144\", \"primaryDocument\": \"xsl144X01/primary_doc.xml\", \"reportDate\": \"\"}]",
+      "impact": "medium",
+      "novelty": "new",
+      "source_ids": [
+        "sec_submissions"
+      ]
+    }
+  ],
+  "contradictions": [],
+  "created_at": "2026-05-03T00:00:00",
+  "notes": "SEC EDGAR API requires no API key, but requests must declare a User-Agent.",
+  "packet_id": "2026-05-03_sec_edgar_company_aapl",
+  "provider": "sec_edgar",
+  "raw_artifact_path": "C:/Users/valen/Documents/Code/stocks/agents/runs/2026-05-09_weekly/raw/sec_edgar/AAPL_submissions.json",
+  "recommended_updates": [],
+  "risks": [],
+  "sources": [
+    {
+      "accessed_at": "2026-05-03",
+      "artifact_path": "C:/Users/valen/Documents/Code/stocks/agents/runs/2026-05-09_weekly/raw/sec_edgar/AAPL_submissions.json",
+      "notes": "CIK 0000320193; exchange Nasdaq",
+      "provider": "sec_edgar",
+      "published_at": "",
+      "publisher": "U.S. Securities and Exchange Commission",
+      "source_id": "sec_submissions",
+      "source_type": "filing",
+      "title": "SEC submissions for AAPL",
+      "url": "https://data.sec.gov/submissions/CIK0000320193.json"
+    }
+  ],
+  "subject_id": "AAPL",
+  "subject_type": "company",
+  "time_window": "latest_10_filings",
+  "unknowns": []
+}
