@@ -9,6 +9,7 @@ from .config import get_config_value
 from .evidence import default_packet_path, new_packet, read_packet, validate_packet, write_packet
 from .human import append_human_request, classify_request
 from .manifest import build_weekly_manifest, write_manifest
+from .provider_runner import read_manifest, run_provider_tasks
 from .providers.exa import (
     ExaContentsOptions,
     ExaError,
@@ -124,6 +125,14 @@ def main(argv: list[str] | None = None) -> int:
     exa_contents.add_argument("--livecrawl-timeout", type=int, default=12000)
     exa_contents.add_argument("--api-key", help="Exa API key. Or set EXA_API_KEY.")
     exa_contents.add_argument("--today", help="Override current date as YYYY-MM-DD.")
+
+    provider_tasks = subparsers.add_parser("provider-tasks", help="Dry-run or execute provider tasks from a manifest.")
+    provider_tasks.add_argument("--manifest", type=Path, required=True)
+    provider_tasks.add_argument("--execute", action="store_true", help="Execute tasks. Omit for safe dry-run.")
+    provider_tasks.add_argument("--provider", action="append", default=[], help="Filter provider. Repeatable.")
+    provider_tasks.add_argument("--task-id", action="append", default=[], help="Filter task id. Repeatable.")
+    provider_tasks.add_argument("--limit", type=int)
+    provider_tasks.add_argument("--today", help="Override current date as YYYY-MM-DD.")
 
     args = parser.parse_args(argv)
     state = load_repo_state(args.root)
@@ -297,6 +306,21 @@ def main(argv: list[str] | None = None) -> int:
             return 1
         print(json.dumps({"packet_id": packet.packet_id, "paths": [str(path) for path in paths]}, indent=2))
         return 0
+
+    if args.command == "provider-tasks":
+        request_date = parse_cli_date(args.today)
+        manifest = read_manifest(args.manifest)
+        result = run_provider_tasks(
+            root=state.root,
+            manifest=manifest,
+            execute=args.execute,
+            providers=set(args.provider) if args.provider else None,
+            task_ids=set(args.task_id) if args.task_id else None,
+            limit=args.limit,
+            current_date=request_date,
+        )
+        print(json.dumps(result, indent=2, sort_keys=True))
+        return 0 if not result["errors"] else 1
 
     return 1
 

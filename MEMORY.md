@@ -85,3 +85,13 @@ Use this file for information we should not lose across sessions.
   - decision/fact: yfinance and Exa provider tools are implemented. yfinance live smoke test passed for AAPL. Exa search and contents live smoke tests passed after adding explicit `User-Agent` and `Accept` headers.
   - evidence artifact path(s): `stock_research/providers/yfinance_provider.py`, `stock_research/providers/exa.py`, `docs/descriptions/yfinance_provider.md`, `docs/descriptions/exa_provider.md`, `agents/runs/2026-05-09_weekly/evidence_packets/2026-05-03_yfinance_company_aapl.json`, `agents/runs/2026-05-09_weekly/evidence_packets/2026-05-03_exa_industry_semiconductors.json`, `agents/runs/2026-05-09_weekly/evidence_packets/2026-05-03_exa_theme_sec_edgar_docs.json`
   - status: active
+
+- 2026-05-03:
+  - decision/fact: Exa should be used both as a default deterministic weekly kickoff gatherer and as a callable provider tool for later specialist agents. Weekly kickoff should use Exa news for current holdings and monitoring stocks, industry/general/company search for research priorities and human input queue items, and contents extraction for high-value result follow-up.
+  - evidence artifact path(s): `docs/descriptions/exa_provider.md`, `docs/descriptions/investment_agent_workflow.md`, `docs/plans/investment_agent_backlog.md`, `docs/scratchpads/agent_orchestration_scratchpad.md`
+  - status: active
+
+- 2026-05-03:
+  - decision/fact: Weekly manifests now include deterministic `provider_tasks` for SEC, yfinance, and Exa. A dry-run-by-default provider task runner can inspect or explicitly execute those tasks with `python -m stock_research provider-tasks --manifest PATH [--execute]`.
+  - evidence artifact path(s): `stock_research/manifest.py`, `stock_research/provider_runner.py`, `stock_research/cli.py`, `tests/test_stock_research_core.py`, `tests/test_provider_runner.py`, `agents/runs/2026-05-09_weekly/manifest.json`
+  - status: active

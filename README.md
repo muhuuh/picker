@@ -38,6 +38,18 @@ Write a weekly manifest:
 python -m stock_research manifest --write
 ```
 
+Dry-run planned provider tasks from a manifest:
+
+```powershell
+python -m stock_research provider-tasks --manifest agents\runs\2026-05-09_weekly\manifest.json
+```
+
+Execute planned provider tasks explicitly:
+
+```powershell
+python -m stock_research provider-tasks --manifest agents\runs\2026-05-09_weekly\manifest.json --execute
+```
+
 Classify a natural-language user request:
 
 ```powershell
@@ -106,6 +118,7 @@ Implemented:
 - rejected-stock cooldown summary,
 - stale-data scanner,
 - weekly run manifest generator,
+- deterministic provider-task planner and dry-run-by-default provider task runner,
 - deterministic human request classifier and queue appender.
 - deterministic request router for stock, industry, theme, strategy, alert-review, manual-run, and status-move requests.
 - provider-neutral evidence packet schema and JSON artifact writer.
@@ -118,5 +131,5 @@ Not implemented yet:
 - X.com/xAI, FMP, Polygon, Alpha Vantage, and macro provider integrations,
 - LLM specialist agents,
 - orchestrator runtime,
-- automated scheduled execution,
+- OS/app scheduled execution,
 - immediate research runs.

@@ -38,6 +38,39 @@ Reason:
 - Specialists can later call the same Exa tools for company news, industry research, market discovery, and content extraction.
 - The orchestrator can compare Exa packets with SEC, yfinance, FMP, Polygon, Alpha Vantage, and X.com packets.
 
+## Default Workflow Usage
+
+Exa should be used in two places:
+
+1. Deterministic weekly kickoff.
+2. Specialist-agent follow-up.
+
+Default weekly kickoff should run Exa before orchestrator synthesis:
+
+- Current holdings: use `news` mode for recent company-specific developments; use `contents` for high-value articles.
+- Monitoring stocks: use `news` mode with lower result counts unless the stock is high priority; use `contents` when the highlights show material impact.
+- Research priorities: use `industry` or `general` mode for themes, technologies, industries, and macro-relevant developments.
+- Candidate discovery: use `company` mode for industry/theme searches where the goal is to surface public companies.
+- Human input queue: route by request type:
+  - specific stock research -> `news` plus optional `contents`;
+  - industry request -> `industry` plus `company`;
+  - technology/theme request -> `general` plus `news`;
+  - discovery request -> `company` plus `general`.
+
+This is now represented in weekly manifest `provider_tasks`. The provider task runner can inspect or execute those tasks:
+
+```powershell
+python -m stock_research provider-tasks --manifest agents\runs\2026-05-09_weekly\manifest.json --provider exa
+```
+
+Specialist-agent selection rules:
+
+- Company news specialist: `news`, then `contents` for top relevant results.
+- Industry research specialist: `industry`, `news`, then `contents` for primary or high-signal sources.
+- Discovery specialist: `company`, then `general` for context and validation.
+- Theme specialist: `general` and `news`.
+- Risk/contradiction specialist: `general` with source/domain filters, then `contents`.
+
 ## Exa Best Practices Applied
 
 - Use `POST https://api.exa.ai/search` and `POST https://api.exa.ai/contents` directly with raw JSON.

@@ -137,4 +137,16 @@ The default output path is:
 agents/runs/YYYY-MM-DD_weekly/manifest.json
 ```
 
+Inspect planned provider tasks without making live API calls:
+
+```powershell
+python -m stock_research provider-tasks --manifest agents\runs\2026-05-09_weekly\manifest.json
+```
+
+Execute planned provider tasks:
+
+```powershell
+python -m stock_research provider-tasks --manifest agents\runs\2026-05-09_weekly\manifest.json --execute
+```
+
 Run artifacts are intended to be inspectable repo state. Review them before committing if they contain noisy or temporary output.

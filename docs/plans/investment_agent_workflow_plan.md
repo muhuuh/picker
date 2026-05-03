@@ -45,6 +45,8 @@ Detailed backlog: `docs/plans/investment_agent_backlog.md`.
 - [x] Implement rejected-stock 6-week cooldown checker.
 - [x] Implement run manifest generation.
 - [x] Implement run artifact persistence under `agents/runs/`.
+- [x] Add deterministic provider tasks to weekly manifests.
+- [x] Add dry-run-by-default provider task runner.
 - [x] Add tests for file discovery, CSV validation, and manifest generation.
 
 ## Priority 3: Build Data Tools
@@ -125,4 +127,5 @@ Detailed backlog: `docs/plans/investment_agent_backlog.md`.
 - 2026-05-03: Added SEC EDGAR provider integration. Live use requires `SEC_USER_AGENT` or `--user-agent`, no API key.
 - 2026-05-03: Live SEC smoke test passed for AAPL and wrote a validated evidence packet. Added compressed-response handling for SEC JSON responses.
 - 2026-05-03: Added yfinance and Exa provider tools. Exa was implemented after reviewing the requested current Exa search/company/news/contents docs, with highlights-first search and separate contents extraction.
+- 2026-05-03: Weekly manifests now include deterministic provider tasks for SEC, yfinance, and Exa. Added a provider task runner that dry-runs by default and can execute tasks explicitly.
 - 2026-05-03: Started SDK/framework review before agent runtime work. Current finding: Cursor SDK is likely a coding-agent automation adjunct, not the core stock-research orchestration runtime; OpenAI Agents SDK, Pydantic AI, and LangGraph remain the main candidates.

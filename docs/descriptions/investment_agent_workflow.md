@@ -195,6 +195,12 @@ These are code-driven steps, not open-ended reasoning:
 - Human review queue loader.
 - Source freshness checker.
 - Filing availability checker.
+- Default Exa gatherers:
+  - holdings/monitoring company news,
+  - industry/theme research-priority scans,
+  - company discovery for relevant themes and industries,
+  - human input queue research routing,
+  - contents extraction for high-value search results.
 - Market calendar and earnings calendar checker.
 - Rejected-stock cooldown checker.
 
@@ -203,7 +209,8 @@ Current implementation status:
 - Implemented: repo state loader, CSV schema validator, stock-info file indexer, human input queue loader, research priorities loader, human review queue loader, stale-data scanner, rejected-stock cooldown summary, weekly manifest generator.
 - Implemented: deterministic request classifier, human input queue appender, request router, human review queue writer, and manual run manifest creation.
 - Implemented providers: SEC EDGAR submissions and optional companyfacts evidence packet writer, yfinance market-data snapshots, and Exa search/contents evidence packet writers.
-- Pending: X.com/xAI, FMP, Polygon, Alpha Vantage, macro providers, LLM specialists, orchestrator runtime, scheduled execution, immediate manual research runs.
+- Implemented: weekly manifests now include deterministic provider tasks, and `provider-tasks` can dry-run or explicitly execute those provider tasks.
+- Pending: X.com/xAI, FMP, Polygon, Alpha Vantage, macro providers, LLM specialists, orchestrator runtime, OS/app scheduled execution, immediate manual research runs.
 
 ### Layer 2: Specialist research agents
 
@@ -219,6 +226,14 @@ These agents return structured evidence packets:
 - Discovery specialist: new candidate stocks from industries, filings, news, and community chatter.
 - Alert specialist: converts evidence into tracked-stock change alerts and new-candidate discovery alerts.
 - Risk and contradiction specialist: checks whether new evidence conflicts with the current thesis.
+
+Exa specialist tool selection:
+
+- Company news specialist should use Exa `news`, then Exa `contents` for high-value result follow-up.
+- Industry research specialist should use Exa `industry` and `news`, then `contents` for primary or high-signal sources.
+- Discovery specialist should use Exa `company`, then `general` for context and validation.
+- Theme specialist should use Exa `general` and `news`.
+- Risk/contradiction specialist should use Exa `general` with source/domain filters, then `contents`.
 
 ### Layer 3: Sub-orchestrators
 
@@ -354,6 +369,7 @@ Proposed implementation folder: `agents/runs/YYYY-MM-DD_run-id/`.
 Store:
 
 - `manifest.json`: tickers, industries, tasks, tools enabled, schedule mode.
+- `provider_tasks`: deterministic SEC, yfinance, Exa, and future provider calls planned for kickoff.
 - `evidence_packets/*.json`: structured specialist outputs.
 - `run_summary.md`: final synthesis and updates made.
 - `quality_report.md`: citation and consistency checks.
@@ -381,6 +397,24 @@ Implementation status:
   - `python -m stock_research evidence new ...`
   - `python -m stock_research evidence validate ...`
 - Full schema description: `docs/descriptions/evidence_schema.md`.
+
+## Provider Task Runner
+
+Weekly manifests include `provider_tasks`, which are concrete deterministic provider calls to run before orchestrator synthesis.
+
+Current command:
+
+```powershell
+python -m stock_research provider-tasks --manifest agents\runs\2026-05-09_weekly\manifest.json
+```
+
+The command is dry-run by default. Live provider calls require:
+
+```powershell
+python -m stock_research provider-tasks --manifest agents\runs\2026-05-09_weekly\manifest.json --execute
+```
+
+Use `--provider`, `--task-id`, and `--limit` to inspect or execute a subset.
 
 ## Tooling Proposal
 

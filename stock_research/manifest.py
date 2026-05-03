@@ -10,6 +10,7 @@ from .validation import parse_date
 
 
 ACTIVE_HUMAN_REQUEST_STATUSES = {"new", "triaged", "queued_for_weekly_run", "in_progress"}
+TRACKED_STOCK_TABLES = ("current_holdings", "monitoring")
 
 
 def build_weekly_manifest(state: RepoState, today: date | None = None) -> dict[str, Any]:
@@ -40,6 +41,7 @@ def build_weekly_manifest(state: RepoState, today: date | None = None) -> dict[s
         "tracked_tickers": tracked_tickers(state),
         "cooldown": rejected_cooldown_summary(state, current_date),
         "tasks": build_tasks(human_requests, priorities),
+        "provider_tasks": build_provider_tasks(state, human_requests, priorities, run_date),
         "outputs": {
             "run_summary": f"agents/runs/{run_date.isoformat()}_weekly/run_summary.md",
             "quality_report": f"agents/runs/{run_date.isoformat()}_weekly/quality_report.md",
@@ -138,3 +140,330 @@ def build_tasks(human_requests: list[dict[str, str]], priorities: list[dict[str,
             }
         )
     return tasks
+
+
+def build_provider_tasks(
+    state: RepoState,
+    human_requests: list[dict[str, str]],
+    priorities: list[dict[str, str]],
+    run_date: date,
+) -> list[dict[str, Any]]:
+    run_id = f"{run_date.isoformat()}_weekly"
+    tasks: list[dict[str, Any]] = []
+    seen_task_ids: set[str] = set()
+
+    for bucket in TRACKED_STOCK_TABLES:
+        for row in state.stock_tables[bucket].rows:
+            ticker = normalize_ticker(row.get("ticker", ""))
+            if not ticker:
+                continue
+            company = row.get("company_name", "").strip()
+            label = company_label(ticker, company)
+            add_task(
+                tasks,
+                seen_task_ids,
+                provider_task(
+                    task_id=f"yfinance_company_{slugify(ticker)}",
+                    provider="yfinance",
+                    tool="company",
+                    subject_type="company",
+                    subject_id=ticker,
+                    args={"ticker": ticker, "run_id": run_id, "period": "5d"},
+                    reason=f"Weekly market-data snapshot for {bucket} ticker {label}.",
+                    priority="high" if bucket == "current_holdings" else "medium",
+                    source_bucket=bucket,
+                ),
+            )
+            if is_sec_candidate(row):
+                add_task(
+                    tasks,
+                    seen_task_ids,
+                    provider_task(
+                        task_id=f"sec_company_{slugify(ticker)}",
+                        provider="sec_edgar",
+                        tool="company",
+                        subject_type="company",
+                        subject_id=ticker,
+                        args={"ticker": ticker, "run_id": run_id, "include_facts": False},
+                        reason=f"Weekly SEC filings check for {bucket} ticker {label}.",
+                        priority="high" if bucket == "current_holdings" else "medium",
+                        source_bucket=bucket,
+                        conditions=["Run only if the ticker resolves in SEC company tickers."],
+                    ),
+                )
+            add_task(
+                tasks,
+                seen_task_ids,
+                provider_task(
+                    task_id=f"exa_news_company_{slugify(ticker)}",
+                    provider="exa",
+                    tool="search",
+                    subject_type="company",
+                    subject_id=ticker,
+                    args={
+                        "mode": "news",
+                        "query": company_news_query(ticker, company),
+                        "run_id": run_id,
+                        "num_results": 8 if bucket == "current_holdings" else 5,
+                    },
+                    reason=f"Default Exa company-news scan for {bucket} ticker {label}.",
+                    priority="high" if bucket == "current_holdings" else "medium",
+                    source_bucket=bucket,
+                    follow_up=["Use Exa contents on high-value results before orchestrator synthesis."],
+                ),
+            )
+
+    for priority in priorities:
+        topic = priority.get("Topic", "").strip()
+        priority_type = priority.get("Type", "").strip().lower()
+        if not topic:
+            continue
+        subject_type = subject_type_for_priority(priority_type)
+        subject_id = slugify(topic)
+        add_task(
+            tasks,
+            seen_task_ids,
+            provider_task(
+                task_id=f"exa_research_priority_{subject_id}",
+                provider="exa",
+                tool="search",
+                subject_type=subject_type,
+                subject_id=subject_id,
+                args={
+                    "mode": "industry" if subject_type == "industry" else "general",
+                    "query": research_priority_query(priority),
+                    "run_id": run_id,
+                    "num_results": 8,
+                },
+                reason=f"Default Exa scan for active research priority: {topic}.",
+                priority=priority.get("Priority", "").strip().lower() or "medium",
+                source_bucket="research_priorities",
+                follow_up=["Use Exa company search when the priority implies candidate discovery."],
+            ),
+        )
+        add_task(
+            tasks,
+            seen_task_ids,
+            provider_task(
+                task_id=f"exa_discovery_priority_{subject_id}",
+                provider="exa",
+                tool="search",
+                subject_type=subject_type,
+                subject_id=subject_id,
+                args={
+                    "mode": "company",
+                    "query": discovery_query(topic, priority.get("Geography", "")),
+                    "run_id": run_id,
+                    "num_results": 10,
+                },
+                reason=f"Default Exa company-discovery scan for active research priority: {topic}.",
+                priority=priority.get("Priority", "").strip().lower() or "medium",
+                source_bucket="research_priorities",
+            ),
+        )
+
+    for request in human_requests:
+        for task in provider_tasks_for_human_request(request, run_id):
+            add_task(tasks, seen_task_ids, task)
+
+    return tasks
+
+
+def provider_tasks_for_human_request(request: dict[str, str], run_id: str) -> list[dict[str, Any]]:
+    request_id = request.get("ID", "").strip() or "human_request"
+    request_type = request.get("Type", "").strip().lower()
+    request_text = request.get("Request", "").strip()
+    priority = request.get("Priority", "").strip().lower() or "medium"
+    tasks: list[dict[str, Any]] = []
+
+    if request_type == "stock_research":
+        for ticker in split_cell_values(request.get("Tickers", "")):
+            ticker_upper = normalize_ticker(ticker)
+            if not ticker_upper:
+                continue
+            tasks.append(
+                provider_task(
+                    task_id=f"exa_human_{slugify(request_id)}_news_{slugify(ticker_upper)}",
+                    provider="exa",
+                    tool="search",
+                    subject_type="company",
+                    subject_id=ticker_upper,
+                    args={
+                        "mode": "news",
+                        "query": f"{ticker_upper} latest material company news earnings guidance risk stock",
+                        "run_id": run_id,
+                        "num_results": 8,
+                    },
+                    reason=f"Human input queue stock research request {request_id}.",
+                    priority=priority,
+                    source_bucket="human_input_queue",
+                    follow_up=["Use Exa contents for high-value result follow-up."],
+                )
+            )
+    elif request_type == "industry_research":
+        for topic in split_cell_values(request.get("Industries / Themes", "")) or [request_text]:
+            subject_id = slugify(topic)
+            tasks.extend(
+                [
+                    provider_task(
+                        task_id=f"exa_human_{slugify(request_id)}_industry_{subject_id}",
+                        provider="exa",
+                        tool="search",
+                        subject_type="industry",
+                        subject_id=subject_id,
+                        args={"mode": "industry", "query": topic, "run_id": run_id, "num_results": 8},
+                        reason=f"Human input queue industry request {request_id}.",
+                        priority=priority,
+                        source_bucket="human_input_queue",
+                    ),
+                    provider_task(
+                        task_id=f"exa_human_{slugify(request_id)}_company_{subject_id}",
+                        provider="exa",
+                        tool="search",
+                        subject_type="industry",
+                        subject_id=subject_id,
+                        args={"mode": "company", "query": discovery_query(topic, ""), "run_id": run_id, "num_results": 10},
+                        reason=f"Human input queue industry discovery request {request_id}.",
+                        priority=priority,
+                        source_bucket="human_input_queue",
+                    ),
+                ]
+            )
+    elif request_type == "theme_tracking":
+        for topic in split_cell_values(request.get("Industries / Themes", "")) or [request_text]:
+            subject_id = slugify(topic)
+            tasks.extend(
+                [
+                    provider_task(
+                        task_id=f"exa_human_{slugify(request_id)}_general_{subject_id}",
+                        provider="exa",
+                        tool="search",
+                        subject_type="theme",
+                        subject_id=subject_id,
+                        args={"mode": "general", "query": topic, "run_id": run_id, "num_results": 8},
+                        reason=f"Human input queue theme request {request_id}.",
+                        priority=priority,
+                        source_bucket="human_input_queue",
+                    ),
+                    provider_task(
+                        task_id=f"exa_human_{slugify(request_id)}_news_{subject_id}",
+                        provider="exa",
+                        tool="search",
+                        subject_type="theme",
+                        subject_id=subject_id,
+                        args={
+                            "mode": "news",
+                            "query": f"{topic} latest news public companies investment implications",
+                            "run_id": run_id,
+                            "num_results": 8,
+                        },
+                        reason=f"Human input queue theme-news request {request_id}.",
+                        priority=priority,
+                        source_bucket="human_input_queue",
+                    ),
+                ]
+            )
+    return tasks
+
+
+def provider_task(
+    task_id: str,
+    provider: str,
+    tool: str,
+    subject_type: str,
+    subject_id: str,
+    args: dict[str, Any],
+    reason: str,
+    priority: str = "medium",
+    source_bucket: str = "",
+    conditions: list[str] | None = None,
+    follow_up: list[str] | None = None,
+) -> dict[str, Any]:
+    return {
+        "id": task_id,
+        "phase": "deterministic_kickoff",
+        "provider": provider,
+        "tool": tool,
+        "subject_type": subject_type,
+        "subject_id": subject_id,
+        "args": args,
+        "priority": normalize_priority(priority),
+        "source_bucket": source_bucket,
+        "reason": reason,
+        "conditions": conditions or [],
+        "follow_up": follow_up or [],
+        "expected_artifacts": ["raw_provider_json", "evidence_packet"],
+    }
+
+
+def add_task(tasks: list[dict[str, Any]], seen_task_ids: set[str], task: dict[str, Any]) -> None:
+    task_id = task["id"]
+    if task_id in seen_task_ids:
+        return
+    tasks.append(task)
+    seen_task_ids.add(task_id)
+
+
+def normalize_ticker(value: str) -> str:
+    return value.strip().upper()
+
+
+def company_label(ticker: str, company: str) -> str:
+    return f"{ticker} {company}".strip()
+
+
+def company_news_query(ticker: str, company: str) -> str:
+    label = company_label(ticker, company)
+    return f"{label} latest material company news earnings guidance regulation litigation customers stock"
+
+
+def research_priority_query(priority: dict[str, str]) -> str:
+    topic = priority.get("Topic", "").strip()
+    geography = priority.get("Geography", "").strip()
+    reason = priority.get("Why It Matters", "").strip()
+    parts = [topic, geography, reason, "latest developments public companies investment implications"]
+    return " ".join(part for part in parts if part)
+
+
+def discovery_query(topic: str, geography: str) -> str:
+    scope = geography.strip() or "US and Europe"
+    return f"{topic} {scope} public companies listed stocks suppliers competitors high growth investment candidates"
+
+
+def subject_type_for_priority(priority_type: str) -> str:
+    if priority_type in {"industry", "sector"}:
+        return "industry"
+    if priority_type in {"theme", "technology", "geography"}:
+        return "theme"
+    if priority_type == "macro":
+        return "macro"
+    return "theme"
+
+
+def is_sec_candidate(row: dict[str, str]) -> bool:
+    country = row.get("country", "").strip().lower()
+    exchange = row.get("exchange", "").strip().lower()
+    if country in {"us", "usa", "united states", "united states of america"}:
+        return True
+    if exchange in {"nyse", "nasdaq", "amex", "arca", "otc"}:
+        return True
+    return not country and exchange in {"", "nms", "ngm"}
+
+
+def split_cell_values(value: str) -> list[str]:
+    normalized = value.replace(";", ",")
+    return [item.strip().strip("`") for item in normalized.split(",") if item.strip()]
+
+
+def normalize_priority(value: str) -> str:
+    normalized = value.strip().lower()
+    if normalized in {"low", "medium", "high", "urgent"}:
+        return normalized
+    return "medium"
+
+
+def slugify(value: str) -> str:
+    slug = "".join(character.lower() if character.isalnum() else "_" for character in value).strip("_")
+    while "__" in slug:
+        slug = slug.replace("__", "_")
+    return slug or "unknown"

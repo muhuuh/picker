@@ -138,6 +138,8 @@ This is the clear task backlog for building the stock tracking and investment re
   - Description: US filings, submissions, and XBRL facts. Live AAPL smoke test passed on 2026-05-03.
 - [x] Implement Exa tools.
   - Description: company news, industry research, market discovery, and content extraction. Implemented as deterministic provider tools first, to be wrapped by specialists later.
+- [x] Wire default Exa tasks into weekly deterministic kickoff.
+  - Description: holdings/monitoring use Exa news; research priorities use Exa industry/general; discovery uses Exa company; human input queue items route to the relevant Exa modes; high-value results use Exa contents.
 - [ ] Implement X.com tools.
   - Description: stock sentiment and industry sentiment/discovery.
 - [x] Implement market data tools.
@@ -151,6 +153,7 @@ This is the clear task backlog for building the stock tracking and investment re
 - `stock_research/providers/sec_edgar.py`
 - `stock_research/providers/exa.py`
 - `stock_research/providers/yfinance_provider.py`
+- `stock_research/provider_runner.py`
 - `docs/descriptions/evidence_schema.md`
 - `docs/descriptions/sec_edgar_provider.md`
 - `docs/descriptions/exa_provider.md`
@@ -161,23 +164,30 @@ This is the clear task backlog for building the stock tracking and investment re
 - `python -m stock_research yfinance company --ticker TICKER --run-id RUN_ID`
 - `python -m stock_research exa search --query QUERY --subject-type TYPE --subject-id ID --run-id RUN_ID`
 - `python -m stock_research exa contents --url URL --subject-type TYPE --subject-id ID --run-id RUN_ID`
+- `python -m stock_research provider-tasks --manifest PATH`
+- `python -m stock_research provider-tasks --manifest PATH --execute`
 - `tests/test_evidence.py`
 - `tests/test_sec_edgar_provider.py`
 - `tests/test_exa_provider.py`
 - `tests/test_yfinance_provider.py`
+- `tests/test_provider_runner.py`
 - Live SEC smoke artifact: `agents/runs/2026-05-09_weekly/evidence_packets/2026-05-03_sec_edgar_company_aapl.json`
+- Written weekly manifest with provider tasks: `agents/runs/2026-05-09_weekly/manifest.json`
 
 ## Priority 5: Specialist Agents
 
 - [x] Define evidence packet schema.
   - Description: provider-neutral schema for all specialist outputs; currently implemented with stdlib dataclasses.
 - [ ] Build company news specialist.
+  - Description: should call Exa `news`, then Exa `contents` for high-value result follow-up.
 - [ ] Build SEC filing specialist.
 - [ ] Build financial data specialist.
 - [ ] Build X.com stock sentiment specialist.
 - [ ] Build X.com industry sentiment specialist.
 - [ ] Build Exa industry research specialist.
+  - Description: should choose Exa `industry`, `news`, `general`, `company`, and `contents` based on the research goal.
 - [ ] Build discovery specialist.
+  - Description: should use Exa `company` for candidate discovery and Exa `general` for context/validation.
 - [ ] Build tracked-stock alert specialist.
 - [ ] Build new-candidate discovery alert specialist.
 - [ ] Build contradiction and risk specialist.
@@ -190,7 +200,7 @@ This is the clear task backlog for building the stock tracking and investment re
 ## Priority 6: Orchestration
 
 - [ ] Build scheduled runner.
-  - Description: run weekly Saturday by default and support manual runs from the human input queue.
+  - Description: run weekly Saturday by default and support manual runs from the human input queue. Current progress: deterministic manifests and provider-task execution exist; OS/app scheduling and full orchestration still pending.
 - [ ] Build company research sub-orchestrator.
   - Description: coordinates filings, news, financials, sentiment, and risk checks for one ticker.
 - [ ] Build market research sub-orchestrator.

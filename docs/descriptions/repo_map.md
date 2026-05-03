@@ -78,6 +78,8 @@ This file tells Codex, the orchestrator, and future agents where to find and upd
 - `python -m stock_research yfinance company --ticker TICKER --run-id RUN_ID`: fetch yfinance market-data snapshot artifacts.
 - `python -m stock_research exa search --query "..." --subject-type TYPE --subject-id ID --run-id RUN_ID`: run Exa search into evidence artifacts.
 - `python -m stock_research exa contents --url URL --subject-type TYPE --subject-id ID --run-id RUN_ID`: run Exa contents extraction into evidence artifacts.
+- `python -m stock_research provider-tasks --manifest PATH`: dry-run provider tasks from a manifest.
+- `python -m stock_research provider-tasks --manifest PATH --execute`: execute provider tasks from a manifest.
 - `tests/`: unit tests for current deterministic core.
 
 ## Where To Put Common User Requests
