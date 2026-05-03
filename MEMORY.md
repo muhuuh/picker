@@ -50,3 +50,8 @@ Use this file for information we should not lose across sessions.
   - decision/fact: Codex chat is the primary human interface. User ideas should be captured through a human input queue and translated into durable repo state so the automated workflow can pick them up. This is separate from the human review queue for system-generated approval items.
   - evidence artifact path(s): `docs/descriptions/human_interaction_workflow.md`, `docs/descriptions/repo_map.md`, `docs/plans/human_research_requests.md`, `strategy/research_priorities.md`, `agents/human_review_queue.md`
   - status: active
+
+- 2026-05-03:
+  - decision/fact: The repo is published to GitHub at `https://github.com/muhuuh/picker` with `main` as the tracked branch. Local `.env` files are ignored and should not be committed.
+  - evidence artifact path(s): `.gitignore`, `docs/scratchpads/github_publish_scratchpad.md`
+  - status: active
