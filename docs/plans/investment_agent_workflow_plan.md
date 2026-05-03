@@ -56,8 +56,8 @@ Detailed backlog: `docs/plans/investment_agent_backlog.md`.
 - [x] Implement and live-smoke-test SEC EDGAR submissions and XBRL fetch tools.
 - [x] Implement yfinance market data tool for prices and ratios.
 - [x] Implement Exa company, news, industry, and contents tools.
-- [ ] Implement X.com stock sentiment tool.
-- [ ] Implement X.com industry sentiment/discovery tool.
+- [x] Implement xAI Grok stock sentiment tool.
+- [x] Implement xAI Grok industry sentiment/discovery tool.
 - [ ] Evaluate extra data providers: OpenBB, Twelve Data, EODHD, Finnhub, Nasdaq Data Link, FRED, ECB, Eurostat, Companies House, future ESMA ESAP.
 - [ ] Add source normalization and citation utilities.
 - [ ] Add tool guardrails for source metadata and secret redaction.
@@ -69,8 +69,8 @@ Detailed backlog: `docs/plans/investment_agent_backlog.md`.
 - [ ] Implement company news specialist.
 - [ ] Implement SEC filing specialist.
 - [ ] Implement financial data specialist.
-- [ ] Implement X.com stock sentiment specialist.
-- [ ] Implement X.com industry sentiment specialist.
+- [ ] Implement xAI Grok stock sentiment specialist.
+- [ ] Implement xAI Grok industry sentiment specialist.
 - [ ] Implement Exa industry research specialist.
 - [ ] Implement discovery specialist.
 - [ ] Implement tracked-stock alert specialist.
@@ -128,4 +128,5 @@ Detailed backlog: `docs/plans/investment_agent_backlog.md`.
 - 2026-05-03: Live SEC smoke test passed for AAPL and wrote a validated evidence packet. Added compressed-response handling for SEC JSON responses.
 - 2026-05-03: Added yfinance and Exa provider tools. Exa was implemented after reviewing the requested current Exa search/company/news/contents docs, with highlights-first search and separate contents extraction.
 - 2026-05-03: Weekly manifests now include deterministic provider tasks for SEC, yfinance, and Exa. Added a provider task runner that dry-runs by default and can execute tasks explicitly.
+- 2026-05-03: Replaced direct X.com recent search/counts with xAI Grok Responses API and built-in `x_search`, per user correction. Manifest provider tasks now include Grok X sentiment/news checks. Live AMD smoke test passed and wrote validated raw/evidence artifacts.
 - 2026-05-03: Started SDK/framework review before agent runtime work. Current finding: Cursor SDK is likely a coding-agent automation adjunct, not the core stock-research orchestration runtime; OpenAI Agents SDK, Pydantic AI, and LangGraph remain the main candidates.

@@ -27,6 +27,8 @@
 - [x] Add Exa search/contents provider integration and live smoke tests.
 - [x] Wire default SEC/yfinance/Exa provider tasks into weekly manifest.
 - [x] Add dry-run-by-default provider task runner.
+- [x] Replace direct X.com API with xAI Grok x_search provider and manifest tasks.
+- [x] Run live xAI Grok `x_search` smoke test.
 - [ ] Validate updated architecture with user.
 
 ## Key Decisions and Why
@@ -43,13 +45,15 @@
 - 2026-05-03: User validated need for a formal human-to-system intake layer. Codex chat is planned as the main interface; proactive user requests go to `docs/plans/human_research_requests.md`, while system approval items go to `agents/human_review_queue.md`.
 - 2026-05-03: Added `stock_research/` deterministic core before agent framework work. No external dependencies.
 - 2026-05-03: Added deterministic request router. It routes clear requests into monitoring rows/company files, industry/theme research files, research priorities, human review items, or manual run manifests.
-- 2026-05-03: Added provider-neutral evidence schema so SEC, Exa, X.com, yfinance, FMP, Polygon, Alpha Vantage, macro, and future providers can emit the same packet format.
+- 2026-05-03: Added provider-neutral evidence schema so SEC, Exa, xAI/Grok X sentiment, yfinance, FMP, Polygon, Alpha Vantage, macro, and future providers can emit the same packet format.
 - 2026-05-03: Added SEC EDGAR provider. It needs no API key, but live requests require `SEC_USER_AGENT` or `--user-agent`.
 - 2026-05-03: SEC live smoke test passed for AAPL. The provider now handles SEC gzip-compressed responses and writes validated raw/evidence artifacts.
 - 2026-05-03: Exa should be exposed as deterministic provider tools first, then wrapped by specialist agents. This keeps provider behavior auditable and reusable by Codex, orchestrators, and specialists.
 - 2026-05-03: yfinance and Exa provider tools were added. yfinance live AAPL smoke passed. Exa live search/contents smoke passed after adding explicit `User-Agent` and `Accept` headers.
 - 2026-05-03: Future specialists should choose among Exa `general`, `news`, `industry`, `company`, and `contents` tools based on task. The deterministic weekly kickoff should also run Exa by default for tracked-stock news, strategy/research-priority industry/theme scans, candidate discovery, and human input queue items.
 - 2026-05-03: Weekly manifests now contain concrete `provider_tasks`. The provider task runner is dry-run by default and only executes live provider calls when `--execute` is passed.
+- 2026-05-03: User corrected provider intent: do not use direct X.com API. Use xAI/Grok via `XAI_API_KEY` with built-in `x_search` for X sentiment/latest-news research.
+- 2026-05-03: Live xAI/Grok `x_search` smoke test passed for AMD and wrote validated raw/evidence artifacts.
 
 ## What We Learned
 
@@ -78,6 +82,9 @@
 - Exa default weekly usage should be: holdings/monitoring -> `news`; industry/theme priorities -> `industry` or `general`; discovery -> `company`; high-value result follow-up -> `contents`.
 - Manifest provider tasks now plan SEC/yfinance/Exa kickoff work before orchestrator synthesis.
 - Provider task runner command exists: `python -m stock_research provider-tasks --manifest agents\runs\2026-05-09_weekly\manifest.json`.
+- xAI Grok command exists: `python -m stock_research xai x-search ...`.
+- Manifest provider tasks now include Grok `x_search` sentiment/latest-news checks.
+- Live xAI Grok AMD smoke packet exists: `agents/runs/2026-05-09_weekly/evidence_packets/2026-05-03_xai_grok_company_amd.json`.
 - `python -m unittest discover -s tests` is the working test command in this repo.
 - Cursor SDK is promising for coding-agent automation, but it is public beta and TypeScript-first; it looks better for repo maintenance agents than for the core stock-research runtime.
 - OpenAI Agents SDK supports the repo's manager/specialist pattern, tracing, guardrails, Pydantic outputs, sessions, and non-OpenAI model routing via Any-LLM/LiteLLM, but provider capability gaps must be tested.
@@ -97,7 +104,7 @@
 ## Next Steps
 
 - Review updated `docs/descriptions/investment_agent_workflow.md` and `docs/plans/investment_agent_backlog.md` with the user if needed.
-- Next implementation work should add X.com/xAI, paid market-data cross-check providers such as FMP/Polygon/Alpha Vantage, create agent memory files, or build the first synthesis/writer specialist around evidence packets.
+- Next implementation work should add paid market-data cross-check providers such as FMP/Polygon/Alpha Vantage, create agent memory files, or build the first synthesis/writer specialist around evidence packets.
 - Before Priority 4 agent implementation, run a thin spike comparing OpenAI Agents SDK vs Pydantic AI for one evidence-packet specialist and one orchestrator call.
 - Consider LangGraph only if the first spike shows that explicit resumable graph state is needed earlier than planned.
 - Add README and SETUP when runtime dependencies are introduced.
@@ -114,6 +121,8 @@
 - SEC may return compressed responses even for JSON endpoints; keep compression decoding in provider fetch helpers.
 - Exa requests can fail with HTTP 403 code 1010 if the default Python HTTP client headers are too sparse. Keep explicit `User-Agent` and `Accept: application/json` headers.
 - yfinance is useful for quick snapshots but should be cross-checked before high-impact decisions.
+- Grok/X evidence is social signal unless independently verified. Treat it as sentiment/community chatter, not standalone fact.
+- Do not reintroduce direct X.com API bearer-token search unless the user explicitly asks for that reversal.
 
 ## Commands / Environment Notes
 
@@ -122,4 +131,5 @@
 - SEC live smoke test output packet: `agents/runs/2026-05-09_weekly/evidence_packets/2026-05-03_sec_edgar_company_aapl.json`.
 - yfinance live smoke packet: `agents/runs/2026-05-09_weekly/evidence_packets/2026-05-03_yfinance_company_aapl.json`.
 - Exa live smoke packets: `agents/runs/2026-05-09_weekly/evidence_packets/2026-05-03_exa_industry_semiconductors.json`, `agents/runs/2026-05-09_weekly/evidence_packets/2026-05-03_exa_theme_sec_edgar_docs.json`.
+- xAI Grok live smoke packet: `agents/runs/2026-05-09_weekly/evidence_packets/2026-05-03_xai_grok_company_amd.json`.
 - Current written weekly manifest with provider tasks: `agents/runs/2026-05-09_weekly/manifest.json`.

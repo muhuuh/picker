@@ -53,8 +53,10 @@ class StockResearchCoreTests(unittest.TestCase):
         self.assertIn("yfinance_company_aapl", task_ids)
         self.assertIn("sec_company_aapl", task_ids)
         self.assertIn("exa_news_company_aapl", task_ids)
+        self.assertIn("xai_x_search_company_aapl", task_ids)
         self.assertIn("yfinance_company_asml", task_ids)
         self.assertIn("exa_news_company_asml", task_ids)
+        self.assertIn("xai_x_search_company_asml", task_ids)
         self.assertNotIn("sec_company_asml", task_ids)
 
     def test_manifest_routes_research_priorities_and_human_requests_to_exa_modes(self):
@@ -100,6 +102,10 @@ class StockResearchCoreTests(unittest.TestCase):
         self.assertEqual(tasks["exa_human_hir_0099_industry_robotics_suppliers"]["args"]["mode"], "industry")
         self.assertEqual(tasks["exa_human_hir_0099_company_robotics_suppliers"]["args"]["mode"], "company")
         self.assertEqual(tasks["exa_human_hir_0100_news_amd"]["args"]["mode"], "news")
+        self.assertEqual(tasks["xai_x_search_priority_european_grid_infrastructure"]["tool"], "x_search")
+        self.assertEqual(tasks["xai_x_search_priority_european_grid_infrastructure"]["provider"], "xai_grok")
+        self.assertEqual(tasks["xai_human_hir_0099_x_search_robotics_suppliers"]["provider"], "xai_grok")
+        self.assertEqual(tasks["xai_human_hir_0100_x_search_amd"]["provider"], "xai_grok")
 
     def test_next_saturday_returns_same_day_when_today_is_saturday(self):
         self.assertEqual(next_saturday(date(2026, 5, 9)), date(2026, 5, 9))

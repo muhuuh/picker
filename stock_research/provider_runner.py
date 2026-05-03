@@ -8,6 +8,7 @@ from typing import Any, Callable
 from .config import get_config_value
 from .providers.exa import ExaContentsOptions, ExaSearchOptions, build_exa_contents_packet, build_exa_search_packet, resolve_exa_api_key
 from .providers.sec_edgar import build_sec_company_packet, resolve_sec_user_agent
+from .providers.xai_grok import XaiXSearchOptions, build_xai_x_search_packet, resolve_xai_api_key
 from .providers.yfinance_provider import build_yfinance_company_packet
 
 
@@ -151,6 +152,29 @@ def execute_provider_task(root: Path, task: dict[str, Any], current_date: date |
                 text_max_characters=args.get("text_max_characters"),
                 max_age_hours=args.get("max_age_hours"),
                 livecrawl_timeout=int(args.get("livecrawl_timeout", 12000)),
+            ),
+            api_key=api_key,
+            run_id=str(args["run_id"]),
+            root=root,
+            current_date=current_date,
+        )
+        return packet_result(packet.packet_id, paths)
+
+    if provider == "xai_grok" and tool == "x_search":
+        api_key = resolve_xai_api_key(get_config_value(root, "XAI_API_KEY"))
+        packet, paths = build_xai_x_search_packet(
+            options=XaiXSearchOptions(
+                prompt=str(args["prompt"]),
+                subject_type=str(task["subject_type"]),
+                subject_id=str(task["subject_id"]),
+                research_kind=str(args.get("research_kind", "x_sentiment")),
+                model=str(args.get("model", "grok-4.3")),
+                from_date=str(args.get("from_date", "")),
+                to_date=str(args.get("to_date", "")),
+                allowed_x_handles=tuple(args.get("allowed_x_handles", [])),
+                excluded_x_handles=tuple(args.get("excluded_x_handles", [])),
+                enable_image_understanding=bool(args.get("enable_image_understanding", False)),
+                enable_video_understanding=bool(args.get("enable_video_understanding", False)),
             ),
             api_key=api_key,
             run_id=str(args["run_id"]),

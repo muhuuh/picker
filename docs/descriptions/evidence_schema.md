@@ -4,7 +4,7 @@ Last updated: 2026-05-03
 
 ## Purpose
 
-All provider tools and specialist agents should return the same evidence packet shape. This lets the orchestrator compare SEC filings, Exa search results, X.com sentiment, yfinance/FMP/Polygon/Alpha Vantage market data, macro data, and future sources without parsing provider-specific prose.
+All provider tools and specialist agents should return the same evidence packet shape. This lets the orchestrator compare SEC filings, Exa search results, X sentiment gathered through xAI/Grok, yfinance/FMP/Polygon/Alpha Vantage market data, macro data, and future sources without parsing provider-specific prose.
 
 Implementation: `stock_research/evidence.py`.
 
@@ -12,13 +12,14 @@ Providers currently using this schema:
 
 - `stock_research/providers/sec_edgar.py`
 - `stock_research/providers/exa.py`
+- `stock_research/providers/xai_grok.py`
 - `stock_research/providers/yfinance_provider.py`
 
 ## Packet Fields
 
 - `packet_id`: stable file-safe ID.
 - `created_at`: ISO timestamp.
-- `provider`: source provider or tool name, such as `sec_edgar`, `exa`, `x_com`, `yfinance`, `fmp`, `polygon`, `alpha_vantage`, `fred`, `ecb`.
+- `provider`: source provider or tool name, such as `sec_edgar`, `exa`, `xai_grok`, `yfinance`, `fmp`, `polygon`, `alpha_vantage`, `fred`, `ecb`.
 - `subject_type`: `company`, `industry`, `theme`, `macro`, `strategy`, `portfolio`, or `provider_test`.
 - `subject_id`: ticker, industry, theme, macro topic, or internal ID.
 - `time_window`: source time window covered.

@@ -74,10 +74,16 @@ Exa requires an API key:
 EXA_API_KEY="..."
 ```
 
+xAI Grok requires an API key:
+
+```text
+XAI_API_KEY="..."
+```
+
 Provider integrations planned later may use:
 
 - Exa,
-- X.com,
+- xAI/Grok,
 - FMP,
 - Polygon,
 - Alpha Vantage,
@@ -121,6 +127,20 @@ Extract contents from a URL:
 
 ```powershell
 python -m stock_research exa contents --url https://example.com/article --subject-type company --subject-id AAPL --run-id 2026-05-09_weekly --highlights-query "investment relevance and risks"
+```
+
+## xAI Grok
+
+Research recent X sentiment/news with Grok x_search:
+
+```powershell
+python -m stock_research xai x-search --ticker AMD --company-name "Advanced Micro Devices" --subject-type company --subject-id AMD --run-id 2026-05-09_weekly
+```
+
+Research an industry/theme:
+
+```powershell
+python -m stock_research xai x-search --topic "European grid infrastructure" --research-kind industry_sentiment --subject-type industry --subject-id european_grid_infrastructure --run-id 2026-05-09_weekly
 ```
 
 ## Generated Run Artifacts

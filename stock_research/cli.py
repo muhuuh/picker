@@ -20,6 +20,16 @@ from .providers.exa import (
     resolve_exa_api_key,
 )
 from .providers.sec_edgar import SecEdgarError, build_sec_company_packet, default_sec_run_id, resolve_sec_user_agent
+from .providers.xai_grok import (
+    XaiGrokError,
+    XaiXSearchOptions,
+    build_xai_x_search_packet,
+    default_xai_run_id,
+    industry_sentiment_prompt,
+    latest_news_prompt,
+    resolve_xai_api_key,
+    stock_sentiment_prompt,
+)
 from .providers.yfinance_provider import YFinanceError, build_yfinance_company_packet, default_yfinance_run_id
 from .repo import load_repo_state
 from .router import route_request
@@ -125,6 +135,28 @@ def main(argv: list[str] | None = None) -> int:
     exa_contents.add_argument("--livecrawl-timeout", type=int, default=12000)
     exa_contents.add_argument("--api-key", help="Exa API key. Or set EXA_API_KEY.")
     exa_contents.add_argument("--today", help="Override current date as YYYY-MM-DD.")
+
+    xai_parser = subparsers.add_parser("xai", help="xAI Grok provider tools.")
+    xai_subparsers = xai_parser.add_subparsers(dest="xai_command", required=True)
+
+    xai_x_search = xai_subparsers.add_parser("x-search", help="Use Grok with built-in x_search and write an evidence packet.")
+    xai_x_search.add_argument("--prompt", help="Full research prompt. If omitted, use --ticker/--company-name or --topic.")
+    xai_x_search.add_argument("--ticker", help="Ticker for stock sentiment prompt.")
+    xai_x_search.add_argument("--company-name", default="")
+    xai_x_search.add_argument("--topic", help="Industry/theme/news topic for prompt generation.")
+    xai_x_search.add_argument("--research-kind", default="x_sentiment", choices=["stock_sentiment", "industry_sentiment", "latest_news", "x_sentiment"])
+    xai_x_search.add_argument("--subject-type", required=True, choices=["company", "industry", "theme", "macro", "strategy", "portfolio"])
+    xai_x_search.add_argument("--subject-id", required=True)
+    xai_x_search.add_argument("--run-id", help="Run ID for output artifacts. Defaults to YYYY-MM-DD_manual-xai.")
+    xai_x_search.add_argument("--model", default="grok-4.3")
+    xai_x_search.add_argument("--from-date")
+    xai_x_search.add_argument("--to-date")
+    xai_x_search.add_argument("--allowed-x-handle", action="append", default=[])
+    xai_x_search.add_argument("--excluded-x-handle", action="append", default=[])
+    xai_x_search.add_argument("--enable-image-understanding", action="store_true")
+    xai_x_search.add_argument("--enable-video-understanding", action="store_true")
+    xai_x_search.add_argument("--api-key", help="xAI API key. Or set XAI_API_KEY.")
+    xai_x_search.add_argument("--today", help="Override current date as YYYY-MM-DD.")
 
     provider_tasks = subparsers.add_parser("provider-tasks", help="Dry-run or execute provider tasks from a manifest.")
     provider_tasks.add_argument("--manifest", type=Path, required=True)
@@ -307,6 +339,46 @@ def main(argv: list[str] | None = None) -> int:
         print(json.dumps({"packet_id": packet.packet_id, "paths": [str(path) for path in paths]}, indent=2))
         return 0
 
+    if args.command == "xai":
+        request_date = parse_cli_date(args.today)
+        run_id = args.run_id or default_xai_run_id(request_date)
+        try:
+            api_key = resolve_xai_api_key(args.api_key or get_config_value(state.root, "XAI_API_KEY"))
+            prompt = resolve_xai_prompt(
+                prompt=args.prompt,
+                ticker=getattr(args, "ticker", None),
+                company_name=getattr(args, "company_name", ""),
+                topic=getattr(args, "topic", None),
+                research_kind=args.research_kind,
+            )
+            if args.xai_command == "x-search":
+                packet, paths = build_xai_x_search_packet(
+                    options=XaiXSearchOptions(
+                        prompt=prompt,
+                        subject_type=args.subject_type,
+                        subject_id=args.subject_id,
+                        research_kind=args.research_kind,
+                        model=args.model,
+                        from_date=args.from_date or "",
+                        to_date=args.to_date or "",
+                        allowed_x_handles=tuple(args.allowed_x_handle),
+                        excluded_x_handles=tuple(args.excluded_x_handle),
+                        enable_image_understanding=args.enable_image_understanding,
+                        enable_video_understanding=args.enable_video_understanding,
+                    ),
+                    api_key=api_key,
+                    run_id=run_id,
+                    root=state.root,
+                    current_date=request_date,
+                )
+            else:
+                return 1
+        except XaiGrokError as exc:
+            print(f"ERROR: {exc}")
+            return 1
+        print(json.dumps({"packet_id": packet.packet_id, "paths": [str(path) for path in paths]}, indent=2))
+        return 0
+
     if args.command == "provider-tasks":
         request_date = parse_cli_date(args.today)
         manifest = read_manifest(args.manifest)
@@ -339,3 +411,21 @@ def parse_cli_date(value: str | None) -> date | None:
     if not value:
         return None
     return date.fromisoformat(value)
+
+
+def resolve_xai_prompt(
+    prompt: str | None,
+    ticker: str | None,
+    company_name: str,
+    topic: str | None,
+    research_kind: str,
+) -> str:
+    if prompt:
+        return prompt
+    if ticker:
+        return stock_sentiment_prompt(ticker, company_name)
+    if topic and research_kind == "latest_news":
+        return latest_news_prompt(topic)
+    if topic:
+        return industry_sentiment_prompt(topic)
+    raise XaiGrokError("Provide --prompt, --ticker, or --topic for xAI Grok x-search.")

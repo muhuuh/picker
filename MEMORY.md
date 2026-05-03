@@ -27,7 +27,7 @@ Use this file for information we should not lose across sessions.
   - status: active
 
 - 2026-04-30:
-  - decision/fact: Approved initial data providers are Exa, X.com, SEC, yfinance, FMP, Polygon, and Alpha Vantage. Additional candidates may be evaluated before implementation.
+  - decision/fact: Approved initial data providers are Exa, xAI/Grok, SEC, yfinance, FMP, Polygon, and Alpha Vantage. Additional candidates may be evaluated before implementation.
   - evidence artifact path(s): `docs/descriptions/investment_agent_workflow.md`, `docs/plans/investment_agent_backlog.md`
   - status: active
 
@@ -94,4 +94,14 @@ Use this file for information we should not lose across sessions.
 - 2026-05-03:
   - decision/fact: Weekly manifests now include deterministic `provider_tasks` for SEC, yfinance, and Exa. A dry-run-by-default provider task runner can inspect or explicitly execute those tasks with `python -m stock_research provider-tasks --manifest PATH [--execute]`.
   - evidence artifact path(s): `stock_research/manifest.py`, `stock_research/provider_runner.py`, `stock_research/cli.py`, `tests/test_stock_research_core.py`, `tests/test_provider_runner.py`, `agents/runs/2026-05-09_weekly/manifest.json`
+  - status: active
+
+- 2026-05-03:
+  - decision/fact: Direct X.com API recent search/counts was the wrong implementation path and is superseded. The repo should use xAI/Grok with built-in `x_search` via `XAI_API_KEY` for X sentiment/latest-news research.
+  - evidence artifact path(s): `stock_research/providers/xai_grok.py`, `docs/descriptions/xai_grok_provider.md`, `tests/test_xai_grok_provider.py`, `stock_research/manifest.py`, `stock_research/provider_runner.py`
+  - status: active
+
+- 2026-05-03:
+  - decision/fact: xAI/Grok live `x_search` smoke test passed for AMD with a 2026-05-01 to 2026-05-03 window. The tool wrote raw Grok output and a validated provider-neutral evidence packet.
+  - evidence artifact path(s): `agents/runs/2026-05-09_weekly/raw/xai_grok/x_search_amd.json`, `agents/runs/2026-05-09_weekly/evidence_packets/2026-05-03_xai_grok_company_amd.json`
   - status: active

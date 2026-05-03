@@ -7,6 +7,7 @@ from typing import Any
 
 from .repo import RepoState
 from .validation import parse_date
+from .providers.xai_grok import industry_sentiment_prompt, latest_news_prompt, stock_sentiment_prompt
 
 
 ACTIVE_HUMAN_REQUEST_STATUSES = {"new", "triaged", "queued_for_weekly_run", "in_progress"}
@@ -212,6 +213,26 @@ def build_provider_tasks(
                     follow_up=["Use Exa contents on high-value results before orchestrator synthesis."],
                 ),
             )
+            add_task(
+                tasks,
+                seen_task_ids,
+                provider_task(
+                    task_id=f"xai_x_search_company_{slugify(ticker)}",
+                    provider="xai_grok",
+                    tool="x_search",
+                    subject_type="company",
+                    subject_id=ticker,
+                    args={
+                        "prompt": stock_sentiment_prompt(ticker, company),
+                        "run_id": run_id,
+                        "research_kind": "stock_sentiment",
+                        "model": "grok-4.3",
+                    },
+                    reason=f"Default Grok x_search community-sentiment scan for {bucket} ticker {label}.",
+                    priority="high" if bucket == "current_holdings" else "medium",
+                    source_bucket=bucket,
+                ),
+            )
 
     for priority in priorities:
         topic = priority.get("Topic", "").strip()
@@ -261,6 +282,26 @@ def build_provider_tasks(
                 source_bucket="research_priorities",
             ),
         )
+        add_task(
+            tasks,
+            seen_task_ids,
+            provider_task(
+                task_id=f"xai_x_search_priority_{subject_id}",
+                provider="xai_grok",
+                tool="x_search",
+                subject_type=subject_type,
+                subject_id=subject_id,
+                args={
+                    "prompt": industry_sentiment_prompt(topic),
+                    "run_id": run_id,
+                    "research_kind": "industry_sentiment",
+                    "model": "grok-4.3",
+                },
+                reason=f"Default Grok x_search sentiment scan for active research priority: {topic}.",
+                priority=priority.get("Priority", "").strip().lower() or "medium",
+                source_bucket="research_priorities",
+            ),
+        )
 
     for request in human_requests:
         for task in provider_tasks_for_human_request(request, run_id):
@@ -300,6 +341,24 @@ def provider_tasks_for_human_request(request: dict[str, str], run_id: str) -> li
                     follow_up=["Use Exa contents for high-value result follow-up."],
                 )
             )
+            tasks.append(
+                provider_task(
+                    task_id=f"xai_human_{slugify(request_id)}_x_search_{slugify(ticker_upper)}",
+                    provider="xai_grok",
+                    tool="x_search",
+                    subject_type="company",
+                    subject_id=ticker_upper,
+                    args={
+                        "prompt": stock_sentiment_prompt(ticker_upper),
+                        "run_id": run_id,
+                        "research_kind": "stock_sentiment",
+                        "model": "grok-4.3",
+                    },
+                    reason=f"Human input queue Grok x_search stock sentiment request {request_id}.",
+                    priority=priority,
+                    source_bucket="human_input_queue",
+                )
+            )
     elif request_type == "industry_research":
         for topic in split_cell_values(request.get("Industries / Themes", "")) or [request_text]:
             subject_id = slugify(topic)
@@ -324,6 +383,22 @@ def provider_tasks_for_human_request(request: dict[str, str], run_id: str) -> li
                         subject_id=subject_id,
                         args={"mode": "company", "query": discovery_query(topic, ""), "run_id": run_id, "num_results": 10},
                         reason=f"Human input queue industry discovery request {request_id}.",
+                        priority=priority,
+                        source_bucket="human_input_queue",
+                    ),
+                    provider_task(
+                        task_id=f"xai_human_{slugify(request_id)}_x_search_{subject_id}",
+                        provider="xai_grok",
+                        tool="x_search",
+                        subject_type="industry",
+                        subject_id=subject_id,
+                        args={
+                            "prompt": industry_sentiment_prompt(topic),
+                            "run_id": run_id,
+                            "research_kind": "industry_sentiment",
+                            "model": "grok-4.3",
+                        },
+                        reason=f"Human input queue Grok x_search industry sentiment request {request_id}.",
                         priority=priority,
                         source_bucket="human_input_queue",
                     ),
@@ -358,6 +433,22 @@ def provider_tasks_for_human_request(request: dict[str, str], run_id: str) -> li
                             "num_results": 8,
                         },
                         reason=f"Human input queue theme-news request {request_id}.",
+                        priority=priority,
+                        source_bucket="human_input_queue",
+                    ),
+                    provider_task(
+                        task_id=f"xai_human_{slugify(request_id)}_x_search_{subject_id}",
+                        provider="xai_grok",
+                        tool="x_search",
+                        subject_type="theme",
+                        subject_id=subject_id,
+                        args={
+                            "prompt": latest_news_prompt(topic),
+                            "run_id": run_id,
+                            "research_kind": "latest_news",
+                            "model": "grok-4.3",
+                        },
+                        reason=f"Human input queue Grok x_search theme/news request {request_id}.",
                         priority=priority,
                         source_bucket="human_input_queue",
                     ),

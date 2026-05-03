@@ -54,6 +54,7 @@ This file tells Codex, the orchestrator, and future agents where to find and upd
 - `docs/descriptions/evidence_schema.md`: shared source/evidence packet schema for all providers and specialists.
 - `docs/descriptions/sec_edgar_provider.md`: SEC EDGAR provider behavior and setup.
 - `docs/descriptions/exa_provider.md`: Exa search/contents provider behavior and best practices.
+- `docs/descriptions/xai_grok_provider.md`: xAI Grok x_search provider behavior and setup.
 - `docs/descriptions/yfinance_provider.md`: yfinance provider behavior and setup.
 - `docs/plans/investment_agent_backlog.md`: prioritized implementation backlog.
 - `docs/plans/investment_agent_workflow_plan.md`: high-level implementation plan.
@@ -78,6 +79,7 @@ This file tells Codex, the orchestrator, and future agents where to find and upd
 - `python -m stock_research yfinance company --ticker TICKER --run-id RUN_ID`: fetch yfinance market-data snapshot artifacts.
 - `python -m stock_research exa search --query "..." --subject-type TYPE --subject-id ID --run-id RUN_ID`: run Exa search into evidence artifacts.
 - `python -m stock_research exa contents --url URL --subject-type TYPE --subject-id ID --run-id RUN_ID`: run Exa contents extraction into evidence artifacts.
+- `python -m stock_research xai x-search --ticker TICKER --subject-type company --subject-id TICKER --run-id RUN_ID`: run Grok x_search into social evidence artifacts.
 - `python -m stock_research provider-tasks --manifest PATH`: dry-run provider tasks from a manifest.
 - `python -m stock_research provider-tasks --manifest PATH --execute`: execute provider tasks from a manifest.
 - `tests/`: unit tests for current deterministic core.

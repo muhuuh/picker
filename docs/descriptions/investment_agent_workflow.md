@@ -108,6 +108,7 @@ The provider-neutral evidence schema was added on 2026-05-03 under `stock_resear
 
 The first provider integration, SEC EDGAR, was added on 2026-05-03 under `stock_research/providers/sec_edgar.py`.
 The next provider tools, yfinance and Exa, were added on 2026-05-03 under `stock_research/providers/yfinance_provider.py` and `stock_research/providers/exa.py`.
+xAI Grok x_search tools were added on 2026-05-03 under `stock_research/providers/xai_grok.py`.
 
 ## Human Interaction Layer
 
@@ -151,7 +152,7 @@ Each detailed company file should contain:
 - Filings: latest 10-K, 10-Q, 8-K, 20-F/6-K where relevant, with source links and key notes.
 - Financials: revenue growth, margins, cash, debt, free cash flow, valuation, major changes.
 - Developments: product, management, regulatory, legal, customer, industry, macro.
-- Sentiment: X.com/community, news tone, analyst tone if available, with noise caveats.
+- Sentiment: X community signal gathered through xAI/Grok, news tone, analyst tone if available, with noise caveats.
 - Risks and red flags: accounting, dilution, customer concentration, competition, cyclicality, governance.
 - Open questions: what needs more research.
 - Next actions: concrete tasks and owner/agent type.
@@ -201,6 +202,10 @@ These are code-driven steps, not open-ended reasoning:
   - company discovery for relevant themes and industries,
   - human input queue research routing,
   - contents extraction for high-value search results.
+- Default xAI/Grok gatherers:
+  - holdings/monitoring stock community sentiment through Grok `x_search`,
+  - industry/theme research-priority sentiment through Grok `x_search`,
+  - human input queue stock/industry/theme sentiment and latest X news through Grok `x_search`.
 - Market calendar and earnings calendar checker.
 - Rejected-stock cooldown checker.
 
@@ -208,9 +213,9 @@ Current implementation status:
 
 - Implemented: repo state loader, CSV schema validator, stock-info file indexer, human input queue loader, research priorities loader, human review queue loader, stale-data scanner, rejected-stock cooldown summary, weekly manifest generator.
 - Implemented: deterministic request classifier, human input queue appender, request router, human review queue writer, and manual run manifest creation.
-- Implemented providers: SEC EDGAR submissions and optional companyfacts evidence packet writer, yfinance market-data snapshots, and Exa search/contents evidence packet writers.
+- Implemented providers: SEC EDGAR submissions and optional companyfacts evidence packet writer, yfinance market-data snapshots, Exa search/contents evidence packet writers, and xAI Grok x_search evidence packet writers.
 - Implemented: weekly manifests now include deterministic provider tasks, and `provider-tasks` can dry-run or explicitly execute those provider tasks.
-- Pending: X.com/xAI, FMP, Polygon, Alpha Vantage, macro providers, LLM specialists, orchestrator runtime, OS/app scheduled execution, immediate manual research runs.
+- Pending: FMP, Polygon, Alpha Vantage, macro providers, LLM specialists, orchestrator runtime, OS/app scheduled execution, immediate manual research runs.
 
 ### Layer 2: Specialist research agents
 
@@ -220,8 +225,8 @@ These agents return structured evidence packets:
 - Company financial data specialist: prices, valuation, key metrics, historical comparisons.
 - SEC filing specialist: new filings, material changes, risk-factor changes, source excerpts.
 - Earnings/transcript specialist: earnings call notes, guidance, management tone, Q&A issues.
-- X.com stock sentiment specialist: latest ticker/company discussion, recurring claims, hype level, skepticism, accounts to verify.
-- X.com industry sentiment specialist: industry mood, emerging tickers, narratives, possible bubbles.
+- xAI Grok stock sentiment specialist: latest ticker/company discussion on X, recurring claims, hype level, skepticism, accounts/posts to verify.
+- xAI Grok industry sentiment specialist: X mood, emerging tickers, narratives, possible bubbles.
 - Exa industry research specialist: industry news, technology shifts, regulation, competitors, macro dependencies.
 - Discovery specialist: new candidate stocks from industries, filings, news, and community chatter.
 - Alert specialist: converts evidence into tracked-stock change alerts and new-candidate discovery alerts.
@@ -234,6 +239,12 @@ Exa specialist tool selection:
 - Discovery specialist should use Exa `company`, then `general` for context and validation.
 - Theme specialist should use Exa `general` and `news`.
 - Risk/contradiction specialist should use Exa `general` with source/domain filters, then `contents`.
+
+xAI Grok specialist tool selection:
+
+- Stock sentiment specialist should use Grok `x_search` for representative recent posts, sentiment, news reactions, and cited X posts.
+- Industry sentiment specialist should use Grok `x_search` against topic prompts; discovered tickers require Exa/company validation before they become candidates.
+- Grok/X evidence must stay labeled as social sentiment and should not be treated as verified fact.
 
 ### Layer 3: Sub-orchestrators
 
@@ -315,7 +326,7 @@ Run in parallel:
 
 - Per-company latest news checks.
 - Per-company SEC filing checks.
-- X.com sentiment checks by ticker.
+- xAI/Grok `x_search` sentiment checks by ticker.
 - Industry sentiment/news checks.
 - Market/macro checks.
 - Stale-file scans.
@@ -369,7 +380,7 @@ Proposed implementation folder: `agents/runs/YYYY-MM-DD_run-id/`.
 Store:
 
 - `manifest.json`: tickers, industries, tasks, tools enabled, schedule mode.
-- `provider_tasks`: deterministic SEC, yfinance, Exa, and future provider calls planned for kickoff.
+- `provider_tasks`: deterministic SEC, yfinance, Exa, xAI Grok, and future provider calls planned for kickoff.
 - `evidence_packets/*.json`: structured specialist outputs.
 - `run_summary.md`: final synthesis and updates made.
 - `quality_report.md`: citation and consistency checks.
@@ -423,10 +434,11 @@ Initial Python implementation:
 - OpenAI Agents SDK for orchestrator and specialists. Status 2026-05-03: still a candidate, not locked; compare against Pydantic AI and LangGraph before Priority 4 agent implementation.
 - Current evidence schemas use stdlib dataclasses in `stock_research/evidence.py`; Pydantic can be introduced later if runtime agent integrations need stricter model validation.
 - Pandas or Python CSV module for overview CSV validation.
-- Approved initial providers: Exa, X.com, SEC, yfinance, FMP, Polygon, and Alpha Vantage.
+- Approved initial providers: Exa, xAI/Grok, SEC, yfinance, FMP, Polygon, and Alpha Vantage.
 - SEC EDGAR official APIs for US filings and XBRL data.
 - Exa API for web/company/industry research.
-- X.com API or approved provider approach for social sentiment.
+- xAI Grok Responses API with built-in `x_search` for X sentiment, latest X news, citations, and narrative discovery.
+- Do not use direct X.com API v2 recent search/counts in this repo unless the user explicitly reverses this decision.
 - yfinance for first-pass price/ratio prototyping, cross-checked against paid providers where available.
 - FMP, Polygon, and Alpha Vantage for market data, fundamentals, and cross-provider validation.
 - Candidate providers to evaluate: OpenBB as a unified Python access layer; Twelve Data or EODHD for broader global price/fundamental coverage; Finnhub for news/earnings/calendar coverage; Nasdaq Data Link for premium and economic datasets; FRED, ECB, and Eurostat for macro context; Companies House for UK company filings; ESMA ESAP later when public access is available.
@@ -447,7 +459,7 @@ Initial Python implementation:
 
 - Initial scope: US and Europe.
 - Output goals: tracked-stock change alerts and new-stock discovery alerts.
-- Approved initial providers: Exa, X.com, SEC, yfinance, FMP, Polygon, Alpha Vantage.
+- Approved initial providers: Exa, xAI/Grok, SEC, yfinance, FMP, Polygon, Alpha Vantage.
 - Cadence: weekly deep research on Saturday.
 - Rejected-stock cooldown: 6 weeks before resurfacing as a candidate.
 

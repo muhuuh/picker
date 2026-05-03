@@ -189,7 +189,7 @@ Last updated: {today.isoformat()}
 
 ## Sentiment
 
-- X.com / community sentiment:
+- X via xAI/Grok / community sentiment:
 - News sentiment:
 - Analyst / expert tone:
 - Noise caveats:

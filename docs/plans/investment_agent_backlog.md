@@ -10,7 +10,7 @@ This is the clear task backlog for building the stock tracking and investment re
 
 - Scope: US and Europe.
 - Outputs: tracked-stock change alerts and new-stock discovery alerts.
-- Initial approved providers: Exa, X.com, SEC, yfinance, FMP, Polygon, Alpha Vantage.
+- Initial approved providers: Exa, xAI/Grok, SEC, yfinance, FMP, Polygon, Alpha Vantage.
 - Schedule: weekly deep research on Saturday.
 - Review rhythm: user reviews results on Sunday and plans the next week.
 - Rejected-stock rule: do not resurface rejected stocks for 6 weeks unless the user overrides it.
@@ -140,8 +140,8 @@ This is the clear task backlog for building the stock tracking and investment re
   - Description: company news, industry research, market discovery, and content extraction. Implemented as deterministic provider tools first, to be wrapped by specialists later.
 - [x] Wire default Exa tasks into weekly deterministic kickoff.
   - Description: holdings/monitoring use Exa news; research priorities use Exa industry/general; discovery uses Exa company; human input queue items route to the relevant Exa modes; high-value results use Exa contents.
-- [ ] Implement X.com tools.
-  - Description: stock sentiment and industry sentiment/discovery.
+- [x] Implement xAI/Grok X research tools.
+  - Description: stock sentiment, industry sentiment, latest X news, and discovery support through Grok `x_search` using `XAI_API_KEY`.
 - [x] Implement market data tools.
   - Description: yfinance first, then cross-check FMP, Polygon, and Alpha Vantage where configured.
 - [ ] Evaluate additional sources.
@@ -152,11 +152,13 @@ This is the clear task backlog for building the stock tracking and investment re
 - `stock_research/evidence.py`
 - `stock_research/providers/sec_edgar.py`
 - `stock_research/providers/exa.py`
+- `stock_research/providers/xai_grok.py`
 - `stock_research/providers/yfinance_provider.py`
 - `stock_research/provider_runner.py`
 - `docs/descriptions/evidence_schema.md`
 - `docs/descriptions/sec_edgar_provider.md`
 - `docs/descriptions/exa_provider.md`
+- `docs/descriptions/xai_grok_provider.md`
 - `docs/descriptions/yfinance_provider.md`
 - `python -m stock_research evidence new ...`
 - `python -m stock_research evidence validate ...`
@@ -164,14 +166,17 @@ This is the clear task backlog for building the stock tracking and investment re
 - `python -m stock_research yfinance company --ticker TICKER --run-id RUN_ID`
 - `python -m stock_research exa search --query QUERY --subject-type TYPE --subject-id ID --run-id RUN_ID`
 - `python -m stock_research exa contents --url URL --subject-type TYPE --subject-id ID --run-id RUN_ID`
+- `python -m stock_research xai x-search --ticker TICKER --subject-type company --subject-id TICKER --run-id RUN_ID`
 - `python -m stock_research provider-tasks --manifest PATH`
 - `python -m stock_research provider-tasks --manifest PATH --execute`
 - `tests/test_evidence.py`
 - `tests/test_sec_edgar_provider.py`
 - `tests/test_exa_provider.py`
+- `tests/test_xai_grok_provider.py`
 - `tests/test_yfinance_provider.py`
 - `tests/test_provider_runner.py`
 - Live SEC smoke artifact: `agents/runs/2026-05-09_weekly/evidence_packets/2026-05-03_sec_edgar_company_aapl.json`
+- Live xAI Grok smoke artifact: `agents/runs/2026-05-09_weekly/evidence_packets/2026-05-03_xai_grok_company_amd.json`
 - Written weekly manifest with provider tasks: `agents/runs/2026-05-09_weekly/manifest.json`
 
 ## Priority 5: Specialist Agents
@@ -182,8 +187,8 @@ This is the clear task backlog for building the stock tracking and investment re
   - Description: should call Exa `news`, then Exa `contents` for high-value result follow-up.
 - [ ] Build SEC filing specialist.
 - [ ] Build financial data specialist.
-- [ ] Build X.com stock sentiment specialist.
-- [ ] Build X.com industry sentiment specialist.
+- [ ] Build xAI Grok stock sentiment specialist.
+- [ ] Build xAI Grok industry sentiment specialist.
 - [ ] Build Exa industry research specialist.
   - Description: should choose Exa `industry`, `news`, `general`, `company`, and `contents` based on the research goal.
 - [ ] Build discovery specialist.
@@ -237,4 +242,4 @@ This is the clear task backlog for building the stock tracking and investment re
 - Human approval gates for file writes, stock movement, and strategy changes.
 - First test stock universe.
 - Agent SDK/framework choice: OpenAI Agents SDK, Pydantic AI, LangGraph, Cursor SDK, or a hybrid approach.
-- Live Exa smoke test after `EXA_API_KEY` is configured.
+- First stock universe to test beyond the current smoke-test artifacts.

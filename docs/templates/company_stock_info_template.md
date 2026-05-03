@@ -64,7 +64,7 @@ Last updated: YYYY-MM-DD
 
 ## Sentiment
 
-- X.com / community sentiment:
+- X via xAI/Grok / community sentiment:
 - News sentiment:
 - Analyst / expert tone:
 - Noise caveats:

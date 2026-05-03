@@ -36,7 +36,7 @@ Reason:
 - Provider tools are testable without LLM behavior.
 - Raw responses and evidence packets are auditable.
 - Specialists can later call the same Exa tools for company news, industry research, market discovery, and content extraction.
-- The orchestrator can compare Exa packets with SEC, yfinance, FMP, Polygon, Alpha Vantage, and X.com packets.
+- The orchestrator can compare Exa packets with SEC, yfinance, FMP, Polygon, Alpha Vantage, and xAI/Grok X-sentiment packets.
 
 ## Default Workflow Usage
 

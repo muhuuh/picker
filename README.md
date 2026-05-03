@@ -87,6 +87,14 @@ python -m stock_research exa contents --url https://example.com/article --subjec
 
 Exa requires `EXA_API_KEY` in `.env` or `--api-key`.
 
+Run Grok x_search into social evidence packets:
+
+```powershell
+python -m stock_research xai x-search --ticker AMD --company-name "Advanced Micro Devices" --subject-type company --subject-id AMD --run-id 2026-05-09_weekly
+```
+
+xAI/Grok requires `XAI_API_KEY` in `.env` or `--api-key`.
+
 Add a request to the human input queue:
 
 ```powershell
@@ -125,10 +133,11 @@ Implemented:
 - SEC EDGAR submissions provider with optional companyfacts retrieval, live-smoke-tested against AAPL.
 - yfinance market-data snapshot provider.
 - Exa search and contents provider tools.
+- xAI Grok x_search provider tools.
 
 Not implemented yet:
 
-- X.com/xAI, FMP, Polygon, Alpha Vantage, and macro provider integrations,
+- FMP, Polygon, Alpha Vantage, and macro provider integrations,
 - LLM specialist agents,
 - orchestrator runtime,
 - OS/app scheduled execution,
