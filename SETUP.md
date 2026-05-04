@@ -1,6 +1,6 @@
 # Setup
 
-Last updated: 2026-05-03
+Last updated: 2026-05-04
 
 ## Requirements
 
@@ -25,6 +25,7 @@ python --version
 cd C:\Users\valen\Documents\Code\stocks
 python -m stock_research summary
 python -m stock_research validate
+python -m stock_research memory validate
 python -m unittest discover -s tests
 ```
 
@@ -223,3 +224,21 @@ python -m stock_research provider-tasks --manifest agents\runs\2026-05-09_weekly
 ```
 
 Run artifacts are intended to be inspectable repo state. Review them before committing if they contain noisy or temporary output.
+
+## Operational Agent Memory
+
+Start with:
+
+```text
+agents/memory/memory_index.md
+```
+
+The memory files are structured Markdown and require no extra setup. They store operational lessons, source-quality notes, specialist playbooks, evaluation metrics, and deprecated behavior. Do not store secrets, raw provider output, or ordinary company investment facts in `agents/memory/`.
+
+Validate and inspect memory:
+
+```powershell
+python -m stock_research memory summary
+python -m stock_research memory validate
+python -m stock_research memory context --task sentiment
+```

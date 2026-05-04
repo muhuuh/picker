@@ -10,6 +10,7 @@ from .evidence import default_packet_path, new_packet, read_packet, validate_pac
 from .financial_compare import FinancialCompareError, build_financial_compare_packet
 from .human import append_human_request, classify_request
 from .manifest import build_weekly_manifest, write_manifest
+from .memory import build_memory_context, load_memory_state, memory_summary, validate_memory_state
 from .provider_runner import read_manifest, run_provider_tasks
 from .providers.exa import (
     ExaContentsOptions,
@@ -59,6 +60,18 @@ def main(argv: list[str] | None = None) -> int:
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     subparsers.add_parser("summary", help="Print a short repo state summary.")
+
+    memory_parser = subparsers.add_parser("memory", help="Inspect operational agent memory.")
+    memory_subparsers = memory_parser.add_subparsers(dest="memory_command", required=True)
+
+    memory_subparsers.add_parser("summary", help="Summarize operational memory files and items.")
+    memory_subparsers.add_parser("validate", help="Validate operational memory files and item fields.")
+    memory_context = memory_subparsers.add_parser("context", help="Print task-relevant memory context.")
+    memory_context.add_argument(
+        "--task",
+        required=True,
+        help="Task kind, e.g. financial, news, sentiment, provider, orchestration, specialist, writer, quality, all.",
+    )
 
     validate_parser = subparsers.add_parser("validate", help="Validate repo state and CSV schemas.")
     validate_parser.add_argument("--today", help="Override current date as YYYY-MM-DD.")
@@ -227,6 +240,23 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "summary":
         print_summary(state)
         return 0
+
+    if args.command == "memory":
+        memory_state = load_memory_state(state.root)
+        if args.memory_command == "summary":
+            print(json.dumps(memory_summary(memory_state), indent=2, sort_keys=True))
+            return 0
+        if args.memory_command == "validate":
+            report = validate_memory_state(memory_state)
+            for warning in report.warnings:
+                print(f"WARNING: {warning}")
+            for error in report.errors:
+                print(f"ERROR: {error}")
+            print("OK" if report.ok else "FAILED")
+            return 0 if report.ok else 1
+        if args.memory_command == "context":
+            print(json.dumps(build_memory_context(memory_state, args.task), indent=2, sort_keys=True))
+            return 0
 
     current_date = parse_cli_date(getattr(args, "today", None))
 

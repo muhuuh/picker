@@ -1,6 +1,6 @@
 # Investment Agent Workflow Architecture
 
-Last updated: 2026-05-03
+Last updated: 2026-05-04
 
 ## Goal
 
@@ -89,14 +89,18 @@ docs/
     company_stock_info_template.md
     category_state_template.md
     stock_tracking_csv_schema.md
+    agent_memory_item_template.md
   descriptions/
     human_interaction_workflow.md
     repo_map.md
+    agent_memory_workflow.md
   plans/
     human_research_requests.md
 ```
 
-The `agents/memory/` and `agents/runs/` folders are proposed additions for implementation.
+The `agents/memory/` folder was implemented on 2026-05-04 as structured Markdown operational memory.
+
+The `agents/runs/` folder is implemented as the run-artifact location for manifests, raw provider output, evidence packets, and future summaries/quality reports.
 
 The stock tracking templates and starter files were created on 2026-04-30.
 
@@ -106,6 +110,7 @@ The initial deterministic Python core was added on 2026-05-03 under `stock_resea
 
 The provider-neutral evidence schema was added on 2026-05-03 under `stock_research/evidence.py` and `docs/descriptions/evidence_schema.md`.
 The deterministic financial comparison layer was added on 2026-05-04 under `stock_research/financial_compare.py`.
+The operational agent memory layer was added on 2026-05-04 under `agents/memory/`, with deterministic inspection support under `stock_research/memory.py`.
 
 The first provider integration, SEC EDGAR, was added on 2026-05-03 under `stock_research/providers/sec_edgar.py`.
 The next provider tools, yfinance and Exa, were added on 2026-05-03 under `stock_research/providers/yfinance_provider.py` and `stock_research/providers/exa.py`.
@@ -363,16 +368,36 @@ Use `docs/scratchpads/` for topic memory:
 - `stock_tracking_scratchpad.md`: file conventions, CSV schema, category state.
 - `strategy_scratchpad.md`: user preferences, evolving thesis rules.
 
-### Agent run memory
+### Agent operational memory
 
-Proposed implementation folder: `agents/memory/`.
+Implemented folder: `agents/memory/`.
 
-Suggested files:
+Files:
 
+- `memory_index.md`: entry point that tells agents which memory files to read for which task.
 - `orchestrator_lessons.md`: what worked, what failed, bad routing decisions, prompt/tool improvements.
-- `source_quality.md`: which sources were useful, noisy, stale, paywalled, or unreliable.
-- `specialist_playbooks.md`: best prompts and rules for each specialist area.
+- `source_quality.md`: which sources were useful, noisy, stale, rate-limited, or unreliable.
+- `specialist_playbooks.md`: procedures, tool-selection rules, and gotchas per specialist.
 - `evaluation_metrics.md`: run-level metrics and recurring failure patterns.
+- `deprecated_memory.md`: superseded or wrong lessons that should not be reintroduced.
+
+Detailed workflow: `docs/descriptions/agent_memory_workflow.md`.
+
+Deterministic commands:
+
+```powershell
+python -m stock_research memory summary
+python -m stock_research memory validate
+python -m stock_research memory context --task financial
+```
+
+Memory rules:
+
+- Load `agents/memory/memory_index.md` after `MEMORY.md`, `repo_map.md`, and the relevant scratchpad.
+- Load only task-relevant memory files after reading the index.
+- Use hot-path memory writes only for high-impact user corrections or dangerous repeated mistakes.
+- Use post-run reflection to update memory after weekly/manual runs.
+- Do not store raw provider output, secrets, or ordinary company facts in `agents/memory/`.
 
 ### Run artifacts
 

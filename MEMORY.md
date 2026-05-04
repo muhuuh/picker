@@ -120,3 +120,8 @@ Use this file for information we should not lose across sessions.
   - decision/fact: Financial provider reconciliation should be deterministic before LLM synthesis. `financial_compare` compares yfinance/FMP/Polygon/Massive/Alpha/SEC financial packets, excludes Exa/Grok by design, preserves material provider conflicts, and writes a provider-neutral evidence packet for later financial-data specialists.
   - evidence artifact path(s): `stock_research/financial_compare.py`, `docs/descriptions/financial_compare.md`, `tests/test_financial_compare.py`, `agents/runs/2026-05-09_weekly/evidence_packets/2026-05-04_financial_compare_company_aapl.json`
   - status: active
+
+- 2026-05-04:
+  - decision/fact: Operational agent memory is implemented under `agents/memory/` as structured Markdown plus deterministic Python inspection commands. It stores orchestration lessons, source-quality notes, specialist playbooks, evaluation metrics, and deprecated operational behavior. It must not store secrets, raw provider output, or ordinary company investment facts.
+  - evidence artifact path(s): `agents/memory/README.md`, `agents/memory/memory_index.md`, `stock_research/memory.py`, `docs/descriptions/agent_memory_workflow.md`, `docs/templates/agent_memory_item_template.md`
+  - status: active

@@ -18,6 +18,8 @@ The current implementation is a deterministic Python foundation. It reads the re
 - `docs/descriptions/human_interaction_workflow.md`: how user chat input becomes repo state.
 - `docs/plans/human_research_requests.md`: proactive user request queue.
 - `agents/human_review_queue.md`: system-generated items needing user approval.
+- `agents/memory/memory_index.md`: entry point for operational agent memory.
+- `docs/descriptions/agent_memory_workflow.md`: memory read/write workflow and guardrails.
 - `strategy/research_priorities.md`: recurring research priorities.
 - `stock_tracking/`: holdings, monitoring, rejected stocks, and company files.
 
@@ -30,6 +32,8 @@ python -m stock_research summary
 python -m stock_research validate
 python -m stock_research stale
 python -m stock_research manifest
+python -m stock_research memory summary
+python -m stock_research memory validate
 ```
 
 Write a weekly manifest:
@@ -123,6 +127,14 @@ Add and route a request into target artifacts:
 python -m stock_research route-request "Research ASML, TSM, AMD, and SAP" --priority high
 ```
 
+Inspect operational agent memory:
+
+```powershell
+python -m stock_research memory summary
+python -m stock_research memory validate
+python -m stock_research memory context --task financial
+```
+
 ## Tests
 
 ```powershell
@@ -143,6 +155,7 @@ Implemented:
 - stale-data scanner,
 - weekly run manifest generator,
 - deterministic provider-task planner and dry-run-by-default provider task runner,
+- deterministic operational memory loader, validator, summary, and task-context selector.
 - deterministic human request classifier and queue appender.
 - deterministic request router for stock, industry, theme, strategy, alert-review, manual-run, and status-move requests.
 - provider-neutral evidence packet schema and JSON artifact writer.
@@ -154,11 +167,13 @@ Implemented:
 - deterministic financial provider comparison layer.
 - Exa search and contents provider tools.
 - xAI Grok x_search provider tools.
+- structured operational agent memory under `agents/memory/`.
 
 Not implemented yet:
 
 - macro provider integrations,
 - LLM specialist agents,
 - orchestrator runtime,
+- post-run memory reflection automation,
 - OS/app scheduled execution,
 - immediate research runs.

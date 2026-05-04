@@ -1,6 +1,6 @@
 # Investment Agent Workflow Plan
 
-Last updated: 2026-05-03
+Last updated: 2026-05-04
 
 ## Goal and Scope
 
@@ -100,11 +100,14 @@ Detailed backlog: `docs/plans/investment_agent_backlog.md`.
 
 ## Priority 6: Learning Loop
 
-- [ ] Create `agents/memory/` conventions.
-- [ ] Add orchestrator lessons memory.
-- [ ] Add source quality memory.
-- [ ] Add specialist playbooks memory.
-- [ ] Add evaluation metrics memory.
+- [x] Create `agents/memory/` conventions.
+- [x] Add orchestrator lessons memory.
+- [x] Add source quality memory.
+- [x] Add specialist playbooks memory.
+- [x] Add evaluation metrics memory.
+- [x] Add memory index and deprecated memory.
+- [x] Add agent memory workflow description.
+- [x] Add deterministic memory loader, validator, summary, and task-context selector.
 - [ ] Add post-run reflection step.
 - [ ] Add recurring failure detection.
 
@@ -136,4 +139,6 @@ Detailed backlog: `docs/plans/investment_agent_backlog.md`.
 - 2026-05-03: Added FMP, Polygon/Massive, and Alpha Vantage provider tools after reviewing current official docs. They are wired into CLI, provider runner, and weekly manifests.
 - 2026-05-04: Live AAPL smoke tests passed for FMP, Polygon/Massive, and Alpha Vantage. Added Alpha Vantage request spacing/retry for free-tier limits.
 - 2026-05-04: Added `financial_compare` deterministic reconciliation step. It compares financial provider packets only, excludes Exa/Grok, writes raw comparison JSON plus a provider-neutral evidence packet, and is listed in weekly manifest `analysis_tasks`.
+- 2026-05-04: Added structured operational agent memory under `agents/memory/`, plus `docs/descriptions/agent_memory_workflow.md` and `docs/templates/agent_memory_item_template.md`.
+- 2026-05-04: Wired operational memory into deterministic tooling with `python -m stock_research memory summary`, `memory validate`, and `memory context --task TASK`; updated `AGENTS.md` to require operational memory loading before implementation.
 - 2026-05-03: Started SDK/framework review before agent runtime work. Current finding: Cursor SDK is likely a coding-agent automation adjunct, not the core stock-research orchestration runtime; OpenAI Agents SDK, Pydantic AI, and LangGraph remain the main candidates.

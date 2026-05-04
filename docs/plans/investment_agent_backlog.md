@@ -1,6 +1,6 @@
 # Investment Agent Backlog
 
-Last updated: 2026-05-03
+Last updated: 2026-05-04
 
 ## Purpose
 
@@ -193,6 +193,7 @@ This is the clear task backlog for building the stock tracking and investment re
 - `tests/test_alpha_vantage_provider.py`
 - `tests/test_financial_compare.py`
 - `tests/test_provider_runner.py`
+- `tests/test_memory.py`
 - Live SEC smoke artifact: `agents/runs/2026-05-09_weekly/evidence_packets/2026-05-03_sec_edgar_company_aapl.json`
 - Live xAI Grok smoke artifact: `agents/runs/2026-05-09_weekly/evidence_packets/2026-05-03_xai_grok_company_amd.json`
 - Live FMP smoke artifact: `agents/runs/2026-05-09_weekly/evidence_packets/2026-05-04_fmp_company_aapl.json`
@@ -243,16 +244,22 @@ This is the clear task backlog for building the stock tracking and investment re
 
 ## Priority 7: Learning Loop
 
-- [ ] Create `agents/memory/`.
+- [x] Create `agents/memory/`.
   - Description: dedicated agent operational memory separate from investment memory.
-- [ ] Create `orchestrator_lessons.md`.
+- [x] Create `orchestrator_lessons.md`.
   - Description: routing mistakes, prompt improvements, failed assumptions.
-- [ ] Create `source_quality.md`.
+- [x] Create `source_quality.md`.
   - Description: source reliability, provider gaps, duplicate/noisy sources.
-- [ ] Create `specialist_playbooks.md`.
+- [x] Create `specialist_playbooks.md`.
   - Description: best instructions and gotchas per specialist type.
-- [ ] Create `evaluation_metrics.md`.
+- [x] Create `evaluation_metrics.md`.
   - Description: run duration, tool failures, stale-data fixes, citation quality, false positives.
+- [x] Create memory index and deprecated memory.
+  - Description: give future agents a memory entry point and a place to preserve superseded/wrong lessons.
+- [x] Document agent memory workflow.
+  - Description: define read flow, write flow, lifecycle fields, and guardrails.
+- [x] Add deterministic memory loader and validator.
+  - Description: expose `memory summary`, `memory validate`, and `memory context --task TASK` commands so Codex and future orchestrators can inspect task-relevant memory.
 - [ ] Add post-run reflection.
   - Description: after each run, update memory with lessons and next-run improvements.
 

@@ -32,6 +32,8 @@
 - [x] Add FMP, Polygon/Massive, and Alpha Vantage provider integrations.
 - [x] Live smoke-test FMP, Polygon/Massive, and Alpha Vantage.
 - [x] Add deterministic financial provider comparison layer.
+- [x] Add structured operational agent memory layer.
+- [x] Add deterministic operational memory loader/validator/context selector.
 - [ ] Validate updated architecture with user.
 
 ## Key Decisions and Why
@@ -61,6 +63,8 @@
 - 2026-05-03: Added FMP, Polygon/Massive, and Alpha Vantage provider tools as market-data cross-checks. They are CLI-callable, provider-task executable, and included in weekly manifests where appropriate.
 - 2026-05-04: Live AAPL smoke tests passed for FMP, Polygon/Massive, and Alpha Vantage. Alpha needed request spacing/retry for its free-tier 1 request/second burst limit.
 - 2026-05-04: Added `financial_compare`. It is only for financial/profile/market-data provider packets and intentionally excludes Exa/Grok news/sentiment packets.
+- 2026-05-04: Added `agents/memory/` as operational memory, not investment fact storage. It includes index, orchestrator lessons, source quality, specialist playbooks, evaluation metrics, and deprecated memory.
+- 2026-05-04: Added Python memory tooling: `memory summary`, `memory validate`, and `memory context --task TASK`. Updated `AGENTS.md` so future agents must read operational memory, not only durable `MEMORY.md`.
 
 ## What We Learned
 
@@ -98,6 +102,9 @@
 - FMP/Polygon/Alpha live smoke tests passed for AAPL on 2026-05-04.
 - Financial compare command exists: `python -m stock_research financial compare --ticker AAPL --run-id 2026-05-09_weekly`.
 - Weekly manifests now include `analysis_tasks` for post-provider financial comparison when tracked stocks or human stock-research requests exist.
+- Operational agent memory now starts at `agents/memory/memory_index.md`. Future agents should load task-relevant memory after `MEMORY.md`, `repo_map.md`, and the relevant scratchpad.
+- Deterministic memory command exists: `python -m stock_research memory context --task financial`.
+- Agent memory stores workflow/source/procedure/evaluation lessons only; company facts stay in stock files, strategy, and evidence packets.
 - `python -m unittest discover -s tests` is the working test command in this repo.
 - Cursor SDK is promising for coding-agent automation, but it is public beta and TypeScript-first; it looks better for repo maintenance agents than for the core stock-research runtime.
 - OpenAI Agents SDK supports the repo's manager/specialist pattern, tracing, guardrails, Pydantic outputs, sessions, and non-OpenAI model routing via Any-LLM/LiteLLM, but provider capability gaps must be tested.
@@ -117,7 +124,7 @@
 ## Next Steps
 
 - Review updated `docs/descriptions/investment_agent_workflow.md` and `docs/plans/investment_agent_backlog.md` with the user if needed.
-- Next implementation work should create agent memory files, run an agent-framework spike, or build the first financial-data specialist around `financial_compare` packets.
+- Next implementation work should add post-run memory reflection, run an agent-framework spike, or build the first financial-data specialist around `financial_compare` packets.
 - Before Priority 4 agent implementation, run a thin spike comparing OpenAI Agents SDK vs Pydantic AI for one evidence-packet specialist and one orchestrator call.
 - Consider LangGraph only if the first spike shows that explicit resumable graph state is needed earlier than planned.
 - Add README and SETUP when runtime dependencies are introduced.
@@ -138,6 +145,7 @@
 - Polygon/Massive stock defaults should be treated as U.S.-equity focused unless coverage is verified for a specific non-U.S. ticker.
 - Grok/X evidence is social signal unless independently verified. Treat it as sentiment/community chatter, not standalone fact.
 - Do not reintroduce direct X.com API bearer-token search unless the user explicitly asks for that reversal.
+- Do not let `agents/memory/` become a duplicate investment database. Keep provider output in `agents/runs/`, company facts in stock files, and strategy in `strategy/`.
 
 ## Commands / Environment Notes
 

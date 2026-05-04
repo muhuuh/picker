@@ -8,14 +8,15 @@ It defines the required workflow for every new task in this repo.
 1. Start every task with a short plan (bullet points) before making edits.
 2. Before starting work, identify the topic and read the matching scratchpad to get up to date.
 3. Before starting implementation, read `MEMORY.md` for durable project decisions/facts relevant to the task.
-4. Keep the matching scratchpad updated during the task (after meaningful steps) and at the end.
-5. Before implementing, check `docs/descriptions/` for task-relevant description files and read them.
-6. If your changes impact behavior/design documented in a relevant description file, update that file before finishing.
-7. For complex or long-running topics, create/update a plan file in `docs/plans/` and keep it current. It should contain the goal of the high-level task and an action plan with prioritized checklist steps.
-8. After finishing a task, update the scratchpad with the latest decisions, learnings, and next steps. Update the plan file with the latest progress if one exists for this specific task.
-9. Keep language simple and concrete.
-10. Do not add/change major dependencies or infra without explicitly calling it out.
-11. After major changes, verify `README.md` and `SETUP.md` still match reality.
+4. Before implementation, read `agents/memory/memory_index.md` and the task-relevant operational memory file(s) it points to. For deterministic inspection, use `python -m stock_research memory context --task TASK`.
+5. Keep the matching scratchpad updated during the task (after meaningful steps) and at the end.
+6. Before implementing, check `docs/descriptions/` for task-relevant description files and read them.
+7. If your changes impact behavior/design documented in a relevant description file, update that file before finishing.
+8. For complex or long-running topics, create/update a plan file in `docs/plans/` and keep it current. It should contain the goal of the high-level task and an action plan with prioritized checklist steps.
+9. After finishing a task, update the scratchpad with the latest decisions, learnings, and next steps. Update the plan file with the latest progress if one exists for this specific task.
+10. Keep language simple and concrete.
+11. Do not add/change major dependencies or infra without explicitly calling it out.
+12. After major changes, verify `README.md` and `SETUP.md` still match reality.
 
 ## Stock Research Repository Model
 
@@ -33,6 +34,7 @@ The initial market scope is US and Europe. The default recurring deep research c
 - `agents/`: intelligence and operation layer.
   - `orchestrator/`: main coordinator and deterministic kickoff workflow.
   - `specialists/`: narrow agents for research, sentiment, filings, finance, file updates, and quality review.
+  - `memory/`: operational agent memory for workflow lessons, source quality, specialist playbooks, evaluation metrics, and deprecated behavior.
 - `market_research/`: industry, macro, theme, and discovery research outputs.
 - `strategy/`: high-level investment strategy, criteria, preferred industries, rejection rules, risk appetite, and current priorities.
 - `docs/plans/human_research_requests.md`: queue for proactive user requests that should influence manual or automated research.
@@ -64,6 +66,7 @@ The initial market scope is US and Europe. The default recurring deep research c
 - All write actions should produce a short change summary with source links and confidence level.
 - Any buy/sell/position-size recommendation should be treated as research output for human review, not an automatic trade instruction.
 - Agent runs should update relevant scratchpads and plan files with what worked, what failed, useful prompts/tools, stale data risks, and next actions.
+- Agent runs should use `agents/memory/` for operational lessons and should not store raw provider output, secrets, or ordinary company facts there.
 
 ## Scratchpads (Topic Memory)
 
@@ -104,6 +107,7 @@ Before finishing any task:
 - [ ] Relevant checks/tests were run, or state why not.
 - [ ] Scratchpad updated with latest decisions, learnings, and next steps.
 - [ ] `MEMORY.md` reviewed and updated when durable/high-impact decisions or facts changed.
+- [ ] `agents/memory/` reviewed and updated when operational lessons, source-quality lessons, or deprecated behavior changed.
 - [ ] Relevant description file(s) in `docs/descriptions/` checked and updated if impacted.
 - [ ] If the topic is complex/long-running: relevant plan file in `docs/plans/` updated.
 - [ ] Risky changes are clearly called out.

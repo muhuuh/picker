@@ -1,6 +1,6 @@
 # Repo Map
 
-Last updated: 2026-05-03
+Last updated: 2026-05-04
 
 ## Purpose
 
@@ -51,6 +51,7 @@ This file tells Codex, the orchestrator, and future agents where to find and upd
 ## Agent Architecture
 
 - `docs/descriptions/investment_agent_workflow.md`: full planned automated workflow.
+- `docs/descriptions/agent_memory_workflow.md`: operational memory read/write workflow.
 - `docs/descriptions/evidence_schema.md`: shared source/evidence packet schema for all providers and specialists.
 - `docs/descriptions/sec_edgar_provider.md`: SEC EDGAR provider behavior and setup.
 - `docs/descriptions/exa_provider.md`: Exa search/contents provider behavior and best practices.
@@ -65,7 +66,13 @@ This file tells Codex, the orchestrator, and future agents where to find and upd
 - `agents/orchestrator/`: future main orchestrator implementation.
 - `agents/specialists/`: future specialist agent implementations.
 - `agents/runs/`: future run artifacts.
-- `agents/memory/`: future operational agent memory.
+- `agents/memory/`: operational agent memory.
+- `agents/memory/memory_index.md`: entry point for task-relevant memory loading.
+- `agents/memory/orchestrator_lessons.md`: orchestration and routing lessons.
+- `agents/memory/source_quality.md`: provider/source reliability memory.
+- `agents/memory/specialist_playbooks.md`: procedural memory for specialist agents.
+- `agents/memory/evaluation_metrics.md`: run-quality and learning-loop memory.
+- `agents/memory/deprecated_memory.md`: superseded or wrong lessons that should not be reintroduced.
 
 ## Runtime Tooling
 
@@ -74,6 +81,9 @@ This file tells Codex, the orchestrator, and future agents where to find and upd
 - `python -m stock_research validate`: validate CSV schemas and required files.
 - `python -m stock_research stale`: scan stock rows for stale dates.
 - `python -m stock_research manifest`: generate weekly run manifest.
+- `python -m stock_research memory summary`: summarize operational memory.
+- `python -m stock_research memory validate`: validate operational memory files and item fields.
+- `python -m stock_research memory context --task TASK`: print task-relevant memory files and active lessons.
 - `python -m stock_research classify-request "..."`
 - `python -m stock_research add-request "..."`
 - `python -m stock_research route-request "..."`: append and route a user request into target repo artifacts.
