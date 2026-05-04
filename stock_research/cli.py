@@ -6,7 +6,7 @@ from datetime import date
 from pathlib import Path
 
 from .analysis_runner import run_analysis_tasks
-from .company_news_specialist import CompanyNewsSpecialistError, build_company_news_specialist_packet
+from .company_news_specialist import CompanyNewsSpecialistError, build_company_news_contents_follow_up_packet, build_company_news_specialist_packet
 from .config import get_config_value
 from .evidence import default_packet_path, new_packet, read_packet, validate_packet, write_packet
 from .financial_compare import FinancialCompareError, build_financial_compare_packet
@@ -249,6 +249,14 @@ def main(argv: list[str] | None = None) -> int:
     news_review.add_argument("--run-id", required=True)
     news_review.add_argument("--exa-news-packet", type=Path, help="Optional explicit Exa company-news packet path.")
     news_review.add_argument("--today", help="Override current date as YYYY-MM-DD.")
+
+    news_contents = news_subparsers.add_parser("contents-follow-up", help="Run Exa contents extraction for high-value company-news URLs.")
+    news_contents.add_argument("--ticker", required=True)
+    news_contents.add_argument("--run-id", required=True)
+    news_contents.add_argument("--exa-news-packet", type=Path, help="Optional explicit Exa company-news packet path.")
+    news_contents.add_argument("--max-urls", type=int, default=3)
+    news_contents.add_argument("--api-key", help="Exa API key. Or set EXA_API_KEY.")
+    news_contents.add_argument("--today", help="Override current date as YYYY-MM-DD.")
 
     exa_parser = subparsers.add_parser("exa", help="Exa search and contents provider tools.")
     exa_subparsers = exa_parser.add_subparsers(dest="exa_command", required=True)
@@ -665,6 +673,33 @@ def main(argv: list[str] | None = None) -> int:
                     {
                         "packet_id": result.packet.packet_id,
                         "status": result.review["status"],
+                        "paths": [str(path) for path in result.paths],
+                    },
+                    indent=2,
+                )
+            )
+            return 0
+        if args.news_command == "contents-follow-up":
+            request_date = parse_cli_date(args.today)
+            try:
+                api_key = resolve_exa_api_key(args.api_key or get_config_value(state.root, "EXA_API_KEY"))
+                result = build_company_news_contents_follow_up_packet(
+                    ticker=args.ticker,
+                    run_id=args.run_id,
+                    root=state.root,
+                    api_key=api_key,
+                    current_date=request_date,
+                    exa_news_packet_path=args.exa_news_packet,
+                    max_urls=args.max_urls,
+                )
+            except (CompanyNewsSpecialistError, ExaError) as exc:
+                print(f"ERROR: {exc}")
+                return 1
+            print(
+                json.dumps(
+                    {
+                        "packet_id": result.packet.packet_id,
+                        "urls": result.urls,
                         "paths": [str(path) for path in result.paths],
                     },
                     indent=2,

@@ -4,9 +4,11 @@ from datetime import date
 from pathlib import Path
 from typing import Any, Callable
 
-from .company_news_specialist import build_company_news_specialist_packet
+from .company_news_specialist import build_company_news_contents_follow_up_packet, build_company_news_specialist_packet
+from .config import get_config_value
 from .financial_compare import build_financial_compare_packet
 from .financial_specialist import build_financial_specialist_packet
+from .providers.exa import resolve_exa_api_key
 
 
 AnalysisExecutor = Callable[[Path, dict[str, Any], date | None], dict[str, Any]]
@@ -165,6 +167,21 @@ def execute_analysis_task(root: Path, task: dict[str, Any], current_date: date |
             exa_news_packet_path=Path(packet_path) if packet_path else None,
         )
         return {**analysis_result(result.packet.packet_id, result.paths), "review_status": result.review["status"]}
+
+    if tool == "company_news_contents_follow_up":
+        packet_path = args.get("exa_news_packet")
+        api_key = resolve_exa_api_key(get_config_value(root, "EXA_API_KEY"))
+        result = build_company_news_contents_follow_up_packet(
+            ticker=str(args["ticker"]),
+            run_id=str(args["run_id"]),
+            root=root,
+            api_key=api_key,
+            current_date=current_date,
+            exa_news_packet_path=Path(packet_path) if packet_path else None,
+            max_urls=int(args.get("max_urls", 3)),
+            artifact_id=str(task.get("id", "")),
+        )
+        return {**analysis_result(result.packet.packet_id, result.paths), "url_count": len(result.urls)}
 
     raise ValueError(f"Unsupported analysis task tool={tool}")
 

@@ -26,11 +26,11 @@ Operational memory about provider reliability, source behavior, and known gotcha
 - scope: news
 - status: active
 - confidence: high
-- trigger/source: Exa provider implementation and live smoke tests.
-- lesson: Exa requests should keep explicit `User-Agent` and `Accept: application/json` headers. Use Exa search modes deliberately: `news` for recent company/industry news, `industry` for sector context, `company` for discovery, `general` for broad validation, and `contents` for high-value result extraction.
+- trigger/source: Exa provider implementation, live smoke tests, and 2026-05-04 official Exa docs re-review.
+- lesson: Exa requests should keep explicit `User-Agent` and `Accept: application/json` headers. Use `type: "auto"` plus highlights by default. Use Exa search modes deliberately: `news` for recent company/industry news on the main search endpoint without a news category, `industry` for sector context, `company` with `category: "company"` for discovery, `general` for broad validation, and `/contents` with top-level highlights/text parameters for high-value result extraction before company-file updates.
 - use_when: Exa provider tasks, company news specialist, industry research specialist, discovery specialist, and citation follow-up.
 - do_not_use_when: Verified financial metrics or social sentiment; use financial providers or Grok respectively.
-- evidence: `stock_research/providers/exa.py`, `docs/descriptions/exa_provider.md`, `agents/runs/2026-05-09_weekly/evidence_packets/2026-05-03_exa_industry_semiconductors.json`
+- evidence: `stock_research/providers/exa.py`, `docs/descriptions/exa_provider.md`, `docs/descriptions/company_news_specialist.md`, `agents/runs/2026-05-09_weekly/reports/company_news_specialist/AAPL_company_news_review.md`
 - owner: Exa specialists
 - next_review: 2026-08-01
 

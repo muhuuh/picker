@@ -44,6 +44,7 @@
 - [x] Add deterministic quality report generator.
 - [x] Validate full planned AAPL weekly provider/analysis/report/finalization workflow.
 - [x] Add deterministic company-news specialist review layer.
+- [x] Add automatic Exa contents follow-up before company-news review.
 - [ ] Validate updated architecture with user.
 
 ## Key Decisions and Why
@@ -86,7 +87,9 @@
 - 2026-05-04: Fixed Git handling for generated run JSON: raw/evidence/run-root JSON and recurring-failure JSON are local artifacts; markdown summaries/reports are the reviewable repo artifacts.
 - 2026-05-04: Full AAPL weekly validation exposed same-subject Exa artifact overwrites. Exa and Grok manifest tasks now include task ids in packet/raw artifact names, and quality/reflection matching is task-specific.
 - 2026-05-04: User chose to defer Grok model-selection optimization. It is now a backlog item; current behavior remains `grok-4.3` default.
-- 2026-05-04: Added deterministic company-news specialist. It consumes Exa company-news packets and writes specialist evidence, raw review JSON, and markdown review; Exa contents follow-up remains a separate future task.
+- 2026-05-04: Added deterministic company-news specialist. It consumes Exa company-news packets and writes specialist evidence, raw review JSON, and markdown review.
+- 2026-05-04: Re-reviewed official Exa search/search-best-practice/company/news/contents docs. Confirmed: use `auto` and highlights by default, no `category` parameter for news, `category: "company"` only for company discovery, and top-level `/contents` parameters with status checks for extraction.
+- 2026-05-04: Fixed company-news quality gate. Search highlights/headlines alone now produce `partial_review`; the manifest plans `company_news_contents_follow_up` before `company_news_review`, and successful contents extraction is required for `ready_for_company_update`.
 
 ## What We Learned
 
@@ -138,7 +141,8 @@
 - Current weekly validation run finalization is `complete` with zero deterministic quality findings and zero reflection issues.
 - xAI/Grok `x_search` can be slow; provider now uses a longer timeout and one retry.
 - Company news review command exists: `python -m stock_research news review --ticker AAPL --run-id 2026-05-09_weekly`.
-- Weekly manifests now include `company_news_review` analysis tasks for tracked stocks and human stock-research requests.
+- Company news contents follow-up command exists: `python -m stock_research news contents-follow-up --ticker AAPL --run-id 2026-05-09_weekly`.
+- Weekly manifests now include `company_news_contents_follow_up` before `company_news_review` analysis tasks for tracked stocks and human stock-research requests.
 - Agent memory stores workflow/source/procedure/evaluation lessons only; company facts stay in stock files, strategy, and evidence packets.
 - `python -m unittest discover -s tests` is the working test command in this repo.
 - Cursor SDK is promising for coding-agent automation, but it is public beta and TypeScript-first; it looks better for repo maintenance agents than for the core stock-research runtime.
@@ -159,7 +163,7 @@
 ## Next Steps
 
 - Review updated `docs/descriptions/investment_agent_workflow.md` and `docs/plans/investment_agent_backlog.md` with the user if needed.
-- Next implementation work should add automatic Exa contents follow-up for high-value company-news URLs, build the LLM memory writer agent, wire finalization into the orchestrator/scheduled runner, or inject memory context into specialist prompts.
+- Next implementation work should build the LLM memory writer agent, wire finalization into the orchestrator/scheduled runner, inject memory context into specialist prompts, or start the next specialist such as SEC filing or Exa industry research.
 - Learning-loop gaps explicitly still pending: LLM memory writer agent, scheduled/orchestrator invocation of run finalization, and orchestrator injection of memory context into specialist prompts.
 - Before Priority 4 agent implementation, run a thin spike comparing OpenAI Agents SDK vs Pydantic AI for one evidence-packet specialist and one orchestrator call.
 - Consider LangGraph only if the first spike shows that explicit resumable graph state is needed earlier than planned.
@@ -202,3 +206,4 @@
 - AAPL monitoring seed now causes the weekly manifest to plan AAPL provider and analysis tasks.
 - Full workflow verification sequence used: provider tasks, analysis tasks, run summary, quality report, memory finalization, unit tests, memory validation, repo validation.
 - Company news specialist live review report: `agents/runs/2026-05-09_weekly/reports/company_news_specialist/AAPL_company_news_review.md`.
+- AAPL company-news report was regenerated after Exa contents extraction and now includes contents sources, contents claims, extracted URLs, and remaining lower-priority URLs.

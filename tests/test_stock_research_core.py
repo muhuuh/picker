@@ -70,8 +70,12 @@ class StockResearchCoreTests(unittest.TestCase):
         self.assertIn("financial_compare_asml", analysis_task_ids)
         self.assertIn("financial_review_aapl", analysis_task_ids)
         self.assertIn("financial_review_asml", analysis_task_ids)
+        self.assertIn("company_news_contents_follow_up_aapl", analysis_task_ids)
+        self.assertIn("company_news_contents_follow_up_asml", analysis_task_ids)
         self.assertIn("company_news_review_aapl", analysis_task_ids)
         self.assertIn("company_news_review_asml", analysis_task_ids)
+        analysis_tasks = {task["id"]: task for task in manifest["analysis_tasks"]}
+        self.assertEqual(analysis_tasks["company_news_review_aapl"]["depends_on"], ["company_news_contents_follow_up_aapl"])
 
     def test_manifest_routes_research_priorities_and_human_requests_to_exa_modes(self):
         state = repo_state_for_manifest(
@@ -124,7 +128,12 @@ class StockResearchCoreTests(unittest.TestCase):
         self.assertEqual(tasks["xai_human_hir_0099_x_search_robotics_suppliers"]["provider"], "xai_grok")
         self.assertEqual(tasks["xai_human_hir_0100_x_search_amd"]["provider"], "xai_grok")
         self.assertEqual(analysis_tasks["financial_compare_human_hir_0100_amd"]["tool"], "financial_compare")
+        self.assertEqual(analysis_tasks["company_news_contents_follow_up_human_hir_0100_amd"]["tool"], "company_news_contents_follow_up")
         self.assertEqual(analysis_tasks["company_news_review_human_hir_0100_amd"]["tool"], "company_news_review")
+        self.assertEqual(
+            analysis_tasks["company_news_review_human_hir_0100_amd"]["depends_on"],
+            ["company_news_contents_follow_up_human_hir_0100_amd"],
+        )
         self.assertEqual(analysis_tasks["financial_review_human_hir_0100_amd"]["tool"], "financial_review")
         self.assertEqual(analysis_tasks["financial_review_human_hir_0100_amd"]["depends_on"], ["financial_compare_human_hir_0100_amd"])
 

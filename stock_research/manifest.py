@@ -154,6 +154,21 @@ def build_analysis_tasks(state: RepoState, human_requests: list[dict[str, str]],
             ticker = normalize_ticker(row.get("ticker", ""))
             if not ticker:
                 continue
+            contents_id = f"company_news_contents_follow_up_{slugify(ticker)}"
+            add_task(
+                tasks,
+                seen_task_ids,
+                analysis_task(
+                    task_id=contents_id,
+                    tool="company_news_contents_follow_up",
+                    subject_id=ticker,
+                    args={"ticker": ticker, "run_id": run_id, "max_urls": 3},
+                    reason=f"Run Exa contents follow-up for high-value company-news URLs for {bucket} ticker {ticker}.",
+                    priority="high" if bucket == "current_holdings" else "medium",
+                    source_bucket=bucket,
+                    expected_artifacts=["exa_contents_evidence_packet", "exa_contents_raw_json"],
+                ),
+            )
             add_task(
                 tasks,
                 seen_task_ids,
@@ -162,9 +177,10 @@ def build_analysis_tasks(state: RepoState, human_requests: list[dict[str, str]],
                     tool="company_news_review",
                     subject_id=ticker,
                     args={"ticker": ticker, "run_id": run_id},
-                    reason=f"Run company-news specialist review for {bucket} ticker {ticker} after Exa news collection.",
+                    reason=f"Run company-news specialist review for {bucket} ticker {ticker} after Exa contents follow-up.",
                     priority="high" if bucket == "current_holdings" else "medium",
                     source_bucket=bucket,
+                    depends_on=[contents_id],
                     expected_artifacts=["company_news_specialist_evidence_packet", "company_news_review_json", "company_news_review_markdown"],
                 ),
             )
@@ -207,6 +223,21 @@ def build_analysis_tasks(state: RepoState, human_requests: list[dict[str, str]],
             ticker_upper = normalize_ticker(ticker)
             if not ticker_upper:
                 continue
+            contents_id = f"company_news_contents_follow_up_human_{slugify(request_id)}_{slugify(ticker_upper)}"
+            add_task(
+                tasks,
+                seen_task_ids,
+                analysis_task(
+                    task_id=contents_id,
+                    tool="company_news_contents_follow_up",
+                    subject_id=ticker_upper,
+                    args={"ticker": ticker_upper, "run_id": run_id, "max_urls": 3},
+                    reason=f"Run Exa contents follow-up for human stock research request {request_id}.",
+                    priority=priority,
+                    source_bucket="human_input_queue",
+                    expected_artifacts=["exa_contents_evidence_packet", "exa_contents_raw_json"],
+                ),
+            )
             add_task(
                 tasks,
                 seen_task_ids,
@@ -215,9 +246,10 @@ def build_analysis_tasks(state: RepoState, human_requests: list[dict[str, str]],
                     tool="company_news_review",
                     subject_id=ticker_upper,
                     args={"ticker": ticker_upper, "run_id": run_id},
-                    reason=f"Run company-news specialist review for human stock research request {request_id}.",
+                    reason=f"Run company-news specialist review for human stock research request {request_id} after Exa contents follow-up.",
                     priority=priority,
                     source_bucket="human_input_queue",
+                    depends_on=[contents_id],
                     expected_artifacts=["company_news_specialist_evidence_packet", "company_news_review_json", "company_news_review_markdown"],
                 ),
             )

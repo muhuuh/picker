@@ -194,6 +194,7 @@ This is the clear task backlog for building the stock tracking and investment re
 - `python -m stock_research alpha-vantage company --ticker TICKER --run-id RUN_ID`
 - `python -m stock_research financial compare --ticker TICKER --run-id RUN_ID`
 - `python -m stock_research financial review --ticker TICKER --run-id RUN_ID`
+- `python -m stock_research news contents-follow-up --ticker TICKER --run-id RUN_ID`
 - `python -m stock_research news review --ticker TICKER --run-id RUN_ID`
 - `python -m stock_research exa search --query QUERY --subject-type TYPE --subject-id ID --run-id RUN_ID`
 - `python -m stock_research exa contents --url URL --subject-type TYPE --subject-id ID --run-id RUN_ID`
@@ -234,9 +235,9 @@ This is the clear task backlog for building the stock tracking and investment re
 - [x] Define evidence packet schema.
   - Description: provider-neutral schema for all specialist outputs; currently implemented with stdlib dataclasses.
 - [x] Build company news specialist.
-  - Description: deterministic first company-news specialist consumes Exa company-news packets, writes specialist evidence, raw review JSON, and markdown review. It lists high-value URLs for later Exa contents follow-up.
-- [ ] Add automatic Exa contents follow-up for company news.
-  - Description: after `company_news_review`, select high-value URLs and run Exa `contents` before deeper company thesis updates.
+  - Description: deterministic first company-news specialist consumes Exa company-news packets plus contents follow-up, writes specialist evidence, raw review JSON, and markdown review.
+- [x] Add automatic Exa contents follow-up for company news.
+  - Description: manifests now plan `company_news_contents_follow_up` before `company_news_review`; search-highlight-only reviews remain `partial_review` until Exa contents confirms selected URLs.
 - [ ] Build SEC filing specialist.
 - [x] Build financial data specialist.
   - Description: deterministic first specialist that consumes `financial_compare` packets, writes a specialist evidence packet, raw review JSON, and markdown financial review. Future LLM version can extend this surface without changing the input/output contract.

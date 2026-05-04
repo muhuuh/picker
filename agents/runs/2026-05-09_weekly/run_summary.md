@@ -5,8 +5,8 @@ Generated: 2026-05-04
 ## Metrics
 
 - provider_tasks_planned: 10
-- analysis_tasks_planned: 3
-- evidence_packets: 16
+- analysis_tasks_planned: 4
+- evidence_packets: 17
 - financial_reviews: 1
 - company_news_reviews: 1
 - recommended_updates: 3
@@ -24,7 +24,7 @@ Generated: 2026-05-04
 
 - alpha_vantage: 1
 - company_news_specialist: 1
-- exa: 5
+- exa: 6
 - financial_compare: 1
 - financial_data_specialist: 1
 - fmp: 1

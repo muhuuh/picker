@@ -63,6 +63,7 @@ Detailed backlog: `docs/plans/investment_agent_backlog.md`.
 - [x] Implement Alpha Vantage quote/overview cross-check tool.
 - [x] Implement deterministic financial provider comparison step.
 - [x] Implement Exa company, news, industry, and contents tools.
+- [x] Add automatic Exa contents follow-up before company-news reviews.
 - [x] Implement xAI Grok stock sentiment tool.
 - [x] Implement xAI Grok industry sentiment/discovery tool.
 - [x] Validate task-specific provider artifacts for same-subject Exa/Grok manifest tasks.
@@ -162,4 +163,5 @@ Detailed backlog: `docs/plans/investment_agent_backlog.md`.
 - 2026-05-04: Added AAPL as a monitoring workflow validation seed. Manifest planning, provider-task dry-run, analysis-task execution, run summary generation, quality report generation, and memory finalization were validated against the AAPL run artifacts.
 - 2026-05-04: Fixed generated JSON handling and provider artifact naming. Generated run JSON/raw/evidence artifacts are ignored; Exa/Grok manifest tasks now use task-specific artifact ids; full AAPL weekly validation now finalizes as `complete` with zero quality findings.
 - 2026-05-04: Added deterministic company-news specialist with `python -m stock_research news review --ticker TICKER --run-id RUN_ID`; weekly manifests now plan `company_news_review` analysis tasks.
+- 2026-05-04: Re-reviewed official Exa search, search best-practice, company, news, contents, and contents best-practice docs. Confirmed `auto` + highlights as default, `category: "company"` only for company discovery, no news category parameter, and top-level `/contents` extraction parameters. Added `company_news_contents_follow_up` before `company_news_review`; headline/highlight-only news reviews now remain `partial_review`.
 - 2026-05-03: Started SDK/framework review before agent runtime work. Current finding: Cursor SDK is likely a coding-agent automation adjunct, not the core stock-research orchestration runtime; OpenAI Agents SDK, Pydantic AI, and LangGraph remain the main candidates.

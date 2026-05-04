@@ -107,6 +107,7 @@ This file tells Codex, the orchestrator, and future agents where to find and upd
 - `python -m stock_research alpha-vantage company --ticker TICKER --run-id RUN_ID`: fetch Alpha Vantage quote/overview artifacts.
 - `python -m stock_research financial compare --ticker TICKER --run-id RUN_ID`: compare financial provider packets into one reconciliation packet.
 - `python -m stock_research financial review --ticker TICKER --run-id RUN_ID`: review a financial_compare packet into a specialist evidence packet and markdown report.
+- `python -m stock_research news contents-follow-up --ticker TICKER --run-id RUN_ID`: run Exa contents extraction for high-value company-news URLs.
 - `python -m stock_research news review --ticker TICKER --run-id RUN_ID`: review an Exa company-news packet into a specialist evidence packet and markdown report.
 - `python -m stock_research exa search --query "..." --subject-type TYPE --subject-id ID --run-id RUN_ID`: run Exa search into evidence artifacts.
 - `python -m stock_research exa contents --url URL --subject-type TYPE --subject-id ID --run-id RUN_ID`: run Exa contents extraction into evidence artifacts.

@@ -11,8 +11,8 @@ Status: complete
 - recurring_memory_update_proposals: 0
 - recurring_runs_scanned: 1
 - recurring_threshold: 2
-- evidence_packets: 16
-- valid_evidence_packets: 16
+- evidence_packets: 17
+- valid_evidence_packets: 17
 - invalid_evidence_packets: 0
 
 ## Artifacts

@@ -123,8 +123,11 @@ python -m stock_research financial review --ticker AAPL --run-id 2026-05-09_week
 Run the deterministic company-news specialist review:
 
 ```powershell
+python -m stock_research news contents-follow-up --ticker AAPL --run-id 2026-05-09_weekly
 python -m stock_research news review --ticker AAPL --run-id 2026-05-09_weekly
 ```
+
+The review treats Exa search highlights/headlines as `partial_review` until selected high-value URLs have successful Exa contents extraction.
 
 Run Exa search or content extraction into evidence packets:
 
@@ -213,6 +216,7 @@ Implemented:
 - deterministic financial provider comparison layer.
 - deterministic financial-data specialist review layer.
 - deterministic company-news specialist review layer.
+- automatic Exa contents follow-up for company-news reviews.
 - Exa search and contents provider tools.
 - xAI Grok x_search provider tools.
 - structured operational agent memory under `agents/memory/`.

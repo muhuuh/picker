@@ -3,17 +3,17 @@
   "issues": [],
   "memory_update_proposals": [],
   "metrics": {
-    "analysis_tasks_planned": 3,
-    "claims": 37,
+    "analysis_tasks_planned": 4,
+    "claims": 41,
     "contradictions": 0,
-    "evidence_packets": 16,
+    "evidence_packets": 17,
     "invalid_evidence_packets": 0,
     "issues": 0,
     "manifest_exists": true,
     "provider_packet_counts": {
       "alpha_vantage": 1,
       "company_news_specialist": 1,
-      "exa": 5,
+      "exa": 6,
       "financial_compare": 1,
       "financial_data_specialist": 1,
       "fmp": 1,
@@ -28,7 +28,7 @@
     "risks": 2,
     "run_summary_exists": true,
     "unknowns": 0,
-    "valid_evidence_packets": 16
+    "valid_evidence_packets": 17
   },
   "run_dir": "agents/runs/2026-05-09_weekly",
   "run_id": "2026-05-09_weekly"

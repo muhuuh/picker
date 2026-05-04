@@ -10,6 +10,7 @@ Implementation: `stock_research/providers/exa.py`.
 
 ## Official Sources Reviewed
 
+- Re-reviewed on 2026-05-04 before optimizing company-news follow-up.
 - Search API guide: https://exa.ai/docs/reference/search-api-guide-for-coding-agents
 - Search best practices: https://exa.ai/docs/reference/search-best-practices
 - Company vertical: https://exa.ai/docs/reference/verticals/company-for-coding-agents
@@ -80,13 +81,26 @@ Specialist-agent selection rules:
 - Keep search content parameters nested under `contents`.
 - Keep contents endpoint extraction parameters top-level, not nested under `contents`.
 - Use `type: "auto"` by default.
-- Use `deep`, `deep-lite`, or `deep-reasoning` only when a specialist needs multi-step synthesis or structured output.
-- Use `maxAgeHours` only when freshness requirements justify slower live crawling.
+- Use `fast` or `instant` only for latency-sensitive paths. Use `deep`, `deep-lite`, or `deep-reasoning` only when a specialist needs multi-step synthesis or structured output.
+- Use `maxAgeHours` only when freshness requirements justify slower live crawling. When setting it, also set an explicit `livecrawlTimeout`.
 - Do not use deprecated parameters like `useAutoprompt`, `numSentences`, `highlightsPerUrl`, `tokensNum`, or `livecrawl`.
 - Do not use URL-level include/exclude filters; use domain filters.
 - For company search, use `category: "company"` and do not use date filters or `excludeDomains`.
-- For news, use specific natural-language queries, optional date filters, optional source-domain filters, and highlights.
+- For news, use the main search endpoint without a `category` parameter. Use specific natural-language queries, optional date filters, optional source-domain filters, and highlights.
 - For contents, check `statuses` because individual URL failures can be returned inside a successful HTTP response.
+
+## Search Type And Parameter Rules
+
+- `auto`: default for weekly kickoff and most specialist searches because it balances quality and speed.
+- `fast` / `instant`: future use for low-priority or UI-latency-sensitive scans where speed matters more than recall.
+- `deep-lite` / `deep` / `deep-reasoning`: future use for structured synthesis or multi-step research; pair with `outputSchema` when the specialist needs structured output.
+- `category: "company"`: only for company discovery/enrichment style searches.
+- No `category` for news: Exa news search is integrated into the main search endpoint.
+- `includeDomains`: useful for trusted-source runs such as Reuters, company IR/newsroom, regulators, or high-quality trade press.
+- `excludeDomains`: allowed for normal/news searches but not for `category: "company"`.
+- `startPublishedDate` / `endPublishedDate`: use for timely news windows, not for company category searches.
+- `contents.highlights: true`: default search content mode for token-efficient agent workflows.
+- `/contents` follow-up: use top-level `highlights` and capped `text.maxCharacters` for high-value URLs before company-file updates.
 
 ## CLI
 

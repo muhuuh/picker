@@ -21,6 +21,7 @@ Like `provider-tasks`, it is dry-run by default. Use `--execute` to write artifa
 
 - `financial_compare`
 - `financial_review`
+- `company_news_contents_follow_up`
 - `company_news_review`
 
 ## Workflow Role
@@ -47,10 +48,11 @@ For company news:
 
 ```text
 Exa company-news provider packet
+  -> company_news_contents_follow_up analysis task
   -> company_news_review analysis task
 ```
 
-`company_news_review` tasks should run after provider tasks and consume Exa company-news packets.
+`company_news_contents_follow_up` runs Exa `/contents` for selected high-value URLs from the news packet. `company_news_review` depends on it in the manifest and should treat search-highlight-only evidence as `partial_review`.
 
 ## Filters
 

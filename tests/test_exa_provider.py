@@ -31,6 +31,21 @@ class ExaProviderTests(unittest.TestCase):
         self.assertEqual(payload["category"], "company")
         self.assertEqual(payload["contents"], {"highlights": True})
 
+    def test_news_search_payload_uses_main_search_endpoint_without_news_category(self):
+        payload = build_exa_search_payload(
+            ExaSearchOptions(
+                query="Apple latest material company news",
+                subject_type="company",
+                subject_id="AAPL",
+                search_mode="news",
+            )
+        )
+
+        self.assertNotIn("category", payload)
+        self.assertEqual(payload["type"], "auto")
+        self.assertEqual(payload["contents"], {"highlights": True})
+        self.assertIn("material developments", payload["systemPrompt"])
+
     def test_company_search_rejects_unsupported_filters(self):
         with self.assertRaises(ExaError):
             build_exa_search_payload(

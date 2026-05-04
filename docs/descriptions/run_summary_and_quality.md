@@ -66,6 +66,6 @@ provider-tasks --execute
 
 ## Current Validation
 
-On 2026-05-04, AAPL was added as a monitoring workflow seed. The manifest planned AAPL provider tasks and AAPL analysis tasks. Provider tasks, `company_news_review_aapl`, `financial_compare_aapl`, `financial_review_aapl`, `run-summary`, `quality-report`, and `memory finalize-run` were executed successfully.
+On 2026-05-04, AAPL was added as a monitoring workflow seed. The manifest planned AAPL provider tasks and AAPL analysis tasks. Provider tasks, `company_news_contents_follow_up_aapl`, `company_news_review_aapl`, `financial_compare_aapl`, `financial_review_aapl`, `run-summary`, `quality-report`, and `memory finalize-run` were executed successfully.
 
 The run finalization is currently `complete`: quality findings are zero, reflection issues are zero, and all evidence packets validate.

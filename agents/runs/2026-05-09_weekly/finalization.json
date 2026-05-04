@@ -7,7 +7,7 @@
   ],
   "generated_at": "2026-05-04",
   "metrics": {
-    "evidence_packets": 16,
+    "evidence_packets": 17,
     "invalid_evidence_packets": 0,
     "recurring_failure_patterns": 0,
     "recurring_memory_update_proposals": 0,
@@ -15,7 +15,7 @@
     "recurring_threshold": 2,
     "reflection_issues": 0,
     "reflection_memory_update_proposals": 0,
-    "valid_evidence_packets": 16
+    "valid_evidence_packets": 17
   },
   "next_actions": [
     "No deterministic learning-loop issues found."

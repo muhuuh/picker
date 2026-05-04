@@ -18,9 +18,10 @@ Procedural memory for future specialist agents. Specialists should produce struc
 ## Company News Specialist
 
 - Primary tools: Exa `news`, then Exa `contents` for high-value sources.
+- Deterministic commands: `python -m stock_research news contents-follow-up --ticker TICKER --run-id RUN_ID`, then `python -m stock_research news review --ticker TICKER --run-id RUN_ID`.
 - Use for: latest company developments, product/customer/regulatory/news impacts, and source discovery.
 - Output: evidence packet with claims, risks, contradictions, unknowns, and recommended updates.
-- Gotcha: do not use news articles as final proof for financial metrics when market-data providers or filings are available.
+- Gotcha: search highlights/headlines are routing evidence only. Keep the review `partial_review` until Exa contents extraction succeeds for selected URLs. Do not use news articles as final proof for financial metrics when market-data providers or filings are available.
 
 ## Exa Industry Research Specialist
 
@@ -115,7 +116,7 @@ Procedural memory for future specialist agents. Specialists should produce struc
 - status: active
 - confidence: high
 - trigger/source: deterministic company news specialist implementation
-- lesson: Company-news specialist review is implemented through python -m stock_research news review --ticker TICKER --run-id RUN_ID. It consumes Exa company-news packets, emits specialist evidence plus raw and markdown review artifacts, and lists URLs for Exa contents follow-up before deeper thesis updates.
+- lesson: Company-news specialist review is implemented through python -m stock_research news contents-follow-up --ticker TICKER --run-id RUN_ID followed by python -m stock_research news review --ticker TICKER --run-id RUN_ID. It consumes Exa company-news packets plus contents packets, emits specialist evidence plus raw and markdown review artifacts, and keeps search-highlight-only results as partial reviews.
 - use_when: Running company news specialist work, building company research orchestration, or preparing company-file developments/news update proposals.
 - do_not_use_when: Financial-data review, X/social sentiment review, or making investment thesis changes from headlines alone.
 - evidence: stock_research/company_news_specialist.py, docs/descriptions/company_news_specialist.md, tests/test_company_news_specialist.py

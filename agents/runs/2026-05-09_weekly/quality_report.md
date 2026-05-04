@@ -5,8 +5,8 @@ Generated: 2026-05-04
 ## Metrics
 
 - provider_tasks_planned: 10
-- analysis_tasks_planned: 3
-- evidence_packets: 16
+- analysis_tasks_planned: 4
+- evidence_packets: 17
 - findings: 0
 - high_findings: 0
 - medium_findings: 0

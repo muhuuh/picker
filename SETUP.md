@@ -177,9 +177,10 @@ python -m stock_research financial review --ticker AAPL --run-id 2026-05-09_week
 
 ## Company News Review
 
-Review an Exa company-news packet:
+Run Exa contents follow-up for high-value company-news URLs, then review:
 
 ```powershell
+python -m stock_research news contents-follow-up --ticker AAPL --run-id 2026-05-09_weekly
 python -m stock_research news review --ticker AAPL --run-id 2026-05-09_weekly
 ```
 

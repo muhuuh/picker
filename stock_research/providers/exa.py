@@ -110,9 +110,16 @@ def build_exa_search_payload(options: ExaSearchOptions) -> dict[str, Any]:
     if options.search_mode == "company":
         payload["category"] = "company"
     if options.search_mode == "news":
-        payload["systemPrompt"] = "Prefer timely, source-diverse news and avoid duplicate articles."
+        payload["systemPrompt"] = (
+            "Prefer timely, source-diverse, reputable news. Prioritize primary sources, major financial news, "
+            "and relevant trade press. Avoid duplicate or syndicated articles. Focus on material developments "
+            "such as earnings, guidance, regulation, litigation, customers, suppliers, products, M&A, and management changes."
+        )
     if options.search_mode == "industry":
-        payload["systemPrompt"] = "Prefer primary sources, trade publications, and concrete company mentions."
+        payload["systemPrompt"] = (
+            "Prefer primary sources, reputable trade publications, concrete company mentions, and source-diverse evidence. "
+            "Avoid duplicate or low-signal market commentary."
+        )
     if options.start_published_date:
         payload["startPublishedDate"] = options.start_published_date
     if options.end_published_date:
@@ -206,7 +213,7 @@ def exa_search_to_packet(
             claims.append(
                 Claim(
                     claim=f"Relevant Exa result: {result.get('title', result.get('url', 'untitled'))}",
-                    evidence=truncate(str(highlight_text), 800),
+                    evidence=truncate(clean_text(str(highlight_text)), 800),
                     source_ids=[source.source_id],
                     confidence="medium",
                     impact="medium",
@@ -256,7 +263,7 @@ def exa_contents_to_packet(
             claims.append(
                 Claim(
                     claim=f"Exa content excerpt from {result.get('title', result.get('url', 'URL'))}",
-                    evidence=truncate(str(excerpt), 1000),
+                    evidence=truncate(clean_text(str(excerpt)), 1000),
                     source_ids=[source.source_id],
                     confidence="medium",
                     impact="medium",
@@ -323,9 +330,41 @@ def first_text(values: Any) -> str:
 
 
 def truncate(value: str, max_length: int) -> str:
+    value = clean_text(value)
     if len(value) <= max_length:
         return value
     return value[: max_length - 3].rstrip() + "..."
+
+
+def clean_text(value: str) -> str:
+    repaired = repair_latin1_mojibake(value)
+    if repaired:
+        value = repaired
+    replacements = {
+        "\u201c": '"',
+        "\u201d": '"',
+        "\u2018": "'",
+        "\u2019": "'",
+        "\u2013": "-",
+        "\u2014": "-",
+        "\u2026": "...",
+        "\u00a0": " ",
+    }
+    for bad, good in replacements.items():
+        value = value.replace(bad, good)
+    return value
+
+
+def repair_latin1_mojibake(value: str) -> str:
+    if "\u00e2" not in value and "\u00c2" not in value:
+        return value
+    try:
+        repaired = value.encode("latin-1").decode("utf-8")
+    except UnicodeError:
+        return value
+    if len(repaired.strip()) < len(value.strip()) * 0.8:
+        return value
+    return repaired
 
 
 def search_time_window(options: ExaSearchOptions) -> str:

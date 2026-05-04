@@ -177,6 +177,6 @@ Use this file for information we should not lose across sessions.
   - status: active
 
 - 2026-05-04:
-  - decision/fact: The deterministic company-news specialist is implemented. Use `python -m stock_research news review --ticker TICKER --run-id RUN_ID` after Exa company-news provider tasks; it writes a specialist evidence packet, raw review JSON, and markdown review, and it lists URLs for later Exa contents follow-up.
+  - decision/fact: The deterministic company-news specialist is implemented with Exa contents follow-up. Use `python -m stock_research news contents-follow-up --ticker TICKER --run-id RUN_ID` after Exa company-news provider tasks, then `python -m stock_research news review --ticker TICKER --run-id RUN_ID`; search-highlight-only reviews stay `partial_review`.
   - evidence artifact path(s): `stock_research/company_news_specialist.py`, `stock_research/analysis_runner.py`, `stock_research/manifest.py`, `docs/descriptions/company_news_specialist.md`, `tests/test_company_news_specialist.py`, `agents/runs/2026-05-09_weekly/reports/company_news_specialist/AAPL_company_news_review.md`
   - status: active
