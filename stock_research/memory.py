@@ -23,6 +23,7 @@ REQUIRED_MEMORY_FILES = (
 ITEM_MEMORY_FILES = (
     "orchestrator_lessons.md",
     "source_quality.md",
+    "specialist_playbooks.md",
     "evaluation_metrics.md",
     "deprecated_memory.md",
 )

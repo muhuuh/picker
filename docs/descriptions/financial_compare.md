@@ -68,12 +68,18 @@ Financial comparison should run after provider tasks and before LLM synthesis.
 ```text
 yfinance/FMP/Polygon/Alpha/SEC packets
   -> financial_compare packet
-  -> financial-data specialist
+  -> financial-data specialist review
   -> company research orchestrator
   -> company-file update proposal
 ```
 
 Weekly manifests now include `analysis_tasks` for this post-provider step when tracked stocks or human stock-research requests exist.
+
+The follow-up financial-data specialist command is:
+
+```powershell
+python -m stock_research financial review --ticker AAPL --run-id 2026-05-09_weekly
+```
 
 ## Live Smoke Test
 

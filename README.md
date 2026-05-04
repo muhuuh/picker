@@ -98,6 +98,12 @@ Compare financial provider packets into one reconciliation packet:
 python -m stock_research financial compare --ticker AAPL --run-id 2026-05-09_weekly
 ```
 
+Run the deterministic financial-data specialist review:
+
+```powershell
+python -m stock_research financial review --ticker AAPL --run-id 2026-05-09_weekly
+```
+
 Run Exa search or content extraction into evidence packets:
 
 ```powershell
@@ -179,6 +185,7 @@ Implemented:
 - Polygon/Massive U.S. ticker reference and previous-day OHLC provider.
 - Alpha Vantage quote/overview provider.
 - deterministic financial provider comparison layer.
+- deterministic financial-data specialist review layer.
 - Exa search and contents provider tools.
 - xAI Grok x_search provider tools.
 - structured operational agent memory under `agents/memory/`.

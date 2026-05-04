@@ -160,6 +160,7 @@ This is the clear task backlog for building the stock tracking and investment re
 - `stock_research/providers/polygon_provider.py`
 - `stock_research/providers/alpha_vantage.py`
 - `stock_research/financial_compare.py`
+- `stock_research/financial_specialist.py`
 - `stock_research/provider_runner.py`
 - `docs/descriptions/evidence_schema.md`
 - `docs/descriptions/sec_edgar_provider.md`
@@ -170,6 +171,7 @@ This is the clear task backlog for building the stock tracking and investment re
 - `docs/descriptions/polygon_provider.md`
 - `docs/descriptions/alpha_vantage_provider.md`
 - `docs/descriptions/financial_compare.md`
+- `docs/descriptions/financial_data_specialist.md`
 - `python -m stock_research evidence new ...`
 - `python -m stock_research evidence validate ...`
 - `python -m stock_research sec company --ticker TICKER --run-id RUN_ID`
@@ -178,6 +180,7 @@ This is the clear task backlog for building the stock tracking and investment re
 - `python -m stock_research polygon company --ticker TICKER --run-id RUN_ID`
 - `python -m stock_research alpha-vantage company --ticker TICKER --run-id RUN_ID`
 - `python -m stock_research financial compare --ticker TICKER --run-id RUN_ID`
+- `python -m stock_research financial review --ticker TICKER --run-id RUN_ID`
 - `python -m stock_research exa search --query QUERY --subject-type TYPE --subject-id ID --run-id RUN_ID`
 - `python -m stock_research exa contents --url URL --subject-type TYPE --subject-id ID --run-id RUN_ID`
 - `python -m stock_research xai x-search --ticker TICKER --subject-type company --subject-id TICKER --run-id RUN_ID`
@@ -192,6 +195,7 @@ This is the clear task backlog for building the stock tracking and investment re
 - `tests/test_polygon_provider.py`
 - `tests/test_alpha_vantage_provider.py`
 - `tests/test_financial_compare.py`
+- `tests/test_financial_specialist.py`
 - `tests/test_provider_runner.py`
 - `tests/test_memory.py`
 - Live SEC smoke artifact: `agents/runs/2026-05-09_weekly/evidence_packets/2026-05-03_sec_edgar_company_aapl.json`
@@ -209,7 +213,8 @@ This is the clear task backlog for building the stock tracking and investment re
 - [ ] Build company news specialist.
   - Description: should call Exa `news`, then Exa `contents` for high-value result follow-up.
 - [ ] Build SEC filing specialist.
-- [ ] Build financial data specialist.
+- [x] Build financial data specialist.
+  - Description: deterministic first specialist that consumes `financial_compare` packets, writes a specialist evidence packet, raw review JSON, and markdown financial review. Future LLM version can extend this surface without changing the input/output contract.
 - [ ] Build xAI Grok stock sentiment specialist.
 - [ ] Build xAI Grok industry sentiment specialist.
 - [ ] Build Exa industry research specialist.

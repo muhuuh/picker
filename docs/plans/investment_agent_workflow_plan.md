@@ -72,7 +72,7 @@ Detailed backlog: `docs/plans/investment_agent_backlog.md`.
 - [ ] Implement human request triage specialist.
 - [ ] Implement company news specialist.
 - [ ] Implement SEC filing specialist.
-- [ ] Implement financial data specialist.
+- [x] Implement financial data specialist.
 - [ ] Implement xAI Grok stock sentiment specialist.
 - [ ] Implement xAI Grok industry sentiment specialist.
 - [ ] Implement Exa industry research specialist.
@@ -153,4 +153,5 @@ Detailed backlog: `docs/plans/investment_agent_backlog.md`.
 - 2026-05-04: Implemented deterministic post-run reflection and memory update proposal generation with `python -m stock_research memory reflect-run --run-id RUN_ID [--write]`; wrote reflection artifacts for `agents/runs/2026-05-09_weekly/`.
 - 2026-05-04: Implemented recurring failure detection with `python -m stock_research memory recurring-failures [--write]`; current real report has no recurring patterns yet because only one reflected run exists.
 - 2026-05-04: Implemented deterministic run finalization with `python -m stock_research memory finalize-run --run-id RUN_ID`; it writes reflection, recurring-failure, and finalization artifacts but is not yet called automatically by a scheduler/orchestrator.
+- 2026-05-04: Implemented the first deterministic financial-data specialist with `python -m stock_research financial review --ticker TICKER --run-id RUN_ID`; it consumes `financial_compare` packets and writes specialist evidence, raw review JSON, and markdown review artifacts.
 - 2026-05-03: Started SDK/framework review before agent runtime work. Current finding: Cursor SDK is likely a coding-agent automation adjunct, not the core stock-research orchestration runtime; OpenAI Agents SDK, Pydantic AI, and LangGraph remain the main candidates.

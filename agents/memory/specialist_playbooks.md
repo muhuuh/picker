@@ -54,8 +54,9 @@ Procedural memory for future specialist agents. Specialists should produce struc
 
 - Primary input: `financial_compare` packets.
 - Primary tools: yfinance, FMP, Polygon/Massive, Alpha Vantage, SEC companyfacts when available.
+- Deterministic command: `python -m stock_research financial review --ticker TICKER --run-id RUN_ID`.
 - Use for: price, valuation, ratios, market cap, revenue/profitability signals, and provider disagreements.
-- Output: financial evidence packet or synthesis that cites the reconciliation packet and material conflicts.
+- Output: financial specialist evidence packet, raw review JSON, and markdown review report that cite the reconciliation packet and material conflicts.
 - Gotcha: Exa and Grok are not financial comparison inputs.
 
 ## SEC Filing Specialist
@@ -92,3 +93,17 @@ Procedural memory for future specialist agents. Specialists should produce struc
 - Use for: citations, stale data, provider conflicts, overconfidence, schema validity, and human-review gates.
 - Output: quality report, human review queue items, and memory-update proposals.
 - Gotcha: quality review happens before final memory updates.
+
+- id: memory-2026-05-04-financial-data-specialist-review-is-implemented
+- date: 2026-05-04
+- type: procedural
+- scope: financial
+- status: active
+- confidence: high
+- trigger/source: deterministic financial data specialist implementation
+- lesson: Financial-data specialist review is implemented through python -m stock_research financial review --ticker TICKER --run-id RUN_ID. It must consume a financial_compare packet, preserve provider conflicts, and emit specialist evidence plus raw and markdown review artifacts.
+- use_when: Running financial specialist work, building company research orchestration, or preparing company-file financial update proposals.
+- do_not_use_when: Using Exa or Grok as direct financial metric inputs, or bypassing financial_compare.
+- evidence: stock_research/financial_specialist.py, docs/descriptions/financial_data_specialist.md, tests/test_financial_specialist.py
+- owner: financial data specialist
+- next_review: 2026-06-01

@@ -169,6 +169,12 @@ python -m stock_research financial compare --ticker AAPL --run-id 2026-05-09_wee
 
 This step only compares financial/profile/market-data packets. Exa and xAI/Grok packets are not inputs.
 
+Run the deterministic financial-data specialist review after comparison:
+
+```powershell
+python -m stock_research financial review --ticker AAPL --run-id 2026-05-09_weekly
+```
+
 ## Exa
 
 Run a news/industry/company search:

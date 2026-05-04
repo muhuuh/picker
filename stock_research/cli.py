@@ -8,6 +8,7 @@ from pathlib import Path
 from .config import get_config_value
 from .evidence import default_packet_path, new_packet, read_packet, validate_packet, write_packet
 from .financial_compare import FinancialCompareError, build_financial_compare_packet
+from .financial_specialist import FinancialSpecialistError, build_financial_specialist_packet
 from .human import append_human_request, classify_request
 from .manifest import build_weekly_manifest, write_manifest
 from .memory import (
@@ -229,6 +230,12 @@ def main(argv: list[str] | None = None) -> int:
     financial_compare.add_argument("--run-id", required=True)
     financial_compare.add_argument("--packet", action="append", type=Path, default=[], help="Optional explicit packet path. Repeatable.")
     financial_compare.add_argument("--today", help="Override current date as YYYY-MM-DD.")
+
+    financial_review = financial_subparsers.add_parser("review", help="Run the deterministic financial-data specialist on a financial_compare packet.")
+    financial_review.add_argument("--ticker", required=True)
+    financial_review.add_argument("--run-id", required=True)
+    financial_review.add_argument("--financial-compare-packet", type=Path, help="Optional explicit financial_compare packet path.")
+    financial_review.add_argument("--today", help="Override current date as YYYY-MM-DD.")
 
     exa_parser = subparsers.add_parser("exa", help="Exa search and contents provider tools.")
     exa_subparsers = exa_parser.add_subparsers(dest="exa_command", required=True)
@@ -582,6 +589,30 @@ def main(argv: list[str] | None = None) -> int:
                 print(f"ERROR: {exc}")
                 return 1
             print(json.dumps({"packet_id": packet.packet_id, "paths": [str(path) for path in paths]}, indent=2))
+            return 0
+        if args.financial_command == "review":
+            request_date = parse_cli_date(args.today)
+            try:
+                result = build_financial_specialist_packet(
+                    ticker=args.ticker,
+                    run_id=args.run_id,
+                    root=state.root,
+                    current_date=request_date,
+                    financial_compare_packet_path=args.financial_compare_packet,
+                )
+            except FinancialSpecialistError as exc:
+                print(f"ERROR: {exc}")
+                return 1
+            print(
+                json.dumps(
+                    {
+                        "packet_id": result.packet.packet_id,
+                        "status": result.review["status"],
+                        "paths": [str(path) for path in result.paths],
+                    },
+                    indent=2,
+                )
+            )
             return 0
 
     if args.command == "exa":

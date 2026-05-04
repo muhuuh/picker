@@ -56,9 +56,9 @@
   ],
   "metrics": {
     "analysis_tasks_planned": 0,
-    "claims": 14,
+    "claims": 15,
     "contradictions": 0,
-    "evidence_packets": 9,
+    "evidence_packets": 10,
     "invalid_evidence_packets": 0,
     "issues": 5,
     "manifest_exists": true,
@@ -66,6 +66,7 @@
       "alpha_vantage": 1,
       "exa": 2,
       "financial_compare": 1,
+      "financial_data_specialist": 1,
       "fmp": 1,
       "polygon": 1,
       "sec_edgar": 1,
@@ -74,11 +75,11 @@
     },
     "provider_tasks_planned": 3,
     "quality_report_exists": false,
-    "recommended_updates": 1,
-    "risks": 0,
+    "recommended_updates": 2,
+    "risks": 1,
     "run_summary_exists": false,
     "unknowns": 0,
-    "valid_evidence_packets": 9
+    "valid_evidence_packets": 10
   },
   "run_dir": "agents/runs/2026-05-09_weekly",
   "run_id": "2026-05-09_weekly"

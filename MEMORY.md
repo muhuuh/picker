@@ -122,6 +122,11 @@ Use this file for information we should not lose across sessions.
   - status: active
 
 - 2026-05-04:
+  - decision/fact: The first deterministic financial-data specialist is implemented. Use `python -m stock_research financial review --ticker TICKER --run-id RUN_ID` after `financial_compare`; it writes a specialist evidence packet, raw review JSON, and markdown review, and marks whether company-file financial updates are ready, partial, or need human review.
+  - evidence artifact path(s): `stock_research/financial_specialist.py`, `docs/descriptions/financial_data_specialist.md`, `tests/test_financial_specialist.py`, `agents/runs/2026-05-09_weekly/evidence_packets/2026-05-04_financial_data_specialist_company_aapl.json`, `agents/runs/2026-05-09_weekly/reports/financial_data_specialist/AAPL_financial_review.md`
+  - status: active
+
+- 2026-05-04:
   - decision/fact: Operational agent memory is implemented under `agents/memory/` as structured Markdown plus deterministic Python inspection commands. It stores orchestration lessons, source-quality notes, specialist playbooks, evaluation metrics, and deprecated operational behavior. It must not store secrets, raw provider output, or ordinary company investment facts.
   - evidence artifact path(s): `agents/memory/README.md`, `agents/memory/memory_index.md`, `stock_research/memory.py`, `docs/descriptions/agent_memory_workflow.md`, `docs/templates/agent_memory_item_template.md`
   - status: active

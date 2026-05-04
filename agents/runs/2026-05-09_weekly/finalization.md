@@ -11,8 +11,8 @@ Status: needs_review
 - recurring_memory_update_proposals: 0
 - recurring_runs_scanned: 1
 - recurring_threshold: 2
-- evidence_packets: 9
-- valid_evidence_packets: 9
+- evidence_packets: 10
+- valid_evidence_packets: 10
 - invalid_evidence_packets: 0
 
 ## Artifacts

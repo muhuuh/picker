@@ -9,14 +9,14 @@ Generated: 2026-05-04
 - quality_report_exists: False
 - provider_tasks_planned: 3
 - analysis_tasks_planned: 0
-- evidence_packets: 9
-- valid_evidence_packets: 9
+- evidence_packets: 10
+- valid_evidence_packets: 10
 - invalid_evidence_packets: 0
-- provider_packet_counts: {"alpha_vantage": 1, "exa": 2, "financial_compare": 1, "fmp": 1, "polygon": 1, "sec_edgar": 1, "xai_grok": 1, "yfinance": 1}
-- claims: 14
-- risks: 0
+- provider_packet_counts: {"alpha_vantage": 1, "exa": 2, "financial_compare": 1, "financial_data_specialist": 1, "fmp": 1, "polygon": 1, "sec_edgar": 1, "xai_grok": 1, "yfinance": 1}
+- claims: 15
+- risks: 1
 - contradictions: 0
-- recommended_updates: 1
+- recommended_updates: 2
 - unknowns: 0
 - issues: 5
 

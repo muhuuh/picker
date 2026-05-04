@@ -154,17 +154,33 @@ def build_analysis_tasks(state: RepoState, human_requests: list[dict[str, str]],
             ticker = normalize_ticker(row.get("ticker", ""))
             if not ticker:
                 continue
+            compare_id = f"financial_compare_{slugify(ticker)}"
             add_task(
                 tasks,
                 seen_task_ids,
                 analysis_task(
-                    task_id=f"financial_compare_{slugify(ticker)}",
+                    task_id=compare_id,
                     tool="financial_compare",
                     subject_id=ticker,
                     args={"ticker": ticker, "run_id": run_id},
                     reason=f"Compare financial provider packets for {bucket} ticker {ticker} before synthesis.",
                     priority="high" if bucket == "current_holdings" else "medium",
                     source_bucket=bucket,
+                ),
+            )
+            add_task(
+                tasks,
+                seen_task_ids,
+                analysis_task(
+                    task_id=f"financial_review_{slugify(ticker)}",
+                    tool="financial_review",
+                    subject_id=ticker,
+                    args={"ticker": ticker, "run_id": run_id},
+                    reason=f"Run financial-data specialist review for {bucket} ticker {ticker} after comparison.",
+                    priority="high" if bucket == "current_holdings" else "medium",
+                    source_bucket=bucket,
+                    depends_on=[compare_id],
+                    expected_artifacts=["financial_specialist_evidence_packet", "financial_review_json", "financial_review_markdown"],
                 ),
             )
 
@@ -177,17 +193,33 @@ def build_analysis_tasks(state: RepoState, human_requests: list[dict[str, str]],
             ticker_upper = normalize_ticker(ticker)
             if not ticker_upper:
                 continue
+            compare_id = f"financial_compare_human_{slugify(request_id)}_{slugify(ticker_upper)}"
             add_task(
                 tasks,
                 seen_task_ids,
                 analysis_task(
-                    task_id=f"financial_compare_human_{slugify(request_id)}_{slugify(ticker_upper)}",
+                    task_id=compare_id,
                     tool="financial_compare",
                     subject_id=ticker_upper,
                     args={"ticker": ticker_upper, "run_id": run_id},
                     reason=f"Compare financial provider packets for human stock research request {request_id}.",
                     priority=priority,
                     source_bucket="human_input_queue",
+                ),
+            )
+            add_task(
+                tasks,
+                seen_task_ids,
+                analysis_task(
+                    task_id=f"financial_review_human_{slugify(request_id)}_{slugify(ticker_upper)}",
+                    tool="financial_review",
+                    subject_id=ticker_upper,
+                    args={"ticker": ticker_upper, "run_id": run_id},
+                    reason=f"Run financial-data specialist review for human stock research request {request_id}.",
+                    priority=priority,
+                    source_bucket="human_input_queue",
+                    depends_on=[compare_id],
+                    expected_artifacts=["financial_specialist_evidence_packet", "financial_review_json", "financial_review_markdown"],
                 ),
             )
 
@@ -202,6 +234,8 @@ def analysis_task(
     reason: str,
     priority: str = "medium",
     source_bucket: str = "",
+    depends_on: list[str] | None = None,
+    expected_artifacts: list[str] | None = None,
 ) -> dict[str, Any]:
     return {
         "id": task_id,
@@ -213,8 +247,8 @@ def analysis_task(
         "priority": normalize_priority(priority),
         "source_bucket": source_bucket,
         "reason": reason,
-        "expected_artifacts": ["raw_financial_comparison_json", "evidence_packet"],
-        "depends_on": ["provider_tasks"],
+        "expected_artifacts": expected_artifacts or ["raw_financial_comparison_json", "evidence_packet"],
+        "depends_on": depends_on or ["provider_tasks"],
     }
 
 

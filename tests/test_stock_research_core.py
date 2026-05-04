@@ -68,6 +68,8 @@ class StockResearchCoreTests(unittest.TestCase):
         self.assertNotIn("sec_company_asml", task_ids)
         self.assertIn("financial_compare_aapl", analysis_task_ids)
         self.assertIn("financial_compare_asml", analysis_task_ids)
+        self.assertIn("financial_review_aapl", analysis_task_ids)
+        self.assertIn("financial_review_asml", analysis_task_ids)
 
     def test_manifest_routes_research_priorities_and_human_requests_to_exa_modes(self):
         state = repo_state_for_manifest(
@@ -120,6 +122,8 @@ class StockResearchCoreTests(unittest.TestCase):
         self.assertEqual(tasks["xai_human_hir_0099_x_search_robotics_suppliers"]["provider"], "xai_grok")
         self.assertEqual(tasks["xai_human_hir_0100_x_search_amd"]["provider"], "xai_grok")
         self.assertEqual(analysis_tasks["financial_compare_human_hir_0100_amd"]["tool"], "financial_compare")
+        self.assertEqual(analysis_tasks["financial_review_human_hir_0100_amd"]["tool"], "financial_review")
+        self.assertEqual(analysis_tasks["financial_review_human_hir_0100_amd"]["depends_on"], ["financial_compare_human_hir_0100_amd"])
 
     def test_next_saturday_returns_same_day_when_today_is_saturday(self):
         self.assertEqual(next_saturday(date(2026, 5, 9)), date(2026, 5, 9))

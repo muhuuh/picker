@@ -32,6 +32,7 @@
 - [x] Add FMP, Polygon/Massive, and Alpha Vantage provider integrations.
 - [x] Live smoke-test FMP, Polygon/Massive, and Alpha Vantage.
 - [x] Add deterministic financial provider comparison layer.
+- [x] Add deterministic financial-data specialist review layer.
 - [x] Add structured operational agent memory layer.
 - [x] Add deterministic operational memory loader/validator/context selector.
 - [x] Add deterministic operational memory writer/deprecate commands.
@@ -67,6 +68,7 @@
 - 2026-05-03: Added FMP, Polygon/Massive, and Alpha Vantage provider tools as market-data cross-checks. They are CLI-callable, provider-task executable, and included in weekly manifests where appropriate.
 - 2026-05-04: Live AAPL smoke tests passed for FMP, Polygon/Massive, and Alpha Vantage. Alpha needed request spacing/retry for its free-tier 1 request/second burst limit.
 - 2026-05-04: Added `financial_compare`. It is only for financial/profile/market-data provider packets and intentionally excludes Exa/Grok news/sentiment packets.
+- 2026-05-04: Added deterministic financial-data specialist review. It consumes `financial_compare`, writes a specialist evidence packet, raw review JSON, and markdown review, and marks whether company-file financial updates are ready, partial, or need human review.
 - 2026-05-04: Added `agents/memory/` as operational memory, not investment fact storage. It includes index, orchestrator lessons, source quality, specialist playbooks, evaluation metrics, and deprecated memory.
 - 2026-05-04: Added Python memory tooling: `memory summary`, `memory validate`, and `memory context --task TASK`. Updated `AGENTS.md` so future agents must read operational memory, not only durable `MEMORY.md`.
 - 2026-05-04: Added deterministic `memory add` and `memory deprecate` commands so structured memory updates can be schema-valid and auditable instead of manual-only Markdown edits.
@@ -109,7 +111,9 @@
 - Alpha Vantage command exists: `python -m stock_research alpha-vantage company --ticker AAPL --run-id 2026-05-09_weekly`.
 - FMP/Polygon/Alpha live smoke tests passed for AAPL on 2026-05-04.
 - Financial compare command exists: `python -m stock_research financial compare --ticker AAPL --run-id 2026-05-09_weekly`.
+- Financial review command exists: `python -m stock_research financial review --ticker AAPL --run-id 2026-05-09_weekly`.
 - Weekly manifests now include `analysis_tasks` for post-provider financial comparison when tracked stocks or human stock-research requests exist.
+- Weekly manifests now also include financial review tasks that depend on the matching financial comparison task.
 - Operational agent memory now starts at `agents/memory/memory_index.md`. Future agents should load task-relevant memory after `MEMORY.md`, `repo_map.md`, and the relevant scratchpad.
 - Deterministic memory command exists: `python -m stock_research memory context --task financial`.
 - Deterministic memory write commands exist: `python -m stock_research memory add ...` and `python -m stock_research memory deprecate --id ITEM_ID --reason "..."`.
@@ -175,5 +179,7 @@
 - Polygon/Massive live smoke packet: `agents/runs/2026-05-09_weekly/evidence_packets/2026-05-04_polygon_company_aapl.json`.
 - Alpha Vantage live smoke packet: `agents/runs/2026-05-09_weekly/evidence_packets/2026-05-04_alpha_vantage_company_aapl.json`.
 - Financial compare live smoke packet: `agents/runs/2026-05-09_weekly/evidence_packets/2026-05-04_financial_compare_company_aapl.json`.
+- Financial data specialist live review packet: `agents/runs/2026-05-09_weekly/evidence_packets/2026-05-04_financial_data_specialist_company_aapl.json`.
+- Financial data specialist live review report: `agents/runs/2026-05-09_weekly/reports/financial_data_specialist/AAPL_financial_review.md`.
 - Current written weekly manifest with provider tasks: `agents/runs/2026-05-09_weekly/manifest.json`.
 - Current run finalization artifact: `agents/runs/2026-05-09_weekly/finalization.md`.
