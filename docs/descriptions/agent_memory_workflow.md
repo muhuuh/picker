@@ -86,6 +86,20 @@ Use two write paths:
 
 Major memory changes that affect strategy, approval gates, or high-impact workflow behavior should create a human review item in `agents/human_review_queue.md`.
 
+## Pending Automation
+
+The current memory layer can be read, validated, summarized, filtered by task, updated through deterministic add/deprecate commands, and reflected on after a run. The following automation is still pending:
+
+- a bounded LLM memory writer agent that converts reflection findings into schema-valid memory items,
+- orchestrator runtime injection of `memory context --task TASK` output into each specialist prompt.
+- scheduled/orchestrator invocation of `memory reflect-run` after every weekly/manual run.
+
+Until orchestrator automation is implemented, Codex should use the deterministic commands for structured memory changes, then run:
+
+```powershell
+python -m stock_research memory validate
+```
+
 ## Memory Item Fields
 
 Use `docs/templates/agent_memory_item_template.md`.
@@ -123,6 +137,9 @@ Required fields:
 python -m stock_research memory summary
 python -m stock_research memory validate
 python -m stock_research memory context --task TASK
+python -m stock_research memory add ...
+python -m stock_research memory deprecate --id ITEM_ID --reason "..."
+python -m stock_research memory reflect-run --run-id RUN_ID --write
 ```
 
 Current task hints include:
@@ -137,6 +154,10 @@ Current task hints include:
 - `quality`
 - `learning`
 - `all`
+
+Use `memory add` for new structured memories and `memory deprecate` when a prior memory item should no longer guide future work. Manual Markdown edits are still acceptable for prose-only documentation or complex memory refactors that need human review.
+
+Use `memory reflect-run` after weekly/manual runs to create `memory_reflection.json` and `memory_reflection.md`. The reflection command proposes memory updates; it does not apply them automatically.
 
 ## Workflow Integration
 

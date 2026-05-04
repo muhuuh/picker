@@ -133,6 +133,14 @@ Inspect operational agent memory:
 python -m stock_research memory summary
 python -m stock_research memory validate
 python -m stock_research memory context --task financial
+python -m stock_research memory reflect-run --run-id 2026-05-09_weekly --write
+```
+
+Add or deprecate structured operational memory:
+
+```powershell
+python -m stock_research memory add --type procedural --scope orchestrator --trigger-source "..." --lesson "..." --use-when "..." --do-not-use-when "..." --evidence "..." --owner "..." --next-review 2026-06-01
+python -m stock_research memory deprecate --id ITEM_ID --reason "..."
 ```
 
 ## Tests
@@ -156,6 +164,8 @@ Implemented:
 - weekly run manifest generator,
 - deterministic provider-task planner and dry-run-by-default provider task runner,
 - deterministic operational memory loader, validator, summary, and task-context selector.
+- deterministic operational memory add/deprecate commands.
+- deterministic post-run memory reflection and memory update proposal generator.
 - deterministic human request classifier and queue appender.
 - deterministic request router for stock, industry, theme, strategy, alert-review, manual-run, and status-move requests.
 - provider-neutral evidence packet schema and JSON artifact writer.

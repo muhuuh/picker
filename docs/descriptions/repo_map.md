@@ -84,6 +84,9 @@ This file tells Codex, the orchestrator, and future agents where to find and upd
 - `python -m stock_research memory summary`: summarize operational memory.
 - `python -m stock_research memory validate`: validate operational memory files and item fields.
 - `python -m stock_research memory context --task TASK`: print task-relevant memory files and active lessons.
+- `python -m stock_research memory add ...`: append a schema-valid operational memory item.
+- `python -m stock_research memory deprecate --id ITEM_ID --reason "..."`: mark a memory item deprecated and record why.
+- `python -m stock_research memory reflect-run --run-id RUN_ID --write`: generate post-run memory reflection artifacts and memory update proposals.
 - `python -m stock_research classify-request "..."`
 - `python -m stock_research add-request "..."`
 - `python -m stock_research route-request "..."`: append and route a user request into target repo artifacts.

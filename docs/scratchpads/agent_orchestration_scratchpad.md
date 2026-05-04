@@ -34,6 +34,8 @@
 - [x] Add deterministic financial provider comparison layer.
 - [x] Add structured operational agent memory layer.
 - [x] Add deterministic operational memory loader/validator/context selector.
+- [x] Add deterministic operational memory writer/deprecate commands.
+- [x] Add deterministic post-run memory reflection/proposal command.
 - [ ] Validate updated architecture with user.
 
 ## Key Decisions and Why
@@ -65,6 +67,8 @@
 - 2026-05-04: Added `financial_compare`. It is only for financial/profile/market-data provider packets and intentionally excludes Exa/Grok news/sentiment packets.
 - 2026-05-04: Added `agents/memory/` as operational memory, not investment fact storage. It includes index, orchestrator lessons, source quality, specialist playbooks, evaluation metrics, and deprecated memory.
 - 2026-05-04: Added Python memory tooling: `memory summary`, `memory validate`, and `memory context --task TASK`. Updated `AGENTS.md` so future agents must read operational memory, not only durable `MEMORY.md`.
+- 2026-05-04: Added deterministic `memory add` and `memory deprecate` commands so structured memory updates can be schema-valid and auditable instead of manual-only Markdown edits.
+- 2026-05-04: Added deterministic `memory reflect-run --run-id RUN_ID [--write]`. It reads manifest/evidence/run summary/quality report artifacts, writes reflection artifacts, and proposes memory updates without applying them automatically.
 
 ## What We Learned
 
@@ -104,6 +108,9 @@
 - Weekly manifests now include `analysis_tasks` for post-provider financial comparison when tracked stocks or human stock-research requests exist.
 - Operational agent memory now starts at `agents/memory/memory_index.md`. Future agents should load task-relevant memory after `MEMORY.md`, `repo_map.md`, and the relevant scratchpad.
 - Deterministic memory command exists: `python -m stock_research memory context --task financial`.
+- Deterministic memory write commands exist: `python -m stock_research memory add ...` and `python -m stock_research memory deprecate --id ITEM_ID --reason "..."`.
+- Deterministic post-run reflection command exists: `python -m stock_research memory reflect-run --run-id 2026-05-09_weekly --write`.
+- Reflection artifacts exist for the current weekly smoke run: `agents/runs/2026-05-09_weekly/memory_reflection.json` and `agents/runs/2026-05-09_weekly/memory_reflection.md`.
 - Agent memory stores workflow/source/procedure/evaluation lessons only; company facts stay in stock files, strategy, and evidence packets.
 - `python -m unittest discover -s tests` is the working test command in this repo.
 - Cursor SDK is promising for coding-agent automation, but it is public beta and TypeScript-first; it looks better for repo maintenance agents than for the core stock-research runtime.
@@ -124,7 +131,8 @@
 ## Next Steps
 
 - Review updated `docs/descriptions/investment_agent_workflow.md` and `docs/plans/investment_agent_backlog.md` with the user if needed.
-- Next implementation work should add post-run memory reflection, run an agent-framework spike, or build the first financial-data specialist around `financial_compare` packets.
+- Next implementation work should build the LLM memory writer agent, wire reflection into the orchestrator/scheduled runner, inject memory context into specialist prompts, or build the first financial-data specialist around `financial_compare` packets.
+- Learning-loop gaps explicitly still pending: LLM memory writer agent, orchestrator/scheduled invocation of reflection, recurring failure detection, and orchestrator injection of memory context into specialist prompts.
 - Before Priority 4 agent implementation, run a thin spike comparing OpenAI Agents SDK vs Pydantic AI for one evidence-packet specialist and one orchestrator call.
 - Consider LangGraph only if the first spike shows that explicit resumable graph state is needed earlier than planned.
 - Add README and SETUP when runtime dependencies are introduced.

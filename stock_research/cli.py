@@ -10,7 +10,20 @@ from .evidence import default_packet_path, new_packet, read_packet, validate_pac
 from .financial_compare import FinancialCompareError, build_financial_compare_packet
 from .human import append_human_request, classify_request
 from .manifest import build_weekly_manifest, write_manifest
-from .memory import build_memory_context, load_memory_state, memory_summary, validate_memory_state
+from .memory import (
+    ITEM_MEMORY_FILES,
+    VALID_MEMORY_CONFIDENCE,
+    VALID_MEMORY_SCOPES,
+    VALID_MEMORY_STATUSES,
+    VALID_MEMORY_TYPES,
+    add_memory_item,
+    build_memory_context,
+    deprecate_memory_item,
+    load_memory_state,
+    memory_summary,
+    validate_memory_state,
+)
+from .memory_reflection import build_run_reflection, reflection_to_dict, write_run_reflection
 from .provider_runner import read_manifest, run_provider_tasks
 from .providers.exa import (
     ExaContentsOptions,
@@ -72,6 +85,32 @@ def main(argv: list[str] | None = None) -> int:
         required=True,
         help="Task kind, e.g. financial, news, sentiment, provider, orchestration, specialist, writer, quality, all.",
     )
+    memory_add = memory_subparsers.add_parser("add", help="Append a schema-valid operational memory item.")
+    memory_add.add_argument("--memory-file", choices=ITEM_MEMORY_FILES, help="Target memory file. Defaults from --type/status.")
+    memory_add.add_argument("--id", default="", help="Optional explicit memory id. Defaults to generated id.")
+    memory_add.add_argument("--type", required=True, choices=sorted(VALID_MEMORY_TYPES))
+    memory_add.add_argument("--scope", required=True, choices=sorted(VALID_MEMORY_SCOPES))
+    memory_add.add_argument("--status", default="active", choices=sorted(VALID_MEMORY_STATUSES))
+    memory_add.add_argument("--confidence", default="medium", choices=sorted(VALID_MEMORY_CONFIDENCE))
+    memory_add.add_argument("--trigger-source", required=True)
+    memory_add.add_argument("--lesson", required=True)
+    memory_add.add_argument("--use-when", required=True)
+    memory_add.add_argument("--do-not-use-when", required=True)
+    memory_add.add_argument("--evidence", required=True)
+    memory_add.add_argument("--owner", required=True)
+    memory_add.add_argument("--next-review", required=True)
+    memory_add.add_argument("--today", help="Override current date as YYYY-MM-DD.")
+
+    memory_deprecate = memory_subparsers.add_parser("deprecate", help="Mark a memory item deprecated and record why.")
+    memory_deprecate.add_argument("--id", required=True)
+    memory_deprecate.add_argument("--reason", required=True)
+    memory_deprecate.add_argument("--replacement", default="")
+    memory_deprecate.add_argument("--today", help="Override current date as YYYY-MM-DD.")
+
+    memory_reflect = memory_subparsers.add_parser("reflect-run", help="Build post-run memory reflection proposals.")
+    memory_reflect.add_argument("--run-id", required=True)
+    memory_reflect.add_argument("--write", action="store_true", help="Write memory_reflection.json and memory_reflection.md into the run directory.")
+    memory_reflect.add_argument("--today", help="Override current date as YYYY-MM-DD.")
 
     validate_parser = subparsers.add_parser("validate", help="Validate repo state and CSV schemas.")
     validate_parser.add_argument("--today", help="Override current date as YYYY-MM-DD.")
@@ -242,6 +281,7 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     if args.command == "memory":
+        memory_date = parse_cli_date(getattr(args, "today", None))
         memory_state = load_memory_state(state.root)
         if args.memory_command == "summary":
             print(json.dumps(memory_summary(memory_state), indent=2, sort_keys=True))
@@ -256,6 +296,58 @@ def main(argv: list[str] | None = None) -> int:
             return 0 if report.ok else 1
         if args.memory_command == "context":
             print(json.dumps(build_memory_context(memory_state, args.task), indent=2, sort_keys=True))
+            return 0
+        if args.memory_command == "add":
+            try:
+                result = add_memory_item(
+                    root=state.root,
+                    current_date=memory_date,
+                    memory_file=args.memory_file,
+                    fields={
+                        "id": args.id,
+                        "type": args.type,
+                        "scope": args.scope,
+                        "status": args.status,
+                        "confidence": args.confidence,
+                        "trigger/source": args.trigger_source,
+                        "lesson": args.lesson,
+                        "use_when": args.use_when,
+                        "do_not_use_when": args.do_not_use_when,
+                        "evidence": args.evidence,
+                        "owner": args.owner,
+                        "next_review": args.next_review,
+                    },
+                )
+            except ValueError as exc:
+                print(f"ERROR: {exc}")
+                return 1
+            print(json.dumps({"action": result.action, "item_id": result.item_id, "path": str(result.path)}, indent=2))
+            return 0
+        if args.memory_command == "deprecate":
+            try:
+                result = deprecate_memory_item(
+                    root=state.root,
+                    item_id=args.id,
+                    reason=args.reason,
+                    replacement=args.replacement,
+                    current_date=memory_date,
+                )
+            except ValueError as exc:
+                print(f"ERROR: {exc}")
+                return 1
+            print(json.dumps({"action": result.action, "item_id": result.item_id, "path": str(result.path)}, indent=2))
+            return 0
+        if args.memory_command == "reflect-run":
+            try:
+                reflection = build_run_reflection(state.root, args.run_id, memory_date)
+                if args.write:
+                    paths = write_run_reflection(state.root, reflection)
+                    print(json.dumps({"paths": [str(path) for path in paths], "reflection": reflection_to_dict(reflection)}, indent=2, sort_keys=True))
+                else:
+                    print(json.dumps(reflection_to_dict(reflection), indent=2, sort_keys=True))
+            except (FileNotFoundError, ValueError) as exc:
+                print(f"ERROR: {exc}")
+                return 1
             return 0
 
     current_date = parse_cli_date(getattr(args, "today", None))

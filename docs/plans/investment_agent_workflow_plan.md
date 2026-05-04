@@ -108,7 +108,12 @@ Detailed backlog: `docs/plans/investment_agent_backlog.md`.
 - [x] Add memory index and deprecated memory.
 - [x] Add agent memory workflow description.
 - [x] Add deterministic memory loader, validator, summary, and task-context selector.
-- [ ] Add post-run reflection step.
+- [x] Add deterministic memory writer/update commands.
+- [x] Add post-run reflection step.
+- [x] Add automatic memory update proposal generation.
+- [ ] Build LLM memory writer agent.
+- [ ] Inject task-relevant memory context into specialist prompts from the orchestrator.
+- [ ] Wire reflection into scheduled/orchestrated runs.
 - [ ] Add recurring failure detection.
 
 ## Key Decisions Pending
@@ -141,4 +146,7 @@ Detailed backlog: `docs/plans/investment_agent_backlog.md`.
 - 2026-05-04: Added `financial_compare` deterministic reconciliation step. It compares financial provider packets only, excludes Exa/Grok, writes raw comparison JSON plus a provider-neutral evidence packet, and is listed in weekly manifest `analysis_tasks`.
 - 2026-05-04: Added structured operational agent memory under `agents/memory/`, plus `docs/descriptions/agent_memory_workflow.md` and `docs/templates/agent_memory_item_template.md`.
 - 2026-05-04: Wired operational memory into deterministic tooling with `python -m stock_research memory summary`, `memory validate`, and `memory context --task TASK`; updated `AGENTS.md` to require operational memory loading before implementation.
+- 2026-05-04: Clarified remaining learning-loop gaps: memory add/deprecate commands, automatic post-run reflection, memory update proposals, LLM memory writer agent, and orchestrator injection of memory context into specialist prompts.
+- 2026-05-04: Implemented deterministic memory writer/update commands: `python -m stock_research memory add ...` and `python -m stock_research memory deprecate ...`, with validation tests.
+- 2026-05-04: Implemented deterministic post-run reflection and memory update proposal generation with `python -m stock_research memory reflect-run --run-id RUN_ID [--write]`; wrote reflection artifacts for `agents/runs/2026-05-09_weekly/`.
 - 2026-05-03: Started SDK/framework review before agent runtime work. Current finding: Cursor SDK is likely a coding-agent automation adjunct, not the core stock-research orchestration runtime; OpenAI Agents SDK, Pydantic AI, and LangGraph remain the main candidates.

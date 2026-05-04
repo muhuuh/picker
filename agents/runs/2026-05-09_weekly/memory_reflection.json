@@ -1,0 +1,85 @@
+{
+  "generated_at": "2026-05-04",
+  "issues": [
+    {
+      "category": "missing_run_summary",
+      "evidence": "agents/runs/2026-05-09_weekly/run_summary.md",
+      "severity": "medium",
+      "summary": "Run has no run_summary.md artifact."
+    },
+    {
+      "category": "missing_quality_report",
+      "evidence": "agents/runs/2026-05-09_weekly/quality_report.md",
+      "severity": "medium",
+      "summary": "Run has no quality_report.md artifact."
+    },
+    {
+      "category": "planned_provider_task_without_packet",
+      "evidence": "agents/runs/2026-05-09_weekly/manifest.json",
+      "severity": "medium",
+      "summary": "Manifest task exa_research_priority_us_and_europe_stock_discovery planned provider exa but no matching evidence packet was found."
+    },
+    {
+      "category": "planned_provider_task_without_packet",
+      "evidence": "agents/runs/2026-05-09_weekly/manifest.json",
+      "severity": "medium",
+      "summary": "Manifest task exa_discovery_priority_us_and_europe_stock_discovery planned provider exa but no matching evidence packet was found."
+    },
+    {
+      "category": "planned_provider_task_without_packet",
+      "evidence": "agents/runs/2026-05-09_weekly/manifest.json",
+      "severity": "medium",
+      "summary": "Manifest task xai_x_search_priority_us_and_europe_stock_discovery planned provider xai_grok but no matching evidence packet was found."
+    }
+  ],
+  "memory_update_proposals": [
+    {
+      "action": "memory_add",
+      "apply_command": "python -m stock_research memory add --memory-file evaluation_metrics.md --type 'evaluation' --scope 'global' --status 'needs_review' --confidence 'medium' --trigger-source 'post-run reflection for 2026-05-09_weekly' --lesson 'Run 2026-05-09_weekly produced 5 deterministic reflection issue(s). Review `memory_reflection.md`, run summary, quality report, and evidence packets before treating the run as complete.' --use-when 'Reviewing run quality, deciding whether to update operational memory, or planning reruns.' --do-not-use-when 'Making investment conclusions without reviewing underlying evidence.' --evidence '`agents/runs/2026-05-09_weekly/memory_reflection.md`' --owner 'memory and evaluation orchestrator' --next-review '2026-05-04' --today 2026-05-04",
+      "fields": {
+        "confidence": "medium",
+        "do_not_use_when": "Making investment conclusions without reviewing underlying evidence.",
+        "evidence": "`agents/runs/2026-05-09_weekly/memory_reflection.md`",
+        "lesson": "Run 2026-05-09_weekly produced 5 deterministic reflection issue(s). Review `memory_reflection.md`, run summary, quality report, and evidence packets before treating the run as complete.",
+        "next_review": "2026-05-04",
+        "owner": "memory and evaluation orchestrator",
+        "scope": "global",
+        "status": "needs_review",
+        "trigger/source": "post-run reflection for 2026-05-09_weekly",
+        "type": "evaluation",
+        "use_when": "Reviewing run quality, deciding whether to update operational memory, or planning reruns."
+      },
+      "proposal_id": "proposal-2026-05-04-2026-05-09_weekly-reflection-issues",
+      "reason": "Reflection found issues that should be reviewed before the run is considered complete.",
+      "target_file": "evaluation_metrics.md"
+    }
+  ],
+  "metrics": {
+    "analysis_tasks_planned": 0,
+    "claims": 14,
+    "contradictions": 0,
+    "evidence_packets": 9,
+    "invalid_evidence_packets": 0,
+    "issues": 5,
+    "manifest_exists": true,
+    "provider_packet_counts": {
+      "alpha_vantage": 1,
+      "exa": 2,
+      "financial_compare": 1,
+      "fmp": 1,
+      "polygon": 1,
+      "sec_edgar": 1,
+      "xai_grok": 1,
+      "yfinance": 1
+    },
+    "provider_tasks_planned": 3,
+    "quality_report_exists": false,
+    "recommended_updates": 1,
+    "risks": 0,
+    "run_summary_exists": false,
+    "unknowns": 0,
+    "valid_evidence_packets": 9
+  },
+  "run_dir": "agents/runs/2026-05-09_weekly",
+  "run_id": "2026-05-09_weekly"
+}

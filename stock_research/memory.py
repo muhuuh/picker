@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import date
 from pathlib import Path
+import re
 
 from .repo import find_repo_root
 
@@ -58,6 +60,26 @@ TASK_MEMORY_MAP = {
     "all": REQUIRED_MEMORY_FILES,
 }
 
+TYPE_MEMORY_FILE_MAP = {
+    "procedural": "orchestrator_lessons.md",
+    "semantic": "orchestrator_lessons.md",
+    "episodic": "orchestrator_lessons.md",
+    "source_quality": "source_quality.md",
+    "evaluation": "evaluation_metrics.md",
+}
+
+MEMORY_FILE_PREFIXES = {
+    "orchestrator_lessons.md": "orch",
+    "source_quality.md": "source",
+    "evaluation_metrics.md": "eval",
+    "deprecated_memory.md": "deprecated",
+}
+
+VALID_MEMORY_TYPES = {"semantic", "episodic", "procedural", "source_quality", "evaluation"}
+VALID_MEMORY_SCOPES = {"orchestrator", "provider", "financial", "news", "sentiment", "writer", "global"}
+VALID_MEMORY_STATUSES = {"active", "superseded", "deprecated", "needs_review"}
+VALID_MEMORY_CONFIDENCE = {"low", "medium", "high"}
+
 
 @dataclass(frozen=True)
 class MemoryItem:
@@ -94,6 +116,13 @@ class MemoryValidationReport:
     @property
     def ok(self) -> bool:
         return not self.errors
+
+
+@dataclass(frozen=True)
+class MemoryWriteResult:
+    item_id: str
+    path: Path
+    action: str
 
 
 def load_memory_state(root: Path | None = None) -> MemoryState:
@@ -159,11 +188,11 @@ def validate_memory_state(memory: MemoryState) -> MemoryValidationReport:
             errors.append(f"{item_id} missing required field(s): {', '.join(missing)}")
 
         status = item.fields.get("status", "")
-        if status not in {"active", "superseded", "deprecated", "needs_review"}:
+        if status not in VALID_MEMORY_STATUSES:
             errors.append(f"{item_id} has invalid status: {status}")
 
         confidence = item.fields.get("confidence", "")
-        if confidence not in {"low", "medium", "high"}:
+        if confidence not in VALID_MEMORY_CONFIDENCE:
             errors.append(f"{item_id} has invalid confidence: {confidence}")
 
     return MemoryValidationReport(errors=errors, warnings=warnings)
@@ -233,6 +262,184 @@ def memory_summary(memory: MemoryState) -> dict[str, object]:
         "by_status": by_status,
         "by_scope": by_scope,
     }
+
+
+def add_memory_item(
+    root: Path | None,
+    fields: dict[str, str],
+    current_date: date | None = None,
+    memory_file: str | None = None,
+) -> MemoryWriteResult:
+    repo_root = find_repo_root(root)
+    item_date = current_date or date.today()
+    normalized = normalize_memory_fields(fields, item_date)
+    target_name = resolve_memory_file(normalized, memory_file)
+    memory = load_memory_state(repo_root)
+
+    if not normalized.get("id"):
+        normalized["id"] = generate_memory_id(
+            target_name=target_name,
+            item_date=normalized["date"],
+            lesson=normalized["lesson"],
+            existing_ids={item.fields.get("id", "") for item in memory.items},
+        )
+
+    validate_memory_fields(normalized)
+    target = repo_root / MEMORY_DIR / target_name
+    target.parent.mkdir(parents=True, exist_ok=True)
+    append_memory_item(target, normalized)
+
+    updated = load_memory_state(repo_root)
+    report = validate_memory_state(updated)
+    if not report.ok:
+        raise ValueError("Memory validation failed after add: " + "; ".join(report.errors))
+
+    return MemoryWriteResult(item_id=normalized["id"], path=target, action="added")
+
+
+def deprecate_memory_item(
+    root: Path | None,
+    item_id: str,
+    reason: str,
+    replacement: str = "",
+    current_date: date | None = None,
+) -> MemoryWriteResult:
+    repo_root = find_repo_root(root)
+    memory = load_memory_state(repo_root)
+    matches = [item for item in memory.items if item.fields.get("id") == item_id]
+    if not matches:
+        raise ValueError(f"Memory item not found: {item_id}")
+    if len(matches) > 1:
+        raise ValueError(f"Duplicate memory item id prevents safe deprecation: {item_id}")
+
+    item = matches[0]
+    item_date = current_date or date.today()
+    update_memory_item_field(item.path, item_id, "status", "deprecated")
+
+    action_path = item.path
+    if item.path.name != "deprecated_memory.md":
+        deprecated_fields = {
+            "id": generate_memory_id(
+                target_name="deprecated_memory.md",
+                item_date=item_date.isoformat(),
+                lesson=item.fields.get("lesson", item_id),
+                existing_ids={existing.fields.get("id", "") for existing in memory.items},
+            ),
+            "date": item_date.isoformat(),
+            "type": item.fields.get("type", "procedural"),
+            "scope": item.fields.get("scope", "global"),
+            "status": "deprecated",
+            "confidence": item.fields.get("confidence", "medium"),
+            "trigger/source": reason,
+            "lesson": item.fields.get("lesson", item_id),
+            "use_when": "Checking whether a superseded operational path is being reintroduced.",
+            "do_not_use_when": replacement or "Do not use unless the user explicitly reverses this deprecation.",
+            "evidence": f"`{relative_to_root(repo_root, item.path).as_posix()}`",
+            "owner": item.fields.get("owner", "memory and evaluation orchestrator"),
+            "next_review": item_date.isoformat(),
+        }
+        validate_memory_fields(deprecated_fields)
+        action_path = repo_root / MEMORY_DIR / "deprecated_memory.md"
+        append_memory_item(action_path, deprecated_fields)
+
+    updated = load_memory_state(repo_root)
+    report = validate_memory_state(updated)
+    if not report.ok:
+        raise ValueError("Memory validation failed after deprecate: " + "; ".join(report.errors))
+
+    return MemoryWriteResult(item_id=item_id, path=action_path, action="deprecated")
+
+
+def normalize_memory_fields(fields: dict[str, str], item_date: date) -> dict[str, str]:
+    result = {key: value.strip() for key, value in fields.items()}
+    result.setdefault("id", "")
+    result.setdefault("date", item_date.isoformat())
+    result.setdefault("status", "active")
+    result.setdefault("confidence", "medium")
+    return result
+
+
+def resolve_memory_file(fields: dict[str, str], memory_file: str | None) -> str:
+    if memory_file:
+        if memory_file not in REQUIRED_MEMORY_FILES:
+            raise ValueError(f"Invalid memory file: {memory_file}")
+        if memory_file not in ITEM_MEMORY_FILES:
+            raise ValueError(f"Memory file does not accept structured items: {memory_file}")
+        return memory_file
+    if fields.get("status") == "deprecated":
+        return "deprecated_memory.md"
+    return TYPE_MEMORY_FILE_MAP.get(fields.get("type", ""), "orchestrator_lessons.md")
+
+
+def validate_memory_fields(fields: dict[str, str]) -> None:
+    missing = [field for field in REQUIRED_ITEM_FIELDS if not fields.get(field)]
+    if missing:
+        raise ValueError("Missing required memory field(s): " + ", ".join(missing))
+    if fields["type"] not in VALID_MEMORY_TYPES:
+        raise ValueError(f"Invalid memory type: {fields['type']}")
+    if fields["scope"] not in VALID_MEMORY_SCOPES:
+        raise ValueError(f"Invalid memory scope: {fields['scope']}")
+    if fields["status"] not in VALID_MEMORY_STATUSES:
+        raise ValueError(f"Invalid memory status: {fields['status']}")
+    if fields["confidence"] not in VALID_MEMORY_CONFIDENCE:
+        raise ValueError(f"Invalid memory confidence: {fields['confidence']}")
+
+
+def append_memory_item(path: Path, fields: dict[str, str]) -> None:
+    text = path.read_text(encoding="utf-8") if path.exists() else f"# {path.stem}\n"
+    item_text = format_memory_item(fields)
+    separator = "\n\n" if text.strip() else ""
+    path.write_text(text.rstrip() + separator + item_text + "\n", encoding="utf-8")
+
+
+def format_memory_item(fields: dict[str, str]) -> str:
+    ordered = ["id", *[field for field in REQUIRED_ITEM_FIELDS if field != "id"]]
+    return "\n".join(f"- {field}: {fields.get(field, '')}" for field in ordered)
+
+
+def update_memory_item_field(path: Path, item_id: str, field: str, value: str) -> None:
+    lines = path.read_text(encoding="utf-8").splitlines()
+    start: int | None = None
+    end = len(lines)
+
+    for index, line in enumerate(lines):
+        if line.strip() == f"- id: {item_id}":
+            start = index
+            break
+    if start is None:
+        raise ValueError(f"Memory item not found in {path}: {item_id}")
+
+    for index in range(start + 1, len(lines)):
+        if lines[index].strip().startswith("- id: "):
+            end = index
+            break
+
+    target_prefix = f"- {field}:"
+    for index in range(start, end):
+        if lines[index].strip().startswith(target_prefix):
+            lines[index] = f"- {field}: {value}"
+            path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+            return
+
+    insert_at = end
+    lines.insert(insert_at, f"- {field}: {value}")
+    path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
+def generate_memory_id(target_name: str, item_date: str, lesson: str, existing_ids: set[str]) -> str:
+    prefix = MEMORY_FILE_PREFIXES.get(target_name, "memory")
+    slug = slugify(lesson)[:48].strip("-") or "item"
+    base = f"{prefix}-{item_date}-{slug}"
+    candidate = base
+    counter = 2
+    while candidate in existing_ids:
+        candidate = f"{base}-{counter}"
+        counter += 1
+    return candidate
+
+
+def slugify(value: str) -> str:
+    return re.sub(r"[^a-z0-9]+", "-", value.lower()).strip("-")
 
 
 def relative_to_root(root: Path, path: Path) -> Path:

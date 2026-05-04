@@ -236,9 +236,11 @@ This is the clear task backlog for building the stock tracking and investment re
 - [ ] Build portfolio review sub-orchestrator.
   - Description: assesses impact across current holdings, monitoring, and rejected buckets.
 - [ ] Build memory and evaluation sub-orchestrator.
-  - Description: extracts lessons from traces and quality reports.
+  - Description: extracts lessons from traces, run summaries, quality reports, provider failures, and user corrections.
 - [ ] Build main orchestrator.
   - Description: synthesizes all evidence, chooses updates, creates alerts, incorporates human input queue items, and prepares next actions.
+- [ ] Inject operational memory into specialist prompts.
+  - Description: orchestrator should call `python -m stock_research memory context --task TASK` or the equivalent Python function and pass the relevant lessons into each specialist prompt before execution.
 - [ ] Build human review queue.
   - Description: collects moves, strategy changes, and high-impact recommendations for user approval.
 
@@ -260,8 +262,18 @@ This is the clear task backlog for building the stock tracking and investment re
   - Description: define read flow, write flow, lifecycle fields, and guardrails.
 - [x] Add deterministic memory loader and validator.
   - Description: expose `memory summary`, `memory validate`, and `memory context --task TASK` commands so Codex and future orchestrators can inspect task-relevant memory.
-- [ ] Add post-run reflection.
-  - Description: after each run, update memory with lessons and next-run improvements.
+- [x] Add deterministic memory writer/update commands.
+  - Description: implement safe commands such as `python -m stock_research memory add ...` and `python -m stock_research memory deprecate ...` so memory updates are schema-valid and auditable.
+- [x] Add post-run reflection.
+  - Description: after each weekly/manual run, read run summary, quality report, provider failures, user corrections, and trace references to identify learning candidates.
+- [x] Add automatic memory update proposals.
+  - Description: generate proposed add/update/deprecate actions after reflection, with evidence links and confidence, before applying them.
+- [ ] Build LLM memory writer agent.
+  - Description: bounded specialist that converts reflection findings into concise memory items; it should not write freely without schema validation and should send high-impact changes to human review.
+- [ ] Wire reflection into scheduled/orchestrated runs.
+  - Description: call `python -m stock_research memory reflect-run --run-id RUN_ID --write` automatically after run summary and quality report generation.
+- [ ] Add recurring failure detection.
+  - Description: detect repeated provider failures, noisy alerts, missing citations, bad routing, and repeated user corrections across runs.
 
 ## Open Decisions
 

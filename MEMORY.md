@@ -125,3 +125,18 @@ Use this file for information we should not lose across sessions.
   - decision/fact: Operational agent memory is implemented under `agents/memory/` as structured Markdown plus deterministic Python inspection commands. It stores orchestration lessons, source-quality notes, specialist playbooks, evaluation metrics, and deprecated operational behavior. It must not store secrets, raw provider output, or ordinary company investment facts.
   - evidence artifact path(s): `agents/memory/README.md`, `agents/memory/memory_index.md`, `stock_research/memory.py`, `docs/descriptions/agent_memory_workflow.md`, `docs/templates/agent_memory_item_template.md`
   - status: active
+
+- 2026-05-04:
+  - decision/fact: The operational memory layer is not yet fully autonomous. Pending learning-loop work includes a bounded LLM memory writer agent, orchestrator/scheduled invocation of post-run reflection, recurring failure detection, and orchestrator injection of task-relevant memory into specialist prompts.
+  - evidence artifact path(s): `docs/plans/investment_agent_backlog.md`, `docs/plans/investment_agent_workflow_plan.md`, `agents/memory/evaluation_metrics.md`, `docs/descriptions/agent_memory_workflow.md`
+  - status: active
+
+- 2026-05-04:
+  - decision/fact: Deterministic operational memory writer/update commands are implemented. Use `python -m stock_research memory add ...` for schema-valid additions and `python -m stock_research memory deprecate --id ITEM_ID --reason "..."` for deprecations.
+  - evidence artifact path(s): `stock_research/memory.py`, `stock_research/cli.py`, `tests/test_memory.py`, `agents/memory/evaluation_metrics.md`
+  - status: active
+
+- 2026-05-04:
+  - decision/fact: Deterministic post-run memory reflection and memory update proposal generation are implemented. Use `python -m stock_research memory reflect-run --run-id RUN_ID --write` to create `memory_reflection.json` and `memory_reflection.md`; proposals are not applied automatically.
+  - evidence artifact path(s): `stock_research/memory_reflection.py`, `stock_research/cli.py`, `tests/test_memory_reflection.py`, `agents/runs/2026-05-09_weekly/memory_reflection.md`
+  - status: active

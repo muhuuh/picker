@@ -81,3 +81,5 @@ Operational memory for workflow routing, orchestration, run ordering, and user c
 - Whether the final agent runtime should be OpenAI Agents SDK, Pydantic AI, LangGraph, or a hybrid.
 - Which provider should be the source of truth for conflicting market-data fields.
 - Which file writes require human approval beyond buy/sell/position-size recommendations and stock status moves.
+- How the orchestrator will inject task-relevant operational memory into each specialist prompt.
+- How the memory and evaluation sub-orchestrator will coordinate automatic post-run reflection, memory update proposals, and the LLM memory writer agent.

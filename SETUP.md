@@ -241,4 +241,12 @@ Validate and inspect memory:
 python -m stock_research memory summary
 python -m stock_research memory validate
 python -m stock_research memory context --task sentiment
+python -m stock_research memory reflect-run --run-id 2026-05-09_weekly --write
+```
+
+Add or deprecate structured operational memory:
+
+```powershell
+python -m stock_research memory add --type procedural --scope orchestrator --trigger-source "..." --lesson "..." --use-when "..." --do-not-use-when "..." --evidence "..." --owner "..." --next-review 2026-06-01
+python -m stock_research memory deprecate --id ITEM_ID --reason "..."
 ```
