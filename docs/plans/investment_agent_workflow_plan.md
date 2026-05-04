@@ -48,6 +48,8 @@ Detailed backlog: `docs/plans/investment_agent_backlog.md`.
 - [x] Add deterministic provider tasks to weekly manifests.
 - [x] Add dry-run-by-default provider task runner.
 - [x] Add dry-run-by-default analysis task runner.
+- [x] Add deterministic run summary generator.
+- [x] Add deterministic quality report generator.
 - [x] Add tests for file discovery, CSV validation, and manifest generation.
 
 ## Priority 3: Build Data Tools
@@ -63,6 +65,7 @@ Detailed backlog: `docs/plans/investment_agent_backlog.md`.
 - [x] Implement Exa company, news, industry, and contents tools.
 - [x] Implement xAI Grok stock sentiment tool.
 - [x] Implement xAI Grok industry sentiment/discovery tool.
+- [x] Validate task-specific provider artifacts for same-subject Exa/Grok manifest tasks.
 - [ ] Evaluate extra data providers: OpenBB, Twelve Data, EODHD, Finnhub, Nasdaq Data Link, FRED, ECB, Eurostat, Companies House, future ESMA ESAP.
 - [ ] Add source normalization and citation utilities.
 - [ ] Add tool guardrails for source metadata and secret redaction.
@@ -71,7 +74,7 @@ Detailed backlog: `docs/plans/investment_agent_backlog.md`.
 
 - [x] Implement evidence packet schemas.
 - [ ] Implement human request triage specialist.
-- [ ] Implement company news specialist.
+- [x] Implement company news specialist.
 - [ ] Implement SEC filing specialist.
 - [x] Implement financial data specialist.
 - [ ] Implement xAI Grok stock sentiment specialist.
@@ -97,7 +100,7 @@ Detailed backlog: `docs/plans/investment_agent_backlog.md`.
 - [ ] Implement main orchestrator synthesis.
 - [x] Implement human review queue writer.
 - [x] Implement manual run manifest path for immediate user-requested research.
-- [ ] Implement final run summary.
+- [x] Implement final run summary.
 - [ ] Add tracing IDs and run metrics to artifacts.
 
 ## Priority 6: Learning Loop
@@ -156,4 +159,7 @@ Detailed backlog: `docs/plans/investment_agent_backlog.md`.
 - 2026-05-04: Implemented deterministic run finalization with `python -m stock_research memory finalize-run --run-id RUN_ID`; it writes reflection, recurring-failure, and finalization artifacts but is not yet called automatically by a scheduler/orchestrator.
 - 2026-05-04: Implemented the first deterministic financial-data specialist with `python -m stock_research financial review --ticker TICKER --run-id RUN_ID`; it consumes `financial_compare` packets and writes specialist evidence, raw review JSON, and markdown review artifacts.
 - 2026-05-04: Implemented deterministic analysis-task runner with `python -m stock_research analysis-tasks --manifest PATH [--execute]`; it executes `financial_compare` and `financial_review` tasks from manifests in dependency order.
+- 2026-05-04: Added AAPL as a monitoring workflow validation seed. Manifest planning, provider-task dry-run, analysis-task execution, run summary generation, quality report generation, and memory finalization were validated against the AAPL run artifacts.
+- 2026-05-04: Fixed generated JSON handling and provider artifact naming. Generated run JSON/raw/evidence artifacts are ignored; Exa/Grok manifest tasks now use task-specific artifact ids; full AAPL weekly validation now finalizes as `complete` with zero quality findings.
+- 2026-05-04: Added deterministic company-news specialist with `python -m stock_research news review --ticker TICKER --run-id RUN_ID`; weekly manifests now plan `company_news_review` analysis tasks.
 - 2026-05-03: Started SDK/framework review before agent runtime work. Current finding: Cursor SDK is likely a coding-agent automation adjunct, not the core stock-research orchestration runtime; OpenAI Agents SDK, Pydantic AI, and LangGraph remain the main candidates.

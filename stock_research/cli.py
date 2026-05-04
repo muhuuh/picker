@@ -6,6 +6,7 @@ from datetime import date
 from pathlib import Path
 
 from .analysis_runner import run_analysis_tasks
+from .company_news_specialist import CompanyNewsSpecialistError, build_company_news_specialist_packet
 from .config import get_config_value
 from .evidence import default_packet_path, new_packet, read_packet, validate_packet, write_packet
 from .financial_compare import FinancialCompareError, build_financial_compare_packet
@@ -34,6 +35,7 @@ from .memory_reflection import (
     write_run_reflection,
 )
 from .provider_runner import read_manifest, run_provider_tasks
+from .quality_report import build_quality_report, quality_report_to_dict, write_quality_report
 from .providers.exa import (
     ExaContentsOptions,
     ExaError,
@@ -73,6 +75,7 @@ from .providers.yfinance_provider import YFinanceError, build_yfinance_company_p
 from .repo import load_repo_state
 from .router import route_request
 from .run_finalization import finalize_run, finalization_to_dict
+from .run_summary import build_run_summary, run_summary_to_dict, write_run_summary
 from .staleness import scan_stale_data
 from .validation import validate_repo_state
 
@@ -238,6 +241,15 @@ def main(argv: list[str] | None = None) -> int:
     financial_review.add_argument("--financial-compare-packet", type=Path, help="Optional explicit financial_compare packet path.")
     financial_review.add_argument("--today", help="Override current date as YYYY-MM-DD.")
 
+    news_parser = subparsers.add_parser("news", help="Deterministic company-news evidence analysis.")
+    news_subparsers = news_parser.add_subparsers(dest="news_command", required=True)
+
+    news_review = news_subparsers.add_parser("review", help="Run the deterministic company-news specialist on an Exa news packet.")
+    news_review.add_argument("--ticker", required=True)
+    news_review.add_argument("--run-id", required=True)
+    news_review.add_argument("--exa-news-packet", type=Path, help="Optional explicit Exa company-news packet path.")
+    news_review.add_argument("--today", help="Override current date as YYYY-MM-DD.")
+
     exa_parser = subparsers.add_parser("exa", help="Exa search and contents provider tools.")
     exa_subparsers = exa_parser.add_subparsers(dest="exa_command", required=True)
 
@@ -306,6 +318,16 @@ def main(argv: list[str] | None = None) -> int:
     analysis_tasks.add_argument("--task-id", action="append", default=[], help="Filter task id. Repeatable.")
     analysis_tasks.add_argument("--limit", type=int)
     analysis_tasks.add_argument("--today", help="Override current date as YYYY-MM-DD.")
+
+    run_summary_parser = subparsers.add_parser("run-summary", help="Build a deterministic run_summary.md from run artifacts.")
+    run_summary_parser.add_argument("--run-id", required=True)
+    run_summary_parser.add_argument("--write", action="store_true", help="Write run_summary.json and run_summary.md into the run directory.")
+    run_summary_parser.add_argument("--today", help="Override current date as YYYY-MM-DD.")
+
+    quality_report_parser = subparsers.add_parser("quality-report", help="Build a deterministic quality_report.md from run artifacts.")
+    quality_report_parser.add_argument("--run-id", required=True)
+    quality_report_parser.add_argument("--write", action="store_true", help="Write quality_report.json and quality_report.md into the run directory.")
+    quality_report_parser.add_argument("--today", help="Override current date as YYYY-MM-DD.")
 
     args = parser.parse_args(argv)
     state = load_repo_state(args.root)
@@ -624,6 +646,32 @@ def main(argv: list[str] | None = None) -> int:
             )
             return 0
 
+    if args.command == "news":
+        if args.news_command == "review":
+            request_date = parse_cli_date(args.today)
+            try:
+                result = build_company_news_specialist_packet(
+                    ticker=args.ticker,
+                    run_id=args.run_id,
+                    root=state.root,
+                    current_date=request_date,
+                    exa_news_packet_path=args.exa_news_packet,
+                )
+            except CompanyNewsSpecialistError as exc:
+                print(f"ERROR: {exc}")
+                return 1
+            print(
+                json.dumps(
+                    {
+                        "packet_id": result.packet.packet_id,
+                        "status": result.review["status"],
+                        "paths": [str(path) for path in result.paths],
+                    },
+                    indent=2,
+                )
+            )
+            return 0
+
     if args.command == "exa":
         request_date = parse_cli_date(args.today)
         run_id = args.run_id or default_exa_run_id(request_date)
@@ -742,6 +790,34 @@ def main(argv: list[str] | None = None) -> int:
         )
         print(json.dumps(result, indent=2, sort_keys=True))
         return 0 if not result["errors"] and not result["skipped"] else 1
+
+    if args.command == "run-summary":
+        request_date = parse_cli_date(args.today)
+        try:
+            summary = build_run_summary(state.root, args.run_id, request_date)
+            if args.write:
+                paths = write_run_summary(state.root, summary)
+                print(json.dumps({"paths": [str(path) for path in paths], "summary": run_summary_to_dict(summary)}, indent=2, sort_keys=True))
+            else:
+                print(json.dumps(run_summary_to_dict(summary), indent=2, sort_keys=True))
+        except (FileNotFoundError, ValueError) as exc:
+            print(f"ERROR: {exc}")
+            return 1
+        return 0
+
+    if args.command == "quality-report":
+        request_date = parse_cli_date(args.today)
+        try:
+            report = build_quality_report(state.root, args.run_id, request_date)
+            if args.write:
+                paths = write_quality_report(state.root, report)
+                print(json.dumps({"paths": [str(path) for path in paths], "report": quality_report_to_dict(report)}, indent=2, sort_keys=True))
+            else:
+                print(json.dumps(quality_report_to_dict(report), indent=2, sort_keys=True))
+        except (FileNotFoundError, ValueError) as exc:
+            print(f"ERROR: {exc}")
+            return 1
+        return 0
 
     return 1
 

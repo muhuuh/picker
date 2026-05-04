@@ -97,3 +97,45 @@ Operational memory for workflow routing, orchestration, run ordering, and user c
 - evidence: stock_research/analysis_runner.py, stock_research/cli.py, tests/test_analysis_runner.py, docs/descriptions/analysis_task_runner.md
 - owner: main orchestrator
 - next_review: 2026-06-01
+
+- id: orch-2026-05-04-after-provider-tasks-and-analysis-tasks-use-pyth
+- date: 2026-05-04
+- type: procedural
+- scope: orchestrator
+- status: active
+- confidence: high
+- trigger/source: run summary and quality report implementation
+- lesson: After provider tasks and analysis tasks, use python -m stock_research run-summary --run-id RUN_ID --write and python -m stock_research quality-report --run-id RUN_ID --write before memory finalize-run.
+- use_when: Ending weekly/manual deterministic runs or preparing outputs for human review.
+- do_not_use_when: Replacing specialist evidence packets or LLM synthesis; these reports summarize and validate existing artifacts.
+- evidence: stock_research/run_summary.py, stock_research/quality_report.py, docs/descriptions/run_summary_and_quality.md, agents/runs/2026-05-09_weekly/run_summary.md, agents/runs/2026-05-09_weekly/quality_report.md
+- owner: main orchestrator
+- next_review: 2026-06-01
+
+- id: orch-2026-05-04-generated-run-json-is-local
+- date: 2026-05-04
+- type: procedural
+- scope: orchestrator
+- status: active
+- confidence: high
+- trigger/source: Git status showed generated run JSON about to be committed.
+- lesson: Generated run JSON, raw provider JSON, evidence packet JSON, and generated recurring-failure JSON are local runtime artifacts. Keep markdown summaries/reports/finalization files as the reviewable artifacts for commits.
+- use_when: Preparing commits, reviewing run artifacts, or adding new run-output files.
+- do_not_use_when: Adding source/config JSON that is intentionally part of the repo.
+- evidence: `.gitignore`, `README.md`, `SETUP.md`, `docs/descriptions/run_summary_and_quality.md`
+- owner: orchestrator
+- next_review: 2026-06-01
+
+- id: orch-2026-05-04-provider-task-artifact-ids
+- date: 2026-05-04
+- type: procedural
+- scope: provider
+- status: active
+- confidence: high
+- trigger/source: Full manifest validation found two Exa tasks for the same theme overwrote the same packet path.
+- lesson: Manifest-driven provider tasks that can share provider and subject must include the manifest task id in raw artifact names and packet ids. Quality checks should verify task-specific packets, especially for Exa and xAI/Grok.
+- use_when: Building provider tasks, provider runners, quality checks, or future specialists that may run multiple searches for one subject.
+- do_not_use_when: Reading legacy smoke-test packets that predate task-specific artifact ids.
+- evidence: `stock_research/providers/exa.py`, `stock_research/providers/xai_grok.py`, `stock_research/provider_runner.py`, `stock_research/quality_report.py`, `stock_research/memory_reflection.py`
+- owner: provider orchestrator
+- next_review: 2026-06-01

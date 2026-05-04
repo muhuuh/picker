@@ -66,6 +66,43 @@ class XaiGrokProviderTests(unittest.TestCase):
             self.assertEqual(packet.sources[0].source_type, "social")
             self.assertEqual(len(paths), 2)
             self.assertTrue(validate_packet(read_packet(paths[0])).ok)
+            self.assertIn("x_search_stock_sentiment", packet.packet_id)
+
+    def test_x_search_packets_for_same_subject_use_distinct_artifact_ids(self):
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            first_packet, first_paths = build_xai_x_search_packet(
+                options=XaiXSearchOptions(
+                    prompt="Search X for stock sentiment about AMD.",
+                    subject_type="company",
+                    subject_id="AMD",
+                    research_kind="stock_sentiment",
+                    artifact_id="xai_x_search_company_amd",
+                ),
+                api_key="test-key",
+                run_id="2026-05-09_weekly",
+                root=root,
+                current_date=date(2026, 5, 3),
+                fetcher=fake_fetch_json,
+            )
+            second_packet, second_paths = build_xai_x_search_packet(
+                options=XaiXSearchOptions(
+                    prompt="Search X for latest news about AMD.",
+                    subject_type="company",
+                    subject_id="AMD",
+                    research_kind="latest_news",
+                    artifact_id="xai_x_news_company_amd",
+                ),
+                api_key="test-key",
+                run_id="2026-05-09_weekly",
+                root=root,
+                current_date=date(2026, 5, 3),
+                fetcher=fake_fetch_json,
+            )
+
+            self.assertNotEqual(first_packet.packet_id, second_packet.packet_id)
+            self.assertNotEqual(first_paths[0], second_paths[0])
+            self.assertNotEqual(first_paths[1], second_paths[1])
 
 
 def fake_fetch_json(url: str, api_key: str, payload: dict):

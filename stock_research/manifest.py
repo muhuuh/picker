@@ -154,6 +154,20 @@ def build_analysis_tasks(state: RepoState, human_requests: list[dict[str, str]],
             ticker = normalize_ticker(row.get("ticker", ""))
             if not ticker:
                 continue
+            add_task(
+                tasks,
+                seen_task_ids,
+                analysis_task(
+                    task_id=f"company_news_review_{slugify(ticker)}",
+                    tool="company_news_review",
+                    subject_id=ticker,
+                    args={"ticker": ticker, "run_id": run_id},
+                    reason=f"Run company-news specialist review for {bucket} ticker {ticker} after Exa news collection.",
+                    priority="high" if bucket == "current_holdings" else "medium",
+                    source_bucket=bucket,
+                    expected_artifacts=["company_news_specialist_evidence_packet", "company_news_review_json", "company_news_review_markdown"],
+                ),
+            )
             compare_id = f"financial_compare_{slugify(ticker)}"
             add_task(
                 tasks,
@@ -193,6 +207,20 @@ def build_analysis_tasks(state: RepoState, human_requests: list[dict[str, str]],
             ticker_upper = normalize_ticker(ticker)
             if not ticker_upper:
                 continue
+            add_task(
+                tasks,
+                seen_task_ids,
+                analysis_task(
+                    task_id=f"company_news_review_human_{slugify(request_id)}_{slugify(ticker_upper)}",
+                    tool="company_news_review",
+                    subject_id=ticker_upper,
+                    args={"ticker": ticker_upper, "run_id": run_id},
+                    reason=f"Run company-news specialist review for human stock research request {request_id}.",
+                    priority=priority,
+                    source_bucket="human_input_queue",
+                    expected_artifacts=["company_news_specialist_evidence_packet", "company_news_review_json", "company_news_review_markdown"],
+                ),
+            )
             compare_id = f"financial_compare_human_{slugify(request_id)}_{slugify(ticker_upper)}"
             add_task(
                 tasks,

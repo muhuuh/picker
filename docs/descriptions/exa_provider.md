@@ -1,6 +1,6 @@
 # Exa Provider
 
-Last updated: 2026-05-03
+Last updated: 2026-05-04
 
 ## Purpose
 
@@ -113,8 +113,7 @@ python -m stock_research exa contents --url https://example.com/article --subjec
 Raw Exa JSON:
 
 ```text
-agents/runs/{run_id}/raw/exa/search_{subject_id}.json
-agents/runs/{run_id}/raw/exa/contents_{subject_id}.json
+agents/runs/{run_id}/raw/exa/{artifact_id}.json
 ```
 
 Evidence packet:
@@ -122,6 +121,8 @@ Evidence packet:
 ```text
 agents/runs/{run_id}/evidence_packets/{packet_id}.json
 ```
+
+When Exa runs from manifest provider tasks, `artifact_id` is the manifest task id. This prevents same-provider/same-subject tasks, such as theme context search and company discovery search, from overwriting each other.
 
 ## Validation
 
@@ -131,6 +132,7 @@ agents/runs/{run_id}/evidence_packets/{packet_id}.json
 - 2026-05-03: Live Exa contents smoke test passed for SEC EDGAR docs.
 - Contents packet: `agents/runs/2026-05-09_weekly/evidence_packets/2026-05-03_exa_theme_sec_edgar_docs.json`.
 - Raw contents response: `agents/runs/2026-05-09_weekly/raw/exa/contents_sec_edgar_docs.json`.
+- 2026-05-04: Manifest-driven AAPL/news and stock-discovery Exa tasks passed with task-specific artifact names.
 
 ## Current Limits
 

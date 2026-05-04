@@ -1,22 +1,22 @@
 # Monitoring State
 
-Last updated: 2026-04-30
+Last updated: 2026-05-04
 
 ## Current View
 
-- No monitored stocks have been added yet.
+- AAPL was added as a monitoring workflow validation seed, not as a confirmed investment candidate.
 
 ## Watchlist Thesis
 
-- TODO: summarize what kind of companies we are watching and why.
+- Current monitoring bucket contains a test seed used to validate provider, manifest, and analysis-task workflow behavior.
 
 ## Important Changes Since Last Review
 
-- TODO: record market, industry, company, or macro changes that affect monitored stocks.
+- 2026-05-04: AAPL financial specialist review reported `ready_for_company_update` from existing AAPL evidence packets.
 
 ## High-Priority Reviews
 
-- TODO: list monitored stocks that need deeper research.
+- AAPL: validate workflow outputs, then decide whether to keep as real monitoring candidate or replace with actual watchlist names.
 
 ## Candidate Alerts
 
@@ -28,13 +28,15 @@ Last updated: 2026-04-30
 
 ## Planned Next Steps
 
-- Add monitored stocks to `monitoring.csv`.
-- Create one detailed company file per monitored stock under `stock_tracking/stock_info_files/monitoring/`.
+- Regenerate weekly manifest and confirm AAPL provider/analysis tasks are planned.
+- Run deterministic analysis tasks for AAPL from the manifest.
+- Decide whether AAPL stays as a monitored stock after validation.
 
 ## Open Questions
 
-- TODO: capture missing information needed for the next review.
+- Is AAPL only a test seed, or should it become a real monitored candidate?
 
 ## Change Log
 
 - 2026-04-30: Created initial state file template.
+- 2026-05-04: Added AAPL as monitoring workflow validation seed.

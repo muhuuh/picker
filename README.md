@@ -61,6 +61,15 @@ python -m stock_research analysis-tasks --manifest agents\runs\2026-05-09_weekly
 python -m stock_research analysis-tasks --manifest agents\runs\2026-05-09_weekly\manifest.json --execute
 ```
 
+Write deterministic run summary and quality report artifacts:
+
+```powershell
+python -m stock_research run-summary --run-id 2026-05-09_weekly --write
+python -m stock_research quality-report --run-id 2026-05-09_weekly --write
+```
+
+Generated run JSON, raw provider JSON, and evidence packet JSON are local runtime artifacts ignored by Git. Commit the markdown summaries/reports and source/docs changes, not the generated JSON blobs.
+
 Classify a natural-language user request:
 
 ```powershell
@@ -109,6 +118,12 @@ Run the deterministic financial-data specialist review:
 
 ```powershell
 python -m stock_research financial review --ticker AAPL --run-id 2026-05-09_weekly
+```
+
+Run the deterministic company-news specialist review:
+
+```powershell
+python -m stock_research news review --ticker AAPL --run-id 2026-05-09_weekly
 ```
 
 Run Exa search or content extraction into evidence packets:
@@ -179,6 +194,9 @@ Implemented:
 - weekly run manifest generator,
 - deterministic provider-task planner and dry-run-by-default provider task runner,
 - deterministic analysis-task planner and dry-run-by-default analysis task runner,
+- deterministic run summary generator,
+- deterministic quality report generator,
+- generated run JSON ignore rules, with markdown run summaries/reports kept as the reviewable artifacts.
 - deterministic operational memory loader, validator, summary, and task-context selector.
 - deterministic operational memory add/deprecate commands.
 - deterministic post-run memory reflection and memory update proposal generator.
@@ -194,6 +212,7 @@ Implemented:
 - Alpha Vantage quote/overview provider.
 - deterministic financial provider comparison layer.
 - deterministic financial-data specialist review layer.
+- deterministic company-news specialist review layer.
 - Exa search and contents provider tools.
 - xAI Grok x_search provider tools.
 - structured operational agent memory under `agents/memory/`.

@@ -40,6 +40,10 @@
 - [x] Add deterministic recurring failure detection across reflected runs.
 - [x] Add deterministic run finalization command.
 - [x] Add deterministic analysis-task runner.
+- [x] Add deterministic run summary generator.
+- [x] Add deterministic quality report generator.
+- [x] Validate full planned AAPL weekly provider/analysis/report/finalization workflow.
+- [x] Add deterministic company-news specialist review layer.
 - [ ] Validate updated architecture with user.
 
 ## Key Decisions and Why
@@ -77,6 +81,12 @@
 - 2026-05-04: Added deterministic `memory recurring-failures [--write]`. It scans `memory_reflection.json` artifacts across runs and flags issue categories that recur across at least the threshold number of distinct runs.
 - 2026-05-04: Added deterministic `memory finalize-run --run-id RUN_ID`. It writes run reflection, recurring-failure, and finalization artifacts in one command for future scheduler/orchestrator integration.
 - 2026-05-04: Added deterministic `analysis-tasks --manifest PATH [--execute]`. It dry-runs by default, executes `financial_compare` and `financial_review`, and respects selected intra-analysis dependencies.
+- 2026-05-04: Added deterministic `run-summary --run-id RUN_ID --write` and `quality-report --run-id RUN_ID --write`.
+- 2026-05-04: Added AAPL to monitoring as a workflow validation seed. Manifest planning and analysis execution were validated with AAPL.
+- 2026-05-04: Fixed Git handling for generated run JSON: raw/evidence/run-root JSON and recurring-failure JSON are local artifacts; markdown summaries/reports are the reviewable repo artifacts.
+- 2026-05-04: Full AAPL weekly validation exposed same-subject Exa artifact overwrites. Exa and Grok manifest tasks now include task ids in packet/raw artifact names, and quality/reflection matching is task-specific.
+- 2026-05-04: User chose to defer Grok model-selection optimization. It is now a backlog item; current behavior remains `grok-4.3` default.
+- 2026-05-04: Added deterministic company-news specialist. It consumes Exa company-news packets and writes specialist evidence, raw review JSON, and markdown review; Exa contents follow-up remains a separate future task.
 
 ## What We Learned
 
@@ -125,7 +135,10 @@
 - Recurring failure report artifacts exist: `agents/memory/recurring_failures.json` and `agents/memory/recurring_failures.md`. Current report has no recurring patterns because only one reflected run exists.
 - Deterministic run finalization command exists: `python -m stock_research memory finalize-run --run-id RUN_ID`.
 - Finalization artifacts exist for the current weekly smoke run: `agents/runs/2026-05-09_weekly/finalization.json` and `agents/runs/2026-05-09_weekly/finalization.md`.
-- Current weekly smoke run finalization is `needs_review` because no run summary/quality report exists and some planned discovery provider tasks did not produce evidence packets.
+- Current weekly validation run finalization is `complete` with zero deterministic quality findings and zero reflection issues.
+- xAI/Grok `x_search` can be slow; provider now uses a longer timeout and one retry.
+- Company news review command exists: `python -m stock_research news review --ticker AAPL --run-id 2026-05-09_weekly`.
+- Weekly manifests now include `company_news_review` analysis tasks for tracked stocks and human stock-research requests.
 - Agent memory stores workflow/source/procedure/evaluation lessons only; company facts stay in stock files, strategy, and evidence packets.
 - `python -m unittest discover -s tests` is the working test command in this repo.
 - Cursor SDK is promising for coding-agent automation, but it is public beta and TypeScript-first; it looks better for repo maintenance agents than for the core stock-research runtime.
@@ -146,7 +159,7 @@
 ## Next Steps
 
 - Review updated `docs/descriptions/investment_agent_workflow.md` and `docs/plans/investment_agent_backlog.md` with the user if needed.
-- Next implementation work should build the LLM memory writer agent, wire finalization into the orchestrator/scheduled runner, inject memory context into specialist prompts, or build the first financial-data specialist around `financial_compare` packets.
+- Next implementation work should add automatic Exa contents follow-up for high-value company-news URLs, build the LLM memory writer agent, wire finalization into the orchestrator/scheduled runner, or inject memory context into specialist prompts.
 - Learning-loop gaps explicitly still pending: LLM memory writer agent, scheduled/orchestrator invocation of run finalization, and orchestrator injection of memory context into specialist prompts.
 - Before Priority 4 agent implementation, run a thin spike comparing OpenAI Agents SDK vs Pydantic AI for one evidence-packet specialist and one orchestrator call.
 - Consider LangGraph only if the first spike shows that explicit resumable graph state is needed earlier than planned.
@@ -186,4 +199,6 @@
 - Financial data specialist live review report: `agents/runs/2026-05-09_weekly/reports/financial_data_specialist/AAPL_financial_review.md`.
 - Current written weekly manifest with provider tasks: `agents/runs/2026-05-09_weekly/manifest.json`.
 - Current run finalization artifact: `agents/runs/2026-05-09_weekly/finalization.md`.
-- Current real manifest has no tracked-stock analysis tasks yet because the stock tracking CSVs are still empty; analysis runner dry-run therefore reports zero planned tasks for that manifest.
+- AAPL monitoring seed now causes the weekly manifest to plan AAPL provider and analysis tasks.
+- Full workflow verification sequence used: provider tasks, analysis tasks, run summary, quality report, memory finalization, unit tests, memory validation, repo validation.
+- Company news specialist live review report: `agents/runs/2026-05-09_weekly/reports/company_news_specialist/AAPL_company_news_review.md`.

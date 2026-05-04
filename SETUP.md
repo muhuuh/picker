@@ -175,6 +175,14 @@ Run the deterministic financial-data specialist review after comparison:
 python -m stock_research financial review --ticker AAPL --run-id 2026-05-09_weekly
 ```
 
+## Company News Review
+
+Review an Exa company-news packet:
+
+```powershell
+python -m stock_research news review --ticker AAPL --run-id 2026-05-09_weekly
+```
+
 ## Exa
 
 Run a news/industry/company search:
@@ -241,7 +249,14 @@ Execute planned analysis tasks:
 python -m stock_research analysis-tasks --manifest agents\runs\2026-05-09_weekly\manifest.json --execute
 ```
 
-Run artifacts are intended to be inspectable repo state. Review them before committing if they contain noisy or temporary output.
+Write run summary and quality report artifacts:
+
+```powershell
+python -m stock_research run-summary --run-id 2026-05-09_weekly --write
+python -m stock_research quality-report --run-id 2026-05-09_weekly --write
+```
+
+Run markdown artifacts are intended to be inspectable repo state. Generated run JSON files, raw provider JSON, and evidence packet JSON are local runtime artifacts and are ignored by Git.
 
 ## Operational Agent Memory
 

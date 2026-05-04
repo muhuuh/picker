@@ -84,6 +84,43 @@ class ExaProviderTests(unittest.TestCase):
             loaded = read_packet(paths[0])
             self.assertTrue(validate_packet(loaded).ok)
             self.assertEqual(loaded.sources[0].source_type, "news")
+            self.assertIn("search_news", packet.packet_id)
+
+    def test_search_packets_for_same_subject_use_distinct_artifact_ids(self):
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            first_packet, first_paths = build_exa_search_packet(
+                options=ExaSearchOptions(
+                    query="US and Europe market context",
+                    subject_type="theme",
+                    subject_id="stock_discovery",
+                    search_mode="general",
+                    artifact_id="exa_research_priority_stock_discovery",
+                ),
+                api_key="test-key",
+                run_id="2026-05-09_weekly",
+                root=root,
+                current_date=date(2026, 5, 4),
+                fetcher=fake_fetch_json,
+            )
+            second_packet, second_paths = build_exa_search_packet(
+                options=ExaSearchOptions(
+                    query="US and Europe company discovery",
+                    subject_type="theme",
+                    subject_id="stock_discovery",
+                    search_mode="company",
+                    artifact_id="exa_discovery_priority_stock_discovery",
+                ),
+                api_key="test-key",
+                run_id="2026-05-09_weekly",
+                root=root,
+                current_date=date(2026, 5, 4),
+                fetcher=fake_fetch_json,
+            )
+
+            self.assertNotEqual(first_packet.packet_id, second_packet.packet_id)
+            self.assertNotEqual(first_paths[0], second_paths[0])
+            self.assertNotEqual(first_paths[1], second_paths[1])
 
     def test_build_contents_packet_records_status_errors_as_unknowns(self):
         with TemporaryDirectory() as temp_dir:

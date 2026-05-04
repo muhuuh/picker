@@ -107,3 +107,17 @@ Procedural memory for future specialist agents. Specialists should produce struc
 - evidence: stock_research/financial_specialist.py, docs/descriptions/financial_data_specialist.md, tests/test_financial_specialist.py
 - owner: financial data specialist
 - next_review: 2026-06-01
+
+- id: memory-2026-05-04-company-news-specialist-review-is-implemented
+- date: 2026-05-04
+- type: procedural
+- scope: news
+- status: active
+- confidence: high
+- trigger/source: deterministic company news specialist implementation
+- lesson: Company-news specialist review is implemented through python -m stock_research news review --ticker TICKER --run-id RUN_ID. It consumes Exa company-news packets, emits specialist evidence plus raw and markdown review artifacts, and lists URLs for Exa contents follow-up before deeper thesis updates.
+- use_when: Running company news specialist work, building company research orchestration, or preparing company-file developments/news update proposals.
+- do_not_use_when: Financial-data review, X/social sentiment review, or making investment thesis changes from headlines alone.
+- evidence: stock_research/company_news_specialist.py, docs/descriptions/company_news_specialist.md, tests/test_company_news_specialist.py
+- owner: company news specialist
+- next_review: 2026-06-01

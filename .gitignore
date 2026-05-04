@@ -16,8 +16,8 @@ dist/
 .codex/
 agents/runs/*/raw/
 agents/runs/*/evidence_packets/
-agents/runs/*/manifest.json
-agents/runs/*/metrics.json
+agents/runs/*/*.json
+agents/memory/recurring_failures.json
 
 # OS/editor noise
 .DS_Store

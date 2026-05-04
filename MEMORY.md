@@ -101,6 +101,11 @@ Use this file for information we should not lose across sessions.
   - evidence artifact path(s): `stock_research/analysis_runner.py`, `stock_research/cli.py`, `tests/test_analysis_runner.py`, `docs/descriptions/analysis_task_runner.md`
   - status: active
 
+- 2026-05-04:
+  - decision/fact: Deterministic run summary and quality report generators are implemented. Use `python -m stock_research run-summary --run-id RUN_ID --write` and `python -m stock_research quality-report --run-id RUN_ID --write` before memory finalization.
+  - evidence artifact path(s): `stock_research/run_summary.py`, `stock_research/quality_report.py`, `tests/test_run_summary.py`, `tests/test_quality_report.py`, `docs/descriptions/run_summary_and_quality.md`, `agents/runs/2026-05-09_weekly/run_summary.md`, `agents/runs/2026-05-09_weekly/quality_report.md`
+  - status: active
+
 - 2026-05-03:
   - decision/fact: Direct X.com API recent search/counts was the wrong implementation path and is superseded. The repo should use xAI/Grok with built-in `x_search` via `XAI_API_KEY` for X sentiment/latest-news research.
   - evidence artifact path(s): `stock_research/providers/xai_grok.py`, `docs/descriptions/xai_grok_provider.md`, `tests/test_xai_grok_provider.py`, `stock_research/manifest.py`, `stock_research/provider_runner.py`
@@ -159,4 +164,19 @@ Use this file for information we should not lose across sessions.
 - 2026-05-04:
   - decision/fact: Deterministic run finalization is implemented. Use `python -m stock_research memory finalize-run --run-id RUN_ID` to write post-run reflection, recurring-failure, and finalization artifacts. Actual scheduled/orchestrator invocation is still pending.
   - evidence artifact path(s): `stock_research/run_finalization.py`, `stock_research/cli.py`, `tests/test_memory_reflection.py`, `agents/runs/2026-05-09_weekly/finalization.md`
+  - status: active
+
+- 2026-05-04:
+  - decision/fact: Generated run JSON artifacts are local runtime output and should not be committed. Keep markdown run summaries/reports/finalization files as the reviewable artifacts; `.gitignore` now ignores run-root JSON, raw provider JSON, evidence packet JSON, and generated recurring-failure JSON.
+  - evidence artifact path(s): `.gitignore`, `README.md`, `SETUP.md`, `docs/descriptions/run_summary_and_quality.md`
+  - status: active
+
+- 2026-05-04:
+  - decision/fact: Manifest-driven Exa and xAI/Grok provider outputs use the manifest task id in artifact names and packet ids. This prevents same-provider/same-subject tasks from overwriting each other and lets quality checks verify task-specific packets.
+  - evidence artifact path(s): `stock_research/providers/exa.py`, `stock_research/providers/xai_grok.py`, `stock_research/provider_runner.py`, `stock_research/quality_report.py`, `stock_research/memory_reflection.py`, `tests/test_exa_provider.py`, `tests/test_xai_grok_provider.py`, `tests/test_quality_report.py`
+  - status: active
+
+- 2026-05-04:
+  - decision/fact: The deterministic company-news specialist is implemented. Use `python -m stock_research news review --ticker TICKER --run-id RUN_ID` after Exa company-news provider tasks; it writes a specialist evidence packet, raw review JSON, and markdown review, and it lists URLs for later Exa contents follow-up.
+  - evidence artifact path(s): `stock_research/company_news_specialist.py`, `stock_research/analysis_runner.py`, `stock_research/manifest.py`, `docs/descriptions/company_news_specialist.md`, `tests/test_company_news_specialist.py`, `agents/runs/2026-05-09_weekly/reports/company_news_specialist/AAPL_company_news_review.md`
   - status: active

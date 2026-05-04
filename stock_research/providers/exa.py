@@ -3,7 +3,9 @@ from __future__ import annotations
 import json
 import os
 from dataclasses import dataclass
+from dataclasses import replace
 from datetime import date
+import hashlib
 from pathlib import Path
 from typing import Any, Callable
 from urllib.error import HTTPError, URLError
@@ -40,6 +42,7 @@ class ExaSearchOptions:
     include_domains: tuple[str, ...] = ()
     exclude_domains: tuple[str, ...] = ()
     max_age_hours: int | None = None
+    artifact_id: str = ""
 
 
 @dataclass(frozen=True)
@@ -51,6 +54,7 @@ class ExaContentsOptions:
     text_max_characters: int | None = None
     max_age_hours: int | None = None
     livecrawl_timeout: int = 12000
+    artifact_id: str = ""
 
 
 def resolve_exa_api_key(api_key: str | None = None) -> str:
@@ -148,8 +152,10 @@ def build_exa_search_packet(
     today = current_date or date.today()
     payload = build_exa_search_payload(options)
     response = fetcher(EXA_SEARCH_URL, api_key, payload)
-    raw_path = write_raw_artifact(root, run_id, "exa", f"search_{safe_name(options.subject_id)}", {"payload": payload, "response": response})
+    artifact_name = artifact_suffix(options.artifact_id, f"search_{options.search_mode}_{options.subject_id}_{short_digest(options.query)}")
+    raw_path = write_raw_artifact(root, run_id, "exa", artifact_name, {"payload": payload, "response": response})
     packet = exa_search_to_packet(options, response, raw_path, today)
+    packet = with_packet_suffix(packet, artifact_name)
     packet_path = default_packet_path(root, run_id, packet)
     write_packet(packet, packet_path)
     return packet, [packet_path, raw_path]
@@ -166,8 +172,10 @@ def build_exa_contents_packet(
     today = current_date or date.today()
     payload = build_exa_contents_payload(options)
     response = fetcher(EXA_CONTENTS_URL, api_key, payload)
-    raw_path = write_raw_artifact(root, run_id, "exa", f"contents_{safe_name(options.subject_id)}", {"payload": payload, "response": response})
+    artifact_name = artifact_suffix(options.artifact_id, f"contents_{options.subject_id}_{short_digest('|'.join(options.urls))}")
+    raw_path = write_raw_artifact(root, run_id, "exa", artifact_name, {"payload": payload, "response": response})
     packet = exa_contents_to_packet(options, response, raw_path, today)
+    packet = with_packet_suffix(packet, artifact_name)
     packet_path = default_packet_path(root, run_id, packet)
     write_packet(packet, packet_path)
     return packet, [packet_path, raw_path]
@@ -328,6 +336,18 @@ def search_time_window(options: ExaSearchOptions) -> str:
 
 def safe_name(value: str) -> str:
     return "".join(character.lower() if character.isalnum() else "_" for character in value).strip("_") or "unknown"
+
+
+def short_digest(value: str) -> str:
+    return hashlib.sha1(value.encode("utf-8")).hexdigest()[:10]
+
+
+def artifact_suffix(artifact_id: str, fallback: str) -> str:
+    return safe_name(artifact_id or fallback)
+
+
+def with_packet_suffix(packet: EvidencePacket, suffix: str) -> EvidencePacket:
+    return replace(packet, packet_id=f"{packet.packet_id}_{safe_name(suffix)}")
 
 
 def default_exa_run_id(current_date: date | None = None) -> str:

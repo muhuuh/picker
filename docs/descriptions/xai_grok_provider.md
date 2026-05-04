@@ -1,6 +1,6 @@
 # xAI Grok Provider
 
-Last updated: 2026-05-03
+Last updated: 2026-05-04
 
 ## Purpose
 
@@ -81,7 +81,7 @@ python -m stock_research provider-tasks --manifest agents\runs\2026-05-09_weekly
 Raw xAI JSON:
 
 ```text
-agents/runs/{run_id}/raw/xai_grok/x_search_{subject_id}.json
+agents/runs/{run_id}/raw/xai_grok/{artifact_id}.json
 ```
 
 Evidence packet:
@@ -90,11 +90,14 @@ Evidence packet:
 agents/runs/{run_id}/evidence_packets/{packet_id}.json
 ```
 
+When Grok runs from manifest provider tasks, `artifact_id` is the manifest task id. The provider uses a longer timeout and one retry because live `x_search` responses can be slow.
+
 Live smoke test status:
 
 - 2026-05-03: AMD `x_search` smoke test passed for 2026-05-01 to 2026-05-03.
 - Raw artifact: `agents/runs/2026-05-09_weekly/raw/xai_grok/x_search_amd.json`.
 - Evidence packet: `agents/runs/2026-05-09_weekly/evidence_packets/2026-05-03_xai_grok_company_amd.json`.
+- 2026-05-04: Manifest-driven AAPL and stock-discovery Grok tasks passed with task-specific artifact names after adding bounded timeout retry behavior.
 
 ## Guardrails
 

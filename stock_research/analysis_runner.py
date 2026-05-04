@@ -4,6 +4,7 @@ from datetime import date
 from pathlib import Path
 from typing import Any, Callable
 
+from .company_news_specialist import build_company_news_specialist_packet
 from .financial_compare import build_financial_compare_packet
 from .financial_specialist import build_financial_specialist_packet
 
@@ -151,6 +152,17 @@ def execute_analysis_task(root: Path, task: dict[str, Any], current_date: date |
             root=root,
             current_date=current_date,
             financial_compare_packet_path=Path(packet_path) if packet_path else None,
+        )
+        return {**analysis_result(result.packet.packet_id, result.paths), "review_status": result.review["status"]}
+
+    if tool == "company_news_review":
+        packet_path = args.get("exa_news_packet")
+        result = build_company_news_specialist_packet(
+            ticker=str(args["ticker"]),
+            run_id=str(args["run_id"]),
+            root=root,
+            current_date=current_date,
+            exa_news_packet_path=Path(packet_path) if packet_path else None,
         )
         return {**analysis_result(result.packet.packet_id, result.paths), "review_status": result.review["status"]}
 

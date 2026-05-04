@@ -46,6 +46,19 @@ class AnalysisRunnerTests(unittest.TestCase):
         self.assertEqual(result["skipped"][0]["id"], "financial_review_aapl")
         self.assertEqual(result["skipped"][0]["blocked_by"], ["financial_compare_aapl"])
 
+    def test_execute_runs_company_news_review(self):
+        with TemporaryDirectory() as temp_dir:
+            root = seed_repo(Path(temp_dir))
+            write_exa_news_packet(root, "2026-05-09_weekly")
+
+            result = run_analysis_tasks(root, manifest_with_company_news_task(), execute=True, current_date=date(2026, 5, 4))
+
+            self.assertEqual(len(result["executed"]), 1)
+            self.assertFalse(result["errors"])
+            review_packet_path = root / "agents/runs/2026-05-09_weekly/evidence_packets/2026-05-04_company_news_specialist_company_aapl.json"
+            self.assertTrue(review_packet_path.exists())
+            self.assertTrue(validate_packet(read_packet(review_packet_path)).ok)
+
 
 def seed_repo(root: Path) -> Path:
     (root / "AGENTS.md").write_text("# AGENTS\n", encoding="utf-8")
@@ -82,6 +95,24 @@ def manifest_with_financial_tasks() -> dict:
     }
 
 
+def manifest_with_company_news_task() -> dict:
+    return {
+        "manifest_id": "weekly_2026-05-09",
+        "analysis_tasks": [
+            {
+                "id": "company_news_review_aapl",
+                "tool": "company_news_review",
+                "subject_type": "company",
+                "subject_id": "AAPL",
+                "priority": "medium",
+                "args": {"ticker": "AAPL", "run_id": "2026-05-09_weekly"},
+                "depends_on": ["provider_tasks"],
+                "reason": "Review AAPL Exa news packet.",
+            }
+        ],
+    }
+
+
 def write_input_packet(root: Path, run_id: str, provider: str, metrics: dict):
     packet = new_packet(
         provider=provider,
@@ -107,6 +138,37 @@ def write_input_packet(root: Path, run_id: str, provider: str, metrics: dict):
         ],
     )
     path = root / "agents" / "runs" / run_id / "evidence_packets" / f"{provider}.json"
+    write_packet(packet, path)
+    return path
+
+
+def write_exa_news_packet(root: Path, run_id: str):
+    packet = new_packet(
+        provider="exa",
+        subject_type="company",
+        subject_id="AAPL",
+        current_date=date(2026, 5, 4),
+        sources=[
+            Source(
+                source_id="exa_result_1",
+                provider="exa",
+                source_type="news",
+                title="Apple supplier update",
+                url="https://example.com/apple",
+                artifact_path="raw/exa.json",
+            )
+        ],
+        claims=[
+            Claim(
+                claim="Relevant Exa result: Apple supplier update",
+                evidence="Apple supplier update details.",
+                source_ids=["exa_result_1"],
+                confidence="medium",
+                impact="medium",
+            )
+        ],
+    )
+    path = root / "agents" / "runs" / run_id / "evidence_packets" / "exa_news_aapl.json"
     write_packet(packet, path)
     return path
 

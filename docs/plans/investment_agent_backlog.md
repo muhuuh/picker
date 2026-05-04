@@ -116,6 +116,10 @@ This is the clear task backlog for building the stock tracking and investment re
   - Description: save each run under `agents/runs/YYYY-MM-DD_run-id/`.
 - [x] Implement analysis task runner.
   - Description: dry-run or execute deterministic post-provider analysis tasks from a manifest.
+- [x] Implement deterministic run summary generator.
+  - Description: write run_summary artifacts from manifest, evidence packets, and financial review reports.
+- [x] Implement deterministic quality report generator.
+  - Description: write quality_report artifacts with evidence validation and missing planned-provider packet findings.
 
 ## Priority 3 Outputs
 
@@ -139,11 +143,13 @@ This is the clear task backlog for building the stock tracking and investment re
 - [x] Implement SEC EDGAR tool.
   - Description: US filings, submissions, and XBRL facts. Live AAPL smoke test passed on 2026-05-03.
 - [x] Implement Exa tools.
-  - Description: company news, industry research, market discovery, and content extraction. Implemented as deterministic provider tools first, to be wrapped by specialists later.
+  - Description: company news, industry research, market discovery, and content extraction. Implemented as deterministic provider tools first, to be wrapped by specialists later. Manifest-driven artifacts use task-specific names so multiple searches for one subject do not overwrite each other.
 - [x] Wire default Exa tasks into weekly deterministic kickoff.
   - Description: holdings/monitoring use Exa news; research priorities use Exa industry/general; discovery uses Exa company; human input queue items route to the relevant Exa modes; high-value results use Exa contents.
 - [x] Implement xAI/Grok X research tools.
-  - Description: stock sentiment, industry sentiment, latest X news, and discovery support through Grok `x_search` using `XAI_API_KEY`.
+  - Description: stock sentiment, industry sentiment, latest X news, and discovery support through Grok `x_search` using `XAI_API_KEY`. Manifest-driven artifacts use task-specific names and retry slow `x_search` responses once.
+- [ ] Add Grok model selection optimization.
+  - Description: keep `grok-4.3` as the current conservative default, but later add deterministic model-tier routing such as a faster Grok model for low-priority/simple X scans and `grok-4.3` for high-priority holdings, user-requested research, candidate discovery, and complex sentiment synthesis.
 - [x] Implement market data tools.
   - Description: yfinance, FMP, Polygon/Massive, and Alpha Vantage are implemented. FMP/Polygon/Alpha live AAPL smoke tests passed on 2026-05-04.
 - [x] Implement financial data comparison layer.
@@ -163,7 +169,10 @@ This is the clear task backlog for building the stock tracking and investment re
 - `stock_research/providers/alpha_vantage.py`
 - `stock_research/financial_compare.py`
 - `stock_research/financial_specialist.py`
+- `stock_research/company_news_specialist.py`
 - `stock_research/analysis_runner.py`
+- `stock_research/run_summary.py`
+- `stock_research/quality_report.py`
 - `stock_research/provider_runner.py`
 - `docs/descriptions/evidence_schema.md`
 - `docs/descriptions/sec_edgar_provider.md`
@@ -175,6 +184,7 @@ This is the clear task backlog for building the stock tracking and investment re
 - `docs/descriptions/alpha_vantage_provider.md`
 - `docs/descriptions/financial_compare.md`
 - `docs/descriptions/financial_data_specialist.md`
+- `docs/descriptions/company_news_specialist.md`
 - `python -m stock_research evidence new ...`
 - `python -m stock_research evidence validate ...`
 - `python -m stock_research sec company --ticker TICKER --run-id RUN_ID`
@@ -184,6 +194,7 @@ This is the clear task backlog for building the stock tracking and investment re
 - `python -m stock_research alpha-vantage company --ticker TICKER --run-id RUN_ID`
 - `python -m stock_research financial compare --ticker TICKER --run-id RUN_ID`
 - `python -m stock_research financial review --ticker TICKER --run-id RUN_ID`
+- `python -m stock_research news review --ticker TICKER --run-id RUN_ID`
 - `python -m stock_research exa search --query QUERY --subject-type TYPE --subject-id ID --run-id RUN_ID`
 - `python -m stock_research exa contents --url URL --subject-type TYPE --subject-id ID --run-id RUN_ID`
 - `python -m stock_research xai x-search --ticker TICKER --subject-type company --subject-id TICKER --run-id RUN_ID`
@@ -192,6 +203,11 @@ This is the clear task backlog for building the stock tracking and investment re
 - `python -m stock_research analysis-tasks --manifest PATH`
 - `python -m stock_research analysis-tasks --manifest PATH --execute`
 - `tests/test_analysis_runner.py`
+- `python -m stock_research run-summary --run-id RUN_ID --write`
+- `python -m stock_research quality-report --run-id RUN_ID --write`
+- `tests/test_run_summary.py`
+- `tests/test_quality_report.py`
+- Generated run JSON, raw provider JSON, evidence packet JSON, and generated recurring-failure JSON are ignored; markdown summaries/reports/finalization files are the reviewable artifacts.
 - `tests/test_evidence.py`
 - `tests/test_sec_edgar_provider.py`
 - `tests/test_exa_provider.py`
@@ -202,6 +218,7 @@ This is the clear task backlog for building the stock tracking and investment re
 - `tests/test_alpha_vantage_provider.py`
 - `tests/test_financial_compare.py`
 - `tests/test_financial_specialist.py`
+- `tests/test_company_news_specialist.py`
 - `tests/test_provider_runner.py`
 - `tests/test_memory.py`
 - Live SEC smoke artifact: `agents/runs/2026-05-09_weekly/evidence_packets/2026-05-03_sec_edgar_company_aapl.json`
@@ -216,8 +233,10 @@ This is the clear task backlog for building the stock tracking and investment re
 
 - [x] Define evidence packet schema.
   - Description: provider-neutral schema for all specialist outputs; currently implemented with stdlib dataclasses.
-- [ ] Build company news specialist.
-  - Description: should call Exa `news`, then Exa `contents` for high-value result follow-up.
+- [x] Build company news specialist.
+  - Description: deterministic first company-news specialist consumes Exa company-news packets, writes specialist evidence, raw review JSON, and markdown review. It lists high-value URLs for later Exa contents follow-up.
+- [ ] Add automatic Exa contents follow-up for company news.
+  - Description: after `company_news_review`, select high-value URLs and run Exa `contents` before deeper company thesis updates.
 - [ ] Build SEC filing specialist.
 - [x] Build financial data specialist.
   - Description: deterministic first specialist that consumes `financial_compare` packets, writes a specialist evidence packet, raw review JSON, and markdown financial review. Future LLM version can extend this surface without changing the input/output contract.

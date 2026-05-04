@@ -3,7 +3,9 @@ from __future__ import annotations
 import json
 import os
 from dataclasses import dataclass
+from dataclasses import replace
 from datetime import date
+import hashlib
 from pathlib import Path
 from typing import Any, Callable
 from urllib.error import HTTPError, URLError
@@ -35,6 +37,7 @@ class XaiXSearchOptions:
     excluded_x_handles: tuple[str, ...] = ()
     enable_image_understanding: bool = False
     enable_video_understanding: bool = False
+    artifact_id: str = ""
 
 
 def resolve_xai_api_key(api_key: str | None = None) -> str:
@@ -44,26 +47,34 @@ def resolve_xai_api_key(api_key: str | None = None) -> str:
     return value
 
 
-def fetch_json(url: str, api_key: str, payload: dict[str, Any], timeout: int = 90) -> dict[str, Any]:
-    request = Request(
-        url,
-        data=json.dumps(payload).encode("utf-8"),
-        headers={
-            "Content-Type": "application/json",
-            "Accept": "application/json",
-            "Authorization": f"Bearer {api_key}",
-            "User-Agent": "Picker Stock Research/0.1",
-        },
-        method="POST",
-    )
-    try:
-        with urlopen(request, timeout=timeout) as response:
-            return json.loads(response.read().decode("utf-8"))
-    except HTTPError as exc:
-        body = exc.read().decode("utf-8", errors="replace")
-        raise XaiGrokError(f"xAI request failed with HTTP {exc.code}: {body}") from exc
-    except URLError as exc:
-        raise XaiGrokError(f"xAI request failed: {exc.reason}") from exc
+def fetch_json(url: str, api_key: str, payload: dict[str, Any], timeout: int = 150) -> dict[str, Any]:
+    last_timeout: TimeoutError | None = None
+    for attempt in range(2):
+        request = Request(
+            url,
+            data=json.dumps(payload).encode("utf-8"),
+            headers={
+                "Content-Type": "application/json",
+                "Accept": "application/json",
+                "Authorization": f"Bearer {api_key}",
+                "User-Agent": "Picker Stock Research/0.1",
+            },
+            method="POST",
+        )
+        try:
+            with urlopen(request, timeout=timeout) as response:
+                return json.loads(response.read().decode("utf-8"))
+        except TimeoutError as exc:
+            last_timeout = exc
+            if attempt == 0:
+                continue
+            break
+        except HTTPError as exc:
+            body = exc.read().decode("utf-8", errors="replace")
+            raise XaiGrokError(f"xAI request failed with HTTP {exc.code}: {body}") from exc
+        except URLError as exc:
+            raise XaiGrokError(f"xAI request failed: {exc.reason}") from exc
+    raise XaiGrokError(f"xAI request timed out after 2 attempt(s) with {timeout}s timeout.") from last_timeout
 
 
 def build_xai_x_search_payload(options: XaiXSearchOptions) -> dict[str, Any]:
@@ -103,8 +114,10 @@ def build_xai_x_search_packet(
     today = current_date or date.today()
     payload = build_xai_x_search_payload(options)
     response = fetcher(XAI_RESPONSES_URL, api_key, payload)
-    raw_path = write_raw_artifact(root, run_id, f"x_search_{safe_name(options.subject_id)}", {"payload": payload, "response": response})
+    artifact_name = artifact_suffix(options.artifact_id, f"x_search_{options.research_kind}_{options.subject_id}_{short_digest(options.prompt)}")
+    raw_path = write_raw_artifact(root, run_id, artifact_name, {"payload": payload, "response": response})
     packet = xai_response_to_packet(options, response, raw_path, today)
+    packet = with_packet_suffix(packet, artifact_name)
     packet_path = default_packet_path(root, run_id, packet)
     write_packet(packet, packet_path)
     return packet, [packet_path, raw_path]
@@ -282,6 +295,18 @@ def truncate(value: str, max_length: int) -> str:
 
 def safe_name(value: str) -> str:
     return "".join(character.lower() if character.isalnum() else "_" for character in value).strip("_") or "unknown"
+
+
+def short_digest(value: str) -> str:
+    return hashlib.sha1(value.encode("utf-8")).hexdigest()[:10]
+
+
+def artifact_suffix(artifact_id: str, fallback: str) -> str:
+    return safe_name(artifact_id or fallback)
+
+
+def with_packet_suffix(packet: EvidencePacket, suffix: str) -> EvidencePacket:
+    return replace(packet, packet_id=f"{packet.packet_id}_{safe_name(suffix)}")
 
 
 def default_xai_run_id(current_date: date | None = None) -> str:

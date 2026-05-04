@@ -21,6 +21,7 @@ Like `provider-tasks`, it is dry-run by default. Use `--execute` to write artifa
 
 - `financial_compare`
 - `financial_review`
+- `company_news_review`
 
 ## Workflow Role
 
@@ -41,6 +42,15 @@ financial provider evidence packets
 ```
 
 `financial_review` tasks depend on the matching `financial_compare` task. If a selected comparison task fails, the selected dependent review task is skipped.
+
+For company news:
+
+```text
+Exa company-news provider packet
+  -> company_news_review analysis task
+```
+
+`company_news_review` tasks should run after provider tasks and consume Exa company-news packets.
 
 ## Filters
 

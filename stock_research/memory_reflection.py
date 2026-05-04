@@ -504,19 +504,32 @@ def planned_tasks_without_packets(
         subject_id = task.get("subject_id", "")
         if not provider or not subject_id:
             continue
-        if not any(packet_matches_task(packet, provider, subject_id) for _, packet, _, _ in packets if packet is not None):
+        if not any(packet_matches_task(packet, task) for _, packet, _, _ in packets if packet is not None):
             result.append(task)
     return result
 
 
-def packet_matches_task(packet: EvidencePacket, provider: str, subject_id: str) -> bool:
+def packet_matches_task(packet: EvidencePacket, task: dict[str, Any] | str, subject_id: str = "") -> bool:
+    if isinstance(task, dict):
+        provider = str(task.get("provider", ""))
+        task_subject_id = str(task.get("subject_id", ""))
+        task_id = str(task.get("id", ""))
+    else:
+        provider = task
+        task_subject_id = str(subject_id)
+        task_id = ""
+
     provider_aliases = {
         "xai_grok": {"xai_grok"},
         "alpha_vantage": {"alpha_vantage"},
         "polygon": {"polygon", "polygon_provider"},
     }
     providers = provider_aliases.get(provider, {provider})
-    return packet.provider in providers and packet.subject_id.lower() == str(subject_id).lower()
+    if packet.provider not in providers or packet.subject_id.lower() != task_subject_id.lower():
+        return False
+    if provider in {"exa", "xai_grok"} and task_id:
+        return packet.packet_id.endswith(f"_{underscore_slug(task_id)}")
+    return True
 
 
 def highest_severity(values) -> str:
@@ -526,3 +539,7 @@ def highest_severity(values) -> str:
 
 def slugify(value: str) -> str:
     return re.sub(r"[^a-z0-9]+", "-", value.lower()).strip("-") or "unknown"
+
+
+def underscore_slug(value: str) -> str:
+    return re.sub(r"[^a-z0-9]+", "_", value.lower()).strip("_") or "unknown"
