@@ -6,7 +6,10 @@ from pathlib import Path
 from typing import Any, Callable
 
 from .config import get_config_value
+from .providers.alpha_vantage import AlphaVantageCompanyOptions, build_alpha_vantage_company_packet, resolve_alpha_vantage_api_key
 from .providers.exa import ExaContentsOptions, ExaSearchOptions, build_exa_contents_packet, build_exa_search_packet, resolve_exa_api_key
+from .providers.fmp import FmpCompanyOptions, build_fmp_company_packet, resolve_fmp_api_key
+from .providers.polygon_provider import PolygonCompanyOptions, build_polygon_company_packet, resolve_polygon_api_key
 from .providers.sec_edgar import build_sec_company_packet, resolve_sec_user_agent
 from .providers.xai_grok import XaiXSearchOptions, build_xai_x_search_packet, resolve_xai_api_key
 from .providers.yfinance_provider import build_yfinance_company_packet
@@ -98,6 +101,50 @@ def execute_provider_task(root: Path, task: dict[str, Any], current_date: date |
             root=root,
             current_date=current_date,
             period=str(args.get("period", "5d")),
+        )
+        return packet_result(packet.packet_id, paths)
+
+    if provider == "fmp" and tool == "company":
+        api_key = resolve_fmp_api_key(
+            get_config_value(root, "FMP_API_KEY") or get_config_value(root, "FINANCIAL_MODELING_PREP_API_KEY")
+        )
+        packet, paths = build_fmp_company_packet(
+            options=FmpCompanyOptions(
+                ticker=str(args["ticker"]),
+                include_statements=bool(args.get("include_statements", False)),
+            ),
+            api_key=api_key,
+            run_id=str(args["run_id"]),
+            root=root,
+            current_date=current_date,
+        )
+        return packet_result(packet.packet_id, paths)
+
+    if provider == "polygon" and tool == "company":
+        api_key = resolve_polygon_api_key(get_config_value(root, "POLYGON_API_KEY") or get_config_value(root, "MASSIVE_API_KEY"))
+        packet, paths = build_polygon_company_packet(
+            options=PolygonCompanyOptions(
+                ticker=str(args["ticker"]),
+                adjusted=bool(args.get("adjusted", True)),
+            ),
+            api_key=api_key,
+            run_id=str(args["run_id"]),
+            root=root,
+            current_date=current_date,
+        )
+        return packet_result(packet.packet_id, paths)
+
+    if provider == "alpha_vantage" and tool == "company":
+        api_key = resolve_alpha_vantage_api_key(get_config_value(root, "ALPHA_VANTAGE_API_KEY"))
+        packet, paths = build_alpha_vantage_company_packet(
+            options=AlphaVantageCompanyOptions(
+                ticker=str(args["ticker"]),
+                include_statements=bool(args.get("include_statements", False)),
+            ),
+            api_key=api_key,
+            run_id=str(args["run_id"]),
+            root=root,
+            current_date=current_date,
         )
         return packet_result(packet.packet_id, paths)
 

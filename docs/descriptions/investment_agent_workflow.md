@@ -105,6 +105,7 @@ The human interaction intake layer was added on 2026-05-03.
 The initial deterministic Python core was added on 2026-05-03 under `stock_research/`.
 
 The provider-neutral evidence schema was added on 2026-05-03 under `stock_research/evidence.py` and `docs/descriptions/evidence_schema.md`.
+The deterministic financial comparison layer was added on 2026-05-04 under `stock_research/financial_compare.py`.
 
 The first provider integration, SEC EDGAR, was added on 2026-05-03 under `stock_research/providers/sec_edgar.py`.
 The next provider tools, yfinance and Exa, were added on 2026-05-03 under `stock_research/providers/yfinance_provider.py` and `stock_research/providers/exa.py`.
@@ -213,16 +214,16 @@ Current implementation status:
 
 - Implemented: repo state loader, CSV schema validator, stock-info file indexer, human input queue loader, research priorities loader, human review queue loader, stale-data scanner, rejected-stock cooldown summary, weekly manifest generator.
 - Implemented: deterministic request classifier, human input queue appender, request router, human review queue writer, and manual run manifest creation.
-- Implemented providers: SEC EDGAR submissions and optional companyfacts evidence packet writer, yfinance market-data snapshots, Exa search/contents evidence packet writers, and xAI Grok x_search evidence packet writers.
-- Implemented: weekly manifests now include deterministic provider tasks, and `provider-tasks` can dry-run or explicitly execute those provider tasks.
-- Pending: FMP, Polygon, Alpha Vantage, macro providers, LLM specialists, orchestrator runtime, OS/app scheduled execution, immediate manual research runs.
+- Implemented providers: SEC EDGAR submissions and optional companyfacts evidence packet writer, yfinance market-data snapshots, FMP market-data/fundamentals snapshots, Polygon/Massive U.S. ticker/OHLC snapshots, Alpha Vantage quote/overview snapshots, Exa search/contents evidence packet writers, and xAI Grok x_search evidence packet writers.
+- Implemented: weekly manifests now include deterministic provider tasks and post-provider `analysis_tasks` for financial comparison, and `provider-tasks` can dry-run or explicitly execute provider tasks.
+- Pending: macro providers, LLM specialists, orchestrator runtime, OS/app scheduled execution, immediate manual research runs.
 
 ### Layer 2: Specialist research agents
 
 These agents return structured evidence packets:
 
 - Company news search specialist: latest company news, source credibility, direct impact.
-- Company financial data specialist: prices, valuation, key metrics, historical comparisons.
+- Company financial data specialist: consumes `financial_compare` packets for prices, valuation, key metrics, historical comparisons, conflicts, and unknowns.
 - SEC filing specialist: new filings, material changes, risk-factor changes, source excerpts.
 - Earnings/transcript specialist: earnings call notes, guidance, management tone, Q&A issues.
 - xAI Grok stock sentiment specialist: latest ticker/company discussion on X, recurring claims, hype level, skepticism, accounts/posts to verify.
@@ -381,6 +382,7 @@ Store:
 
 - `manifest.json`: tickers, industries, tasks, tools enabled, schedule mode.
 - `provider_tasks`: deterministic SEC, yfinance, Exa, xAI Grok, and future provider calls planned for kickoff.
+- `analysis_tasks`: deterministic post-provider analysis such as financial provider comparison.
 - `evidence_packets/*.json`: structured specialist outputs.
 - `run_summary.md`: final synthesis and updates made.
 - `quality_report.md`: citation and consistency checks.

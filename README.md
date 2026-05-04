@@ -78,6 +78,22 @@ Fetch yfinance market data into an evidence packet:
 python -m stock_research yfinance company --ticker AAPL --run-id 2026-05-09_weekly
 ```
 
+Fetch paid/free market-data cross-check providers into evidence packets:
+
+```powershell
+python -m stock_research fmp company --ticker AAPL --run-id 2026-05-09_weekly
+python -m stock_research polygon company --ticker AAPL --run-id 2026-05-09_weekly
+python -m stock_research alpha-vantage company --ticker AAPL --run-id 2026-05-09_weekly
+```
+
+FMP, Polygon/Massive, and Alpha Vantage require `FMP_API_KEY`, `POLYGON_API_KEY`, and `ALPHA_VANTAGE_API_KEY` respectively. `MASSIVE_API_KEY` is also accepted for Polygon/Massive.
+
+Compare financial provider packets into one reconciliation packet:
+
+```powershell
+python -m stock_research financial compare --ticker AAPL --run-id 2026-05-09_weekly
+```
+
 Run Exa search or content extraction into evidence packets:
 
 ```powershell
@@ -132,12 +148,16 @@ Implemented:
 - provider-neutral evidence packet schema and JSON artifact writer.
 - SEC EDGAR submissions provider with optional companyfacts retrieval, live-smoke-tested against AAPL.
 - yfinance market-data snapshot provider.
+- FMP company quote/profile/TTM metrics provider.
+- Polygon/Massive U.S. ticker reference and previous-day OHLC provider.
+- Alpha Vantage quote/overview provider.
+- deterministic financial provider comparison layer.
 - Exa search and contents provider tools.
 - xAI Grok x_search provider tools.
 
 Not implemented yet:
 
-- FMP, Polygon, Alpha Vantage, and macro provider integrations,
+- macro provider integrations,
 - LLM specialist agents,
 - orchestrator runtime,
 - OS/app scheduled execution,

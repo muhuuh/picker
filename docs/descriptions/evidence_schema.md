@@ -1,6 +1,6 @@
 # Evidence Schema
 
-Last updated: 2026-05-03
+Last updated: 2026-05-04
 
 ## Purpose
 
@@ -14,6 +14,10 @@ Providers currently using this schema:
 - `stock_research/providers/exa.py`
 - `stock_research/providers/xai_grok.py`
 - `stock_research/providers/yfinance_provider.py`
+- `stock_research/providers/fmp.py`
+- `stock_research/providers/polygon_provider.py`
+- `stock_research/providers/alpha_vantage.py`
+- `stock_research/financial_compare.py`
 
 ## Packet Fields
 

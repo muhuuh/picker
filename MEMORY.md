@@ -102,6 +102,21 @@ Use this file for information we should not lose across sessions.
   - status: active
 
 - 2026-05-03:
+  - decision/fact: xAI/Grok `x_search` should be used in two places: as a deterministic weekly kickoff provider task and as a callable tool for future xAI Grok stock/industry sentiment specialists. Its output is social sentiment/narrative discovery; material factual claims should be verified with Exa, SEC, yfinance, FMP, Polygon, Alpha Vantage, or other primary/market-data sources before updating investment conclusions.
+  - evidence artifact path(s): `docs/descriptions/investment_agent_workflow.md`, `docs/descriptions/xai_grok_provider.md`, `docs/plans/investment_agent_backlog.md`, `docs/scratchpads/agent_orchestration_scratchpad.md`
+  - status: active
+
+- 2026-05-03:
   - decision/fact: xAI/Grok live `x_search` smoke test passed for AMD with a 2026-05-01 to 2026-05-03 window. The tool wrote raw Grok output and a validated provider-neutral evidence packet.
   - evidence artifact path(s): `agents/runs/2026-05-09_weekly/raw/xai_grok/x_search_amd.json`, `agents/runs/2026-05-09_weekly/evidence_packets/2026-05-03_xai_grok_company_amd.json`
+  - status: active
+
+- 2026-05-03:
+  - decision/fact: FMP, Polygon/Massive, and Alpha Vantage provider tools are implemented as market-data cross-check integrations and are wired into CLI, provider-task execution, and weekly manifests. Live AAPL smoke tests passed on 2026-05-04 after adding Alpha Vantage request throttling for free-tier limits.
+  - evidence artifact path(s): `stock_research/providers/fmp.py`, `stock_research/providers/polygon_provider.py`, `stock_research/providers/alpha_vantage.py`, `docs/descriptions/fmp_provider.md`, `docs/descriptions/polygon_provider.md`, `docs/descriptions/alpha_vantage_provider.md`, `tests/test_fmp_provider.py`, `tests/test_polygon_provider.py`, `tests/test_alpha_vantage_provider.py`, `agents/runs/2026-05-09_weekly/evidence_packets/2026-05-04_fmp_company_aapl.json`, `agents/runs/2026-05-09_weekly/evidence_packets/2026-05-04_polygon_company_aapl.json`, `agents/runs/2026-05-09_weekly/evidence_packets/2026-05-04_alpha_vantage_company_aapl.json`
+  - status: active
+
+- 2026-05-04:
+  - decision/fact: Financial provider reconciliation should be deterministic before LLM synthesis. `financial_compare` compares yfinance/FMP/Polygon/Massive/Alpha/SEC financial packets, excludes Exa/Grok by design, preserves material provider conflicts, and writes a provider-neutral evidence packet for later financial-data specialists.
+  - evidence artifact path(s): `stock_research/financial_compare.py`, `docs/descriptions/financial_compare.md`, `tests/test_financial_compare.py`, `agents/runs/2026-05-09_weekly/evidence_packets/2026-05-04_financial_compare_company_aapl.json`
   - status: active

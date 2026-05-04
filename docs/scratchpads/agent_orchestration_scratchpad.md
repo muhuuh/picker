@@ -29,6 +29,9 @@
 - [x] Add dry-run-by-default provider task runner.
 - [x] Replace direct X.com API with xAI Grok x_search provider and manifest tasks.
 - [x] Run live xAI Grok `x_search` smoke test.
+- [x] Add FMP, Polygon/Massive, and Alpha Vantage provider integrations.
+- [x] Live smoke-test FMP, Polygon/Massive, and Alpha Vantage.
+- [x] Add deterministic financial provider comparison layer.
 - [ ] Validate updated architecture with user.
 
 ## Key Decisions and Why
@@ -54,6 +57,10 @@
 - 2026-05-03: Weekly manifests now contain concrete `provider_tasks`. The provider task runner is dry-run by default and only executes live provider calls when `--execute` is passed.
 - 2026-05-03: User corrected provider intent: do not use direct X.com API. Use xAI/Grok via `XAI_API_KEY` with built-in `x_search` for X sentiment/latest-news research.
 - 2026-05-03: Live xAI/Grok `x_search` smoke test passed for AMD and wrote validated raw/evidence artifacts.
+- 2026-05-03: xAI/Grok mirrors Exa structurally: it is both a deterministic weekly provider task and a future specialist-callable tool. Its domain is X sentiment/narratives; Exa/SEC/market-data providers verify factual claims.
+- 2026-05-03: Added FMP, Polygon/Massive, and Alpha Vantage provider tools as market-data cross-checks. They are CLI-callable, provider-task executable, and included in weekly manifests where appropriate.
+- 2026-05-04: Live AAPL smoke tests passed for FMP, Polygon/Massive, and Alpha Vantage. Alpha needed request spacing/retry for its free-tier 1 request/second burst limit.
+- 2026-05-04: Added `financial_compare`. It is only for financial/profile/market-data provider packets and intentionally excludes Exa/Grok news/sentiment packets.
 
 ## What We Learned
 
@@ -85,6 +92,12 @@
 - xAI Grok command exists: `python -m stock_research xai x-search ...`.
 - Manifest provider tasks now include Grok `x_search` sentiment/latest-news checks.
 - Live xAI Grok AMD smoke packet exists: `agents/runs/2026-05-09_weekly/evidence_packets/2026-05-03_xai_grok_company_amd.json`.
+- FMP command exists: `python -m stock_research fmp company --ticker AAPL --run-id 2026-05-09_weekly`.
+- Polygon/Massive command exists: `python -m stock_research polygon company --ticker AAPL --run-id 2026-05-09_weekly`.
+- Alpha Vantage command exists: `python -m stock_research alpha-vantage company --ticker AAPL --run-id 2026-05-09_weekly`.
+- FMP/Polygon/Alpha live smoke tests passed for AAPL on 2026-05-04.
+- Financial compare command exists: `python -m stock_research financial compare --ticker AAPL --run-id 2026-05-09_weekly`.
+- Weekly manifests now include `analysis_tasks` for post-provider financial comparison when tracked stocks or human stock-research requests exist.
 - `python -m unittest discover -s tests` is the working test command in this repo.
 - Cursor SDK is promising for coding-agent automation, but it is public beta and TypeScript-first; it looks better for repo maintenance agents than for the core stock-research runtime.
 - OpenAI Agents SDK supports the repo's manager/specialist pattern, tracing, guardrails, Pydantic outputs, sessions, and non-OpenAI model routing via Any-LLM/LiteLLM, but provider capability gaps must be tested.
@@ -104,7 +117,7 @@
 ## Next Steps
 
 - Review updated `docs/descriptions/investment_agent_workflow.md` and `docs/plans/investment_agent_backlog.md` with the user if needed.
-- Next implementation work should add paid market-data cross-check providers such as FMP/Polygon/Alpha Vantage, create agent memory files, or build the first synthesis/writer specialist around evidence packets.
+- Next implementation work should create agent memory files, run an agent-framework spike, or build the first financial-data specialist around `financial_compare` packets.
 - Before Priority 4 agent implementation, run a thin spike comparing OpenAI Agents SDK vs Pydantic AI for one evidence-packet specialist and one orchestrator call.
 - Consider LangGraph only if the first spike shows that explicit resumable graph state is needed earlier than planned.
 - Add README and SETUP when runtime dependencies are introduced.
@@ -121,6 +134,8 @@
 - SEC may return compressed responses even for JSON endpoints; keep compression decoding in provider fetch helpers.
 - Exa requests can fail with HTTP 403 code 1010 if the default Python HTTP client headers are too sparse. Keep explicit `User-Agent` and `Accept: application/json` headers.
 - yfinance is useful for quick snapshots but should be cross-checked before high-impact decisions.
+- Alpha Vantage free keys can be tightly rate-limited; provider now spaces requests and retries once on the 1 request/second message, but keep default pulls light and use statement pulls deliberately.
+- Polygon/Massive stock defaults should be treated as U.S.-equity focused unless coverage is verified for a specific non-U.S. ticker.
 - Grok/X evidence is social signal unless independently verified. Treat it as sentiment/community chatter, not standalone fact.
 - Do not reintroduce direct X.com API bearer-token search unless the user explicitly asks for that reversal.
 
@@ -132,4 +147,8 @@
 - yfinance live smoke packet: `agents/runs/2026-05-09_weekly/evidence_packets/2026-05-03_yfinance_company_aapl.json`.
 - Exa live smoke packets: `agents/runs/2026-05-09_weekly/evidence_packets/2026-05-03_exa_industry_semiconductors.json`, `agents/runs/2026-05-09_weekly/evidence_packets/2026-05-03_exa_theme_sec_edgar_docs.json`.
 - xAI Grok live smoke packet: `agents/runs/2026-05-09_weekly/evidence_packets/2026-05-03_xai_grok_company_amd.json`.
+- FMP live smoke packet: `agents/runs/2026-05-09_weekly/evidence_packets/2026-05-04_fmp_company_aapl.json`.
+- Polygon/Massive live smoke packet: `agents/runs/2026-05-09_weekly/evidence_packets/2026-05-04_polygon_company_aapl.json`.
+- Alpha Vantage live smoke packet: `agents/runs/2026-05-09_weekly/evidence_packets/2026-05-04_alpha_vantage_company_aapl.json`.
+- Financial compare live smoke packet: `agents/runs/2026-05-09_weekly/evidence_packets/2026-05-04_financial_compare_company_aapl.json`.
 - Current written weekly manifest with provider tasks: `agents/runs/2026-05-09_weekly/manifest.json`.

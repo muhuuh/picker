@@ -7,6 +7,7 @@ from pathlib import Path
 
 from .config import get_config_value
 from .evidence import default_packet_path, new_packet, read_packet, validate_packet, write_packet
+from .financial_compare import FinancialCompareError, build_financial_compare_packet
 from .human import append_human_request, classify_request
 from .manifest import build_weekly_manifest, write_manifest
 from .provider_runner import read_manifest, run_provider_tasks
@@ -18,6 +19,21 @@ from .providers.exa import (
     build_exa_search_packet,
     default_exa_run_id,
     resolve_exa_api_key,
+)
+from .providers.alpha_vantage import (
+    AlphaVantageCompanyOptions,
+    AlphaVantageError,
+    build_alpha_vantage_company_packet,
+    default_alpha_vantage_run_id,
+    resolve_alpha_vantage_api_key,
+)
+from .providers.fmp import FmpCompanyOptions, FmpError, build_fmp_company_packet, default_fmp_run_id, resolve_fmp_api_key
+from .providers.polygon_provider import (
+    PolygonCompanyOptions,
+    PolygonError,
+    build_polygon_company_packet,
+    default_polygon_run_id,
+    resolve_polygon_api_key,
 )
 from .providers.sec_edgar import SecEdgarError, build_sec_company_packet, default_sec_run_id, resolve_sec_user_agent
 from .providers.xai_grok import (
@@ -104,6 +120,45 @@ def main(argv: list[str] | None = None) -> int:
     yfinance_company.add_argument("--run-id", help="Run ID for output artifacts. Defaults to YYYY-MM-DD_manual-yfinance.")
     yfinance_company.add_argument("--period", default="5d", help="yfinance history period, e.g. 5d, 1mo, 1y.")
     yfinance_company.add_argument("--today", help="Override current date as YYYY-MM-DD.")
+
+    fmp_parser = subparsers.add_parser("fmp", help="Financial Modeling Prep provider tools.")
+    fmp_subparsers = fmp_parser.add_subparsers(dest="fmp_command", required=True)
+
+    fmp_company = fmp_subparsers.add_parser("company", help="Fetch FMP quote/profile/TTM metrics and write an evidence packet.")
+    fmp_company.add_argument("--ticker", required=True)
+    fmp_company.add_argument("--run-id", help="Run ID for output artifacts. Defaults to YYYY-MM-DD_manual-fmp.")
+    fmp_company.add_argument("--include-statements", action="store_true", help="Also fetch TTM income, balance sheet, and cash flow statements.")
+    fmp_company.add_argument("--api-key", help="FMP API key. Or set FMP_API_KEY.")
+    fmp_company.add_argument("--today", help="Override current date as YYYY-MM-DD.")
+
+    polygon_parser = subparsers.add_parser("polygon", help="Polygon/Massive market-data provider tools.")
+    polygon_subparsers = polygon_parser.add_subparsers(dest="polygon_command", required=True)
+
+    polygon_company = polygon_subparsers.add_parser("company", help="Fetch ticker details and previous-day OHLC data.")
+    polygon_company.add_argument("--ticker", required=True)
+    polygon_company.add_argument("--run-id", help="Run ID for output artifacts. Defaults to YYYY-MM-DD_manual-polygon.")
+    polygon_company.add_argument("--unadjusted", action="store_true", help="Request unadjusted previous-day OHLC data.")
+    polygon_company.add_argument("--api-key", help="Polygon/Massive API key. Or set POLYGON_API_KEY.")
+    polygon_company.add_argument("--today", help="Override current date as YYYY-MM-DD.")
+
+    alpha_parser = subparsers.add_parser("alpha-vantage", help="Alpha Vantage provider tools.")
+    alpha_subparsers = alpha_parser.add_subparsers(dest="alpha_command", required=True)
+
+    alpha_company = alpha_subparsers.add_parser("company", help="Fetch Alpha Vantage Global Quote/Overview and write an evidence packet.")
+    alpha_company.add_argument("--ticker", required=True)
+    alpha_company.add_argument("--run-id", help="Run ID for output artifacts. Defaults to YYYY-MM-DD_manual-alpha-vantage.")
+    alpha_company.add_argument("--include-statements", action="store_true", help="Also fetch income, balance sheet, cash flow, and earnings endpoints.")
+    alpha_company.add_argument("--api-key", help="Alpha Vantage API key. Or set ALPHA_VANTAGE_API_KEY.")
+    alpha_company.add_argument("--today", help="Override current date as YYYY-MM-DD.")
+
+    financial_parser = subparsers.add_parser("financial", help="Deterministic financial evidence analysis.")
+    financial_subparsers = financial_parser.add_subparsers(dest="financial_command", required=True)
+
+    financial_compare = financial_subparsers.add_parser("compare", help="Compare financial provider evidence packets for one ticker.")
+    financial_compare.add_argument("--ticker", required=True)
+    financial_compare.add_argument("--run-id", required=True)
+    financial_compare.add_argument("--packet", action="append", type=Path, default=[], help="Optional explicit packet path. Repeatable.")
+    financial_compare.add_argument("--today", help="Override current date as YYYY-MM-DD.")
 
     exa_parser = subparsers.add_parser("exa", help="Exa search and contents provider tools.")
     exa_subparsers = exa_parser.add_subparsers(dest="exa_command", required=True)
@@ -285,6 +340,80 @@ def main(argv: list[str] | None = None) -> int:
                     period=args.period,
                 )
             except YFinanceError as exc:
+                print(f"ERROR: {exc}")
+                return 1
+            print(json.dumps({"packet_id": packet.packet_id, "paths": [str(path) for path in paths]}, indent=2))
+            return 0
+
+    if args.command == "fmp":
+        if args.fmp_command == "company":
+            request_date = parse_cli_date(args.today)
+            run_id = args.run_id or default_fmp_run_id(request_date)
+            try:
+                api_key = resolve_fmp_api_key(args.api_key or get_config_value(state.root, "FMP_API_KEY") or get_config_value(state.root, "FINANCIAL_MODELING_PREP_API_KEY"))
+                packet, paths = build_fmp_company_packet(
+                    options=FmpCompanyOptions(ticker=args.ticker, include_statements=args.include_statements),
+                    api_key=api_key,
+                    run_id=run_id,
+                    root=state.root,
+                    current_date=request_date,
+                )
+            except FmpError as exc:
+                print(f"ERROR: {exc}")
+                return 1
+            print(json.dumps({"packet_id": packet.packet_id, "paths": [str(path) for path in paths]}, indent=2))
+            return 0
+
+    if args.command == "polygon":
+        if args.polygon_command == "company":
+            request_date = parse_cli_date(args.today)
+            run_id = args.run_id or default_polygon_run_id(request_date)
+            try:
+                api_key = resolve_polygon_api_key(args.api_key or get_config_value(state.root, "POLYGON_API_KEY") or get_config_value(state.root, "MASSIVE_API_KEY"))
+                packet, paths = build_polygon_company_packet(
+                    options=PolygonCompanyOptions(ticker=args.ticker, adjusted=not args.unadjusted),
+                    api_key=api_key,
+                    run_id=run_id,
+                    root=state.root,
+                    current_date=request_date,
+                )
+            except PolygonError as exc:
+                print(f"ERROR: {exc}")
+                return 1
+            print(json.dumps({"packet_id": packet.packet_id, "paths": [str(path) for path in paths]}, indent=2))
+            return 0
+
+    if args.command == "alpha-vantage":
+        if args.alpha_command == "company":
+            request_date = parse_cli_date(args.today)
+            run_id = args.run_id or default_alpha_vantage_run_id(request_date)
+            try:
+                api_key = resolve_alpha_vantage_api_key(args.api_key or get_config_value(state.root, "ALPHA_VANTAGE_API_KEY"))
+                packet, paths = build_alpha_vantage_company_packet(
+                    options=AlphaVantageCompanyOptions(ticker=args.ticker, include_statements=args.include_statements),
+                    api_key=api_key,
+                    run_id=run_id,
+                    root=state.root,
+                    current_date=request_date,
+                )
+            except AlphaVantageError as exc:
+                print(f"ERROR: {exc}")
+                return 1
+            print(json.dumps({"packet_id": packet.packet_id, "paths": [str(path) for path in paths]}, indent=2))
+            return 0
+
+    if args.command == "financial":
+        if args.financial_command == "compare":
+            request_date = parse_cli_date(args.today)
+            try:
+                packet, paths = build_financial_compare_packet(
+                    ticker=args.ticker,
+                    run_id=args.run_id,
+                    root=state.root,
+                    current_date=request_date,
+                    packet_paths=args.packet or None,
+                )
+            except FinancialCompareError as exc:
                 print(f"ERROR: {exc}")
                 return 1
             print(json.dumps({"packet_id": packet.packet_id, "paths": [str(path) for path in paths]}, indent=2))

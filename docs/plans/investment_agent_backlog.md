@@ -143,7 +143,9 @@ This is the clear task backlog for building the stock tracking and investment re
 - [x] Implement xAI/Grok X research tools.
   - Description: stock sentiment, industry sentiment, latest X news, and discovery support through Grok `x_search` using `XAI_API_KEY`.
 - [x] Implement market data tools.
-  - Description: yfinance first, then cross-check FMP, Polygon, and Alpha Vantage where configured.
+  - Description: yfinance, FMP, Polygon/Massive, and Alpha Vantage are implemented. FMP/Polygon/Alpha live AAPL smoke tests passed on 2026-05-04.
+- [x] Implement financial data comparison layer.
+  - Description: deterministic reconciliation of yfinance/FMP/Polygon/Massive/Alpha/SEC financial packets into a single `financial_compare` evidence packet before LLM synthesis.
 - [ ] Evaluate additional sources.
   - Description: OpenBB, Twelve Data, EODHD, Finnhub, Nasdaq Data Link, FRED, ECB, Eurostat, Companies House, and future ESMA ESAP.
 
@@ -154,16 +156,28 @@ This is the clear task backlog for building the stock tracking and investment re
 - `stock_research/providers/exa.py`
 - `stock_research/providers/xai_grok.py`
 - `stock_research/providers/yfinance_provider.py`
+- `stock_research/providers/fmp.py`
+- `stock_research/providers/polygon_provider.py`
+- `stock_research/providers/alpha_vantage.py`
+- `stock_research/financial_compare.py`
 - `stock_research/provider_runner.py`
 - `docs/descriptions/evidence_schema.md`
 - `docs/descriptions/sec_edgar_provider.md`
 - `docs/descriptions/exa_provider.md`
 - `docs/descriptions/xai_grok_provider.md`
 - `docs/descriptions/yfinance_provider.md`
+- `docs/descriptions/fmp_provider.md`
+- `docs/descriptions/polygon_provider.md`
+- `docs/descriptions/alpha_vantage_provider.md`
+- `docs/descriptions/financial_compare.md`
 - `python -m stock_research evidence new ...`
 - `python -m stock_research evidence validate ...`
 - `python -m stock_research sec company --ticker TICKER --run-id RUN_ID`
 - `python -m stock_research yfinance company --ticker TICKER --run-id RUN_ID`
+- `python -m stock_research fmp company --ticker TICKER --run-id RUN_ID`
+- `python -m stock_research polygon company --ticker TICKER --run-id RUN_ID`
+- `python -m stock_research alpha-vantage company --ticker TICKER --run-id RUN_ID`
+- `python -m stock_research financial compare --ticker TICKER --run-id RUN_ID`
 - `python -m stock_research exa search --query QUERY --subject-type TYPE --subject-id ID --run-id RUN_ID`
 - `python -m stock_research exa contents --url URL --subject-type TYPE --subject-id ID --run-id RUN_ID`
 - `python -m stock_research xai x-search --ticker TICKER --subject-type company --subject-id TICKER --run-id RUN_ID`
@@ -174,9 +188,17 @@ This is the clear task backlog for building the stock tracking and investment re
 - `tests/test_exa_provider.py`
 - `tests/test_xai_grok_provider.py`
 - `tests/test_yfinance_provider.py`
+- `tests/test_fmp_provider.py`
+- `tests/test_polygon_provider.py`
+- `tests/test_alpha_vantage_provider.py`
+- `tests/test_financial_compare.py`
 - `tests/test_provider_runner.py`
 - Live SEC smoke artifact: `agents/runs/2026-05-09_weekly/evidence_packets/2026-05-03_sec_edgar_company_aapl.json`
 - Live xAI Grok smoke artifact: `agents/runs/2026-05-09_weekly/evidence_packets/2026-05-03_xai_grok_company_amd.json`
+- Live FMP smoke artifact: `agents/runs/2026-05-09_weekly/evidence_packets/2026-05-04_fmp_company_aapl.json`
+- Live Polygon/Massive smoke artifact: `agents/runs/2026-05-09_weekly/evidence_packets/2026-05-04_polygon_company_aapl.json`
+- Live Alpha Vantage smoke artifact: `agents/runs/2026-05-09_weekly/evidence_packets/2026-05-04_alpha_vantage_company_aapl.json`
+- Live financial compare smoke artifact: `agents/runs/2026-05-09_weekly/evidence_packets/2026-05-04_financial_compare_company_aapl.json`
 - Written weekly manifest with provider tasks: `agents/runs/2026-05-09_weekly/manifest.json`
 
 ## Priority 5: Specialist Agents

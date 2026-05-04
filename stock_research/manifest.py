@@ -43,6 +43,7 @@ def build_weekly_manifest(state: RepoState, today: date | None = None) -> dict[s
         "cooldown": rejected_cooldown_summary(state, current_date),
         "tasks": build_tasks(human_requests, priorities),
         "provider_tasks": build_provider_tasks(state, human_requests, priorities, run_date),
+        "analysis_tasks": build_analysis_tasks(state, human_requests, run_date),
         "outputs": {
             "run_summary": f"agents/runs/{run_date.isoformat()}_weekly/run_summary.md",
             "quality_report": f"agents/runs/{run_date.isoformat()}_weekly/quality_report.md",
@@ -143,6 +144,80 @@ def build_tasks(human_requests: list[dict[str, str]], priorities: list[dict[str,
     return tasks
 
 
+def build_analysis_tasks(state: RepoState, human_requests: list[dict[str, str]], run_date: date) -> list[dict[str, Any]]:
+    run_id = f"{run_date.isoformat()}_weekly"
+    tasks: list[dict[str, Any]] = []
+    seen_task_ids: set[str] = set()
+
+    for bucket in TRACKED_STOCK_TABLES:
+        for row in state.stock_tables[bucket].rows:
+            ticker = normalize_ticker(row.get("ticker", ""))
+            if not ticker:
+                continue
+            add_task(
+                tasks,
+                seen_task_ids,
+                analysis_task(
+                    task_id=f"financial_compare_{slugify(ticker)}",
+                    tool="financial_compare",
+                    subject_id=ticker,
+                    args={"ticker": ticker, "run_id": run_id},
+                    reason=f"Compare financial provider packets for {bucket} ticker {ticker} before synthesis.",
+                    priority="high" if bucket == "current_holdings" else "medium",
+                    source_bucket=bucket,
+                ),
+            )
+
+    for request in human_requests:
+        if request.get("Type", "").strip().lower() != "stock_research":
+            continue
+        request_id = request.get("ID", "").strip() or "human_request"
+        priority = request.get("Priority", "").strip().lower() or "medium"
+        for ticker in split_cell_values(request.get("Tickers", "")):
+            ticker_upper = normalize_ticker(ticker)
+            if not ticker_upper:
+                continue
+            add_task(
+                tasks,
+                seen_task_ids,
+                analysis_task(
+                    task_id=f"financial_compare_human_{slugify(request_id)}_{slugify(ticker_upper)}",
+                    tool="financial_compare",
+                    subject_id=ticker_upper,
+                    args={"ticker": ticker_upper, "run_id": run_id},
+                    reason=f"Compare financial provider packets for human stock research request {request_id}.",
+                    priority=priority,
+                    source_bucket="human_input_queue",
+                ),
+            )
+
+    return tasks
+
+
+def analysis_task(
+    task_id: str,
+    tool: str,
+    subject_id: str,
+    args: dict[str, Any],
+    reason: str,
+    priority: str = "medium",
+    source_bucket: str = "",
+) -> dict[str, Any]:
+    return {
+        "id": task_id,
+        "phase": "post_provider_analysis",
+        "tool": tool,
+        "subject_type": "company",
+        "subject_id": subject_id,
+        "args": args,
+        "priority": normalize_priority(priority),
+        "source_bucket": source_bucket,
+        "reason": reason,
+        "expected_artifacts": ["raw_financial_comparison_json", "evidence_packet"],
+        "depends_on": ["provider_tasks"],
+    }
+
+
 def build_provider_tasks(
     state: RepoState,
     human_requests: list[dict[str, str]],
@@ -175,6 +250,53 @@ def build_provider_tasks(
                     source_bucket=bucket,
                 ),
             )
+            add_task(
+                tasks,
+                seen_task_ids,
+                provider_task(
+                    task_id=f"fmp_company_{slugify(ticker)}",
+                    provider="fmp",
+                    tool="company",
+                    subject_type="company",
+                    subject_id=ticker,
+                    args={"ticker": ticker, "run_id": run_id, "include_statements": False},
+                    reason=f"FMP market-data/fundamentals cross-check for {bucket} ticker {label}.",
+                    priority="high" if bucket == "current_holdings" else "medium",
+                    source_bucket=bucket,
+                ),
+            )
+            add_task(
+                tasks,
+                seen_task_ids,
+                provider_task(
+                    task_id=f"alpha_vantage_company_{slugify(ticker)}",
+                    provider="alpha_vantage",
+                    tool="company",
+                    subject_type="company",
+                    subject_id=ticker,
+                    args={"ticker": ticker, "run_id": run_id, "include_statements": False},
+                    reason=f"Alpha Vantage quote/overview cross-check for {bucket} ticker {label}.",
+                    priority="high" if bucket == "current_holdings" else "medium",
+                    source_bucket=bucket,
+                    conditions=["Watch Alpha Vantage rate limits, especially on free keys."],
+                ),
+            )
+            if is_us_market_candidate(row):
+                add_task(
+                    tasks,
+                    seen_task_ids,
+                    provider_task(
+                        task_id=f"polygon_company_{slugify(ticker)}",
+                        provider="polygon",
+                        tool="company",
+                        subject_type="company",
+                        subject_id=ticker,
+                        args={"ticker": ticker, "run_id": run_id, "adjusted": True},
+                        reason=f"Polygon/Massive U.S. ticker reference and OHLC cross-check for {bucket} ticker {label}.",
+                        priority="high" if bucket == "current_holdings" else "medium",
+                        source_bucket=bucket,
+                    ),
+                )
             if is_sec_candidate(row):
                 add_task(
                     tasks,
@@ -322,6 +444,33 @@ def provider_tasks_for_human_request(request: dict[str, str], run_id: str) -> li
             ticker_upper = normalize_ticker(ticker)
             if not ticker_upper:
                 continue
+            tasks.append(
+                provider_task(
+                    task_id=f"fmp_human_{slugify(request_id)}_company_{slugify(ticker_upper)}",
+                    provider="fmp",
+                    tool="company",
+                    subject_type="company",
+                    subject_id=ticker_upper,
+                    args={"ticker": ticker_upper, "run_id": run_id, "include_statements": False},
+                    reason=f"Human input queue FMP stock research cross-check request {request_id}.",
+                    priority=priority,
+                    source_bucket="human_input_queue",
+                )
+            )
+            tasks.append(
+                provider_task(
+                    task_id=f"alpha_vantage_human_{slugify(request_id)}_company_{slugify(ticker_upper)}",
+                    provider="alpha_vantage",
+                    tool="company",
+                    subject_type="company",
+                    subject_id=ticker_upper,
+                    args={"ticker": ticker_upper, "run_id": run_id, "include_statements": False},
+                    reason=f"Human input queue Alpha Vantage stock research cross-check request {request_id}.",
+                    priority=priority,
+                    source_bucket="human_input_queue",
+                    conditions=["Watch Alpha Vantage rate limits, especially on free keys."],
+                )
+            )
             tasks.append(
                 provider_task(
                     task_id=f"exa_human_{slugify(request_id)}_news_{slugify(ticker_upper)}",
@@ -539,6 +688,14 @@ def is_sec_candidate(row: dict[str, str]) -> bool:
     if exchange in {"nyse", "nasdaq", "amex", "arca", "otc"}:
         return True
     return not country and exchange in {"", "nms", "ngm"}
+
+
+def is_us_market_candidate(row: dict[str, str]) -> bool:
+    country = row.get("country", "").strip().lower()
+    exchange = row.get("exchange", "").strip().lower()
+    if country in {"us", "usa", "united states", "united states of america"}:
+        return True
+    return exchange in {"nyse", "nasdaq", "amex", "arca", "otc", "nms", "ngm"}
 
 
 def split_cell_values(value: str) -> list[str]:

@@ -80,13 +80,20 @@ xAI Grok requires an API key:
 XAI_API_KEY="..."
 ```
 
+Market-data cross-check providers require keys when used:
+
+```text
+FMP_API_KEY="..."
+POLYGON_API_KEY="..."
+ALPHA_VANTAGE_API_KEY="..."
+```
+
+`MASSIVE_API_KEY` is also accepted for Polygon/Massive.
+
 Provider integrations planned later may use:
 
 - Exa,
 - xAI/Grok,
-- FMP,
-- Polygon,
-- Alpha Vantage,
 - OpenAI or another agent/model provider.
 
 Keep secrets in `.env` or local environment variables. Do not commit `.env`.
@@ -114,6 +121,52 @@ Fetch a market-data snapshot:
 ```powershell
 python -m stock_research yfinance company --ticker AAPL --run-id 2026-05-09_weekly
 ```
+
+## FMP
+
+Fetch quote, profile, TTM key metrics, and TTM ratios:
+
+```powershell
+python -m stock_research fmp company --ticker AAPL --run-id 2026-05-09_weekly
+```
+
+Optional TTM statements:
+
+```powershell
+python -m stock_research fmp company --ticker AAPL --run-id 2026-05-09_weekly --include-statements
+```
+
+## Polygon / Massive
+
+Fetch U.S. ticker details and previous-day OHLC:
+
+```powershell
+python -m stock_research polygon company --ticker AAPL --run-id 2026-05-09_weekly
+```
+
+## Alpha Vantage
+
+Fetch Global Quote and Overview:
+
+```powershell
+python -m stock_research alpha-vantage company --ticker AAPL --run-id 2026-05-09_weekly
+```
+
+Optional statements and earnings:
+
+```powershell
+python -m stock_research alpha-vantage company --ticker AAPL --run-id 2026-05-09_weekly --include-statements
+```
+
+## Financial Comparison
+
+Compare financial provider packets for one ticker:
+
+```powershell
+python -m stock_research financial compare --ticker AAPL --run-id 2026-05-09_weekly
+```
+
+This step only compares financial/profile/market-data packets. Exa and xAI/Grok packets are not inputs.
 
 ## Exa
 

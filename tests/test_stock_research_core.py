@@ -27,6 +27,7 @@ class StockResearchCoreTests(unittest.TestCase):
         self.assertEqual(manifest["scope"], ["US", "Europe"])
         self.assertEqual(len(manifest["inputs"]["research_priorities"]), 1)
         self.assertIn("provider_tasks", manifest)
+        self.assertIn("analysis_tasks", manifest)
 
     def test_manifest_plans_default_provider_tasks_for_tracked_tickers(self):
         state = repo_state_for_manifest(
@@ -49,15 +50,24 @@ class StockResearchCoreTests(unittest.TestCase):
         )
         manifest = build_weekly_manifest(state, date(2026, 5, 3))
         task_ids = {task["id"] for task in manifest["provider_tasks"]}
+        analysis_task_ids = {task["id"] for task in manifest["analysis_tasks"]}
 
         self.assertIn("yfinance_company_aapl", task_ids)
+        self.assertIn("fmp_company_aapl", task_ids)
+        self.assertIn("alpha_vantage_company_aapl", task_ids)
+        self.assertIn("polygon_company_aapl", task_ids)
         self.assertIn("sec_company_aapl", task_ids)
         self.assertIn("exa_news_company_aapl", task_ids)
         self.assertIn("xai_x_search_company_aapl", task_ids)
         self.assertIn("yfinance_company_asml", task_ids)
+        self.assertIn("fmp_company_asml", task_ids)
+        self.assertIn("alpha_vantage_company_asml", task_ids)
         self.assertIn("exa_news_company_asml", task_ids)
         self.assertIn("xai_x_search_company_asml", task_ids)
+        self.assertNotIn("polygon_company_asml", task_ids)
         self.assertNotIn("sec_company_asml", task_ids)
+        self.assertIn("financial_compare_aapl", analysis_task_ids)
+        self.assertIn("financial_compare_asml", analysis_task_ids)
 
     def test_manifest_routes_research_priorities_and_human_requests_to_exa_modes(self):
         state = repo_state_for_manifest(
@@ -96,16 +106,20 @@ class StockResearchCoreTests(unittest.TestCase):
         )
         manifest = build_weekly_manifest(state, date(2026, 5, 3))
         tasks = {task["id"]: task for task in manifest["provider_tasks"]}
+        analysis_tasks = {task["id"]: task for task in manifest["analysis_tasks"]}
 
         self.assertEqual(tasks["exa_research_priority_european_grid_infrastructure"]["args"]["mode"], "industry")
         self.assertEqual(tasks["exa_discovery_priority_european_grid_infrastructure"]["args"]["mode"], "company")
         self.assertEqual(tasks["exa_human_hir_0099_industry_robotics_suppliers"]["args"]["mode"], "industry")
         self.assertEqual(tasks["exa_human_hir_0099_company_robotics_suppliers"]["args"]["mode"], "company")
         self.assertEqual(tasks["exa_human_hir_0100_news_amd"]["args"]["mode"], "news")
+        self.assertEqual(tasks["fmp_human_hir_0100_company_amd"]["provider"], "fmp")
+        self.assertEqual(tasks["alpha_vantage_human_hir_0100_company_amd"]["provider"], "alpha_vantage")
         self.assertEqual(tasks["xai_x_search_priority_european_grid_infrastructure"]["tool"], "x_search")
         self.assertEqual(tasks["xai_x_search_priority_european_grid_infrastructure"]["provider"], "xai_grok")
         self.assertEqual(tasks["xai_human_hir_0099_x_search_robotics_suppliers"]["provider"], "xai_grok")
         self.assertEqual(tasks["xai_human_hir_0100_x_search_amd"]["provider"], "xai_grok")
+        self.assertEqual(analysis_tasks["financial_compare_human_hir_0100_amd"]["tool"], "financial_compare")
 
     def test_next_saturday_returns_same_day_when_today_is_saturday(self):
         self.assertEqual(next_saturday(date(2026, 5, 9)), date(2026, 5, 9))

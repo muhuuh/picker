@@ -56,6 +56,10 @@ This file tells Codex, the orchestrator, and future agents where to find and upd
 - `docs/descriptions/exa_provider.md`: Exa search/contents provider behavior and best practices.
 - `docs/descriptions/xai_grok_provider.md`: xAI Grok x_search provider behavior and setup.
 - `docs/descriptions/yfinance_provider.md`: yfinance provider behavior and setup.
+- `docs/descriptions/fmp_provider.md`: FMP market-data/fundamentals provider behavior and setup.
+- `docs/descriptions/polygon_provider.md`: Polygon/Massive U.S. ticker/OHLC provider behavior and setup.
+- `docs/descriptions/alpha_vantage_provider.md`: Alpha Vantage quote/overview provider behavior and setup.
+- `docs/descriptions/financial_compare.md`: deterministic financial provider comparison behavior.
 - `docs/plans/investment_agent_backlog.md`: prioritized implementation backlog.
 - `docs/plans/investment_agent_workflow_plan.md`: high-level implementation plan.
 - `agents/orchestrator/`: future main orchestrator implementation.
@@ -77,6 +81,10 @@ This file tells Codex, the orchestrator, and future agents where to find and upd
 - `python -m stock_research evidence validate ...`: validate an evidence packet.
 - `python -m stock_research sec company --ticker TICKER --run-id RUN_ID`: fetch SEC submissions into evidence artifacts.
 - `python -m stock_research yfinance company --ticker TICKER --run-id RUN_ID`: fetch yfinance market-data snapshot artifacts.
+- `python -m stock_research fmp company --ticker TICKER --run-id RUN_ID`: fetch FMP quote/profile/TTM metrics artifacts.
+- `python -m stock_research polygon company --ticker TICKER --run-id RUN_ID`: fetch Polygon/Massive ticker details and previous-day OHLC artifacts.
+- `python -m stock_research alpha-vantage company --ticker TICKER --run-id RUN_ID`: fetch Alpha Vantage quote/overview artifacts.
+- `python -m stock_research financial compare --ticker TICKER --run-id RUN_ID`: compare financial provider packets into one reconciliation packet.
 - `python -m stock_research exa search --query "..." --subject-type TYPE --subject-id ID --run-id RUN_ID`: run Exa search into evidence artifacts.
 - `python -m stock_research exa contents --url URL --subject-type TYPE --subject-id ID --run-id RUN_ID`: run Exa contents extraction into evidence artifacts.
 - `python -m stock_research xai x-search --ticker TICKER --subject-type company --subject-id TICKER --run-id RUN_ID`: run Grok x_search into social evidence artifacts.
