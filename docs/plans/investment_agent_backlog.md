@@ -228,7 +228,7 @@ This is the clear task backlog for building the stock tracking and investment re
 ## Priority 6: Orchestration
 
 - [ ] Build scheduled runner.
-  - Description: run weekly Saturday by default and support manual runs from the human input queue. Current progress: deterministic manifests and provider-task execution exist; OS/app scheduling and full orchestration still pending.
+  - Description: run weekly Saturday by default and support manual runs from the human input queue. Current progress: deterministic manifests, provider-task execution, and run finalization exist; OS/app scheduling and full orchestration still pending.
 - [ ] Build company research sub-orchestrator.
   - Description: coordinates filings, news, financials, sentiment, and risk checks for one ticker.
 - [ ] Build market research sub-orchestrator.
@@ -270,10 +270,12 @@ This is the clear task backlog for building the stock tracking and investment re
   - Description: generate proposed add/update/deprecate actions after reflection, with evidence links and confidence, before applying them.
 - [ ] Build LLM memory writer agent.
   - Description: bounded specialist that converts reflection findings into concise memory items; it should not write freely without schema validation and should send high-impact changes to human review.
-- [ ] Wire reflection into scheduled/orchestrated runs.
-  - Description: call `python -m stock_research memory reflect-run --run-id RUN_ID --write` automatically after run summary and quality report generation.
-- [ ] Add recurring failure detection.
+- [x] Add recurring failure detection.
   - Description: detect repeated provider failures, noisy alerts, missing citations, bad routing, and repeated user corrections across runs.
+- [x] Add deterministic run finalization command.
+  - Description: write post-run reflection, recurring-failure reports, and finalization artifacts with one command for future scheduler/orchestrator use.
+- [ ] Wire run finalization into scheduled/orchestrated runs.
+  - Description: call `python -m stock_research memory finalize-run --run-id RUN_ID` automatically after provider tasks, analysis tasks, run summary, and quality report generation.
 
 ## Open Decisions
 

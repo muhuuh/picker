@@ -134,6 +134,8 @@ python -m stock_research memory summary
 python -m stock_research memory validate
 python -m stock_research memory context --task financial
 python -m stock_research memory reflect-run --run-id 2026-05-09_weekly --write
+python -m stock_research memory recurring-failures --write
+python -m stock_research memory finalize-run --run-id 2026-05-09_weekly
 ```
 
 Add or deprecate structured operational memory:
@@ -166,6 +168,8 @@ Implemented:
 - deterministic operational memory loader, validator, summary, and task-context selector.
 - deterministic operational memory add/deprecate commands.
 - deterministic post-run memory reflection and memory update proposal generator.
+- deterministic recurring failure detector across reflected runs.
+- deterministic run finalization command for reflection, recurring-failure, and finalization artifacts.
 - deterministic human request classifier and queue appender.
 - deterministic request router for stock, industry, theme, strategy, alert-review, manual-run, and status-move requests.
 - provider-neutral evidence packet schema and JSON artifact writer.
@@ -184,6 +188,6 @@ Not implemented yet:
 - macro provider integrations,
 - LLM specialist agents,
 - orchestrator runtime,
-- post-run memory reflection automation,
+- automatic scheduler/orchestrator invocation of run finalization,
 - OS/app scheduled execution,
 - immediate research runs.

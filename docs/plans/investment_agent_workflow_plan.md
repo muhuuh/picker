@@ -88,6 +88,7 @@ Detailed backlog: `docs/plans/investment_agent_backlog.md`.
 ## Priority 5: Build Orchestration
 
 - [ ] Implement scheduled runner.
+  - Current progress: deterministic manifests, provider-task execution, and run finalization command exist; actual scheduled/orchestrated invocation is still pending.
 - [x] Implement deterministic Codex chat intake routing for user requests.
 - [ ] Implement market research sub-orchestrator.
 - [ ] Implement company research sub-orchestrator.
@@ -113,8 +114,9 @@ Detailed backlog: `docs/plans/investment_agent_backlog.md`.
 - [x] Add automatic memory update proposal generation.
 - [ ] Build LLM memory writer agent.
 - [ ] Inject task-relevant memory context into specialist prompts from the orchestrator.
-- [ ] Wire reflection into scheduled/orchestrated runs.
-- [ ] Add recurring failure detection.
+- [x] Add deterministic run finalization command.
+- [ ] Wire run finalization into scheduled/orchestrated runs.
+- [x] Add recurring failure detection.
 
 ## Key Decisions Pending
 
@@ -149,4 +151,6 @@ Detailed backlog: `docs/plans/investment_agent_backlog.md`.
 - 2026-05-04: Clarified remaining learning-loop gaps: memory add/deprecate commands, automatic post-run reflection, memory update proposals, LLM memory writer agent, and orchestrator injection of memory context into specialist prompts.
 - 2026-05-04: Implemented deterministic memory writer/update commands: `python -m stock_research memory add ...` and `python -m stock_research memory deprecate ...`, with validation tests.
 - 2026-05-04: Implemented deterministic post-run reflection and memory update proposal generation with `python -m stock_research memory reflect-run --run-id RUN_ID [--write]`; wrote reflection artifacts for `agents/runs/2026-05-09_weekly/`.
+- 2026-05-04: Implemented recurring failure detection with `python -m stock_research memory recurring-failures [--write]`; current real report has no recurring patterns yet because only one reflected run exists.
+- 2026-05-04: Implemented deterministic run finalization with `python -m stock_research memory finalize-run --run-id RUN_ID`; it writes reflection, recurring-failure, and finalization artifacts but is not yet called automatically by a scheduler/orchestrator.
 - 2026-05-03: Started SDK/framework review before agent runtime work. Current finding: Cursor SDK is likely a coding-agent automation adjunct, not the core stock-research orchestration runtime; OpenAI Agents SDK, Pydantic AI, and LangGraph remain the main candidates.

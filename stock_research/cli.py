@@ -23,7 +23,14 @@ from .memory import (
     memory_summary,
     validate_memory_state,
 )
-from .memory_reflection import build_run_reflection, reflection_to_dict, write_run_reflection
+from .memory_reflection import (
+    build_recurring_failure_report,
+    build_run_reflection,
+    recurring_failure_report_to_dict,
+    reflection_to_dict,
+    write_recurring_failure_report,
+    write_run_reflection,
+)
 from .provider_runner import read_manifest, run_provider_tasks
 from .providers.exa import (
     ExaContentsOptions,
@@ -63,6 +70,7 @@ from .providers.xai_grok import (
 from .providers.yfinance_provider import YFinanceError, build_yfinance_company_packet, default_yfinance_run_id
 from .repo import load_repo_state
 from .router import route_request
+from .run_finalization import finalize_run, finalization_to_dict
 from .staleness import scan_stale_data
 from .validation import validate_repo_state
 
@@ -111,6 +119,16 @@ def main(argv: list[str] | None = None) -> int:
     memory_reflect.add_argument("--run-id", required=True)
     memory_reflect.add_argument("--write", action="store_true", help="Write memory_reflection.json and memory_reflection.md into the run directory.")
     memory_reflect.add_argument("--today", help="Override current date as YYYY-MM-DD.")
+
+    memory_recurring = memory_subparsers.add_parser("recurring-failures", help="Detect recurring issues across memory_reflection.json artifacts.")
+    memory_recurring.add_argument("--threshold", type=int, default=2, help="Minimum distinct runs required for a recurring pattern.")
+    memory_recurring.add_argument("--write", action="store_true", help="Write recurring_failures.json and recurring_failures.md under agents/memory/.")
+    memory_recurring.add_argument("--today", help="Override current date as YYYY-MM-DD.")
+
+    memory_finalize = memory_subparsers.add_parser("finalize-run", help="Finalize a run by writing reflection, recurring-failure, and finalization artifacts.")
+    memory_finalize.add_argument("--run-id", required=True)
+    memory_finalize.add_argument("--recurring-threshold", type=int, default=2, help="Minimum distinct runs required for recurring-failure patterns.")
+    memory_finalize.add_argument("--today", help="Override current date as YYYY-MM-DD.")
 
     validate_parser = subparsers.add_parser("validate", help="Validate repo state and CSV schemas.")
     validate_parser.add_argument("--today", help="Override current date as YYYY-MM-DD.")
@@ -348,6 +366,31 @@ def main(argv: list[str] | None = None) -> int:
             except (FileNotFoundError, ValueError) as exc:
                 print(f"ERROR: {exc}")
                 return 1
+            return 0
+        if args.memory_command == "recurring-failures":
+            try:
+                report = build_recurring_failure_report(state.root, args.threshold, memory_date)
+                if args.write:
+                    paths = write_recurring_failure_report(state.root, report)
+                    print(json.dumps({"paths": [str(path) for path in paths], "report": recurring_failure_report_to_dict(report)}, indent=2, sort_keys=True))
+                else:
+                    print(json.dumps(recurring_failure_report_to_dict(report), indent=2, sort_keys=True))
+            except ValueError as exc:
+                print(f"ERROR: {exc}")
+                return 1
+            return 0
+        if args.memory_command == "finalize-run":
+            try:
+                finalization, paths = finalize_run(
+                    root=state.root,
+                    run_id=args.run_id,
+                    current_date=memory_date,
+                    recurring_threshold=args.recurring_threshold,
+                )
+            except (FileNotFoundError, ValueError) as exc:
+                print(f"ERROR: {exc}")
+                return 1
+            print(json.dumps({"paths": [str(path) for path in paths], "finalization": finalization_to_dict(finalization)}, indent=2, sort_keys=True))
             return 0
 
     current_date = parse_cli_date(getattr(args, "today", None))

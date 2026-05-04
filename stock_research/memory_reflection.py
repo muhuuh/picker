@@ -4,6 +4,7 @@ import json
 from dataclasses import asdict, dataclass, field
 from datetime import date
 from pathlib import Path
+import re
 from typing import Any
 
 from .evidence import EvidencePacket, read_packet, validate_packet
@@ -36,6 +37,26 @@ class RunReflection:
     generated_at: str
     metrics: dict[str, Any]
     issues: list[ReflectionIssue] = field(default_factory=list)
+    memory_update_proposals: list[MemoryUpdateProposal] = field(default_factory=list)
+
+
+@dataclass(frozen=True)
+class RecurringFailurePattern:
+    pattern_id: str
+    category: str
+    count: int
+    run_ids: list[str]
+    severity: str
+    summary: str
+    evidence: list[str]
+
+
+@dataclass(frozen=True)
+class RecurringFailureReport:
+    generated_at: str
+    threshold: int
+    runs_scanned: int
+    patterns: list[RecurringFailurePattern] = field(default_factory=list)
     memory_update_proposals: list[MemoryUpdateProposal] = field(default_factory=list)
 
 
@@ -165,6 +186,70 @@ def write_run_reflection(root: Path | None, reflection: RunReflection) -> tuple[
     return json_path, md_path
 
 
+def build_recurring_failure_report(
+    root: Path | None,
+    threshold: int = 2,
+    current_date: date | None = None,
+) -> RecurringFailureReport:
+    if threshold < 2:
+        raise ValueError("Recurring failure threshold must be at least 2.")
+    repo_root = find_repo_root(root)
+    today = current_date or date.today()
+    reflection_paths = sorted((repo_root / "agents" / "runs").glob("*/memory_reflection.json"))
+
+    grouped: dict[str, list[dict[str, str]]] = {}
+    for path in reflection_paths:
+        data = read_json_if_exists(path)
+        run_id = str(data.get("run_id", path.parent.name))
+        for issue in data.get("issues", []):
+            category = str(issue.get("category", "unknown"))
+            grouped.setdefault(category, []).append(
+                {
+                    "run_id": run_id,
+                    "severity": str(issue.get("severity", "unknown")),
+                    "summary": str(issue.get("summary", "")),
+                    "evidence": str(issue.get("evidence", relative_to_root(repo_root, path).as_posix())),
+                }
+            )
+
+    patterns: list[RecurringFailurePattern] = []
+    for category, items in grouped.items():
+        run_ids = sorted({item["run_id"] for item in items})
+        if len(run_ids) < threshold:
+            continue
+        severity = highest_severity(item["severity"] for item in items)
+        patterns.append(
+            RecurringFailurePattern(
+                pattern_id=f"recurring-{slugify(category)}",
+                category=category,
+                count=len(items),
+                run_ids=run_ids,
+                severity=severity,
+                summary=f"{category} occurred {len(items)} time(s) across {len(run_ids)} run(s).",
+                evidence=sorted({item["evidence"] for item in items}),
+            )
+        )
+
+    proposals = build_recurring_failure_proposals(today, threshold, patterns)
+    return RecurringFailureReport(
+        generated_at=today.isoformat(),
+        threshold=threshold,
+        runs_scanned=len(reflection_paths),
+        patterns=patterns,
+        memory_update_proposals=proposals,
+    )
+
+
+def write_recurring_failure_report(root: Path | None, report: RecurringFailureReport) -> tuple[Path, Path]:
+    repo_root = find_repo_root(root)
+    json_path = repo_root / "agents" / "memory" / "recurring_failures.json"
+    md_path = repo_root / "agents" / "memory" / "recurring_failures.md"
+    json_path.parent.mkdir(parents=True, exist_ok=True)
+    json_path.write_text(json.dumps(recurring_failure_report_to_dict(report), indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    md_path.write_text(format_recurring_failure_markdown(report), encoding="utf-8")
+    return json_path, md_path
+
+
 def reflection_to_dict(reflection: RunReflection) -> dict[str, Any]:
     return {
         "run_id": reflection.run_id,
@@ -173,6 +258,16 @@ def reflection_to_dict(reflection: RunReflection) -> dict[str, Any]:
         "metrics": reflection.metrics,
         "issues": [asdict(issue) for issue in reflection.issues],
         "memory_update_proposals": [asdict(proposal) for proposal in reflection.memory_update_proposals],
+    }
+
+
+def recurring_failure_report_to_dict(report: RecurringFailureReport) -> dict[str, Any]:
+    return {
+        "generated_at": report.generated_at,
+        "threshold": report.threshold,
+        "runs_scanned": report.runs_scanned,
+        "patterns": [asdict(pattern) for pattern in report.patterns],
+        "memory_update_proposals": [asdict(proposal) for proposal in report.memory_update_proposals],
     }
 
 
@@ -196,6 +291,49 @@ def format_reflection_markdown(reflection: RunReflection) -> str:
     lines.extend(["", "## Memory Update Proposals", ""])
     if reflection.memory_update_proposals:
         for proposal in reflection.memory_update_proposals:
+            lines.append(f"### {proposal.proposal_id}")
+            lines.append("")
+            lines.append(f"- action: {proposal.action}")
+            lines.append(f"- target_file: {proposal.target_file}")
+            lines.append(f"- reason: {proposal.reason}")
+            lines.append("")
+            lines.append("```powershell")
+            lines.append(proposal.apply_command)
+            lines.append("```")
+            lines.append("")
+    else:
+        lines.append("- No memory update proposals.")
+    return "\n".join(lines).rstrip() + "\n"
+
+
+def format_recurring_failure_markdown(report: RecurringFailureReport) -> str:
+    lines = [
+        "# Recurring Failure Report",
+        "",
+        f"Generated: {report.generated_at}",
+        f"Runs scanned: {report.runs_scanned}",
+        f"Threshold: {report.threshold} run(s)",
+        "",
+        "## Patterns",
+        "",
+    ]
+    if report.patterns:
+        for pattern in report.patterns:
+            lines.append(f"### {pattern.pattern_id}")
+            lines.append("")
+            lines.append(f"- category: {pattern.category}")
+            lines.append(f"- severity: {pattern.severity}")
+            lines.append(f"- count: {pattern.count}")
+            lines.append(f"- run_ids: {', '.join(pattern.run_ids)}")
+            lines.append(f"- summary: {pattern.summary}")
+            lines.append(f"- evidence: {', '.join(pattern.evidence)}")
+            lines.append("")
+    else:
+        lines.append("- No recurring failure patterns met the threshold.")
+        lines.append("")
+    lines.extend(["## Memory Update Proposals", ""])
+    if report.memory_update_proposals:
+        for proposal in report.memory_update_proposals:
             lines.append(f"### {proposal.proposal_id}")
             lines.append("")
             lines.append(f"- action: {proposal.action}")
@@ -279,6 +417,43 @@ def build_memory_proposals(
     return proposals
 
 
+def build_recurring_failure_proposals(
+    today: date,
+    threshold: int,
+    patterns: list[RecurringFailurePattern],
+) -> list[MemoryUpdateProposal]:
+    proposals: list[MemoryUpdateProposal] = []
+    for pattern in patterns:
+        lesson = (
+            f"Recurring run issue detected: {pattern.category} appeared {pattern.count} time(s) "
+            f"across {len(pattern.run_ids)} run(s). Treat this as a workflow reliability issue until reviewed."
+        )
+        fields = {
+            "type": "evaluation",
+            "scope": "global",
+            "status": "needs_review",
+            "confidence": "medium",
+            "trigger/source": f"recurring failure detection threshold {threshold}",
+            "lesson": lesson,
+            "use_when": "Planning run reliability fixes, quality-review improvements, or orchestrator retry/checkpoint behavior.",
+            "do_not_use_when": "Making investment conclusions without resolving workflow reliability issues.",
+            "evidence": "`agents/memory/recurring_failures.md`",
+            "owner": "memory and evaluation orchestrator",
+            "next_review": today.isoformat(),
+        }
+        proposals.append(
+            MemoryUpdateProposal(
+                proposal_id=f"proposal-{today.isoformat()}-{pattern.pattern_id}",
+                action="memory_add",
+                target_file="evaluation_metrics.md",
+                reason=f"{pattern.category} met recurring failure threshold.",
+                fields=fields,
+                apply_command=memory_add_command(fields, "evaluation_metrics.md", today),
+            )
+        )
+    return proposals
+
+
 def memory_add_command(fields: dict[str, str], memory_file: str, today: date) -> str:
     parts = [
         "python -m stock_research memory add",
@@ -342,3 +517,12 @@ def packet_matches_task(packet: EvidencePacket, provider: str, subject_id: str) 
     }
     providers = provider_aliases.get(provider, {provider})
     return packet.provider in providers and packet.subject_id.lower() == str(subject_id).lower()
+
+
+def highest_severity(values) -> str:
+    order = {"unknown": 0, "low": 1, "medium": 2, "high": 3, "urgent": 4}
+    return max(values, key=lambda value: order.get(value, 0), default="unknown")
+
+
+def slugify(value: str) -> str:
+    return re.sub(r"[^a-z0-9]+", "-", value.lower()).strip("-") or "unknown"

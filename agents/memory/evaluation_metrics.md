@@ -47,7 +47,7 @@ Run-quality memory for weekly/manual runs and future post-run reflection.
 - status: needs_review
 - confidence: high
 - trigger/source: User asked whether missing memory automation is recorded.
-- lesson: The memory layer currently supports deterministic read, validate, summary, task-context selection, add, deprecate, post-run reflection, and memory update proposal generation. Still pending: LLM memory writer agent, orchestrator/scheduled invocation of reflection, recurring failure detection, and orchestrator injection of memory context into specialist prompts.
+- lesson: The memory layer currently supports deterministic read, validate, summary, task-context selection, add, deprecate, post-run reflection, memory update proposal generation, recurring failure detection, and run finalization. Still pending: LLM memory writer agent, scheduled/orchestrator invocation of run finalization, and orchestrator injection of memory context into specialist prompts.
 - use_when: Planning Priority 6 orchestration or Priority 7 learning-loop work.
 - do_not_use_when: Treating the memory system as already fully autonomous.
 - evidence: `docs/plans/investment_agent_backlog.md`, `docs/descriptions/agent_memory_workflow.md`, `stock_research/memory.py`
@@ -69,8 +69,7 @@ After a weekly or manual run:
 ## Pending Automation
 
 - LLM memory writer agent.
-- Orchestrator/scheduled invocation of post-run reflection.
-- Recurring failure detection.
+- Scheduled/orchestrator invocation of run finalization.
 - Orchestrator injection of task-relevant memory into specialist prompts.
 
 ## Recurring Failure Patterns
@@ -103,5 +102,33 @@ After a weekly or manual run:
 - use_when: Reviewing weekly/manual runs, generating memory update proposals, or planning the memory and evaluation sub-orchestrator.
 - do_not_use_when: Assuming the orchestrator already invokes reflection automatically after every run.
 - evidence: `stock_research/memory_reflection.py`, `stock_research/cli.py`, `tests/test_memory_reflection.py`, `agents/runs/2026-05-09_weekly/memory_reflection.md`
+- owner: memory and evaluation orchestrator
+- next_review: 2026-06-01
+
+- id: eval-2026-05-04-recurring-failure-command
+- date: 2026-05-04
+- type: evaluation
+- scope: global
+- status: active
+- confidence: high
+- trigger/source: deterministic recurring failure detection implementation
+- lesson: Recurring failure detection is implemented through `python -m stock_research memory recurring-failures [--write]`. It scans memory_reflection.json artifacts across runs and proposes memory updates when issue categories recur across at least the configured threshold of distinct runs.
+- use_when: Reviewing repeated run-quality problems, provider failures, missing artifacts, or recurring workflow issues across weekly/manual runs.
+- do_not_use_when: Treating a single-run issue as recurring without enough reflected runs.
+- evidence: `stock_research/memory_reflection.py`, `stock_research/cli.py`, `tests/test_memory_reflection.py`, `agents/memory/recurring_failures.md`
+- owner: memory and evaluation orchestrator
+- next_review: 2026-06-01
+
+- id: eval-2026-05-04-deterministic-run-finalization-is-implemented-th
+- date: 2026-05-04
+- type: evaluation
+- scope: global
+- status: active
+- confidence: high
+- trigger/source: deterministic run finalization implementation
+- lesson: Deterministic run finalization is implemented through python -m stock_research memory finalize-run --run-id RUN_ID. It writes memory reflection artifacts, recurring failure reports, and run finalization artifacts in one command for future scheduler/orchestrator use.
+- use_when: Ending a weekly/manual run, preparing scheduler integration, or reviewing whether run-learning artifacts are complete.
+- do_not_use_when: Assuming memory update proposals are applied automatically or that the scheduler already invokes finalization.
+- evidence: stock_research/run_finalization.py, stock_research/cli.py, tests/test_memory_reflection.py, agents/runs/2026-05-09_weekly/finalization.md
 - owner: memory and evaluation orchestrator
 - next_review: 2026-06-01

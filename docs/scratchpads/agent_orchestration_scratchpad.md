@@ -36,6 +36,8 @@
 - [x] Add deterministic operational memory loader/validator/context selector.
 - [x] Add deterministic operational memory writer/deprecate commands.
 - [x] Add deterministic post-run memory reflection/proposal command.
+- [x] Add deterministic recurring failure detection across reflected runs.
+- [x] Add deterministic run finalization command.
 - [ ] Validate updated architecture with user.
 
 ## Key Decisions and Why
@@ -69,6 +71,8 @@
 - 2026-05-04: Added Python memory tooling: `memory summary`, `memory validate`, and `memory context --task TASK`. Updated `AGENTS.md` so future agents must read operational memory, not only durable `MEMORY.md`.
 - 2026-05-04: Added deterministic `memory add` and `memory deprecate` commands so structured memory updates can be schema-valid and auditable instead of manual-only Markdown edits.
 - 2026-05-04: Added deterministic `memory reflect-run --run-id RUN_ID [--write]`. It reads manifest/evidence/run summary/quality report artifacts, writes reflection artifacts, and proposes memory updates without applying them automatically.
+- 2026-05-04: Added deterministic `memory recurring-failures [--write]`. It scans `memory_reflection.json` artifacts across runs and flags issue categories that recur across at least the threshold number of distinct runs.
+- 2026-05-04: Added deterministic `memory finalize-run --run-id RUN_ID`. It writes run reflection, recurring-failure, and finalization artifacts in one command for future scheduler/orchestrator integration.
 
 ## What We Learned
 
@@ -111,6 +115,10 @@
 - Deterministic memory write commands exist: `python -m stock_research memory add ...` and `python -m stock_research memory deprecate --id ITEM_ID --reason "..."`.
 - Deterministic post-run reflection command exists: `python -m stock_research memory reflect-run --run-id 2026-05-09_weekly --write`.
 - Reflection artifacts exist for the current weekly smoke run: `agents/runs/2026-05-09_weekly/memory_reflection.json` and `agents/runs/2026-05-09_weekly/memory_reflection.md`.
+- Recurring failure report artifacts exist: `agents/memory/recurring_failures.json` and `agents/memory/recurring_failures.md`. Current report has no recurring patterns because only one reflected run exists.
+- Deterministic run finalization command exists: `python -m stock_research memory finalize-run --run-id RUN_ID`.
+- Finalization artifacts exist for the current weekly smoke run: `agents/runs/2026-05-09_weekly/finalization.json` and `agents/runs/2026-05-09_weekly/finalization.md`.
+- Current weekly smoke run finalization is `needs_review` because no run summary/quality report exists and some planned discovery provider tasks did not produce evidence packets.
 - Agent memory stores workflow/source/procedure/evaluation lessons only; company facts stay in stock files, strategy, and evidence packets.
 - `python -m unittest discover -s tests` is the working test command in this repo.
 - Cursor SDK is promising for coding-agent automation, but it is public beta and TypeScript-first; it looks better for repo maintenance agents than for the core stock-research runtime.
@@ -131,8 +139,8 @@
 ## Next Steps
 
 - Review updated `docs/descriptions/investment_agent_workflow.md` and `docs/plans/investment_agent_backlog.md` with the user if needed.
-- Next implementation work should build the LLM memory writer agent, wire reflection into the orchestrator/scheduled runner, inject memory context into specialist prompts, or build the first financial-data specialist around `financial_compare` packets.
-- Learning-loop gaps explicitly still pending: LLM memory writer agent, orchestrator/scheduled invocation of reflection, recurring failure detection, and orchestrator injection of memory context into specialist prompts.
+- Next implementation work should build the LLM memory writer agent, wire finalization into the orchestrator/scheduled runner, inject memory context into specialist prompts, or build the first financial-data specialist around `financial_compare` packets.
+- Learning-loop gaps explicitly still pending: LLM memory writer agent, scheduled/orchestrator invocation of run finalization, and orchestrator injection of memory context into specialist prompts.
 - Before Priority 4 agent implementation, run a thin spike comparing OpenAI Agents SDK vs Pydantic AI for one evidence-packet specialist and one orchestrator call.
 - Consider LangGraph only if the first spike shows that explicit resumable graph state is needed earlier than planned.
 - Add README and SETUP when runtime dependencies are introduced.
@@ -168,3 +176,4 @@
 - Alpha Vantage live smoke packet: `agents/runs/2026-05-09_weekly/evidence_packets/2026-05-04_alpha_vantage_company_aapl.json`.
 - Financial compare live smoke packet: `agents/runs/2026-05-09_weekly/evidence_packets/2026-05-04_financial_compare_company_aapl.json`.
 - Current written weekly manifest with provider tasks: `agents/runs/2026-05-09_weekly/manifest.json`.
+- Current run finalization artifact: `agents/runs/2026-05-09_weekly/finalization.md`.

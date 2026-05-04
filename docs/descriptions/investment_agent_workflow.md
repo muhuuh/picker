@@ -110,7 +110,7 @@ The initial deterministic Python core was added on 2026-05-03 under `stock_resea
 
 The provider-neutral evidence schema was added on 2026-05-03 under `stock_research/evidence.py` and `docs/descriptions/evidence_schema.md`.
 The deterministic financial comparison layer was added on 2026-05-04 under `stock_research/financial_compare.py`.
-The operational agent memory layer was added on 2026-05-04 under `agents/memory/`, with deterministic inspection support under `stock_research/memory.py`.
+The operational agent memory layer was added on 2026-05-04 under `agents/memory/`, with deterministic inspection support under `stock_research/memory.py` and run finalization support under `stock_research/run_finalization.py`.
 
 The first provider integration, SEC EDGAR, was added on 2026-05-03 under `stock_research/providers/sec_edgar.py`.
 The next provider tools, yfinance and Exa, were added on 2026-05-03 under `stock_research/providers/yfinance_provider.py` and `stock_research/providers/exa.py`.
@@ -322,7 +322,7 @@ flowchart TD
     H3 --> I
     I --> J["Quality reviewer"]
     J --> K["Persist final files and run summary"]
-    K --> L["Update agent memory and scratchpads"]
+    K --> L["Finalize run learning artifacts"]
     H4 --> U2["User Sunday review / Codex chat"]
 ```
 
@@ -389,6 +389,7 @@ Deterministic commands:
 python -m stock_research memory summary
 python -m stock_research memory validate
 python -m stock_research memory context --task financial
+python -m stock_research memory finalize-run --run-id RUN_ID
 ```
 
 Memory rules:
@@ -396,7 +397,7 @@ Memory rules:
 - Load `agents/memory/memory_index.md` after `MEMORY.md`, `repo_map.md`, and the relevant scratchpad.
 - Load only task-relevant memory files after reading the index.
 - Use hot-path memory writes only for high-impact user corrections or dangerous repeated mistakes.
-- Use post-run reflection to update memory after weekly/manual runs.
+- Use post-run finalization to generate memory reflection, recurring-failure, and finalization artifacts after weekly/manual runs.
 - Do not store raw provider output, secrets, or ordinary company facts in `agents/memory/`.
 
 ### Run artifacts

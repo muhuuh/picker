@@ -1,0 +1,27 @@
+{
+  "artifacts": [
+    "agents/runs/2026-05-09_weekly/memory_reflection.json",
+    "agents/runs/2026-05-09_weekly/memory_reflection.md",
+    "agents/memory/recurring_failures.json",
+    "agents/memory/recurring_failures.md"
+  ],
+  "generated_at": "2026-05-04",
+  "metrics": {
+    "evidence_packets": 9,
+    "invalid_evidence_packets": 0,
+    "recurring_failure_patterns": 0,
+    "recurring_memory_update_proposals": 0,
+    "recurring_runs_scanned": 1,
+    "recurring_threshold": 2,
+    "reflection_issues": 5,
+    "reflection_memory_update_proposals": 1,
+    "valid_evidence_packets": 9
+  },
+  "next_actions": [
+    "Review `memory_reflection.md` before treating the run as complete.",
+    "Apply or reject proposed memory updates from `memory_reflection.md`."
+  ],
+  "run_dir": "agents/runs/2026-05-09_weekly",
+  "run_id": "2026-05-09_weekly",
+  "status": "needs_review"
+}
