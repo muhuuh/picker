@@ -39,6 +39,7 @@
 - [x] Add deterministic post-run memory reflection/proposal command.
 - [x] Add deterministic recurring failure detection across reflected runs.
 - [x] Add deterministic run finalization command.
+- [x] Add deterministic analysis-task runner.
 - [ ] Validate updated architecture with user.
 
 ## Key Decisions and Why
@@ -75,6 +76,7 @@
 - 2026-05-04: Added deterministic `memory reflect-run --run-id RUN_ID [--write]`. It reads manifest/evidence/run summary/quality report artifacts, writes reflection artifacts, and proposes memory updates without applying them automatically.
 - 2026-05-04: Added deterministic `memory recurring-failures [--write]`. It scans `memory_reflection.json` artifacts across runs and flags issue categories that recur across at least the threshold number of distinct runs.
 - 2026-05-04: Added deterministic `memory finalize-run --run-id RUN_ID`. It writes run reflection, recurring-failure, and finalization artifacts in one command for future scheduler/orchestrator integration.
+- 2026-05-04: Added deterministic `analysis-tasks --manifest PATH [--execute]`. It dry-runs by default, executes `financial_compare` and `financial_review`, and respects selected intra-analysis dependencies.
 
 ## What We Learned
 
@@ -103,6 +105,7 @@
 - Exa default weekly usage should be: holdings/monitoring -> `news`; industry/theme priorities -> `industry` or `general`; discovery -> `company`; high-value result follow-up -> `contents`.
 - Manifest provider tasks now plan SEC/yfinance/Exa kickoff work before orchestrator synthesis.
 - Provider task runner command exists: `python -m stock_research provider-tasks --manifest agents\runs\2026-05-09_weekly\manifest.json`.
+- Analysis task runner command exists: `python -m stock_research analysis-tasks --manifest agents\runs\2026-05-09_weekly\manifest.json`.
 - xAI Grok command exists: `python -m stock_research xai x-search ...`.
 - Manifest provider tasks now include Grok `x_search` sentiment/latest-news checks.
 - Live xAI Grok AMD smoke packet exists: `agents/runs/2026-05-09_weekly/evidence_packets/2026-05-03_xai_grok_company_amd.json`.
@@ -183,3 +186,4 @@
 - Financial data specialist live review report: `agents/runs/2026-05-09_weekly/reports/financial_data_specialist/AAPL_financial_review.md`.
 - Current written weekly manifest with provider tasks: `agents/runs/2026-05-09_weekly/manifest.json`.
 - Current run finalization artifact: `agents/runs/2026-05-09_weekly/finalization.md`.
+- Current real manifest has no tracked-stock analysis tasks yet because the stock tracking CSVs are still empty; analysis runner dry-run therefore reports zero planned tasks for that manifest.

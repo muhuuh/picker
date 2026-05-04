@@ -96,6 +96,11 @@ Use this file for information we should not lose across sessions.
   - evidence artifact path(s): `stock_research/manifest.py`, `stock_research/provider_runner.py`, `stock_research/cli.py`, `tests/test_stock_research_core.py`, `tests/test_provider_runner.py`, `agents/runs/2026-05-09_weekly/manifest.json`
   - status: active
 
+- 2026-05-04:
+  - decision/fact: A dry-run-by-default analysis task runner is implemented. Use `python -m stock_research analysis-tasks --manifest PATH [--execute]` to execute deterministic post-provider analysis tasks such as `financial_compare` and `financial_review` in dependency order.
+  - evidence artifact path(s): `stock_research/analysis_runner.py`, `stock_research/cli.py`, `tests/test_analysis_runner.py`, `docs/descriptions/analysis_task_runner.md`
+  - status: active
+
 - 2026-05-03:
   - decision/fact: Direct X.com API recent search/counts was the wrong implementation path and is superseded. The repo should use xAI/Grok with built-in `x_search` via `XAI_API_KEY` for X sentiment/latest-news research.
   - evidence artifact path(s): `stock_research/providers/xai_grok.py`, `docs/descriptions/xai_grok_provider.md`, `tests/test_xai_grok_provider.py`, `stock_research/manifest.py`, `stock_research/provider_runner.py`

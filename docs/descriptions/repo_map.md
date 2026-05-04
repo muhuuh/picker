@@ -62,6 +62,7 @@ This file tells Codex, the orchestrator, and future agents where to find and upd
 - `docs/descriptions/alpha_vantage_provider.md`: Alpha Vantage quote/overview provider behavior and setup.
 - `docs/descriptions/financial_compare.md`: deterministic financial provider comparison behavior.
 - `docs/descriptions/financial_data_specialist.md`: deterministic financial-data specialist review behavior.
+- `docs/descriptions/analysis_task_runner.md`: deterministic analysis-task runner behavior.
 - `docs/plans/investment_agent_backlog.md`: prioritized implementation backlog.
 - `docs/plans/investment_agent_workflow_plan.md`: high-level implementation plan.
 - `agents/orchestrator/`: future main orchestrator implementation.
@@ -107,6 +108,8 @@ This file tells Codex, the orchestrator, and future agents where to find and upd
 - `python -m stock_research xai x-search --ticker TICKER --subject-type company --subject-id TICKER --run-id RUN_ID`: run Grok x_search into social evidence artifacts.
 - `python -m stock_research provider-tasks --manifest PATH`: dry-run provider tasks from a manifest.
 - `python -m stock_research provider-tasks --manifest PATH --execute`: execute provider tasks from a manifest.
+- `python -m stock_research analysis-tasks --manifest PATH`: dry-run analysis tasks from a manifest.
+- `python -m stock_research analysis-tasks --manifest PATH --execute`: execute analysis tasks from a manifest.
 - `tests/`: unit tests for current deterministic core.
 
 ## Where To Put Common User Requests

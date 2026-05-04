@@ -111,6 +111,7 @@ The initial deterministic Python core was added on 2026-05-03 under `stock_resea
 The provider-neutral evidence schema was added on 2026-05-03 under `stock_research/evidence.py` and `docs/descriptions/evidence_schema.md`.
 The deterministic financial comparison layer was added on 2026-05-04 under `stock_research/financial_compare.py`.
 The deterministic financial-data specialist review layer was added on 2026-05-04 under `stock_research/financial_specialist.py`.
+The deterministic analysis-task runner was added on 2026-05-04 under `stock_research/analysis_runner.py`.
 The operational agent memory layer was added on 2026-05-04 under `agents/memory/`, with deterministic inspection support under `stock_research/memory.py` and run finalization support under `stock_research/run_finalization.py`.
 
 The first provider integration, SEC EDGAR, was added on 2026-05-03 under `stock_research/providers/sec_edgar.py`.
@@ -221,7 +222,7 @@ Current implementation status:
 - Implemented: repo state loader, CSV schema validator, stock-info file indexer, human input queue loader, research priorities loader, human review queue loader, stale-data scanner, rejected-stock cooldown summary, weekly manifest generator.
 - Implemented: deterministic request classifier, human input queue appender, request router, human review queue writer, and manual run manifest creation.
 - Implemented providers: SEC EDGAR submissions and optional companyfacts evidence packet writer, yfinance market-data snapshots, FMP market-data/fundamentals snapshots, Polygon/Massive U.S. ticker/OHLC snapshots, Alpha Vantage quote/overview snapshots, Exa search/contents evidence packet writers, and xAI Grok x_search evidence packet writers.
-- Implemented: weekly manifests now include deterministic provider tasks and post-provider `analysis_tasks` for financial comparison plus financial-data specialist review, and `provider-tasks` can dry-run or explicitly execute provider tasks.
+- Implemented: weekly manifests now include deterministic provider tasks and post-provider `analysis_tasks` for financial comparison plus financial-data specialist review. `provider-tasks` and `analysis-tasks` can dry-run or explicitly execute those manifest tasks.
 - Pending: macro providers, LLM specialists, orchestrator runtime, OS/app scheduled execution, immediate manual research runs.
 
 ### Layer 2: Specialist research agents

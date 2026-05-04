@@ -47,6 +47,7 @@ Detailed backlog: `docs/plans/investment_agent_backlog.md`.
 - [x] Implement run artifact persistence under `agents/runs/`.
 - [x] Add deterministic provider tasks to weekly manifests.
 - [x] Add dry-run-by-default provider task runner.
+- [x] Add dry-run-by-default analysis task runner.
 - [x] Add tests for file discovery, CSV validation, and manifest generation.
 
 ## Priority 3: Build Data Tools
@@ -154,4 +155,5 @@ Detailed backlog: `docs/plans/investment_agent_backlog.md`.
 - 2026-05-04: Implemented recurring failure detection with `python -m stock_research memory recurring-failures [--write]`; current real report has no recurring patterns yet because only one reflected run exists.
 - 2026-05-04: Implemented deterministic run finalization with `python -m stock_research memory finalize-run --run-id RUN_ID`; it writes reflection, recurring-failure, and finalization artifacts but is not yet called automatically by a scheduler/orchestrator.
 - 2026-05-04: Implemented the first deterministic financial-data specialist with `python -m stock_research financial review --ticker TICKER --run-id RUN_ID`; it consumes `financial_compare` packets and writes specialist evidence, raw review JSON, and markdown review artifacts.
+- 2026-05-04: Implemented deterministic analysis-task runner with `python -m stock_research analysis-tasks --manifest PATH [--execute]`; it executes `financial_compare` and `financial_review` tasks from manifests in dependency order.
 - 2026-05-03: Started SDK/framework review before agent runtime work. Current finding: Cursor SDK is likely a coding-agent automation adjunct, not the core stock-research orchestration runtime; OpenAI Agents SDK, Pydantic AI, and LangGraph remain the main candidates.

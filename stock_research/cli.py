@@ -5,6 +5,7 @@ import json
 from datetime import date
 from pathlib import Path
 
+from .analysis_runner import run_analysis_tasks
 from .config import get_config_value
 from .evidence import default_packet_path, new_packet, read_packet, validate_packet, write_packet
 from .financial_compare import FinancialCompareError, build_financial_compare_packet
@@ -297,6 +298,14 @@ def main(argv: list[str] | None = None) -> int:
     provider_tasks.add_argument("--task-id", action="append", default=[], help="Filter task id. Repeatable.")
     provider_tasks.add_argument("--limit", type=int)
     provider_tasks.add_argument("--today", help="Override current date as YYYY-MM-DD.")
+
+    analysis_tasks = subparsers.add_parser("analysis-tasks", help="Dry-run or execute analysis tasks from a manifest.")
+    analysis_tasks.add_argument("--manifest", type=Path, required=True)
+    analysis_tasks.add_argument("--execute", action="store_true", help="Execute tasks. Omit for safe dry-run.")
+    analysis_tasks.add_argument("--tool", action="append", default=[], help="Filter analysis tool. Repeatable.")
+    analysis_tasks.add_argument("--task-id", action="append", default=[], help="Filter task id. Repeatable.")
+    analysis_tasks.add_argument("--limit", type=int)
+    analysis_tasks.add_argument("--today", help="Override current date as YYYY-MM-DD.")
 
     args = parser.parse_args(argv)
     state = load_repo_state(args.root)
@@ -718,6 +727,21 @@ def main(argv: list[str] | None = None) -> int:
         )
         print(json.dumps(result, indent=2, sort_keys=True))
         return 0 if not result["errors"] else 1
+
+    if args.command == "analysis-tasks":
+        request_date = parse_cli_date(args.today)
+        manifest = read_manifest(args.manifest)
+        result = run_analysis_tasks(
+            root=state.root,
+            manifest=manifest,
+            execute=args.execute,
+            tools=set(args.tool) if args.tool else None,
+            task_ids=set(args.task_id) if args.task_id else None,
+            limit=args.limit,
+            current_date=request_date,
+        )
+        print(json.dumps(result, indent=2, sort_keys=True))
+        return 0 if not result["errors"] and not result["skipped"] else 1
 
     return 1
 

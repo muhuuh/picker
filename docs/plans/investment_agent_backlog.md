@@ -114,6 +114,8 @@ This is the clear task backlog for building the stock tracking and investment re
   - Description: generate Saturday run plan with tracked stocks, industries, providers, human input queue items, research priorities, tasks, and expected outputs.
 - [x] Implement run artifact storage.
   - Description: save each run under `agents/runs/YYYY-MM-DD_run-id/`.
+- [x] Implement analysis task runner.
+  - Description: dry-run or execute deterministic post-provider analysis tasks from a manifest.
 
 ## Priority 3 Outputs
 
@@ -161,6 +163,7 @@ This is the clear task backlog for building the stock tracking and investment re
 - `stock_research/providers/alpha_vantage.py`
 - `stock_research/financial_compare.py`
 - `stock_research/financial_specialist.py`
+- `stock_research/analysis_runner.py`
 - `stock_research/provider_runner.py`
 - `docs/descriptions/evidence_schema.md`
 - `docs/descriptions/sec_edgar_provider.md`
@@ -186,6 +189,9 @@ This is the clear task backlog for building the stock tracking and investment re
 - `python -m stock_research xai x-search --ticker TICKER --subject-type company --subject-id TICKER --run-id RUN_ID`
 - `python -m stock_research provider-tasks --manifest PATH`
 - `python -m stock_research provider-tasks --manifest PATH --execute`
+- `python -m stock_research analysis-tasks --manifest PATH`
+- `python -m stock_research analysis-tasks --manifest PATH --execute`
+- `tests/test_analysis_runner.py`
 - `tests/test_evidence.py`
 - `tests/test_sec_edgar_provider.py`
 - `tests/test_exa_provider.py`

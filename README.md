@@ -54,6 +54,13 @@ Execute planned provider tasks explicitly:
 python -m stock_research provider-tasks --manifest agents\runs\2026-05-09_weekly\manifest.json --execute
 ```
 
+Dry-run or execute planned analysis tasks from a manifest:
+
+```powershell
+python -m stock_research analysis-tasks --manifest agents\runs\2026-05-09_weekly\manifest.json
+python -m stock_research analysis-tasks --manifest agents\runs\2026-05-09_weekly\manifest.json --execute
+```
+
 Classify a natural-language user request:
 
 ```powershell
@@ -171,6 +178,7 @@ Implemented:
 - stale-data scanner,
 - weekly run manifest generator,
 - deterministic provider-task planner and dry-run-by-default provider task runner,
+- deterministic analysis-task planner and dry-run-by-default analysis task runner,
 - deterministic operational memory loader, validator, summary, and task-context selector.
 - deterministic operational memory add/deprecate commands.
 - deterministic post-run memory reflection and memory update proposal generator.

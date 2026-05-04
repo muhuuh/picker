@@ -83,3 +83,17 @@ Operational memory for workflow routing, orchestration, run ordering, and user c
 - Which file writes require human approval beyond buy/sell/position-size recommendations and stock status moves.
 - How the orchestrator will inject task-relevant operational memory into each specialist prompt.
 - How the memory and evaluation sub-orchestrator will coordinate automatic post-run reflection, memory update proposals, and the LLM memory writer agent.
+
+- id: orch-2026-05-04-analysis-tasks-can-now-be-dry-run-or-executed-fr
+- date: 2026-05-04
+- type: procedural
+- scope: orchestrator
+- status: active
+- confidence: high
+- trigger/source: deterministic analysis task runner implementation
+- lesson: Analysis tasks can now be dry-run or executed from manifests through python -m stock_research analysis-tasks --manifest PATH [--execute]. Run provider tasks first, then analysis tasks, then run summary/quality report/finalization.
+- use_when: Running weekly/manual deterministic workflows, scheduler integration, or orchestrator kickoff planning.
+- do_not_use_when: Executing live provider API calls; use provider-tasks for provider work.
+- evidence: stock_research/analysis_runner.py, stock_research/cli.py, tests/test_analysis_runner.py, docs/descriptions/analysis_task_runner.md
+- owner: main orchestrator
+- next_review: 2026-06-01
