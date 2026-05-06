@@ -6,6 +6,7 @@ Last updated: 2026-05-06
 
 - Python 3.10 or newer.
 - `yfinance` is required for live yfinance market-data snapshots.
+- `openai-agents` is required for the OpenAI Agents SDK runtime foundation.
 
 Install declared dependencies:
 
@@ -109,7 +110,7 @@ Use `.env.example` as a local template.
 
 ## OpenAI Agents SDK Runtime
 
-OpenAI Agents SDK is selected as the future LLM orchestration framework, but the SDK runtime package has not been added yet.
+OpenAI Agents SDK is selected as the LLM orchestration framework. The package is declared in `pyproject.toml`, and the initial runtime foundation exists under `stock_research/agent_runtime/`.
 
 Planning files:
 
@@ -119,7 +120,14 @@ docs/plans/openai_agents_sdk_orchestration_backlog.md
 docs/scratchpads/openai_agents_sdk_orchestration_scratchpad.md
 ```
 
-When implementation starts, setup should add the `openai-agents` dependency and document any new verification commands here.
+Inspect the registry and build the main orchestrator without making live model calls:
+
+```powershell
+python -m stock_research agent-runtime list-agents
+python -m stock_research agent-runtime smoke --run-id 2026-05-09_weekly
+```
+
+Live orchestration calls are not wired into `run-weekly` yet.
 
 ## SEC EDGAR
 

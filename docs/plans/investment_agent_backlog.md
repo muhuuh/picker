@@ -266,7 +266,8 @@ This is the clear task backlog for building the stock tracking and investment re
   - Description: `python -m stock_research run-weekly` now chains manifest generation, provider tasks, analysis tasks, run summary, quality report, memory finalization, bounded memory-writer review, and orchestration report up to the agent-framework decision boundary.
 - [ ] Build OpenAI Agents SDK runtime foundation.
   - Description: implement the dedicated SDK runtime backlog with context, registry, guarded tools, structured outputs, tracing, memory injection, and one specialist-as-tool spike.
-  - Output: `stock_research/agent_runtime/`, `docs/descriptions/openai_agents_sdk_orchestration.md`, tests, and a smoke command.
+  - Current progress: first foundation slice is implemented with context, registry, main orchestrator, company-news specialist-as-tool, prompt/spec files, run config, trace helpers, tests, and no-model-call smoke command. Live orchestration is pending.
+  - Output: `stock_research/agent_runtime/`, `docs/descriptions/openai_agents_sdk_orchestration.md`, tests, and `python -m stock_research agent-runtime smoke`.
 - [ ] Build OS/app scheduled execution.
   - Description: run the deterministic weekly runner automatically on Saturday and support manual trigger flows.
 - [ ] Build company research sub-orchestrator.

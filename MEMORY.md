@@ -182,8 +182,8 @@ Use this file for information we should not lose across sessions.
   - status: active
 
 - 2026-05-06:
-  - decision/fact: OpenAI Agents SDK is selected as the agent orchestration framework. The next runtime slice should build a composable SDK layer around the existing deterministic workflow, with specialist agents usable both directly by code and as tools for orchestrators.
-  - evidence artifact path(s): `docs/scratchpads/openai_agents_sdk_orchestration_scratchpad.md`, `docs/plans/openai_agents_sdk_orchestration_backlog.md`, `docs/descriptions/investment_agent_workflow.md`, `docs/plans/investment_agent_backlog.md`
+  - decision/fact: OpenAI Agents SDK is selected as the agent orchestration framework. The first runtime foundation is implemented with `stock_research/agent_runtime/`, central registry, main orchestrator builder, company-news specialist builder, specialist-as-tool composition, typed context/output contracts, prompt/spec files, trace/run config helpers, tests, and a no-model-call smoke CLI.
+  - evidence artifact path(s): `stock_research/agent_runtime/`, `agents/orchestrator/prompts/main.md`, `agents/orchestrator/specs/main.md`, `agents/specialists/prompts/company_news.md`, `agents/specialists/specs/company_news.md`, `tests/test_agent_runtime.py`, `docs/scratchpads/openai_agents_sdk_orchestration_scratchpad.md`, `docs/plans/openai_agents_sdk_orchestration_backlog.md`
   - status: active
 
 - 2026-05-04:

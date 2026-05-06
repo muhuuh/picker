@@ -80,6 +80,13 @@ python -m stock_research run-weekly --write
 python -m stock_research run-weekly --write --execute-providers --execute-analysis
 ```
 
+Inspect the OpenAI Agents SDK runtime registry without making live model calls:
+
+```powershell
+python -m stock_research agent-runtime list-agents
+python -m stock_research agent-runtime smoke --run-id 2026-05-09_weekly
+```
+
 Generated run JSON, raw provider JSON, and evidence packet JSON are local runtime artifacts ignored by Git. Commit the markdown summaries/reports and source/docs changes, not the generated JSON blobs.
 
 Classify a natural-language user request:
@@ -226,7 +233,7 @@ Implemented:
 - prompt-ready operational memory context for future specialist injection.
 - deterministic run finalization command for reflection, recurring-failure, and finalization artifacts.
 - deterministic weekly runner that chains manifest, provider tasks, analysis tasks, summary, quality report, memory finalization, and memory-writer review up to the agent-framework decision boundary.
-- OpenAI Agents SDK selected as the future LLM orchestration framework, with runtime implementation still pending.
+- OpenAI Agents SDK runtime foundation: importable runtime package, main orchestrator builder, company-news specialist builder, central registry, specialist-as-tool composition, typed context/output contracts, prompt/spec files, and no-model-call smoke command.
 - deterministic human request classifier and queue appender.
 - deterministic request router for stock, industry, theme, strategy, alert-review, manual-run, and status-move requests.
 - provider-neutral evidence packet schema and JSON artifact writer.
@@ -247,6 +254,6 @@ Not implemented yet:
 
 - macro provider integrations,
 - LLM specialist agents,
-- OpenAI Agents SDK LLM orchestrator runtime,
+- live OpenAI Agents SDK orchestration calls from `run-weekly`,
 - OS/app scheduled execution,
 - immediate research runs.

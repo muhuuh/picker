@@ -153,3 +153,17 @@ Operational memory for workflow routing, orchestration, run ordering, and user c
 - evidence: `docs/plans/openai_agents_sdk_orchestration_backlog.md`, `docs/scratchpads/openai_agents_sdk_orchestration_scratchpad.md`, `MEMORY.md`
 - owner: main orchestrator
 - next_review: 2026-06-15
+
+- id: orch-2026-05-06-agent-runtime-registry
+- date: 2026-05-06
+- type: procedural
+- scope: orchestrator
+- status: active
+- confidence: high
+- trigger/source: First OpenAI Agents SDK runtime foundation implementation.
+- lesson: Build orchestrators and specialists through the central `stock_research.agent_runtime.registry` so the same specialist can be imported directly by code, exposed through `Agent.as_tool()`, and reused in scheduled or manual workflows.
+- use_when: Adding, removing, or calling OpenAI Agents SDK orchestrators and specialists.
+- do_not_use_when: Running deterministic provider/analysis functions that do not need LLM agents.
+- evidence: `stock_research/agent_runtime/registry.py`, `stock_research/agent_runtime/orchestrators/main.py`, `stock_research/agent_runtime/specialists/company_news.py`, `tests/test_agent_runtime.py`
+- owner: main orchestrator
+- next_review: 2026-06-15

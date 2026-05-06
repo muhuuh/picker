@@ -6,7 +6,7 @@ Last updated: 2026-05-06
 
 This document defines how this repo should use OpenAI Agents SDK for LLM orchestration.
 
-The SDK runtime is not implemented yet. This file is the implementation contract for the next build slice.
+The first SDK runtime foundation is implemented. It can build real SDK `Agent` objects, compose the company-news specialist as a tool for the main orchestrator, and run a no-model-call registry smoke command.
 
 Dedicated backlog: `docs/plans/openai_agents_sdk_orchestration_backlog.md`.
 
@@ -251,3 +251,29 @@ Success criteria:
 - local metrics are written,
 - trace metadata is available,
 - failures produce reviewable artifacts instead of silent errors.
+
+## Current Implementation
+
+Implemented:
+
+- `stock_research/agent_runtime/context.py`: `ResearchRunContext` and memory-aware context builder.
+- `stock_research/agent_runtime/outputs.py`: typed output contracts for specialist results, orchestrator decisions, alerts, file update proposals, and human review items.
+- `stock_research/agent_runtime/registry.py`: central agent registry.
+- `stock_research/agent_runtime/orchestrators/main.py`: main orchestrator agent builder.
+- `stock_research/agent_runtime/specialists/company_news.py`: company-news specialist agent builder.
+- `stock_research/agent_runtime/tools/repo_tools.py`: first repo/memory/run-artifact function tools.
+- `stock_research/agent_runtime/runner.py`: run config wrapper with trace metadata and sensitive-data tracing disabled.
+- `stock_research/agent_runtime/tracing.py`: local trace/metrics artifact helpers.
+- `agents/orchestrator/prompts/` and `agents/specialists/prompts/`: prompt files.
+- `agents/orchestrator/specs/` and `agents/specialists/specs/`: spec files.
+- CLI inspection:
+  - `python -m stock_research agent-runtime list-agents`
+  - `python -m stock_research agent-runtime smoke --run-id RUN_ID`
+
+Not implemented yet:
+
+- live `Runner.run(...)` orchestration from `run-weekly`,
+- local metrics writing during actual SDK calls,
+- parallel fanout,
+- full tool guardrail set,
+- additional specialists beyond company-news scaffold.

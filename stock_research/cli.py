@@ -383,6 +383,13 @@ def main(argv: list[str] | None = None) -> int:
     quality_report_parser.add_argument("--write", action="store_true", help="Write quality_report.json and quality_report.md into the run directory.")
     quality_report_parser.add_argument("--today", help="Override current date as YYYY-MM-DD.")
 
+    agent_runtime_parser = subparsers.add_parser("agent-runtime", help="Inspect the OpenAI Agents SDK runtime registry.")
+    agent_runtime_subparsers = agent_runtime_parser.add_subparsers(dest="agent_runtime_command", required=True)
+    agent_runtime_subparsers.add_parser("list-agents", help="List registered orchestrator and specialist agents.")
+    agent_runtime_smoke = agent_runtime_subparsers.add_parser("smoke", help="Build the SDK runtime context and main orchestrator without a live model call.")
+    agent_runtime_smoke.add_argument("--run-id", default="2026-05-09_weekly")
+    agent_runtime_smoke.add_argument("--task", default="main orchestrator")
+
     run_weekly_parser = subparsers.add_parser("run-weekly", help="Run the deterministic weekly workflow up to the agent-framework decision boundary.")
     run_weekly_parser.add_argument("--write", action="store_true", help="Persist manifest, reports, finalization, memory-writer review, and orchestration report.")
     run_weekly_parser.add_argument("--execute-providers", action="store_true", help="Execute live provider tasks. Omit for safe dry-run.")
@@ -985,6 +992,48 @@ def main(argv: list[str] | None = None) -> int:
             payload = {**payload, "written_paths": [str(path) for path in paths]}
         print(json.dumps(payload, indent=2, sort_keys=True))
         return 0 if result.status in {"complete", "dry_run"} else 1
+
+    if args.command == "agent-runtime":
+        from .agent_runtime.context import build_research_run_context
+        from .agent_runtime.registry import build_agent, list_agent_specs
+        from .agent_runtime.runner import build_run_config
+
+        if args.agent_runtime_command == "list-agents":
+            print(
+                json.dumps(
+                    [
+                        {
+                            "agent_id": spec.agent_id,
+                            "role": spec.role,
+                            "description": spec.description,
+                        }
+                        for spec in list_agent_specs()
+                    ],
+                    indent=2,
+                    sort_keys=True,
+                )
+            )
+            return 0
+        if args.agent_runtime_command == "smoke":
+            context = build_research_run_context(root=state.root, run_id=args.run_id, task=args.task)
+            agent = build_agent("main_orchestrator", context)
+            run_config = build_run_config(context)
+            print(
+                json.dumps(
+                    {
+                        "run_id": context.run_id,
+                        "trace_id": context.trace_id,
+                        "group_id": context.trace_group_id,
+                        "agent": agent.name,
+                        "tools": [getattr(tool, "name", type(tool).__name__) for tool in agent.tools],
+                        "workflow_name": run_config.workflow_name,
+                        "live_model_called": False,
+                    },
+                    indent=2,
+                    sort_keys=True,
+                )
+            )
+            return 0
 
     return 1
 

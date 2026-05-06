@@ -44,16 +44,16 @@ Out of scope for the first slice:
 
 ## Priority 1: Minimal SDK Runtime Spike
 
-- [ ] Add the `openai-agents` dependency.
+- [x] Add the `openai-agents` dependency.
   - Call out dependency change in `SETUP.md` and README.
-- [ ] Create `stock_research/agent_runtime/` package.
-- [ ] Define `ResearchRunContext`.
+- [x] Create `stock_research/agent_runtime/` package.
+- [x] Define `ResearchRunContext`.
   - Fields: repo root, run id, manifest path, memory context, allowed write targets, trace id, group id, run mode, dry-run flags.
-- [ ] Define initial structured outputs.
+- [x] Define initial structured outputs.
   - Candidate schemas: `SpecialistResult`, `OrchestratorDecision`, `AlertProposal`, `FileUpdateProposal`, `HumanReviewItem`.
-- [ ] Build a minimal manager agent plus one specialist agent-as-tool.
+- [x] Build a minimal manager agent plus one specialist agent-as-tool.
   - Preferred first specialist: synthesis over existing company-news or financial review artifacts, not a new provider.
-- [ ] Run a live or mocked smoke test.
+- [x] Run a live or mocked smoke test.
   - Must write local run metrics and trace link artifacts.
 
 ## Priority 2: Tool Wrappers Around Existing Deterministic Code
@@ -64,6 +64,8 @@ Out of scope for the first slice:
   - `load_quality_report`
   - `load_memory_prompt_context`
   - `list_evidence_packets`
+- [x] Start repo/memory inspection function tools.
+  - Implemented: `load_run_markdown`, `list_run_markdown_artifacts`, `load_operational_memory`.
 - [ ] Wrap deterministic provider task execution as guarded tools.
   - Default to dry-run unless the runtime has explicit execute permission.
 - [ ] Wrap deterministic analysis task execution as guarded tools.
@@ -134,7 +136,7 @@ Out of scope for the first slice:
 
 ## Priority 9: Tests and Evaluation
 
-- [ ] Add unit tests for registry, context, outputs, and guarded tools.
+- [x] Add unit tests for registry, context, outputs, and initial tools.
 - [ ] Add integration tests with fake model/tool outputs.
 - [ ] Add golden tests for orchestrator decisions from known evidence packets.
 - [ ] Add failure-injection tests for provider failure, malformed specialist output, missing citations, and timeout behavior.
@@ -168,13 +170,15 @@ flowchart TD
 
 The next build slice should be intentionally small:
 
-1. Add `openai-agents` dependency and setup docs.
-2. Add `stock_research/agent_runtime/` with context, outputs, and runner skeleton.
-3. Build one specialist-as-tool over existing artifacts.
-4. Add local tracing/metrics artifacts.
-5. Add tests and one smoke command.
+1. [x] Add `openai-agents` dependency and setup docs.
+2. [x] Add `stock_research/agent_runtime/` with context, outputs, and runner skeleton.
+3. [x] Build one specialist-as-tool over existing artifacts.
+4. [x] Add local tracing/metrics artifact helpers.
+5. [x] Add tests and one smoke command.
 
 Success means the SDK runtime can consume existing deterministic artifacts, call one specialist as a tool, return a validated structured decision, and write auditable run artifacts without broad file writes.
+
+Current status: partial success. The runtime can build the context, registry, main orchestrator, company-news specialist, specialist-as-tool, trace metadata, and no-model-call smoke output. The live `Runner.run(...)` call and real local metrics writing are the next implementation step.
 
 ## Risks / Gotchas
 

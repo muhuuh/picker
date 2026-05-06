@@ -106,7 +106,7 @@ Detailed backlog: `docs/plans/investment_agent_backlog.md`.
 - [x] Implement final run summary.
 - [ ] Add tracing IDs and run metrics to artifacts.
 - [ ] Build OpenAI Agents SDK runtime foundation.
-  - Current progress: framework selected; dedicated backlog/scratchpad created at `docs/plans/openai_agents_sdk_orchestration_backlog.md` and `docs/scratchpads/openai_agents_sdk_orchestration_scratchpad.md`.
+  - Current progress: first foundation slice implemented with dependency, runtime package, context/output contracts, registry, main orchestrator, company-news specialist-as-tool, prompt/spec files, run config, trace helpers, tests, and no-model-call smoke command. Live orchestration from `run-weekly` remains pending.
 
 ## Priority 6: Learning Loop
 
@@ -175,3 +175,4 @@ Detailed backlog: `docs/plans/investment_agent_backlog.md`.
 - 2026-05-04: Re-reviewed official Exa search, search best-practice, company, news, contents, and contents best-practice docs. Confirmed `auto` + highlights as default, `category: "company"` only for company discovery, no news category parameter, and top-level `/contents` extraction parameters. Added `company_news_contents_follow_up` before `company_news_review`; headline/highlight-only news reviews now remain `partial_review`.
 - 2026-05-03: Started SDK/framework review before agent runtime work. Current finding: Cursor SDK is likely a coding-agent automation adjunct, not the core stock-research orchestration runtime; OpenAI Agents SDK, Pydantic AI, and LangGraph remain the main candidates.
 - 2026-05-06: User selected OpenAI Agents SDK as the framework. Created a dedicated SDK orchestration scratchpad and backlog. Next implementation slice is a small SDK runtime foundation with context, registry, guarded tools, structured outputs, tracing, memory injection, and one specialist-as-tool spike.
+- 2026-05-06: Implemented the first OpenAI Agents SDK runtime foundation. Added `openai-agents`, `stock_research/agent_runtime/`, central registry, main orchestrator, company-news specialist-as-tool, typed context/output contracts, prompt/spec folders, smoke CLI, and tests. Live SDK orchestration is still pending.

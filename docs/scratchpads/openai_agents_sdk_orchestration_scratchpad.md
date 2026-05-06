@@ -14,6 +14,7 @@
 - 2026-05-06: User selected OpenAI Agents SDK as the preferred agent framework.
 - 2026-05-06: The framework decision boundary in `run-weekly` should now become an OpenAI Agents SDK integration boundary.
 - 2026-05-06: Runtime code should be importable/testable under `stock_research/agent_runtime/`; prompts/specs can live under `agents/orchestrator/` and `agents/specialists/`.
+- 2026-05-06: First runtime foundation implemented: dependency, context, outputs, registry, main orchestrator builder, company-news specialist builder, specialist-as-tool composition, prompt/spec folders, repo tools, run config wrapper, trace helpers, tests, and no-model-call smoke CLI.
 
 ## Official Docs Reviewed
 
@@ -137,3 +138,6 @@ run-weekly
 - Future live runtime env: `OPENAI_API_KEY`.
 - Existing prompt memory command for runtime injection: `python -m stock_research memory prompt-context --task TASK`.
 - Existing deterministic weekly boundary: `python -m stock_research run-weekly --write`.
+- SDK registry smoke command: `python -m stock_research agent-runtime smoke --run-id 2026-05-09_weekly`.
+- Dependency install command used: `python -m pip install -e .`.
+- Install warning observed: `openai-agents` pulled `starlette 1.0.0`, which conflicts with an unrelated installed `fastapi 0.117.1` requirement in this environment. The repo does not currently use FastAPI, but revisit this if a FastAPI service is added later.
