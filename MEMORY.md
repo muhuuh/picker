@@ -142,8 +142,8 @@ Use this file for information we should not lose across sessions.
   - status: active
 
 - 2026-05-04:
-  - decision/fact: The operational memory layer is not yet fully autonomous. Pending learning-loop work includes a bounded LLM memory writer agent, scheduled/orchestrator invocation of run finalization, and orchestrator injection of task-relevant memory into specialist prompts.
-  - evidence artifact path(s): `docs/plans/investment_agent_backlog.md`, `docs/plans/investment_agent_workflow_plan.md`, `agents/memory/evaluation_metrics.md`, `docs/descriptions/agent_memory_workflow.md`
+  - decision/fact: The operational memory layer is not yet fully autonomous. Scheduled deterministic run finalization and bounded memory-writer review are now wired into `run-weekly --write`; pending learning-loop work is automatic task-relevant memory injection into actual LLM specialist prompts after the agent framework is chosen.
+  - evidence artifact path(s): `stock_research/scheduled_runner.py`, `docs/plans/investment_agent_backlog.md`, `docs/plans/investment_agent_workflow_plan.md`, `agents/memory/evaluation_metrics.md`, `docs/descriptions/agent_memory_workflow.md`, `docs/descriptions/llm_memory_writer.md`, `docs/descriptions/scheduled_runner.md`
   - status: active
 
 - 2026-05-04:
@@ -164,6 +164,21 @@ Use this file for information we should not lose across sessions.
 - 2026-05-04:
   - decision/fact: Deterministic run finalization is implemented. Use `python -m stock_research memory finalize-run --run-id RUN_ID` to write post-run reflection, recurring-failure, and finalization artifacts. Actual scheduled/orchestrator invocation is still pending.
   - evidence artifact path(s): `stock_research/run_finalization.py`, `stock_research/cli.py`, `tests/test_memory_reflection.py`, `agents/runs/2026-05-09_weekly/finalization.md`
+  - status: active
+
+- 2026-05-05:
+  - decision/fact: The learning-loop memory workflow is the current priority over adding another provider/specialist. Memory update proposals can now be converted into schema-valid drafts with `python -m stock_research memory draft-updates --run-id RUN_ID --write`, applied after approval with `memory apply-updates`, and formatted for future specialist prompt injection with `memory prompt-context --task TASK`.
+  - evidence artifact path(s): `stock_research/memory_updates.py`, `stock_research/memory.py`, `stock_research/cli.py`, `docs/descriptions/agent_memory_workflow.md`, `docs/plans/investment_agent_backlog.md`
+  - status: active
+
+- 2026-05-05:
+  - decision/fact: Bounded LLM memory writer review is implemented. It builds review prompts, can run deterministic review or optional OpenAI Responses API structured output with `OPENAI_API_KEY`, writes review artifacts only when requested, can update draft artifacts, and still cannot directly edit `agents/memory/*.md`; approved writes must go through deterministic `memory apply-updates`.
+  - evidence artifact path(s): `stock_research/memory_llm_writer.py`, `tests/test_memory_llm_writer.py`, `docs/descriptions/llm_memory_writer.md`, `agents/runs/2026-05-09_weekly/memory_writer_review.md`
+  - status: active
+
+- 2026-05-05:
+  - decision/fact: Deterministic weekly orchestration is implemented through `python -m stock_research run-weekly`. It chains manifest generation, provider task dry-run/execute, analysis task dry-run/execute, run summary, quality report, memory finalization, bounded memory-writer review, and orchestration report, then stops at the agent-framework decision boundary.
+  - evidence artifact path(s): `stock_research/scheduled_runner.py`, `tests/test_scheduled_runner.py`, `docs/descriptions/scheduled_runner.md`, `README.md`, `SETUP.md`
   - status: active
 
 - 2026-05-04:

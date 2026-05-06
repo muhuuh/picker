@@ -8,7 +8,7 @@ It defines the required workflow for every new task in this repo.
 1. Start every task with a short plan (bullet points) before making edits.
 2. Before starting work, identify the topic and read the matching scratchpad to get up to date.
 3. Before starting implementation, read `MEMORY.md` for durable project decisions/facts relevant to the task.
-4. Before implementation, read `agents/memory/memory_index.md` and the task-relevant operational memory file(s) it points to. For deterministic inspection, use `python -m stock_research memory context --task TASK`.
+4. Before implementation, read `agents/memory/memory_index.md` and the task-relevant operational memory file(s) it points to. For deterministic inspection, use `python -m stock_research memory context --task TASK`; for specialist prompt injection, use `python -m stock_research memory prompt-context --task TASK`.
 5. Keep the matching scratchpad updated during the task (after meaningful steps) and at the end.
 6. Before implementing, check `docs/descriptions/` for task-relevant description files and read them.
 7. If your changes impact behavior/design documented in a relevant description file, update that file before finishing.
@@ -17,6 +17,7 @@ It defines the required workflow for every new task in this repo.
 10. Keep language simple and concrete.
 11. Do not add/change major dependencies or infra without explicitly calling it out.
 12. After major changes, verify `README.md` and `SETUP.md` still match reality.
+13. Final responses must include a clear outcome judgment: whether the result is good, partial, or bad; whether it matched the expected goal; what is still pending or risky; and the next logical steps from the backlog or from issues discovered during the task.
 
 ## Stock Research Repository Model
 
@@ -61,12 +62,14 @@ The initial market scope is US and Europe. The default recurring deep research c
 - Prefer deterministic kickoff steps for recurring runs: load repo state, check planned tasks, gather latest filings/news/sentiment/market context, validate stale records, then pass structured results to the orchestrator.
 - Use the orchestrator for synthesis, prioritization, routing, and final recommendations.
 - Produce both tracked-stock change alerts and new-stock discovery alerts when candidates match the strategy.
-- Use specialist agents for bounded work: X.com sentiment, industry sentiment, Exa/web search, SEC filing review, financial analysis, stock file updates, market discovery, strategy impact review, and quality control.
+- Use specialist agents for bounded work: xAI/Grok X sentiment, industry sentiment, Exa/web search, SEC filing review, financial analysis, stock file updates, market discovery, strategy impact review, and quality control.
 - Keep the orchestrator from directly editing detailed company files when a file-update specialist can do a narrower, auditable update.
 - All write actions should produce a short change summary with source links and confidence level.
 - Any buy/sell/position-size recommendation should be treated as research output for human review, not an automatic trade instruction.
 - Agent runs should update relevant scratchpads and plan files with what worked, what failed, useful prompts/tools, stale data risks, and next actions.
 - Agent runs should use `agents/memory/` for operational lessons and should not store raw provider output, secrets, or ordinary company facts there.
+- After run reflection/finalization proposes memory updates, convert them into reviewable drafts with `python -m stock_research memory draft-updates --run-id RUN_ID --write`, optionally review/refine them through `python -m stock_research memory writer-review --run-id RUN_ID --write`, and apply only approved ready drafts with `python -m stock_research memory apply-updates --run-id RUN_ID --proposal-id PROPOSAL_ID`.
+- The bounded LLM memory writer may propose accept/revise/reject decisions, but it must not directly edit `agents/memory/*.md`; memory writes must go through deterministic schema validation and `memory apply-updates`.
 
 ## Scratchpads (Topic Memory)
 
@@ -111,3 +114,15 @@ Before finishing any task:
 - [ ] Relevant description file(s) in `docs/descriptions/` checked and updated if impacted.
 - [ ] If the topic is complex/long-running: relevant plan file in `docs/plans/` updated.
 - [ ] Risky changes are clearly called out.
+
+## Final Response Requirements
+
+At the end of each task, do not only list files changed. Give the user a concise but useful conclusion:
+
+- Outcome quality: say whether the result is good, partial, or bad.
+- Expectation check: say whether the result achieved what we expected at the start of the task.
+- Verification: list the checks/tests run, or say why they were not run.
+- Remaining gaps: mention anything still pending, weak, risky, or not yet automated.
+- Next steps: name the next backlog-driven step and any new step discovered during the task.
+
+Keep this short and concrete. The user should not need to ask again whether the work succeeded or what to do next.

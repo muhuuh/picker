@@ -241,6 +241,52 @@ def build_memory_context(memory: MemoryState, task: str) -> dict[str, object]:
     }
 
 
+def format_memory_context_for_prompt(memory: MemoryState, task: str, max_items: int = 20) -> str:
+    context = build_memory_context(memory, task)
+    lines = [
+        f"# Operational Memory Context: {task}",
+        "",
+        "Use these lessons as constraints for this task. Do not treat operational memory as investment facts.",
+        "",
+        "## Memory Files",
+        "",
+    ]
+    for memory_file in context["memory_files"]:
+        lines.append(f"- {memory_file}")
+    lines.extend(["", "## Active Lessons", ""])
+    items = sorted(list(context["active_items"]), key=lambda item: memory_prompt_score(item, task), reverse=True)[:max_items]
+    if not items:
+        lines.append("- No task-relevant operational memory items found.")
+    for item in items:
+        lines.append(f"- [{item['scope']}/{item['type']}/{item['status']}] {item['lesson']}")
+        if item.get("use_when"):
+            lines.append(f"  Use when: {item['use_when']}")
+        if item.get("evidence"):
+            lines.append(f"  Evidence: {item['evidence']}")
+    return "\n".join(lines).rstrip() + "\n"
+
+
+def memory_prompt_score(item: dict[str, str], task: str) -> int:
+    normalized_task = task.lower()
+    text = " ".join(
+        [
+            item.get("scope", ""),
+            item.get("type", ""),
+            item.get("lesson", ""),
+            item.get("use_when", ""),
+        ]
+    ).lower()
+    score = 0
+    for token in re.findall(r"[a-z0-9]+", normalized_task):
+        if token and token in text:
+            score += 2
+    if item.get("scope", "").lower() in normalized_task:
+        score += 5
+    if item.get("status") == "needs_review":
+        score += 1
+    return score
+
+
 def memory_summary(memory: MemoryState) -> dict[str, object]:
     by_status: dict[str, int] = {}
     by_scope: dict[str, int] = {}

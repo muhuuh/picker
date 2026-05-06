@@ -6,6 +6,7 @@ from stock_research.memory import (
     add_memory_item,
     build_memory_context,
     deprecate_memory_item,
+    format_memory_context_for_prompt,
     load_memory_state,
     memory_summary,
     validate_memory_state,
@@ -44,6 +45,14 @@ class MemoryTests(unittest.TestCase):
 
         self.assertIn("agents/memory/deprecated_memory.md", context["memory_files"])
         self.assertTrue(any(item["status"] == "deprecated" for item in context["active_items"]))
+
+    def test_prompt_context_formats_task_relevant_lessons(self):
+        memory = load_memory_state(REPO_ROOT)
+        prompt_context = format_memory_context_for_prompt(memory, "news specialist", max_items=5)
+
+        self.assertIn("Operational Memory Context", prompt_context)
+        self.assertIn("Use these lessons as constraints", prompt_context)
+        self.assertIn("agents/memory/source_quality.md", prompt_context)
 
     def test_add_memory_item_writes_schema_valid_item(self):
         with TemporaryDirectory() as temp_dir:

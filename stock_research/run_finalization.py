@@ -13,6 +13,7 @@ from .memory_reflection import (
     write_recurring_failure_report,
     write_run_reflection,
 )
+from .memory_updates import build_memory_update_draft, write_memory_update_draft
 from .repo import find_repo_root
 
 
@@ -41,16 +42,20 @@ def finalize_run(
 
     recurring_report = build_recurring_failure_report(repo_root, recurring_threshold, today)
     recurring_paths = write_recurring_failure_report(repo_root, recurring_report)
+    memory_update_draft = build_memory_update_draft(repo_root, run_id, today)
+    memory_update_draft_paths = write_memory_update_draft(repo_root, memory_update_draft)
 
     artifacts = [
         relative_to_root(repo_root, path).as_posix()
-        for path in (*reflection_paths, *recurring_paths)
+        for path in (*reflection_paths, *recurring_paths, *memory_update_draft_paths)
     ]
     metrics = {
         "reflection_issues": len(reflection.issues),
         "reflection_memory_update_proposals": len(reflection.memory_update_proposals),
         "recurring_failure_patterns": len(recurring_report.patterns),
         "recurring_memory_update_proposals": len(recurring_report.memory_update_proposals),
+        "memory_update_drafts": len(memory_update_draft.items),
+        "ready_memory_update_drafts": len([item for item in memory_update_draft.items if item.status == "ready"]),
         "recurring_runs_scanned": recurring_report.runs_scanned,
         "recurring_threshold": recurring_report.threshold,
         "evidence_packets": reflection.metrics.get("evidence_packets", 0),
@@ -116,6 +121,8 @@ def build_next_actions(reflection, recurring_report) -> list[str]:
         actions.append("Review `agents/memory/recurring_failures.md` for repeated workflow issues.")
     if recurring_report.memory_update_proposals:
         actions.append("Apply or reject recurring-failure memory proposals.")
+    if getattr(reflection, "memory_update_proposals", None) or getattr(recurring_report, "memory_update_proposals", None):
+        actions.append("Review `memory_update_drafts.md` and apply approved ready drafts with `memory apply-updates`.")
     if not actions:
         actions.append("No deterministic learning-loop issues found.")
     return actions

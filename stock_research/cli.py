@@ -22,9 +22,26 @@ from .memory import (
     add_memory_item,
     build_memory_context,
     deprecate_memory_item,
+    format_memory_context_for_prompt,
     load_memory_state,
     memory_summary,
     validate_memory_state,
+)
+from .memory_llm_writer import (
+    DEFAULT_MEMORY_WRITER_MODEL,
+    MemoryWriterError,
+    build_memory_writer_prompt,
+    build_memory_writer_review,
+    memory_writer_prompt_to_dict,
+    memory_writer_review_to_dict,
+    write_memory_writer_prompt,
+)
+from .memory_updates import (
+    apply_memory_update_draft,
+    build_memory_update_draft,
+    memory_update_apply_result_to_dict,
+    memory_update_draft_to_dict,
+    write_memory_update_draft,
 )
 from .memory_reflection import (
     build_recurring_failure_report,
@@ -76,6 +93,7 @@ from .repo import load_repo_state
 from .router import route_request
 from .run_finalization import finalize_run, finalization_to_dict
 from .run_summary import build_run_summary, run_summary_to_dict, write_run_summary
+from .scheduled_runner import run_weekly_research_workflow, scheduled_run_result_to_dict
 from .staleness import scan_stale_data
 from .validation import validate_repo_state
 
@@ -98,6 +116,9 @@ def main(argv: list[str] | None = None) -> int:
         required=True,
         help="Task kind, e.g. financial, news, sentiment, provider, orchestration, specialist, writer, quality, all.",
     )
+    memory_prompt_context = memory_subparsers.add_parser("prompt-context", help="Print prompt-ready task-relevant memory context.")
+    memory_prompt_context.add_argument("--task", required=True, help="Task kind for prompt memory context.")
+    memory_prompt_context.add_argument("--max-items", type=int, default=20, help="Maximum memory items to include.")
     memory_add = memory_subparsers.add_parser("add", help="Append a schema-valid operational memory item.")
     memory_add.add_argument("--memory-file", choices=ITEM_MEMORY_FILES, help="Target memory file. Defaults from --type/status.")
     memory_add.add_argument("--id", default="", help="Optional explicit memory id. Defaults to generated id.")
@@ -134,6 +155,31 @@ def main(argv: list[str] | None = None) -> int:
     memory_finalize.add_argument("--run-id", required=True)
     memory_finalize.add_argument("--recurring-threshold", type=int, default=2, help="Minimum distinct runs required for recurring-failure patterns.")
     memory_finalize.add_argument("--today", help="Override current date as YYYY-MM-DD.")
+
+    memory_draft_updates = memory_subparsers.add_parser("draft-updates", help="Draft schema-valid memory updates from reflection proposals.")
+    memory_draft_updates.add_argument("--run-id", required=True)
+    memory_draft_updates.add_argument("--write", action="store_true", help="Write memory_update_drafts.json/md into the run directory.")
+    memory_draft_updates.add_argument("--today", help="Override current date as YYYY-MM-DD.")
+
+    memory_apply_updates = memory_subparsers.add_parser("apply-updates", help="Apply approved ready memory update drafts.")
+    memory_apply_updates.add_argument("--run-id", required=True)
+    memory_apply_updates.add_argument("--proposal-id", action="append", default=[], help="Proposal id to apply. Repeatable.")
+    memory_apply_updates.add_argument("--all", action="store_true", help="Apply all ready draft items.")
+    memory_apply_updates.add_argument("--today", help="Override current date as YYYY-MM-DD.")
+
+    memory_writer_prompt = memory_subparsers.add_parser("writer-prompt", help="Build the bounded LLM memory-writer prompt for a run.")
+    memory_writer_prompt.add_argument("--run-id", required=True)
+    memory_writer_prompt.add_argument("--write", action="store_true", help="Write memory_writer_prompt.json/md into the run directory.")
+    memory_writer_prompt.add_argument("--today", help="Override current date as YYYY-MM-DD.")
+
+    memory_writer_review = memory_subparsers.add_parser("writer-review", help="Run or simulate the bounded LLM memory writer over memory update drafts.")
+    memory_writer_review.add_argument("--run-id", required=True)
+    memory_writer_review.add_argument("--execute", action="store_true", help="Call OpenAI Responses API. Without this, run deterministic review only.")
+    memory_writer_review.add_argument("--write", action="store_true", help="Write memory_writer_review.json/md into the run directory.")
+    memory_writer_review.add_argument("--update-drafts", action="store_true", help="Update memory_update_drafts.json/md from writer recommendations.")
+    memory_writer_review.add_argument("--model", default=DEFAULT_MEMORY_WRITER_MODEL)
+    memory_writer_review.add_argument("--api-key", help="OpenAI API key. Or set OPENAI_API_KEY.")
+    memory_writer_review.add_argument("--today", help="Override current date as YYYY-MM-DD.")
 
     validate_parser = subparsers.add_parser("validate", help="Validate repo state and CSV schemas.")
     validate_parser.add_argument("--today", help="Override current date as YYYY-MM-DD.")
@@ -337,6 +383,16 @@ def main(argv: list[str] | None = None) -> int:
     quality_report_parser.add_argument("--write", action="store_true", help="Write quality_report.json and quality_report.md into the run directory.")
     quality_report_parser.add_argument("--today", help="Override current date as YYYY-MM-DD.")
 
+    run_weekly_parser = subparsers.add_parser("run-weekly", help="Run the deterministic weekly workflow up to the agent-framework decision boundary.")
+    run_weekly_parser.add_argument("--write", action="store_true", help="Persist manifest, reports, finalization, memory-writer review, and orchestration report.")
+    run_weekly_parser.add_argument("--execute-providers", action="store_true", help="Execute live provider tasks. Omit for safe dry-run.")
+    run_weekly_parser.add_argument("--execute-analysis", action="store_true", help="Execute analysis tasks. Omit for safe dry-run.")
+    run_weekly_parser.add_argument("--execute-memory-writer", action="store_true", help="Call OpenAI for bounded memory-writer review. Omit for deterministic review.")
+    run_weekly_parser.add_argument("--no-update-memory-drafts", action="store_true", help="Do not rewrite memory_update_drafts from memory-writer recommendations.")
+    run_weekly_parser.add_argument("--memory-writer-model", default=DEFAULT_MEMORY_WRITER_MODEL)
+    run_weekly_parser.add_argument("--recurring-threshold", type=int, default=2)
+    run_weekly_parser.add_argument("--today", help="Override current date as YYYY-MM-DD.")
+
     args = parser.parse_args(argv)
     state = load_repo_state(args.root)
 
@@ -360,6 +416,9 @@ def main(argv: list[str] | None = None) -> int:
             return 0 if report.ok else 1
         if args.memory_command == "context":
             print(json.dumps(build_memory_context(memory_state, args.task), indent=2, sort_keys=True))
+            return 0
+        if args.memory_command == "prompt-context":
+            print(format_memory_context_for_prompt(memory_state, args.task, args.max_items))
             return 0
         if args.memory_command == "add":
             try:
@@ -437,6 +496,56 @@ def main(argv: list[str] | None = None) -> int:
                 print(f"ERROR: {exc}")
                 return 1
             print(json.dumps({"paths": [str(path) for path in paths], "finalization": finalization_to_dict(finalization)}, indent=2, sort_keys=True))
+            return 0
+        if args.memory_command == "draft-updates":
+            draft = build_memory_update_draft(state.root, args.run_id, memory_date)
+            if args.write:
+                paths = write_memory_update_draft(state.root, draft)
+                print(json.dumps({"paths": [str(path) for path in paths], "draft": memory_update_draft_to_dict(draft)}, indent=2, sort_keys=True))
+            else:
+                print(json.dumps(memory_update_draft_to_dict(draft), indent=2, sort_keys=True))
+            return 0
+        if args.memory_command == "apply-updates":
+            try:
+                result = apply_memory_update_draft(
+                    root=state.root,
+                    run_id=args.run_id,
+                    proposal_ids=set(args.proposal_id) if args.proposal_id else None,
+                    apply_all=args.all,
+                    current_date=memory_date,
+                )
+            except ValueError as exc:
+                print(f"ERROR: {exc}")
+                return 1
+            print(json.dumps(memory_update_apply_result_to_dict(result), indent=2, sort_keys=True))
+            return 0
+        if args.memory_command == "writer-prompt":
+            prompt = build_memory_writer_prompt(state.root, args.run_id, memory_date)
+            if args.write:
+                paths = write_memory_writer_prompt(state.root, prompt)
+                print(json.dumps({"paths": [str(path) for path in paths], "prompt": memory_writer_prompt_to_dict(prompt)}, indent=2, sort_keys=True))
+            else:
+                print(json.dumps(memory_writer_prompt_to_dict(prompt), indent=2, sort_keys=True))
+            return 0
+        if args.memory_command == "writer-review":
+            try:
+                review, paths = build_memory_writer_review(
+                    root=state.root,
+                    run_id=args.run_id,
+                    current_date=memory_date,
+                    execute=args.execute,
+                    model=args.model,
+                    api_key=args.api_key or get_config_value(state.root, "OPENAI_API_KEY"),
+                    update_drafts=args.update_drafts,
+                    write_artifacts=args.write or args.update_drafts,
+                )
+            except MemoryWriterError as exc:
+                print(f"ERROR: {exc}")
+                return 1
+            if args.write or args.update_drafts:
+                print(json.dumps({"paths": [str(path) for path in paths], "review": memory_writer_review_to_dict(review)}, indent=2, sort_keys=True))
+            else:
+                print(json.dumps(memory_writer_review_to_dict(review), indent=2, sort_keys=True))
             return 0
 
     current_date = parse_cli_date(getattr(args, "today", None))
@@ -853,6 +962,29 @@ def main(argv: list[str] | None = None) -> int:
             print(f"ERROR: {exc}")
             return 1
         return 0
+
+    if args.command == "run-weekly":
+        request_date = parse_cli_date(args.today)
+        try:
+            result, paths = run_weekly_research_workflow(
+                root=state.root,
+                current_date=request_date,
+                write=args.write,
+                execute_providers=args.execute_providers,
+                execute_analysis=args.execute_analysis,
+                execute_memory_writer=args.execute_memory_writer,
+                update_memory_drafts=not args.no_update_memory_drafts,
+                recurring_threshold=args.recurring_threshold,
+                memory_writer_model=args.memory_writer_model,
+            )
+        except Exception as exc:
+            print(f"ERROR: {exc}")
+            return 1
+        payload = scheduled_run_result_to_dict(result)
+        if args.write:
+            payload = {**payload, "written_paths": [str(path) for path in paths]}
+        print(json.dumps(payload, indent=2, sort_keys=True))
+        return 0 if result.status in {"complete", "dry_run"} else 1
 
     return 1
 

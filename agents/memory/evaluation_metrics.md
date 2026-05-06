@@ -1,6 +1,6 @@
 # Evaluation Metrics
 
-Last updated: 2026-05-04
+Last updated: 2026-05-05
 
 Run-quality memory for weekly/manual runs and future post-run reflection.
 
@@ -47,10 +47,10 @@ Run-quality memory for weekly/manual runs and future post-run reflection.
 - status: needs_review
 - confidence: high
 - trigger/source: User asked whether missing memory automation is recorded.
-- lesson: The memory layer currently supports deterministic read, validate, summary, task-context selection, add, deprecate, post-run reflection, memory update proposal generation, recurring failure detection, and run finalization. Still pending: LLM memory writer agent, scheduled/orchestrator invocation of run finalization, and orchestrator injection of memory context into specialist prompts.
+- lesson: The memory layer currently supports deterministic read, validate, summary, task-context selection, prompt-context formatting, add, deprecate, post-run reflection, memory update proposal generation, memory update draft/apply, bounded memory writer review, recurring failure detection, run finalization, and scheduled-run invocation through `run-weekly --write`. Still pending: orchestrator injection of prompt-ready memory context into actual LLM specialist prompts after the agent framework is chosen.
 - use_when: Planning Priority 6 orchestration or Priority 7 learning-loop work.
 - do_not_use_when: Treating the memory system as already fully autonomous.
-- evidence: `docs/plans/investment_agent_backlog.md`, `docs/descriptions/agent_memory_workflow.md`, `stock_research/memory.py`
+- evidence: `docs/plans/investment_agent_backlog.md`, `docs/descriptions/agent_memory_workflow.md`, `stock_research/memory.py`, `stock_research/memory_updates.py`
 - owner: memory and evaluation orchestrator
 - next_review: 2026-06-01
 
@@ -68,9 +68,7 @@ After a weekly or manual run:
 
 ## Pending Automation
 
-- LLM memory writer agent.
-- Scheduled/orchestrator invocation of run finalization.
-- Orchestrator injection of task-relevant memory into specialist prompts.
+- Orchestrator injection of task-relevant memory into actual LLM specialist prompts after the agent framework is chosen.
 
 ## Recurring Failure Patterns
 
@@ -130,5 +128,33 @@ After a weekly or manual run:
 - use_when: Ending a weekly/manual run, preparing scheduler integration, or reviewing whether run-learning artifacts are complete.
 - do_not_use_when: Assuming memory update proposals are applied automatically or that the scheduler already invokes finalization.
 - evidence: stock_research/run_finalization.py, stock_research/cli.py, tests/test_memory_reflection.py, agents/runs/2026-05-09_weekly/finalization.md
+- owner: memory and evaluation orchestrator
+- next_review: 2026-06-01
+
+- id: eval-2026-05-05-bounded-memory-writer-review
+- date: 2026-05-05
+- type: evaluation
+- scope: global
+- status: active
+- confidence: high
+- trigger/source: bounded LLM memory writer implementation and smoke test
+- lesson: Bounded memory writer review is implemented through `python -m stock_research memory writer-review --run-id RUN_ID [--execute] [--write] [--update-drafts]`. It can refine draft memory items, but it does not write operational memory directly; approved writes still go through `memory apply-updates`.
+- use_when: Reviewing post-run memory update drafts, planning learning-loop orchestration, or deciding how LLM assistance may touch operational memory.
+- do_not_use_when: Assuming the scheduler/orchestrator already invokes writer review automatically or bypassing deterministic schema validation.
+- evidence: `stock_research/memory_llm_writer.py`, `tests/test_memory_llm_writer.py`, `docs/descriptions/llm_memory_writer.md`, `agents/runs/2026-05-09_weekly/memory_writer_review.md`
+- owner: memory and evaluation orchestrator
+- next_review: 2026-06-01
+
+- id: eval-2026-05-05-deterministic-weekly-runner
+- date: 2026-05-05
+- type: evaluation
+- scope: orchestrator
+- status: active
+- confidence: high
+- trigger/source: deterministic scheduled runner implementation
+- lesson: `python -m stock_research run-weekly` is the deterministic weekly workflow wrapper. It reaches the framework decision boundary by chaining manifest, provider tasks, analysis tasks, run summary, quality report, memory finalization, bounded memory-writer review, and orchestration report.
+- use_when: Running weekly/manual-equivalent deterministic workflow, validating the pipeline before LLM orchestration, or deciding what remains before framework selection.
+- do_not_use_when: Assuming OS/app scheduling or LLM orchestrator synthesis already exists.
+- evidence: `stock_research/scheduled_runner.py`, `tests/test_scheduled_runner.py`, `docs/descriptions/scheduled_runner.md`
 - owner: memory and evaluation orchestrator
 - next_review: 2026-06-01

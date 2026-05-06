@@ -115,8 +115,11 @@ class MemoryReflectionTests(unittest.TestCase):
             self.assertEqual(finalization.metrics["reflection_issues"], 0)
             self.assertTrue((run_dir / "memory_reflection.json").exists())
             self.assertTrue((root / "agents/memory/recurring_failures.json").exists())
+            self.assertTrue((run_dir / "memory_update_drafts.json").exists())
+            self.assertTrue((run_dir / "memory_update_drafts.md").exists())
             self.assertTrue((run_dir / "finalization.json").exists())
             self.assertTrue((run_dir / "finalization.md").exists())
+            self.assertEqual(finalization.metrics["memory_update_drafts"], 0)
             self.assertEqual(len(paths), 2)
 
 

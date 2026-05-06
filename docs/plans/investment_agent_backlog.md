@@ -1,6 +1,6 @@
 # Investment Agent Backlog
 
-Last updated: 2026-05-04
+Last updated: 2026-05-05
 
 ## Purpose
 
@@ -258,8 +258,10 @@ This is the clear task backlog for building the stock tracking and investment re
 
 ## Priority 6: Orchestration
 
-- [ ] Build scheduled runner.
-  - Description: run weekly Saturday by default and support manual runs from the human input queue. Current progress: deterministic manifests, provider-task execution, and run finalization exist; OS/app scheduling and full orchestration still pending.
+- [x] Build deterministic weekly runner.
+  - Description: `python -m stock_research run-weekly` now chains manifest generation, provider tasks, analysis tasks, run summary, quality report, memory finalization, bounded memory-writer review, and orchestration report up to the agent-framework decision boundary.
+- [ ] Build OS/app scheduled execution.
+  - Description: run the deterministic weekly runner automatically on Saturday and support manual trigger flows.
 - [ ] Build company research sub-orchestrator.
   - Description: coordinates filings, news, financials, sentiment, and risk checks for one ticker.
 - [ ] Build market research sub-orchestrator.
@@ -299,14 +301,20 @@ This is the clear task backlog for building the stock tracking and investment re
   - Description: after each weekly/manual run, read run summary, quality report, provider failures, user corrections, and trace references to identify learning candidates.
 - [x] Add automatic memory update proposals.
   - Description: generate proposed add/update/deprecate actions after reflection, with evidence links and confidence, before applying them.
-- [ ] Build LLM memory writer agent.
-  - Description: bounded specialist that converts reflection findings into concise memory items; it should not write freely without schema validation and should send high-impact changes to human review.
+- [x] Add memory update draft/apply workflow.
+  - Description: convert reflection and recurring-failure proposals into schema-valid `memory_update_drafts` artifacts, block invalid/duplicate drafts, and apply approved ready drafts through `memory apply-updates`.
+- [x] Add prompt-ready memory context.
+  - Description: expose `python -m stock_research memory prompt-context --task TASK` so future orchestrators can inject ranked task-relevant operational memory into specialist prompts.
+- [x] Build LLM memory writer agent.
+  - Description: bounded specialist that improves/summarizes deterministic draft items. It can run deterministically or through OpenAI Responses API structured output, but it does not write freely; actual memory writes still go through schema validation and `memory apply-updates`.
 - [x] Add recurring failure detection.
   - Description: detect repeated provider failures, noisy alerts, missing citations, bad routing, and repeated user corrections across runs.
 - [x] Add deterministic run finalization command.
   - Description: write post-run reflection, recurring-failure reports, and finalization artifacts with one command for future scheduler/orchestrator use.
-- [ ] Wire run finalization into scheduled/orchestrated runs.
-  - Description: call `python -m stock_research memory finalize-run --run-id RUN_ID` automatically after provider tasks, analysis tasks, run summary, and quality report generation.
+- [x] Wire run finalization into scheduled/orchestrated runs.
+  - Description: `run-weekly --write` calls memory finalization after provider tasks, analysis tasks, run summary, and quality report generation.
+- [x] Wire bounded memory writer review into scheduled/orchestrated runs.
+  - Description: `run-weekly --write` calls bounded memory writer review after finalization and can optionally execute the OpenAI-backed writer.
 
 ## Open Decisions
 

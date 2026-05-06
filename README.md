@@ -20,6 +20,8 @@ The current implementation is a deterministic Python foundation. It reads the re
 - `agents/human_review_queue.md`: system-generated items needing user approval.
 - `agents/memory/memory_index.md`: entry point for operational agent memory.
 - `docs/descriptions/agent_memory_workflow.md`: memory read/write workflow and guardrails.
+- `docs/descriptions/llm_memory_writer.md`: bounded LLM memory writer workflow.
+- `docs/descriptions/scheduled_runner.md`: deterministic weekly workflow wrapper.
 - `strategy/research_priorities.md`: recurring research priorities.
 - `stock_tracking/`: holdings, monitoring, rejected stocks, and company files.
 
@@ -66,6 +68,14 @@ Write deterministic run summary and quality report artifacts:
 ```powershell
 python -m stock_research run-summary --run-id 2026-05-09_weekly --write
 python -m stock_research quality-report --run-id 2026-05-09_weekly --write
+```
+
+Run the deterministic weekly workflow wrapper:
+
+```powershell
+python -m stock_research run-weekly
+python -m stock_research run-weekly --write
+python -m stock_research run-weekly --write --execute-providers --execute-analysis
 ```
 
 Generated run JSON, raw provider JSON, and evidence packet JSON are local runtime artifacts ignored by Git. Commit the markdown summaries/reports and source/docs changes, not the generated JSON blobs.
@@ -166,6 +176,11 @@ python -m stock_research memory validate
 python -m stock_research memory context --task financial
 python -m stock_research memory reflect-run --run-id 2026-05-09_weekly --write
 python -m stock_research memory recurring-failures --write
+python -m stock_research memory draft-updates --run-id 2026-05-09_weekly --write
+python -m stock_research memory writer-review --run-id 2026-05-09_weekly --write
+python -m stock_research memory writer-review --run-id 2026-05-09_weekly --execute --write --update-drafts
+python -m stock_research memory apply-updates --run-id 2026-05-09_weekly --proposal-id PROPOSAL_ID
+python -m stock_research memory prompt-context --task "news specialist"
 python -m stock_research memory finalize-run --run-id 2026-05-09_weekly
 ```
 
@@ -204,7 +219,11 @@ Implemented:
 - deterministic operational memory add/deprecate commands.
 - deterministic post-run memory reflection and memory update proposal generator.
 - deterministic recurring failure detector across reflected runs.
+- deterministic memory update draft/apply workflow for reflection proposals.
+- bounded LLM memory writer prompt/review workflow for memory update drafts.
+- prompt-ready operational memory context for future specialist injection.
 - deterministic run finalization command for reflection, recurring-failure, and finalization artifacts.
+- deterministic weekly runner that chains manifest, provider tasks, analysis tasks, summary, quality report, memory finalization, and memory-writer review up to the agent-framework decision boundary.
 - deterministic human request classifier and queue appender.
 - deterministic request router for stock, industry, theme, strategy, alert-review, manual-run, and status-move requests.
 - provider-neutral evidence packet schema and JSON artifact writer.
@@ -225,7 +244,6 @@ Not implemented yet:
 
 - macro provider integrations,
 - LLM specialist agents,
-- orchestrator runtime,
-- automatic scheduler/orchestrator invocation of run finalization,
+- LLM orchestrator runtime,
 - OS/app scheduled execution,
 - immediate research runs.

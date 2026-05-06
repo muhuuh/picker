@@ -113,6 +113,7 @@ The deterministic financial comparison layer was added on 2026-05-04 under `stoc
 The deterministic financial-data specialist review layer was added on 2026-05-04 under `stock_research/financial_specialist.py`.
 The deterministic analysis-task runner was added on 2026-05-04 under `stock_research/analysis_runner.py`.
 The operational agent memory layer was added on 2026-05-04 under `agents/memory/`, with deterministic inspection support under `stock_research/memory.py` and run finalization support under `stock_research/run_finalization.py`.
+The deterministic scheduled runner was added on 2026-05-05 under `stock_research/scheduled_runner.py`; it chains the deterministic weekly lifecycle and stops at the agent-framework decision boundary.
 
 The first provider integration, SEC EDGAR, was added on 2026-05-03 under `stock_research/providers/sec_edgar.py`.
 The next provider tools, yfinance and Exa, were added on 2026-05-03 under `stock_research/providers/yfinance_provider.py` and `stock_research/providers/exa.py`.
@@ -223,7 +224,8 @@ Current implementation status:
 - Implemented: deterministic request classifier, human input queue appender, request router, human review queue writer, and manual run manifest creation.
 - Implemented providers: SEC EDGAR submissions and optional companyfacts evidence packet writer, yfinance market-data snapshots, FMP market-data/fundamentals snapshots, Polygon/Massive U.S. ticker/OHLC snapshots, Alpha Vantage quote/overview snapshots, Exa search/contents evidence packet writers, and xAI Grok x_search evidence packet writers.
 - Implemented: weekly manifests now include deterministic provider tasks and post-provider `analysis_tasks` for financial comparison plus financial-data specialist review. `provider-tasks` and `analysis-tasks` can dry-run or explicitly execute those manifest tasks.
-- Pending: macro providers, LLM specialists, orchestrator runtime, OS/app scheduled execution, immediate manual research runs.
+- Implemented: deterministic weekly workflow wrapper through `python -m stock_research run-weekly`.
+- Pending: macro providers, LLM specialists, LLM orchestrator runtime, OS/app scheduled execution, immediate manual research runs.
 
 ### Layer 2: Specialist research agents
 

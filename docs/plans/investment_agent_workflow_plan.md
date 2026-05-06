@@ -1,6 +1,6 @@
 # Investment Agent Workflow Plan
 
-Last updated: 2026-05-04
+Last updated: 2026-05-05
 
 ## Goal and Scope
 
@@ -92,8 +92,10 @@ Detailed backlog: `docs/plans/investment_agent_backlog.md`.
 
 ## Priority 5: Build Orchestration
 
-- [ ] Implement scheduled runner.
-  - Current progress: deterministic manifests, provider-task execution, and run finalization command exist; actual scheduled/orchestrated invocation is still pending.
+- [x] Implement deterministic weekly runner.
+  - Current progress: `python -m stock_research run-weekly` chains deterministic run steps through memory writer review and stops at the framework decision boundary.
+- [ ] Implement OS/app scheduled execution.
+  - Current progress: automatic Saturday invocation is still pending.
 - [x] Implement deterministic Codex chat intake routing for user requests.
 - [ ] Implement market research sub-orchestrator.
 - [ ] Implement company research sub-orchestrator.
@@ -117,10 +119,13 @@ Detailed backlog: `docs/plans/investment_agent_backlog.md`.
 - [x] Add deterministic memory writer/update commands.
 - [x] Add post-run reflection step.
 - [x] Add automatic memory update proposal generation.
-- [ ] Build LLM memory writer agent.
+- [x] Add memory update draft/apply workflow.
+- [x] Add prompt-ready memory context command for future specialist injection.
+- [x] Build LLM memory writer agent.
 - [ ] Inject task-relevant memory context into specialist prompts from the orchestrator.
 - [x] Add deterministic run finalization command.
-- [ ] Wire run finalization into scheduled/orchestrated runs.
+- [x] Wire run finalization into scheduled/orchestrated runs.
+- [x] Wire bounded memory writer review into scheduled/orchestrated runs.
 - [x] Add recurring failure detection.
 
 ## Key Decisions Pending
@@ -158,6 +163,9 @@ Detailed backlog: `docs/plans/investment_agent_backlog.md`.
 - 2026-05-04: Implemented deterministic post-run reflection and memory update proposal generation with `python -m stock_research memory reflect-run --run-id RUN_ID [--write]`; wrote reflection artifacts for `agents/runs/2026-05-09_weekly/`.
 - 2026-05-04: Implemented recurring failure detection with `python -m stock_research memory recurring-failures [--write]`; current real report has no recurring patterns yet because only one reflected run exists.
 - 2026-05-04: Implemented deterministic run finalization with `python -m stock_research memory finalize-run --run-id RUN_ID`; it writes reflection, recurring-failure, and finalization artifacts but is not yet called automatically by a scheduler/orchestrator.
+- 2026-05-05: User prioritized finishing the memory layer before adding another provider/specialist. Added memory update draft/apply tooling and prompt-ready memory context output so reflection proposals can become schema-valid reviewed memory updates and future specialists can receive ranked operational lessons.
+- 2026-05-05: Added bounded LLM memory writer workflow with `memory writer-prompt` and `memory writer-review`. Live review can use OpenAI Responses API structured output via `OPENAI_API_KEY`, but operational memory writes still require deterministic `memory apply-updates`.
+- 2026-05-05: Added deterministic weekly runner with `python -m stock_research run-weekly`. It chains manifest, provider tasks, analysis tasks, run summary, quality report, memory finalization, bounded memory-writer review, and orchestration report, then stops at the agent-framework decision boundary.
 - 2026-05-04: Implemented the first deterministic financial-data specialist with `python -m stock_research financial review --ticker TICKER --run-id RUN_ID`; it consumes `financial_compare` packets and writes specialist evidence, raw review JSON, and markdown review artifacts.
 - 2026-05-04: Implemented deterministic analysis-task runner with `python -m stock_research analysis-tasks --manifest PATH [--execute]`; it executes `financial_compare` and `financial_review` tasks from manifests in dependency order.
 - 2026-05-04: Added AAPL as a monitoring workflow validation seed. Manifest planning, provider-task dry-run, analysis-task execution, run summary generation, quality report generation, and memory finalization were validated against the AAPL run artifacts.

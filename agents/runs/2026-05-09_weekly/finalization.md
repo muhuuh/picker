@@ -1,6 +1,6 @@
 # Run Finalization: 2026-05-09_weekly
 
-Generated: 2026-05-04
+Generated: 2026-05-05
 Status: complete
 
 ## Metrics
@@ -9,6 +9,8 @@ Status: complete
 - reflection_memory_update_proposals: 0
 - recurring_failure_patterns: 0
 - recurring_memory_update_proposals: 0
+- memory_update_drafts: 0
+- ready_memory_update_drafts: 0
 - recurring_runs_scanned: 1
 - recurring_threshold: 2
 - evidence_packets: 17
@@ -21,6 +23,8 @@ Status: complete
 - `agents/runs/2026-05-09_weekly/memory_reflection.md`
 - `agents/memory/recurring_failures.json`
 - `agents/memory/recurring_failures.md`
+- `agents/runs/2026-05-09_weekly/memory_update_drafts.json`
+- `agents/runs/2026-05-09_weekly/memory_update_drafts.md`
 
 ## Next Actions
 

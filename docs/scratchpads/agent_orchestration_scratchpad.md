@@ -39,9 +39,13 @@
 - [x] Add deterministic post-run memory reflection/proposal command.
 - [x] Add deterministic recurring failure detection across reflected runs.
 - [x] Add deterministic run finalization command.
+- [x] Add memory update draft/apply workflow.
+- [x] Add prompt-ready operational memory context.
+- [x] Add bounded LLM memory writer review workflow.
 - [x] Add deterministic analysis-task runner.
 - [x] Add deterministic run summary generator.
 - [x] Add deterministic quality report generator.
+- [x] Add deterministic weekly runner wrapper.
 - [x] Validate full planned AAPL weekly provider/analysis/report/finalization workflow.
 - [x] Add deterministic company-news specialist review layer.
 - [x] Add automatic Exa contents follow-up before company-news review.
@@ -90,6 +94,10 @@
 - 2026-05-04: Added deterministic company-news specialist. It consumes Exa company-news packets and writes specialist evidence, raw review JSON, and markdown review.
 - 2026-05-04: Re-reviewed official Exa search/search-best-practice/company/news/contents docs. Confirmed: use `auto` and highlights by default, no `category` parameter for news, `category: "company"` only for company discovery, and top-level `/contents` parameters with status checks for extraction.
 - 2026-05-04: Fixed company-news quality gate. Search highlights/headlines alone now produce `partial_review`; the manifest plans `company_news_contents_follow_up` before `company_news_review`, and successful contents extraction is required for `ready_for_company_update`.
+- 2026-05-05: User prioritized finishing memory before SEC filing specialist. Added `memory draft-updates`, `memory apply-updates`, and `memory prompt-context` so reflection proposals can become reviewed schema-valid memory entries and future specialists can receive ranked task memory.
+- 2026-05-05: Added bounded LLM memory writer workflow. It can build prompt artifacts, run deterministic review, or call OpenAI Responses API structured output through `memory writer-review --execute`, but actual memory writes still require deterministic draft validation and `memory apply-updates`.
+- 2026-05-05: User asked for more useful final task conclusions. `AGENTS.md` now requires every final response to state outcome quality, expectation check, verification, remaining gaps, and next steps.
+- 2026-05-05: Added deterministic weekly runner `python -m stock_research run-weekly`. It wires manifest generation, provider tasks, analysis tasks, run summary, quality report, memory finalization, and bounded memory-writer review into one command, then stops at the agent-framework decision boundary.
 
 ## What We Learned
 
@@ -137,6 +145,13 @@
 - Reflection artifacts exist for the current weekly smoke run: `agents/runs/2026-05-09_weekly/memory_reflection.json` and `agents/runs/2026-05-09_weekly/memory_reflection.md`.
 - Recurring failure report artifacts exist: `agents/memory/recurring_failures.json` and `agents/memory/recurring_failures.md`. Current report has no recurring patterns because only one reflected run exists.
 - Deterministic run finalization command exists: `python -m stock_research memory finalize-run --run-id RUN_ID`.
+- Memory update draft command exists: `python -m stock_research memory draft-updates --run-id RUN_ID --write`.
+- Approved ready drafts can be applied with `python -m stock_research memory apply-updates --run-id RUN_ID --proposal-id PROPOSAL_ID`.
+- Prompt-ready memory context command exists: `python -m stock_research memory prompt-context --task "news specialist"`.
+- Bounded memory writer commands exist: `python -m stock_research memory writer-prompt --run-id RUN_ID --write` and `python -m stock_research memory writer-review --run-id RUN_ID [--execute] [--write] [--update-drafts]`.
+- Weekly runner command exists: `python -m stock_research run-weekly [--write] [--execute-providers] [--execute-analysis] [--execute-memory-writer]`.
+- Live OpenAI memory-writer smoke test succeeded on the current clean run with no recommendations because no memory update drafts were present.
+- Final responses must now include whether the result is good/partial/bad, whether it matched expectations, checks run, remaining gaps, and next steps.
 - Finalization artifacts exist for the current weekly smoke run: `agents/runs/2026-05-09_weekly/finalization.json` and `agents/runs/2026-05-09_weekly/finalization.md`.
 - Current weekly validation run finalization is `complete` with zero deterministic quality findings and zero reflection issues.
 - xAI/Grok `x_search` can be slow; provider now uses a longer timeout and one retry.
@@ -163,9 +178,9 @@
 ## Next Steps
 
 - Review updated `docs/descriptions/investment_agent_workflow.md` and `docs/plans/investment_agent_backlog.md` with the user if needed.
-- Next implementation work should build the LLM memory writer agent, wire finalization into the orchestrator/scheduled runner, inject memory context into specialist prompts, or start the next specialist such as SEC filing or Exa industry research.
-- Learning-loop gaps explicitly still pending: LLM memory writer agent, scheduled/orchestrator invocation of run finalization, and orchestrator injection of memory context into specialist prompts.
-- Before Priority 4 agent implementation, run a thin spike comparing OpenAI Agents SDK vs Pydantic AI for one evidence-packet specialist and one orchestrator call.
+- Next implementation work should be the agent framework decision: compare OpenAI Agents SDK, Pydantic AI, LangGraph, and possible hybrid paths against the repo's deterministic tools and memory requirements.
+- Learning-loop gap still pending inside LLM orchestration: automatic injection of memory context into actual specialist prompts after a framework is chosen.
+- Before LLM orchestrator implementation, run a thin spike comparing candidate frameworks for one evidence-packet specialist and one orchestrator call.
 - Consider LangGraph only if the first spike shows that explicit resumable graph state is needed earlier than planned.
 - Add README and SETUP when runtime dependencies are introduced.
 

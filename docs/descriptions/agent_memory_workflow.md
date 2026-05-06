@@ -1,6 +1,6 @@
 # Agent Memory Workflow
 
-Last updated: 2026-05-04
+Last updated: 2026-05-05
 
 ## Purpose
 
@@ -88,11 +88,10 @@ Major memory changes that affect strategy, approval gates, or high-impact workfl
 
 ## Pending Automation
 
-The current memory layer can be read, validated, summarized, filtered by task, updated through deterministic add/deprecate commands, reflected on after a run, checked for recurring failure patterns across reflected runs, and finalized with one deterministic command. The following automation is still pending:
+The current memory layer can be read, validated, summarized, filtered by task, formatted for prompt injection, updated through deterministic add/deprecate commands, reflected on after a run, checked for recurring failure patterns across reflected runs, drafted into schema-valid memory updates, reviewed by a bounded LLM memory writer, finalized with one deterministic command, and invoked by the deterministic weekly runner. The following automation is still pending:
 
-- a bounded LLM memory writer agent that converts reflection findings into schema-valid memory items,
-- orchestrator runtime injection of `memory context --task TASK` output into each specialist prompt.
-- scheduled/orchestrator invocation of `memory finalize-run` after every weekly/manual run.
+- orchestrator runtime invocation of `memory prompt-context --task TASK` for each specialist prompt.
+- OS/app scheduled execution of `python -m stock_research run-weekly`.
 
 Until orchestrator automation is implemented, Codex should use the deterministic commands for structured memory changes, then run:
 
@@ -142,6 +141,13 @@ python -m stock_research memory deprecate --id ITEM_ID --reason "..."
 python -m stock_research memory reflect-run --run-id RUN_ID --write
 python -m stock_research memory recurring-failures --write
 python -m stock_research memory finalize-run --run-id RUN_ID
+python -m stock_research memory draft-updates --run-id RUN_ID --write
+python -m stock_research memory apply-updates --run-id RUN_ID --proposal-id PROPOSAL_ID
+python -m stock_research memory prompt-context --task TASK
+python -m stock_research memory writer-prompt --run-id RUN_ID --write
+python -m stock_research memory writer-review --run-id RUN_ID --write
+python -m stock_research memory writer-review --run-id RUN_ID --execute --write --update-drafts
+python -m stock_research run-weekly --write
 ```
 
 Current task hints include:
@@ -163,16 +169,51 @@ Use `memory reflect-run` after weekly/manual runs to create `memory_reflection.j
 
 Use `memory recurring-failures` after several reflected runs exist. It scans `memory_reflection.json` artifacts, detects repeated issue categories across distinct runs, and writes `agents/memory/recurring_failures.json` plus `agents/memory/recurring_failures.md` when `--write` is passed.
 
+Use `memory draft-updates` to convert reflection and recurring-failure proposals into validated draft items under:
+
+- `agents/runs/{run_id}/memory_update_drafts.json`
+- `agents/runs/{run_id}/memory_update_drafts.md`
+
+Draft items can be `ready` or `blocked`. Blocked items are usually duplicates, invalid schema, or unsupported proposal actions. Apply only approved ready items:
+
+```powershell
+python -m stock_research memory apply-updates --run-id RUN_ID --proposal-id PROPOSAL_ID
+python -m stock_research memory apply-updates --run-id RUN_ID --all
+```
+
+Use `memory prompt-context` when a future specialist or orchestrator needs prompt-ready operational memory:
+
+```powershell
+python -m stock_research memory prompt-context --task "news specialist"
+```
+
+Use `memory writer-prompt` and `memory writer-review` when reflection proposals need LLM-assisted cleanup before approval:
+
+```powershell
+python -m stock_research memory writer-prompt --run-id RUN_ID --write
+python -m stock_research memory writer-review --run-id RUN_ID --write
+```
+
+For live LLM review, set `OPENAI_API_KEY` and pass `--execute`:
+
+```powershell
+python -m stock_research memory writer-review --run-id RUN_ID --execute --write --update-drafts
+```
+
+The bounded writer uses OpenAI Responses API structured output. It can accept, revise, or reject draft items, but it still does not write to `agents/memory/*.md`. Actual operational memory writes must go through `memory apply-updates`, which validates the schema again before appending memory items.
+
 Use `memory finalize-run` as the normal deterministic end-of-run command. It writes:
 
 - `agents/runs/{run_id}/memory_reflection.json`
 - `agents/runs/{run_id}/memory_reflection.md`
 - `agents/memory/recurring_failures.json`
 - `agents/memory/recurring_failures.md`
+- `agents/runs/{run_id}/memory_update_drafts.json`
+- `agents/runs/{run_id}/memory_update_drafts.md`
 - `agents/runs/{run_id}/finalization.json`
 - `agents/runs/{run_id}/finalization.md`
 
-The finalization artifact summarizes run-learning status, reflection issue counts, recurring failure counts, generated artifacts, and next actions. It does not apply proposed memory updates automatically.
+The finalization artifact summarizes run-learning status, reflection issue counts, recurring failure counts, memory update draft counts, generated artifacts, and next actions. It does not apply proposed memory updates automatically.
 
 ## Workflow Integration
 

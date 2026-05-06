@@ -97,6 +97,12 @@ Provider integrations planned later may use:
 - xAI/Grok,
 - OpenAI or another agent/model provider.
 
+The bounded LLM memory writer requires OpenAI only when live execution is requested:
+
+```text
+OPENAI_API_KEY="..."
+```
+
 Keep secrets in `.env` or local environment variables. Do not commit `.env`.
 
 Use `.env.example` as a local template.
@@ -250,6 +256,14 @@ Execute planned analysis tasks:
 python -m stock_research analysis-tasks --manifest agents\runs\2026-05-09_weekly\manifest.json --execute
 ```
 
+Run the deterministic weekly workflow wrapper:
+
+```powershell
+python -m stock_research run-weekly
+python -m stock_research run-weekly --write
+python -m stock_research run-weekly --write --execute-providers --execute-analysis
+```
+
 Write run summary and quality report artifacts:
 
 ```powershell
@@ -277,6 +291,11 @@ python -m stock_research memory validate
 python -m stock_research memory context --task sentiment
 python -m stock_research memory reflect-run --run-id 2026-05-09_weekly --write
 python -m stock_research memory recurring-failures --write
+python -m stock_research memory draft-updates --run-id 2026-05-09_weekly --write
+python -m stock_research memory writer-review --run-id 2026-05-09_weekly --write
+python -m stock_research memory writer-review --run-id 2026-05-09_weekly --execute --write --update-drafts
+python -m stock_research memory apply-updates --run-id 2026-05-09_weekly --proposal-id PROPOSAL_ID
+python -m stock_research memory prompt-context --task "news specialist"
 python -m stock_research memory finalize-run --run-id 2026-05-09_weekly
 ```
 
@@ -294,3 +313,5 @@ python -m stock_research memory finalize-run --run-id 2026-05-09_weekly
 ```
 
 This writes memory reflection artifacts, recurring failure reports, and `finalization.json` / `finalization.md` for the run. It does not apply proposed memory updates automatically.
+
+The bounded memory writer can improve or reject draft memory items before approval, but it does not write to `agents/memory/*.md` directly. Apply approved drafts only through `memory apply-updates`.

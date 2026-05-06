@@ -1,6 +1,6 @@
 # Repo Map
 
-Last updated: 2026-05-04
+Last updated: 2026-05-05
 
 ## Purpose
 
@@ -52,6 +52,8 @@ This file tells Codex, the orchestrator, and future agents where to find and upd
 
 - `docs/descriptions/investment_agent_workflow.md`: full planned automated workflow.
 - `docs/descriptions/agent_memory_workflow.md`: operational memory read/write workflow.
+- `docs/descriptions/llm_memory_writer.md`: bounded LLM memory writer workflow over memory update drafts.
+- `docs/descriptions/scheduled_runner.md`: deterministic weekly workflow wrapper.
 - `docs/descriptions/evidence_schema.md`: shared source/evidence packet schema for all providers and specialists.
 - `docs/descriptions/sec_edgar_provider.md`: SEC EDGAR provider behavior and setup.
 - `docs/descriptions/exa_provider.md`: Exa search/contents provider behavior and best practices.
@@ -94,6 +96,12 @@ This file tells Codex, the orchestrator, and future agents where to find and upd
 - `python -m stock_research memory deprecate --id ITEM_ID --reason "..."`: mark a memory item deprecated and record why.
 - `python -m stock_research memory reflect-run --run-id RUN_ID --write`: generate post-run memory reflection artifacts and memory update proposals.
 - `python -m stock_research memory recurring-failures --write`: detect repeated reflection issues across runs.
+- `python -m stock_research memory draft-updates --run-id RUN_ID --write`: convert reflection proposals into schema-valid memory update drafts.
+- `python -m stock_research memory writer-prompt --run-id RUN_ID --write`: write the bounded memory-writer prompt artifacts for review.
+- `python -m stock_research memory writer-review --run-id RUN_ID --write`: run deterministic writer review over memory update drafts.
+- `python -m stock_research memory writer-review --run-id RUN_ID --execute --write --update-drafts`: run OpenAI-backed structured writer review and update draft artifacts.
+- `python -m stock_research memory apply-updates --run-id RUN_ID --proposal-id PROPOSAL_ID`: apply an approved ready memory draft.
+- `python -m stock_research memory prompt-context --task TASK`: print prompt-ready operational memory for future specialist injection.
 - `python -m stock_research memory finalize-run --run-id RUN_ID`: write reflection, recurring-failure, and run finalization artifacts.
 - `python -m stock_research classify-request "..."`
 - `python -m stock_research add-request "..."`
@@ -118,6 +126,8 @@ This file tells Codex, the orchestrator, and future agents where to find and upd
 - `python -m stock_research analysis-tasks --manifest PATH --execute`: execute analysis tasks from a manifest.
 - `python -m stock_research run-summary --run-id RUN_ID --write`: write run_summary artifacts from run evidence.
 - `python -m stock_research quality-report --run-id RUN_ID --write`: write quality_report artifacts from run evidence.
+- `python -m stock_research run-weekly`: dry-run the deterministic weekly workflow wrapper.
+- `python -m stock_research run-weekly --write --execute-providers --execute-analysis`: execute and persist the deterministic weekly workflow up to the agent-framework boundary.
 - `tests/`: unit tests for current deterministic core.
 
 ## Where To Put Common User Requests
