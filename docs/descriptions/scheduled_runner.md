@@ -1,6 +1,6 @@
 # Scheduled Runner
 
-Last updated: 2026-05-05
+Last updated: 2026-05-06
 
 ## Purpose
 
@@ -75,11 +75,10 @@ Generated JSON files remain ignored local runtime artifacts.
 
 ## Current Boundary
 
-After this runner, the next architecture decision is the agent framework:
+After this runner, the agent framework decision is now resolved:
 
-- OpenAI Agents SDK,
-- Pydantic AI,
-- LangGraph,
-- or a hybrid.
+- Selected framework: OpenAI Agents SDK.
+- Dedicated plan: `docs/plans/openai_agents_sdk_orchestration_backlog.md`.
+- Dedicated scratchpad: `docs/scratchpads/openai_agents_sdk_orchestration_scratchpad.md`.
 
-Do not add LLM orchestration runtime code until that decision is made.
+The next pending step is to implement a focused SDK runtime slice. Until that exists, `run-weekly` still stops after deterministic finalization and orchestration report generation.

@@ -22,6 +22,8 @@ The current implementation is a deterministic Python foundation. It reads the re
 - `docs/descriptions/agent_memory_workflow.md`: memory read/write workflow and guardrails.
 - `docs/descriptions/llm_memory_writer.md`: bounded LLM memory writer workflow.
 - `docs/descriptions/scheduled_runner.md`: deterministic weekly workflow wrapper.
+- `docs/descriptions/openai_agents_sdk_orchestration.md`: selected OpenAI Agents SDK runtime design.
+- `docs/plans/openai_agents_sdk_orchestration_backlog.md`: dedicated SDK runtime backlog.
 - `strategy/research_priorities.md`: recurring research priorities.
 - `stock_tracking/`: holdings, monitoring, rejected stocks, and company files.
 
@@ -224,6 +226,7 @@ Implemented:
 - prompt-ready operational memory context for future specialist injection.
 - deterministic run finalization command for reflection, recurring-failure, and finalization artifacts.
 - deterministic weekly runner that chains manifest, provider tasks, analysis tasks, summary, quality report, memory finalization, and memory-writer review up to the agent-framework decision boundary.
+- OpenAI Agents SDK selected as the future LLM orchestration framework, with runtime implementation still pending.
 - deterministic human request classifier and queue appender.
 - deterministic request router for stock, industry, theme, strategy, alert-review, manual-run, and status-move requests.
 - provider-neutral evidence packet schema and JSON artifact writer.
@@ -244,6 +247,6 @@ Not implemented yet:
 
 - macro provider integrations,
 - LLM specialist agents,
-- LLM orchestrator runtime,
+- OpenAI Agents SDK LLM orchestrator runtime,
 - OS/app scheduled execution,
 - immediate research runs.

@@ -1,6 +1,6 @@
 # Orchestrator Lessons
 
-Last updated: 2026-05-04
+Last updated: 2026-05-06
 
 Operational memory for workflow routing, orchestration, run ordering, and user corrections.
 
@@ -139,3 +139,17 @@ Operational memory for workflow routing, orchestration, run ordering, and user c
 - evidence: `stock_research/providers/exa.py`, `stock_research/providers/xai_grok.py`, `stock_research/provider_runner.py`, `stock_research/quality_report.py`, `stock_research/memory_reflection.py`
 - owner: provider orchestrator
 - next_review: 2026-06-01
+
+- id: orch-2026-05-06-openai-agents-sdk-selected
+- date: 2026-05-06
+- type: procedural
+- scope: orchestrator
+- status: active
+- confidence: high
+- trigger/source: User selected OpenAI Agents SDK after framework discussion.
+- lesson: Build the LLM orchestration runtime with OpenAI Agents SDK. Keep deterministic kickoff/finalization in code, use manager-style agents-as-tools for bounded specialists, use code-level parallel fanout for independent runs, and inject task-relevant operational memory into specialist prompts.
+- use_when: Implementing orchestrators, specialists, tracing, guardrails, prompt memory injection, or scheduled/manual LLM synthesis.
+- do_not_use_when: Replacing deterministic provider/analysis code or introducing automatic trading behavior.
+- evidence: `docs/plans/openai_agents_sdk_orchestration_backlog.md`, `docs/scratchpads/openai_agents_sdk_orchestration_scratchpad.md`, `MEMORY.md`
+- owner: main orchestrator
+- next_review: 2026-06-15

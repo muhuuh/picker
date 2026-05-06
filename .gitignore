@@ -14,9 +14,7 @@ dist/
 
 # Local agent/runtime output
 .codex/
-agents/runs/*/raw/
-agents/runs/*/evidence_packets/
-agents/runs/*/*.json
+agents/runs/**/*.json
 agents/memory/recurring_failures.json
 
 # OS/editor noise

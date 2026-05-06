@@ -49,6 +49,8 @@
 - [x] Validate full planned AAPL weekly provider/analysis/report/finalization workflow.
 - [x] Add deterministic company-news specialist review layer.
 - [x] Add automatic Exa contents follow-up before company-news review.
+- [x] Select OpenAI Agents SDK as orchestration framework.
+- [x] Create dedicated OpenAI Agents SDK orchestration scratchpad and backlog.
 - [ ] Validate updated architecture with user.
 
 ## Key Decisions and Why
@@ -98,6 +100,7 @@
 - 2026-05-05: Added bounded LLM memory writer workflow. It can build prompt artifacts, run deterministic review, or call OpenAI Responses API structured output through `memory writer-review --execute`, but actual memory writes still require deterministic draft validation and `memory apply-updates`.
 - 2026-05-05: User asked for more useful final task conclusions. `AGENTS.md` now requires every final response to state outcome quality, expectation check, verification, remaining gaps, and next steps.
 - 2026-05-05: Added deterministic weekly runner `python -m stock_research run-weekly`. It wires manifest generation, provider tasks, analysis tasks, run summary, quality report, memory finalization, and bounded memory-writer review into one command, then stops at the agent-framework decision boundary.
+- 2026-05-06: User selected OpenAI Agents SDK as the framework. Dedicated planning now lives in `docs/scratchpads/openai_agents_sdk_orchestration_scratchpad.md` and `docs/plans/openai_agents_sdk_orchestration_backlog.md`.
 
 ## What We Learned
 
@@ -172,15 +175,15 @@
 - Provider source-of-truth hierarchy?
 - Confidence scoring format?
 - What changes need human approval before file writes?
-- Agent framework decision: OpenAI Agents SDK, Pydantic AI, LangGraph, or a hybrid?
+- Detailed SDK runtime implementation choices: first specialist-as-tool target, default model split, session usage, and local trace artifact format.
 - Exact implementation shape for Codex chat request classification and manual run triggering.
 
 ## Next Steps
 
 - Review updated `docs/descriptions/investment_agent_workflow.md` and `docs/plans/investment_agent_backlog.md` with the user if needed.
-- Next implementation work should be the agent framework decision: compare OpenAI Agents SDK, Pydantic AI, LangGraph, and possible hybrid paths against the repo's deterministic tools and memory requirements.
+- Next implementation work should follow `docs/plans/openai_agents_sdk_orchestration_backlog.md`: add a focused OpenAI Agents SDK runtime foundation around the existing deterministic artifacts.
 - Learning-loop gap still pending inside LLM orchestration: automatic injection of memory context into actual specialist prompts after a framework is chosen.
-- Before LLM orchestrator implementation, run a thin spike comparing candidate frameworks for one evidence-packet specialist and one orchestrator call.
+- Before broad LLM orchestrator implementation, run a thin OpenAI Agents SDK spike for one evidence-packet specialist and one orchestrator call.
 - Consider LangGraph only if the first spike shows that explicit resumable graph state is needed earlier than planned.
 - Add README and SETUP when runtime dependencies are introduced.
 

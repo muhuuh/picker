@@ -1,6 +1,6 @@
 # Investment Agent Backlog
 
-Last updated: 2026-05-05
+Last updated: 2026-05-06
 
 ## Purpose
 
@@ -15,6 +15,7 @@ This is the clear task backlog for building the stock tracking and investment re
 - Review rhythm: user reviews results on Sunday and plans the next week.
 - Rejected-stock rule: do not resurface rejected stocks for 6 weeks unless the user overrides it.
 - Human interface: Codex chat is the primary interface; proactive user requests go to a human input queue and system approval items go to a separate human review queue.
+- Agent framework: OpenAI Agents SDK.
 
 ## Priority 0: Lock Product Shape
 
@@ -30,6 +31,9 @@ This is the clear task backlog for building the stock tracking and investment re
 - [ ] Validate final architecture with user.
   - Description: review the flow and decide whether any agent roles or memory surfaces are missing.
   - Output: updated architecture doc and this backlog.
+- [x] Select agent orchestration framework.
+  - Description: user selected OpenAI Agents SDK; dedicated scratchpad/backlog now track the runtime implementation.
+  - Output: `docs/scratchpads/openai_agents_sdk_orchestration_scratchpad.md`, `docs/plans/openai_agents_sdk_orchestration_backlog.md`.
 - [x] Choose first build slice.
   - Description: pick the first thin vertical slice, preferably file templates plus deterministic repo loader.
   - Output: first slice chosen as repo templates and file conventions.
@@ -260,6 +264,9 @@ This is the clear task backlog for building the stock tracking and investment re
 
 - [x] Build deterministic weekly runner.
   - Description: `python -m stock_research run-weekly` now chains manifest generation, provider tasks, analysis tasks, run summary, quality report, memory finalization, bounded memory-writer review, and orchestration report up to the agent-framework decision boundary.
+- [ ] Build OpenAI Agents SDK runtime foundation.
+  - Description: implement the dedicated SDK runtime backlog with context, registry, guarded tools, structured outputs, tracing, memory injection, and one specialist-as-tool spike.
+  - Output: `stock_research/agent_runtime/`, `docs/descriptions/openai_agents_sdk_orchestration.md`, tests, and a smoke command.
 - [ ] Build OS/app scheduled execution.
   - Description: run the deterministic weekly runner automatically on Saturday and support manual trigger flows.
 - [ ] Build company research sub-orchestrator.
@@ -323,5 +330,4 @@ This is the clear task backlog for building the stock tracking and investment re
 - Provider source-of-truth hierarchy when metrics conflict.
 - Human approval gates for file writes, stock movement, and strategy changes.
 - First test stock universe.
-- Agent SDK/framework choice: OpenAI Agents SDK, Pydantic AI, LangGraph, Cursor SDK, or a hybrid approach.
 - First stock universe to test beyond the current smoke-test artifacts.

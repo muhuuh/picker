@@ -181,6 +181,11 @@ Use this file for information we should not lose across sessions.
   - evidence artifact path(s): `stock_research/scheduled_runner.py`, `tests/test_scheduled_runner.py`, `docs/descriptions/scheduled_runner.md`, `README.md`, `SETUP.md`
   - status: active
 
+- 2026-05-06:
+  - decision/fact: OpenAI Agents SDK is selected as the agent orchestration framework. The next runtime slice should build a composable SDK layer around the existing deterministic workflow, with specialist agents usable both directly by code and as tools for orchestrators.
+  - evidence artifact path(s): `docs/scratchpads/openai_agents_sdk_orchestration_scratchpad.md`, `docs/plans/openai_agents_sdk_orchestration_backlog.md`, `docs/descriptions/investment_agent_workflow.md`, `docs/plans/investment_agent_backlog.md`
+  - status: active
+
 - 2026-05-04:
   - decision/fact: Generated run JSON artifacts are local runtime output and should not be committed. Keep markdown run summaries/reports/finalization files as the reviewable artifacts; `.gitignore` now ignores run-root JSON, raw provider JSON, evidence packet JSON, and generated recurring-failure JSON.
   - evidence artifact path(s): `.gitignore`, `README.md`, `SETUP.md`, `docs/descriptions/run_summary_and_quality.md`

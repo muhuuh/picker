@@ -1,0 +1,186 @@
+# OpenAI Agents SDK Orchestration Backlog
+
+Last updated: 2026-05-06
+
+## Goal and Scope
+
+Build the LLM orchestration layer for the stock research repo using OpenAI Agents SDK.
+
+This backlog covers runtime architecture, composability, tracing, guardrails, memory injection, specialist-as-tool behavior, parallel execution, and integration with the existing deterministic weekly runner.
+
+Out of scope for the first slice:
+
+- model-tier optimization,
+- replacing deterministic provider/analysis code,
+- vector databases,
+- automatic trading or broker actions.
+
+## Confirmed Decision
+
+- Use OpenAI Agents SDK as the agent framework.
+- Keep deterministic kickoff and run finalization in Python code.
+- Add the SDK runtime after deterministic provider tasks, analysis tasks, run summary, quality report, and memory context loading.
+- Store durable truth in repo artifacts, not SDK sessions.
+
+## Architecture Principles
+
+- Deterministic first: code builds the manifest, runs providers, runs deterministic analysis, and validates outputs before LLM synthesis.
+- Composable agents: every specialist should be callable directly by code and callable by an orchestrator as a tool.
+- Structured outputs: every orchestrator/specialist output should use a typed schema that can be validated and written as an artifact.
+- Proposal-first writes: agents should propose file changes unless a narrow writer tool has explicit permission and validation.
+- Local auditability: OpenAI traces help debug, but repo-local run metrics, trace links, summaries, and review queues remain required.
+- Memory-aware prompts: every specialist prompt should receive task-relevant operational memory from `memory prompt-context`.
+- Guard critical tools: provider tools, file tools, memory tools, and writer tools need input/output guardrails.
+
+## Priority 0: Documentation and Decision Capture
+
+- [x] Review latest official OpenAI Agents SDK docs.
+- [x] Record SDK selection in `MEMORY.md`.
+- [x] Create dedicated SDK orchestration scratchpad.
+- [x] Create this dedicated SDK orchestration backlog.
+- [x] Link this backlog from repo map, main backlog, workflow plan, and architecture docs.
+- [x] Add an SDK runtime description file before implementation.
+  - Output: `docs/descriptions/openai_agents_sdk_orchestration.md`.
+
+## Priority 1: Minimal SDK Runtime Spike
+
+- [ ] Add the `openai-agents` dependency.
+  - Call out dependency change in `SETUP.md` and README.
+- [ ] Create `stock_research/agent_runtime/` package.
+- [ ] Define `ResearchRunContext`.
+  - Fields: repo root, run id, manifest path, memory context, allowed write targets, trace id, group id, run mode, dry-run flags.
+- [ ] Define initial structured outputs.
+  - Candidate schemas: `SpecialistResult`, `OrchestratorDecision`, `AlertProposal`, `FileUpdateProposal`, `HumanReviewItem`.
+- [ ] Build a minimal manager agent plus one specialist agent-as-tool.
+  - Preferred first specialist: synthesis over existing company-news or financial review artifacts, not a new provider.
+- [ ] Run a live or mocked smoke test.
+  - Must write local run metrics and trace link artifacts.
+
+## Priority 2: Tool Wrappers Around Existing Deterministic Code
+
+- [ ] Wrap repo/memory inspection as function tools.
+  - `load_repo_map`
+  - `load_run_summary`
+  - `load_quality_report`
+  - `load_memory_prompt_context`
+  - `list_evidence_packets`
+- [ ] Wrap deterministic provider task execution as guarded tools.
+  - Default to dry-run unless the runtime has explicit execute permission.
+- [ ] Wrap deterministic analysis task execution as guarded tools.
+- [ ] Wrap human review queue writing as a controlled tool.
+- [ ] Wrap file update proposal creation as a controlled tool.
+- [ ] Add tests for tool schemas and guardrails.
+
+## Priority 3: Observability and Tracking
+
+- [ ] Add OpenAI Agents SDK tracing configuration.
+  - Use workflow name, trace id, group id, trace metadata, and sensitive-data settings.
+- [ ] Add local run hooks.
+  - Capture agent start/end, tool calls, LLM calls, errors, durations, and usage.
+- [ ] Write local observability artifacts.
+  - `agents/runs/{run_id}/trace_links.md`
+  - `agents/runs/{run_id}/run_metrics.md`
+  - optional ignored JSON metrics for machine inspection.
+- [ ] Add timeout/error policy.
+  - Per-specialist timeout, retry policy, partial-result handling, and final `needs_review` status when incomplete.
+- [ ] Feed observability output into memory reflection.
+
+## Priority 4: Memory Injection
+
+- [ ] Create a runtime memory loader that calls existing memory code directly.
+- [ ] Inject task-relevant memory into every specialist prompt.
+- [ ] Inject only high-signal memory, not every memory file.
+- [ ] Record which memory item ids were used in each specialist artifact.
+- [ ] Ensure memory writer proposals continue to go through deterministic validation and `memory apply-updates`.
+
+## Priority 5: Parallel Orchestration
+
+- [ ] Implement code-level fanout with `asyncio.gather`.
+  - Parallel by ticker when independent.
+  - Parallel by specialist when inputs do not depend on each other.
+- [ ] Implement dependency groups.
+  - Example: provider evidence before synthesis; Exa contents before company-news ready state; financial_compare before financial synthesis.
+- [ ] Add aggregation step.
+  - Merge specialist outputs into a structured orchestrator input packet.
+- [ ] Add partial-failure behavior.
+  - Missing or failed specialists should create review items and memory reflection candidates, not silently vanish.
+
+## Priority 6: Main and Sub-Orchestrators
+
+- [ ] Build company research sub-orchestrator.
+  - Coordinates filings, news, financials, sentiment, risks, and update proposals for one ticker.
+- [ ] Build market research sub-orchestrator.
+  - Coordinates industry/theme research, discovery, candidate validation, and strategy fit.
+- [ ] Build portfolio review sub-orchestrator.
+  - Synthesizes current holdings, monitoring, rejected cooldowns, bucket-level changes, and alerts.
+- [ ] Build memory/evaluation sub-orchestrator.
+  - Reviews traces, metrics, quality reports, user corrections, and reflection proposals.
+- [ ] Build main orchestrator.
+  - Owns final synthesis, priorities, review queue items, update proposals, and next-run plan.
+
+## Priority 7: Guardrails and Approval Gates
+
+- [ ] Add tool guardrails for secrets, source metadata, and write scopes.
+- [ ] Add output guardrails for citation requirements and overconfident claims.
+- [ ] Keep buy/sell/position-size recommendations as human review items.
+- [ ] Keep stock moves and major strategy changes behind human review unless explicitly approved.
+- [ ] Enforce rejected-stock cooldown before candidate promotion.
+
+## Priority 8: Scheduler and Manual Runs
+
+- [ ] Add optional `run-weekly --execute-orchestrator`.
+- [ ] Add manual run command for user-triggered SDK orchestration over selected tickers/topics.
+- [ ] Add Saturday automation only after the SDK runtime can run safely and produce reviewable outputs.
+
+## Priority 9: Tests and Evaluation
+
+- [ ] Add unit tests for registry, context, outputs, and guarded tools.
+- [ ] Add integration tests with fake model/tool outputs.
+- [ ] Add golden tests for orchestrator decisions from known evidence packets.
+- [ ] Add failure-injection tests for provider failure, malformed specialist output, missing citations, and timeout behavior.
+- [ ] Add quality gates for no direct writes outside allowed targets.
+
+## Planned Runtime Diagram
+
+```mermaid
+flowchart TD
+    A["run-weekly deterministic phase"] --> B["Load run summary, quality report, evidence, memory context"]
+    B --> C["SDK runtime context"]
+    C --> D1["Company research fanout"]
+    C --> D2["Market research fanout"]
+    C --> D3["Portfolio review fanout"]
+    D1 --> E["Aggregate specialist outputs"]
+    D2 --> E
+    D3 --> E
+    E --> F["Main orchestrator agent"]
+    F --> G1["Alerts"]
+    F --> G2["File update proposals"]
+    F --> G3["Human review queue"]
+    F --> G4["Next-run plan"]
+    G1 --> H["Quality review and finalization"]
+    G2 --> H
+    G3 --> H
+    G4 --> H
+    H --> I["Memory reflection"]
+```
+
+## First Implementation Slice
+
+The next build slice should be intentionally small:
+
+1. Add `openai-agents` dependency and setup docs.
+2. Add `stock_research/agent_runtime/` with context, outputs, and runner skeleton.
+3. Build one specialist-as-tool over existing artifacts.
+4. Add local tracing/metrics artifacts.
+5. Add tests and one smoke command.
+
+Success means the SDK runtime can consume existing deterministic artifacts, call one specialist as a tool, return a validated structured decision, and write auditable run artifacts without broad file writes.
+
+## Risks / Gotchas
+
+- Tracing can capture sensitive inputs/outputs unless configured.
+- Sessions are useful for chat continuity but should not become hidden project memory.
+- Handoffs can blur ownership of final output; manager-style agent-as-tool is safer for most research synthesis.
+- Agent-as-tool guardrails need careful design because direct tool guardrail options are not exposed there; wrap critical checks in function tools and runner validation.
+- Parallel execution needs explicit timeouts and partial-result handling.
+- Adding the SDK is an infra dependency change and should be done in a focused implementation slice.

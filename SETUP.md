@@ -1,6 +1,6 @@
 # Setup
 
-Last updated: 2026-05-04
+Last updated: 2026-05-06
 
 ## Requirements
 
@@ -95,7 +95,7 @@ Provider integrations planned later may use:
 
 - Exa,
 - xAI/Grok,
-- OpenAI or another agent/model provider.
+- OpenAI Agents SDK.
 
 The bounded LLM memory writer requires OpenAI only when live execution is requested:
 
@@ -106,6 +106,20 @@ OPENAI_API_KEY="..."
 Keep secrets in `.env` or local environment variables. Do not commit `.env`.
 
 Use `.env.example` as a local template.
+
+## OpenAI Agents SDK Runtime
+
+OpenAI Agents SDK is selected as the future LLM orchestration framework, but the SDK runtime package has not been added yet.
+
+Planning files:
+
+```text
+docs/descriptions/openai_agents_sdk_orchestration.md
+docs/plans/openai_agents_sdk_orchestration_backlog.md
+docs/scratchpads/openai_agents_sdk_orchestration_scratchpad.md
+```
+
+When implementation starts, setup should add the `openai-agents` dependency and document any new verification commands here.
 
 ## SEC EDGAR
 

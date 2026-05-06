@@ -1,6 +1,6 @@
 # Investment Agent Workflow Architecture
 
-Last updated: 2026-05-04
+Last updated: 2026-05-06
 
 ## Goal
 
@@ -113,7 +113,9 @@ The deterministic financial comparison layer was added on 2026-05-04 under `stoc
 The deterministic financial-data specialist review layer was added on 2026-05-04 under `stock_research/financial_specialist.py`.
 The deterministic analysis-task runner was added on 2026-05-04 under `stock_research/analysis_runner.py`.
 The operational agent memory layer was added on 2026-05-04 under `agents/memory/`, with deterministic inspection support under `stock_research/memory.py` and run finalization support under `stock_research/run_finalization.py`.
-The deterministic scheduled runner was added on 2026-05-05 under `stock_research/scheduled_runner.py`; it chains the deterministic weekly lifecycle and stops at the agent-framework decision boundary.
+The deterministic scheduled runner was added on 2026-05-05 under `stock_research/scheduled_runner.py`; it chains the deterministic weekly lifecycle and now stops before the selected OpenAI Agents SDK runtime is implemented.
+
+The agent framework decision was resolved on 2026-05-06: use OpenAI Agents SDK for the LLM orchestrator and specialists. Detailed SDK implementation planning lives in `docs/plans/openai_agents_sdk_orchestration_backlog.md` and `docs/scratchpads/openai_agents_sdk_orchestration_scratchpad.md`.
 
 The first provider integration, SEC EDGAR, was added on 2026-05-03 under `stock_research/providers/sec_edgar.py`.
 The next provider tools, yfinance and Exa, were added on 2026-05-03 under `stock_research/providers/yfinance_provider.py` and `stock_research/providers/exa.py`.
@@ -463,7 +465,7 @@ Use `--provider`, `--task-id`, and `--limit` to inspect or execute a subset.
 
 Initial Python implementation:
 
-- OpenAI Agents SDK for orchestrator and specialists. Status 2026-05-03: still a candidate, not locked; compare against Pydantic AI and LangGraph before Priority 4 agent implementation.
+- OpenAI Agents SDK for orchestrator and specialists. Status 2026-05-06: selected by the user. Build the runtime as a focused layer around existing deterministic artifacts, with code orchestration for deterministic/parallel stages and manager-style agents-as-tools for bounded specialist calls.
 - Current evidence schemas use stdlib dataclasses in `stock_research/evidence.py`; Pydantic can be introduced later if runtime agent integrations need stricter model validation.
 - Pandas or Python CSV module for overview CSV validation.
 - Approved initial providers: Exa, xAI/Grok, SEC, yfinance, FMP, Polygon, and Alpha Vantage.
@@ -475,6 +477,18 @@ Initial Python implementation:
 - FMP, Polygon, and Alpha Vantage for market data, fundamentals, and cross-provider validation.
 - Candidate providers to evaluate: OpenBB as a unified Python access layer; Twelve Data or EODHD for broader global price/fundamental coverage; Finnhub for news/earnings/calendar coverage; Nasdaq Data Link for premium and economic datasets; FRED, ECB, and Eurostat for macro context; Companies House for UK company filings; ESMA ESAP later when public access is available.
 - Optional vector store later for filing retrieval, after file formats stabilize.
+
+OpenAI Agents SDK runtime plan:
+
+- Runtime code should live under `stock_research/agent_runtime/`.
+- Prompts/specs should live under `agents/orchestrator/` and `agents/specialists/`.
+- Use `Runner.run(...)` for async execution and code-level `asyncio.gather` for independent specialist fanout.
+- Use `Agent.as_tool()` when a specialist should complete a bounded subtask while the main orchestrator owns synthesis.
+- Use handoffs only when a specialist should own the user-facing conversational turn.
+- Use SDK structured outputs for orchestrator decisions, specialist reviews, alerts, update proposals, and human review items.
+- Use SDK tracing plus local run metrics and `trace_links.md`.
+- Use task-relevant operational memory from `python -m stock_research memory prompt-context --task TASK` in specialist prompts.
+- Use tool guardrails around custom repo/provider/writer tools and keep file writes proposal-first unless a narrow validated writer tool has permission.
 
 ## Guardrails
 

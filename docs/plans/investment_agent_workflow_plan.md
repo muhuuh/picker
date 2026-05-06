@@ -1,6 +1,6 @@
 # Investment Agent Workflow Plan
 
-Last updated: 2026-05-05
+Last updated: 2026-05-06
 
 ## Goal and Scope
 
@@ -105,6 +105,8 @@ Detailed backlog: `docs/plans/investment_agent_backlog.md`.
 - [x] Implement manual run manifest path for immediate user-requested research.
 - [x] Implement final run summary.
 - [ ] Add tracing IDs and run metrics to artifacts.
+- [ ] Build OpenAI Agents SDK runtime foundation.
+  - Current progress: framework selected; dedicated backlog/scratchpad created at `docs/plans/openai_agents_sdk_orchestration_backlog.md` and `docs/scratchpads/openai_agents_sdk_orchestration_scratchpad.md`.
 
 ## Priority 6: Learning Loop
 
@@ -131,7 +133,6 @@ Detailed backlog: `docs/plans/investment_agent_backlog.md`.
 ## Key Decisions Pending
 
 - Data provider stack and budget.
-- Agent SDK/framework choice for Priority 4 and Priority 5 implementation.
 - Human approval gates.
 - Whether recommendations should be explicit or framed as research alerts.
 - First stock universe to test.
@@ -173,3 +174,4 @@ Detailed backlog: `docs/plans/investment_agent_backlog.md`.
 - 2026-05-04: Added deterministic company-news specialist with `python -m stock_research news review --ticker TICKER --run-id RUN_ID`; weekly manifests now plan `company_news_review` analysis tasks.
 - 2026-05-04: Re-reviewed official Exa search, search best-practice, company, news, contents, and contents best-practice docs. Confirmed `auto` + highlights as default, `category: "company"` only for company discovery, no news category parameter, and top-level `/contents` extraction parameters. Added `company_news_contents_follow_up` before `company_news_review`; headline/highlight-only news reviews now remain `partial_review`.
 - 2026-05-03: Started SDK/framework review before agent runtime work. Current finding: Cursor SDK is likely a coding-agent automation adjunct, not the core stock-research orchestration runtime; OpenAI Agents SDK, Pydantic AI, and LangGraph remain the main candidates.
+- 2026-05-06: User selected OpenAI Agents SDK as the framework. Created a dedicated SDK orchestration scratchpad and backlog. Next implementation slice is a small SDK runtime foundation with context, registry, guarded tools, structured outputs, tracing, memory injection, and one specialist-as-tool spike.

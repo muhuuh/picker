@@ -1,6 +1,6 @@
 # Repo Map
 
-Last updated: 2026-05-05
+Last updated: 2026-05-06
 
 ## Purpose
 
@@ -54,6 +54,9 @@ This file tells Codex, the orchestrator, and future agents where to find and upd
 - `docs/descriptions/agent_memory_workflow.md`: operational memory read/write workflow.
 - `docs/descriptions/llm_memory_writer.md`: bounded LLM memory writer workflow over memory update drafts.
 - `docs/descriptions/scheduled_runner.md`: deterministic weekly workflow wrapper.
+- `docs/descriptions/openai_agents_sdk_orchestration.md`: selected OpenAI Agents SDK runtime design.
+- `docs/plans/openai_agents_sdk_orchestration_backlog.md`: dedicated backlog for OpenAI Agents SDK runtime implementation.
+- `docs/scratchpads/openai_agents_sdk_orchestration_scratchpad.md`: dedicated scratchpad for SDK orchestration findings and decisions.
 - `docs/descriptions/evidence_schema.md`: shared source/evidence packet schema for all providers and specialists.
 - `docs/descriptions/sec_edgar_provider.md`: SEC EDGAR provider behavior and setup.
 - `docs/descriptions/exa_provider.md`: Exa search/contents provider behavior and best practices.
@@ -129,6 +132,15 @@ This file tells Codex, the orchestrator, and future agents where to find and upd
 - `python -m stock_research run-weekly`: dry-run the deterministic weekly workflow wrapper.
 - `python -m stock_research run-weekly --write --execute-providers --execute-analysis`: execute and persist the deterministic weekly workflow up to the agent-framework boundary.
 - `tests/`: unit tests for current deterministic core.
+
+## OpenAI Agents SDK Runtime Planning
+
+- Selected framework: OpenAI Agents SDK.
+- Dedicated plan: `docs/plans/openai_agents_sdk_orchestration_backlog.md`.
+- Dedicated scratchpad: `docs/scratchpads/openai_agents_sdk_orchestration_scratchpad.md`.
+- Planned code location: `stock_research/agent_runtime/`.
+- Planned prompt/spec locations: `agents/orchestrator/` and `agents/specialists/`.
+- Runtime implementation is still pending; do not add broad LLM orchestration code without following the dedicated backlog.
 
 ## Where To Put Common User Requests
 
