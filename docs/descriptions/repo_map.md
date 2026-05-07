@@ -137,6 +137,7 @@ This file tells Codex, the orchestrator, and future agents where to find and upd
 - `python -m stock_research agent-runtime smoke --run-id RUN_ID`: build the SDK runtime context and main orchestrator without calling a live model.
 - `python -m stock_research agent-runtime run --run-id RUN_ID --execute --write`: run the main SDK orchestrator over existing artifacts and write runtime report/metrics artifacts without editing stock files.
 - `python -m stock_research agent-runtime validate-output --run-id RUN_ID`: validate a saved SDK runtime output without calling a model.
+- `python -m stock_research agent-runtime queue-proposals --run-id RUN_ID --write --queue-review`: convert saved SDK file-update proposals into `orchestrator_update_proposals.md` and duplicate-safe human-review queue rows.
 - `tests/`: unit tests for current deterministic core.
 
 ## OpenAI Agents SDK Runtime Planning
@@ -149,6 +150,7 @@ This file tells Codex, the orchestrator, and future agents where to find and upd
 - Do not add broad LLM orchestration code without following the dedicated backlog.
 - First runtime foundation is implemented under `stock_research/agent_runtime/`.
 - Live orchestration from `run-weekly` is available behind `--execute-orchestrator`; it is opt-in and freshness-gated.
+- SDK output proposals are reviewable through `agents/runs/{run_id}/orchestrator_update_proposals.md` and `agents/human_review_queue.md`; company files are not edited by this bridge.
 
 ## Where To Put Common User Requests
 

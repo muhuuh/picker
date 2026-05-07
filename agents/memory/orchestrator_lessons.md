@@ -208,3 +208,17 @@ Operational memory for workflow routing, orchestration, run ordering, and user c
 - evidence: `stock_research/scheduled_runner.py`, `tests/test_scheduled_runner.py`, `agents/runs/2026-05-09_weekly/run_summary.md`, `docs/descriptions/scheduled_runner.md`
 - owner: main orchestrator
 - next_review: 2026-06-15
+
+- id: orch-2026-05-07-sdk-proposals-before-file-writes
+- date: 2026-05-07
+- type: procedural
+- scope: orchestrator
+- status: active
+- confidence: high
+- trigger/source: Implemented deterministic SDK proposal review bridge for AAPL file-update proposals.
+- lesson: Convert saved SDK file update proposals into `orchestrator_update_proposals.md` and human-review queue rows before any company-file writer applies edits. The proposal bridge validates the SDK output and is duplicate-safe; it must not edit company files.
+- use_when: Handling SDK file update proposals, building writer specialists, or deciding whether a company file can be modified.
+- do_not_use_when: Updating operational memory through `memory apply-updates`; that has a separate deterministic approval path.
+- evidence: `stock_research/agent_runtime/proposal_review.py`, `tests/test_agent_runtime_proposal_review.py`, `agents/runs/2026-05-09_weekly/orchestrator_update_proposals.md`, `agents/human_review_queue.md`
+- owner: main orchestrator
+- next_review: 2026-06-15

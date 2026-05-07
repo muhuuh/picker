@@ -256,6 +256,7 @@ This is the clear task backlog for building the stock tracking and investment re
 - [ ] Build contradiction and risk specialist.
 - [ ] Build human request triage specialist.
 - [ ] Build company file updater.
+  - Current prerequisite: SDK proposals can now be queued for review; next step is an approved-proposal writer that only applies selected approved proposal ids.
 - [ ] Build category state updater.
 - [ ] Build CSV updater.
 - [ ] Build quality reviewer.
@@ -266,7 +267,7 @@ This is the clear task backlog for building the stock tracking and investment re
   - Description: `python -m stock_research run-weekly` now chains manifest generation, provider tasks, analysis tasks, run summary, quality report, memory finalization, bounded memory-writer review, optional SDK orchestration, and orchestration report. Live provider/analysis execution cleans generated run artifacts first to avoid stale duplicate packets on reruns.
 - [ ] Build OpenAI Agents SDK runtime foundation.
   - Description: implement the dedicated SDK runtime backlog with context, registry, guarded tools, structured outputs, tracing, memory injection, and one specialist-as-tool spike.
-  - Current progress: first manual runtime slice is implemented and live-smoke-tested with no quality findings after prompt/tool/validator tightening. `run-weekly --write --execute-orchestrator` is implemented as an opt-in scheduled SDK path, with freshness gating when provider/analysis tasks are dry-run. Full fresh `--execute-providers --execute-analysis --execute-orchestrator` validation completed with no findings after adding generated-artifact cleanup.
+  - Current progress: first manual runtime slice is implemented and live-smoke-tested with no quality findings after prompt/tool/validator tightening. `run-weekly --write --execute-orchestrator` is implemented as an opt-in scheduled SDK path, with freshness gating when provider/analysis tasks are dry-run. Full fresh `--execute-providers --execute-analysis --execute-orchestrator` validation completed with no findings after adding generated-artifact cleanup. SDK proposals now flow through `agent-runtime queue-proposals --write --queue-review` before any file writer.
   - Output: `stock_research/agent_runtime/`, `docs/descriptions/openai_agents_sdk_orchestration.md`, tests, `python -m stock_research agent-runtime smoke`, and `python -m stock_research agent-runtime run --run-id RUN_ID --execute --write`.
 - [ ] Build OS/app scheduled execution.
   - Description: run the deterministic weekly runner automatically on Saturday and support manual trigger flows.

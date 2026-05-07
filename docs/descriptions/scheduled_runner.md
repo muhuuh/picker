@@ -59,6 +59,7 @@ load repo state
   -> memory finalize-run
   -> memory writer-review
   -> SDK orchestrator (only with --execute-orchestrator)
+  -> SDK proposal review bridge (only after successful SDK orchestrator output)
   -> orchestration_report
 ```
 
@@ -75,6 +76,7 @@ When `--write` is used:
 - `agents/runs/{run_id}/memory_writer_review.md`
 - `agents/runs/{run_id}/finalization.md`
 - `agents/runs/{run_id}/agent_runtime_main_orchestrator.md` when `--execute-orchestrator` is used
+- `agents/runs/{run_id}/orchestrator_update_proposals.md` when successful SDK output contains file update proposals
 - `agents/runs/{run_id}/trace_links.md` when `--execute-orchestrator` is used
 - `agents/runs/{run_id}/run_metrics.md` when `--execute-orchestrator` is used
 - `agents/runs/{run_id}/orchestration_report.md`
@@ -103,3 +105,4 @@ Current SDK integration:
 - Scheduled opt-in SDK run: `python -m stock_research run-weekly --write --execute-orchestrator`.
 - Fresh actionable research should normally use `--execute-providers --execute-analysis --execute-orchestrator`; otherwise SDK proposals are review-only.
 - Repeated fresh runs are idempotent at the generated-artifact level because live execution cleans prior generated run artifacts before rebuilding them.
+- Successful SDK file update proposals are routed through `orchestrator_update_proposals.md` and duplicate-safe human-review queue rows before any company-file writer can apply them.

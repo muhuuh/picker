@@ -1,4 +1,5 @@
 from datetime import date
+import json
 from pathlib import Path
 from tempfile import TemporaryDirectory
 import unittest
@@ -170,8 +171,13 @@ def fake_analysis_executor(root: Path, task: dict, current_date: date | None):
 
 def fake_orchestrator_executor(context, prompt: str, model: str | None):
     report_path = context.run_dir / "agent_runtime_main_orchestrator.md"
+    json_path = context.run_dir / "agent_runtime_main_orchestrator.json"
     report_path.parent.mkdir(parents=True, exist_ok=True)
     report_path.write_text("# Agent Runtime Report\n", encoding="utf-8")
+    json_path.write_text(
+        '{"agent_id":"main_orchestrator","run_id":"2026-05-09_weekly","status":"partial","summary":"Fake SDK orchestrator result for scheduled runner tests.","memory_item_ids_used":[]}\n',
+        encoding="utf-8",
+    )
     return AgentRuntimeResult(
         agent_id="main_orchestrator",
         final_output={
@@ -190,11 +196,10 @@ def fake_orchestrator_executor(context, prompt: str, model: str | None):
 
 def fake_ready_orchestrator_executor(context, prompt: str, model: str | None):
     report_path = context.run_dir / "agent_runtime_main_orchestrator.md"
+    json_path = context.run_dir / "agent_runtime_main_orchestrator.json"
     report_path.parent.mkdir(parents=True, exist_ok=True)
     report_path.write_text("# Agent Runtime Report\n", encoding="utf-8")
-    return AgentRuntimeResult(
-        agent_id="main_orchestrator",
-        final_output={
+    final_output = {
             "agent_id": "main_orchestrator",
             "run_id": context.run_id,
             "status": "ready",
@@ -219,7 +224,11 @@ def fake_ready_orchestrator_executor(context, prompt: str, model: str | None):
                     "confidence": "medium",
                 }
             ],
-        },
+        }
+    json_path.write_text(json.dumps(final_output), encoding="utf-8")
+    return AgentRuntimeResult(
+        agent_id="main_orchestrator",
+        final_output=final_output,
         trace_id=context.trace_id,
         group_id=context.trace_group_id,
         quality_findings=[],
@@ -229,11 +238,10 @@ def fake_ready_orchestrator_executor(context, prompt: str, model: str | None):
 
 def fake_ready_no_action_orchestrator_executor(context, prompt: str, model: str | None):
     report_path = context.run_dir / "agent_runtime_main_orchestrator.md"
+    json_path = context.run_dir / "agent_runtime_main_orchestrator.json"
     report_path.parent.mkdir(parents=True, exist_ok=True)
     report_path.write_text("# Agent Runtime Report\n", encoding="utf-8")
-    return AgentRuntimeResult(
-        agent_id="main_orchestrator",
-        final_output={
+    final_output = {
             "agent_id": "main_orchestrator",
             "run_id": context.run_id,
             "status": "ready",
@@ -242,7 +250,11 @@ def fake_ready_no_action_orchestrator_executor(context, prompt: str, model: str 
             "file_update_proposals": [],
             "alerts": [],
             "sources": [],
-        },
+        }
+    json_path.write_text(json.dumps(final_output), encoding="utf-8")
+    return AgentRuntimeResult(
+        agent_id="main_orchestrator",
+        final_output=final_output,
         trace_id=context.trace_id,
         group_id=context.trace_group_id,
         quality_findings=[],

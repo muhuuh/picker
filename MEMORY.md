@@ -191,6 +191,11 @@ Use this file for information we should not lose across sessions.
   - evidence artifact path(s): `stock_research/scheduled_runner.py`, `tests/test_scheduled_runner.py`, `docs/descriptions/scheduled_runner.md`, `agents/runs/2026-05-09_weekly/run_summary.md`, `agents/runs/2026-05-09_weekly/orchestration_report.md`
   - status: active
 
+- 2026-05-07:
+  - decision/fact: SDK file update proposals now have a deterministic review bridge. Use `python -m stock_research agent-runtime queue-proposals --run-id RUN_ID --write --queue-review` to write `orchestrator_update_proposals.md` and duplicate-safe human-review queue rows. This bridge does not edit company files.
+  - evidence artifact path(s): `stock_research/agent_runtime/proposal_review.py`, `tests/test_agent_runtime_proposal_review.py`, `agents/runs/2026-05-09_weekly/orchestrator_update_proposals.md`, `agents/human_review_queue.md`, `docs/descriptions/openai_agents_sdk_orchestration.md`
+  - status: active
+
 - 2026-05-04:
   - decision/fact: Generated run JSON artifacts are local runtime output and should not be committed. Keep markdown run summaries/reports/finalization files as the reviewable artifacts; `.gitignore` now ignores run-root JSON, raw provider JSON, evidence packet JSON, and generated recurring-failure JSON.
   - evidence artifact path(s): `.gitignore`, `README.md`, `SETUP.md`, `docs/descriptions/run_summary_and_quality.md`

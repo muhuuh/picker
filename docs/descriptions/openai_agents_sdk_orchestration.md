@@ -80,6 +80,7 @@ run-weekly
      -> code-level parallel specialist calls
      -> main orchestrator synthesis
      -> alerts, update proposals, review items, next-run plan
+  -> deterministic proposal review bridge
   -> quality review
   -> final run artifacts
   -> memory reflection
@@ -265,6 +266,7 @@ Implemented:
 - `stock_research/agent_runtime/runner.py`: run config wrapper with trace metadata and sensitive-data tracing disabled.
 - `stock_research/agent_runtime/tracing.py`: local trace/metrics artifact helpers.
 - `stock_research/agent_runtime/reports.py`: orchestrator input builder, runtime report writer, and output quality checks.
+- `stock_research/agent_runtime/proposal_review.py`: deterministic bridge from saved SDK proposals to `orchestrator_update_proposals.md` and human-review queue rows.
 - `agents/orchestrator/prompts/` and `agents/specialists/prompts/`: prompt files.
 - `agents/orchestrator/specs/` and `agents/specialists/specs/`: spec files.
 - CLI inspection:
@@ -273,6 +275,7 @@ Implemented:
   - `python -m stock_research agent-runtime run --run-id RUN_ID`
   - `python -m stock_research agent-runtime run --run-id RUN_ID --execute --write`
   - `python -m stock_research agent-runtime validate-output --run-id RUN_ID`
+  - `python -m stock_research agent-runtime queue-proposals --run-id RUN_ID --write --queue-review`
 - Scheduled opt-in:
   - `python -m stock_research run-weekly --write --execute-orchestrator`
   - `python -m stock_research run-weekly --write --execute-providers --execute-analysis --execute-orchestrator`
@@ -303,6 +306,8 @@ These gates are intentionally stricter than "did the model return JSON". Future 
 Scheduled SDK runs add one more freshness gate: if provider tasks or analysis tasks were dry-run and the SDK still returns ready/actionable alerts or file update proposals, the scheduled run becomes `needs_review`. This keeps stale-artifact synthesis from being treated as fresh current-cycle research.
 
 Fresh scheduled runs also clean generated artifacts in the target run directory before live provider/analysis execution. This prevents repeated smoke tests from leaving older evidence packets that inflate run summaries or duplicate specialist reviews.
+
+Saved SDK proposals are converted through a deterministic proposal bridge before any writer can act on them. The bridge validates the saved SDK output, writes `agents/runs/{run_id}/orchestrator_update_proposals.md`, and can append duplicate-safe rows to `agents/human_review_queue.md`. It never edits `stock_tracking/stock_info_files/`.
 
 ## Live Smoke Result
 
@@ -354,3 +359,19 @@ Result:
 - quality findings: none
 - SDK quality findings: none
 - notes: cleanup removed earlier smoke-test duplicates before the run summary was rebuilt
+
+## Proposal Review Result
+
+2026-05-07 proposal bridge command:
+
+```powershell
+python -m stock_research agent-runtime queue-proposals --run-id 2026-05-09_weekly --write --queue-review --today 2026-05-07
+```
+
+Result:
+
+- status: ready_for_human_review
+- proposals written: 2 AAPL company-file update proposals
+- human review queue rows: HRQ-0002 and HRQ-0003
+- artifact: `agents/runs/2026-05-09_weekly/orchestrator_update_proposals.md`
+- guardrail: no company file edits were applied

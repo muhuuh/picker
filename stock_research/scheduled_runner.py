@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any
 
 from .agent_runtime.context import build_research_run_context
+from .agent_runtime.proposal_review import build_proposal_review, proposal_review_to_dict
 from .agent_runtime.reports import build_orchestrator_input, output_status, output_to_dict
 from .agent_runtime.runner import AgentRuntimeResult, run_agent_sync
 from .analysis_runner import AnalysisExecutor, run_analysis_tasks
@@ -89,6 +90,7 @@ def run_weekly_research_workflow(
     finalization: RunFinalization | None = None
     memory_writer_review: MemoryWriterReview | None = None
     orchestrator_result: dict[str, Any] = {"status": "not_run"}
+    proposal_review_result: dict[str, Any] = {"status": "not_run"}
 
     if write:
         run_summary = build_run_summary(repo_root, run_id, today)
@@ -151,6 +153,16 @@ def run_weekly_research_workflow(
                     analysis_result=analysis_result,
                 )
                 artifacts.extend(Path(path) for path in sdk_result.written_paths)
+                if orchestrator_result.get("status") == "complete":
+                    proposal_review = build_proposal_review(
+                        root=repo_root,
+                        run_id=run_id,
+                        current_date=today,
+                        write=True,
+                        queue_review=True,
+                    )
+                    proposal_review_result = proposal_review_to_dict(proposal_review)
+                    artifacts.extend(repo_root / path for path in proposal_review.written_paths)
             except Exception as exc:
                 orchestrator_result = {
                     "status": "error",
@@ -158,6 +170,7 @@ def run_weekly_research_workflow(
                     "quality_findings": [],
                     "written_paths": [],
                 }
+                proposal_review_result = {"status": "not_run", "reason": "orchestrator_error"}
 
     result = ScheduledRunResult(
         run_id=run_id,
@@ -174,6 +187,7 @@ def run_weekly_research_workflow(
             finalization=finalization,
             memory_writer_review=memory_writer_review,
             orchestrator_result=orchestrator_result,
+            proposal_review_result=proposal_review_result,
         ),
         artifacts=[relative_to_root(repo_root, path).as_posix() for path in artifacts],
         next_actions=next_actions(write, provider_result, analysis_result, quality_report, finalization, orchestrator_result),
@@ -234,6 +248,7 @@ def build_steps(
     finalization: RunFinalization | None,
     memory_writer_review: MemoryWriterReview | None,
     orchestrator_result: dict[str, Any],
+    proposal_review_result: dict[str, Any],
 ) -> dict[str, Any]:
     return {
         "manifest": {
@@ -249,6 +264,7 @@ def build_steps(
         "memory_finalization": finalization_to_dict(finalization) if finalization else {"status": "not_written"},
         "memory_writer_review": memory_writer_review_to_dict(memory_writer_review) if memory_writer_review else {"status": "not_written"},
         "agent_orchestrator": orchestrator_result,
+        "orchestrator_proposal_review": proposal_review_result,
         "framework_boundary": {
             "status": "resolved",
             "framework": "OpenAI Agents SDK",
@@ -389,6 +405,7 @@ GENERATED_RUN_ROOT_FILES = (
     "memory_writer_review.md",
     "agent_runtime_main_orchestrator.json",
     "agent_runtime_main_orchestrator.md",
+    "orchestrator_update_proposals.md",
     "trace_links.md",
     "run_metrics.md",
     "orchestration_report.json",
@@ -442,6 +459,7 @@ def format_scheduled_run_report_markdown(result: ScheduledRunResult) -> str:
         f"- memory_finalization: {result.steps['memory_finalization'].get('status', 'not_written')}",
         f"- memory_writer_review: {result.steps['memory_writer_review'].get('mode', 'not_written')}",
         f"- agent_orchestrator: {result.steps['agent_orchestrator'].get('status', 'not_run')}",
+        f"- orchestrator_proposal_review: {result.steps['orchestrator_proposal_review'].get('status', 'not_run')}",
         "",
         "## SDK Quality Findings",
         "",

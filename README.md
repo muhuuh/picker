@@ -91,6 +91,7 @@ python -m stock_research agent-runtime list-agents
 python -m stock_research agent-runtime smoke --run-id 2026-05-09_weekly
 python -m stock_research agent-runtime run --run-id 2026-05-09_weekly
 python -m stock_research agent-runtime validate-output --run-id 2026-05-09_weekly
+python -m stock_research agent-runtime queue-proposals --run-id 2026-05-09_weekly --write --queue-review
 ```
 
 Run the OpenAI Agents SDK orchestrator over existing run artifacts:
@@ -102,6 +103,8 @@ python -m stock_research agent-runtime run --run-id 2026-05-09_weekly --execute 
 This requires `OPENAI_API_KEY`. It writes local runtime report, trace-link, and run-metrics artifacts; it does not edit stock files.
 
 `quality_findings: []` means the saved structured output passed deterministic runtime gates for summary/status shape, valid operational memory ids, exact file targets, source-backed update proposals, and traceable source artifacts. It does not mean the investment conclusion is automatically correct or trade-ready.
+
+`agent-runtime queue-proposals` converts saved SDK proposals into `orchestrator_update_proposals.md` and optional human-review queue rows. It does not edit company files.
 
 Generated run JSON, raw provider JSON, and evidence packet JSON are local runtime artifacts ignored by Git. Commit the markdown summaries/reports and source/docs changes, not the generated JSON blobs.
 
@@ -252,6 +255,7 @@ Implemented:
 - OpenAI Agents SDK runtime foundation: importable runtime package, main orchestrator builder, company-news specialist builder, central registry, specialist-as-tool composition, typed context/output contracts, prompt/spec files, and no-model-call smoke command.
 - live manual OpenAI Agents SDK orchestrator command over existing run artifacts, with local report, trace-link, and run-metrics artifacts.
 - opt-in scheduled OpenAI Agents SDK orchestration through `run-weekly --write --execute-orchestrator`, with freshness gating for dry-run provider/analysis inputs.
+- deterministic SDK proposal review bridge: `agent-runtime queue-proposals --write --queue-review`.
 - deterministic human request classifier and queue appender.
 - deterministic request router for stock, industry, theme, strategy, alert-review, manual-run, and status-move requests.
 - provider-neutral evidence packet schema and JSON artifact writer.

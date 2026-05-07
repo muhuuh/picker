@@ -402,6 +402,12 @@ def main(argv: list[str] | None = None) -> int:
     agent_runtime_validate.add_argument("--run-id", required=True)
     agent_runtime_validate.add_argument("--agent-id", default="main_orchestrator")
     agent_runtime_validate.add_argument("--task", default="main orchestrator")
+    agent_runtime_proposals = agent_runtime_subparsers.add_parser("queue-proposals", help="Convert saved SDK output into reviewable update proposals.")
+    agent_runtime_proposals.add_argument("--run-id", required=True)
+    agent_runtime_proposals.add_argument("--agent-id", default="main_orchestrator")
+    agent_runtime_proposals.add_argument("--write", action="store_true", help="Write orchestrator_update_proposals.md.")
+    agent_runtime_proposals.add_argument("--queue-review", action="store_true", help="Append proposal review items to agents/human_review_queue.md.")
+    agent_runtime_proposals.add_argument("--today", help="Override current date as YYYY-MM-DD.")
 
     run_weekly_parser = subparsers.add_parser("run-weekly", help="Run the deterministic weekly workflow up to the agent-framework decision boundary.")
     run_weekly_parser.add_argument("--write", action="store_true", help="Persist manifest, reports, finalization, memory-writer review, and orchestration report.")
@@ -1021,6 +1027,7 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "agent-runtime":
         from .agent_runtime.context import build_research_run_context
+        from .agent_runtime.proposal_review import build_proposal_review, proposal_review_to_dict
         from .agent_runtime.reports import build_orchestrator_input, evaluate_runtime_output_quality, output_status, output_to_dict
         from .agent_runtime.registry import build_agent, list_agent_specs
         from .agent_runtime.runner import build_run_config, run_agent_sync
@@ -1117,6 +1124,22 @@ def main(argv: list[str] | None = None) -> int:
                 )
             )
             return 0 if runtime_status == "complete" else 2
+        if args.agent_runtime_command == "queue-proposals":
+            request_date = parse_cli_date(args.today)
+            try:
+                result = build_proposal_review(
+                    root=state.root,
+                    run_id=args.run_id,
+                    agent_id=args.agent_id,
+                    current_date=request_date,
+                    write=args.write,
+                    queue_review=args.queue_review,
+                )
+            except Exception as exc:
+                print(f"ERROR: {exc}")
+                return 1
+            print(json.dumps(proposal_review_to_dict(result), indent=2, sort_keys=True))
+            return 0 if result.status in {"ready_for_human_review", "no_proposals"} else 2
         if args.agent_runtime_command == "smoke":
             context = build_research_run_context(root=state.root, run_id=args.run_id, task=args.task)
             agent = build_agent("main_orchestrator", context)

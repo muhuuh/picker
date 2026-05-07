@@ -127,6 +127,7 @@ python -m stock_research agent-runtime list-agents
 python -m stock_research agent-runtime smoke --run-id 2026-05-09_weekly
 python -m stock_research agent-runtime run --run-id 2026-05-09_weekly
 python -m stock_research agent-runtime validate-output --run-id 2026-05-09_weekly
+python -m stock_research agent-runtime queue-proposals --run-id 2026-05-09_weekly --write --queue-review
 ```
 
 Run the main orchestrator over existing artifacts:
@@ -142,6 +143,14 @@ Validate a saved runtime output without calling the model:
 ```powershell
 python -m stock_research agent-runtime validate-output --run-id 2026-05-09_weekly
 ```
+
+Convert a saved runtime output into reviewable update proposals and human-review queue items:
+
+```powershell
+python -m stock_research agent-runtime queue-proposals --run-id 2026-05-09_weekly --write --queue-review
+```
+
+This writes `agents/runs/RUN_ID/orchestrator_update_proposals.md` and appends duplicate-safe review rows to `agents/human_review_queue.md`. It does not edit company files.
 
 Run the SDK orchestrator from the weekly wrapper:
 

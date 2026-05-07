@@ -19,6 +19,7 @@
 - 2026-05-06: Clarified quality semantics: `quality_findings: []` means deterministic runtime gates passed, not that the investment conclusion is automatically correct. Added stricter checks for source-backed proposals and source artifact paths plus `agent-runtime validate-output`.
 - 2026-05-06: Wired SDK synthesis into `run-weekly --write --execute-orchestrator`. Live scheduled test correctly ended `needs_review` because provider/analysis tasks were dry-run while the SDK proposed AAPL updates. This is expected and protects against stale-artifact synthesis being treated as fresh research.
 - 2026-05-06: Full fresh scheduled run with `--execute-providers --execute-analysis --execute-orchestrator` completed. Initial attempt exposed duplicate stale packets from prior smoke tests; added generated-artifact cleanup before live provider/analysis execution. Final run had 14 packets, one news review, one financial review, and zero deterministic/SDK findings.
+- 2026-05-07: Added deterministic proposal review bridge. `agent-runtime queue-proposals --write --queue-review` validates saved SDK output, writes `orchestrator_update_proposals.md`, and appends duplicate-safe human-review rows. Ran it for AAPL; created HRQ-0002 and HRQ-0003.
 
 ## Official Docs Reviewed
 
@@ -127,7 +128,7 @@ run-weekly
 - Build a minimal SDK runtime spike with one manager agent, one specialist-as-tool, structured output, tool guardrails, local metrics, and trace metadata.
 - Wire `run-weekly` to optionally call the SDK runtime after deterministic finalization.
 - Add tests with fake tools/model paths where possible before live API smoke tests.
-- Next implementation should add richer SDK guardrails/tool wrappers and improve prompt behavior so dry-run scheduled synthesis defaults to partial/review-only output without relying only on runner-level freshness findings.
+- Next implementation should build the approved-proposal company-file writer path: only apply selected HRQ-approved proposal ids, scoped to one target file, with source log and change log updates.
 
 ## Risks / Gotchas
 
@@ -156,5 +157,6 @@ run-weekly
 - Fresh scheduled SDK command: `python -m stock_research run-weekly --write --execute-providers --execute-analysis --execute-orchestrator`.
 - Freshness behavior: actionable SDK output from dry-run provider/analysis inputs is marked `needs_review`.
 - Idempotence behavior: live provider/analysis execution cleans generated run artifacts first, avoiding duplicate stale evidence when rerunning the same run id.
+- Proposal bridge command: `python -m stock_research agent-runtime queue-proposals --run-id 2026-05-09_weekly --write --queue-review`.
 - Dependency install command used: `python -m pip install -e .`.
 - Install warning observed: `openai-agents` pulled `starlette 1.0.0`, which conflicts with an unrelated installed `fastapi 0.117.1` requirement in this environment. The repo does not currently use FastAPI, but revisit this if a FastAPI service is added later.

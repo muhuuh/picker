@@ -86,6 +86,7 @@ Detailed backlog: `docs/plans/investment_agent_backlog.md`.
 - [ ] Implement new-candidate discovery alert specialist.
 - [ ] Implement contradiction/risk specialist.
 - [ ] Implement company file updater.
+  - Current prerequisite: SDK proposals are now written to `orchestrator_update_proposals.md` and queued for human review; next step is an approved-proposal writer.
 - [ ] Implement category state updater.
 - [ ] Implement CSV updater.
 - [ ] Implement quality reviewer.
@@ -179,3 +180,4 @@ Detailed backlog: `docs/plans/investment_agent_backlog.md`.
 - 2026-05-06: Added live manual SDK orchestration command and quality loop. The first live runs exposed missing/invalid memory ids and an invented company-file path; tools, prompt, and validation were tightened. The final AAPL live smoke completed with no quality findings and wrote runtime report, trace links, and metrics.
 - 2026-05-06: Wired SDK orchestration into `run-weekly --write --execute-orchestrator`. Live scheduled test produced the expected `needs_review` result because provider/analysis tasks were dry-run while SDK output proposed AAPL file updates.
 - 2026-05-06: Full fresh scheduled SDK run completed with providers, analysis, and orchestrator executed. Added generated-artifact cleanup before live execution after discovering stale smoke-test packets caused duplicate run-summary counts.
+- 2026-05-07: Added deterministic SDK proposal bridge. `agent-runtime queue-proposals --write --queue-review` writes `orchestrator_update_proposals.md` and duplicate-safe human-review queue rows without editing company files.

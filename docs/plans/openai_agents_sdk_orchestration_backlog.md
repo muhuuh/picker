@@ -69,8 +69,10 @@ Out of scope for the first slice:
 - [ ] Wrap deterministic provider task execution as guarded tools.
   - Default to dry-run unless the runtime has explicit execute permission.
 - [ ] Wrap deterministic analysis task execution as guarded tools.
-- [ ] Wrap human review queue writing as a controlled tool.
-- [ ] Wrap file update proposal creation as a controlled tool.
+- [x] Wrap human review queue writing as a controlled tool.
+  - Implemented as deterministic `agent-runtime queue-proposals --write --queue-review`, not as free-form LLM writes.
+- [x] Wrap file update proposal creation as a controlled tool.
+  - Implemented as `agents/runs/{run_id}/orchestrator_update_proposals.md` generated from saved SDK output after validation.
 - [ ] Add tests for tool schemas and guardrails.
 
 ## Priority 3: Observability and Tracking
@@ -188,6 +190,8 @@ Success means the SDK runtime can consume existing deterministic artifacts, call
 Current status: success for the first manual and scheduled opt-in runtime slices. The runtime can build the context, registry, main orchestrator, company-news specialist, specialist-as-tool, trace metadata, no-model-call smoke output, a live manual `Runner.run(...)` execution over existing artifacts, saved output validation, and scheduled opt-in orchestration through `run-weekly --write --execute-orchestrator`. The scheduled path now marks actionable SDK output from dry-run provider/analysis inputs as `needs_review`.
 
 Latest validation: `python -m stock_research run-weekly --write --today 2026-05-05 --execute-providers --execute-analysis --execute-orchestrator` completed successfully after adding generated-run-artifact cleanup. The clean run produced 14 evidence packets, one company-news review, one financial review, no deterministic quality findings, and no SDK quality findings.
+
+Proposal bridge status: `python -m stock_research agent-runtime queue-proposals --run-id 2026-05-09_weekly --write --queue-review --today 2026-05-07` wrote `orchestrator_update_proposals.md` and duplicate-safe human-review queue rows HRQ-0002 and HRQ-0003. It does not edit company files.
 
 ## Risks / Gotchas
 
