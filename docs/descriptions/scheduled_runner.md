@@ -8,7 +8,7 @@ The scheduled runner is the deterministic weekly workflow wrapper. It chains the
 
 Implementation: `stock_research/scheduled_runner.py`.
 
-This is not the LLM orchestrator yet. It intentionally stops at the framework decision boundary.
+The runner is deterministic by default, but it can now optionally call the OpenAI Agents SDK main orchestrator after deterministic finalization.
 
 ## Command
 
@@ -30,11 +30,22 @@ Execute live provider and analysis tasks:
 python -m stock_research run-weekly --write --execute-providers --execute-analysis
 ```
 
+When live provider or analysis execution is enabled, the runner first cleans generated artifacts in the target run directory (`evidence_packets/`, `raw/`, `reports/`, and generated root report files). This keeps repeated manual smoke tests or reruns from double-counting stale evidence packets.
+
 Optionally call the live OpenAI-backed memory writer:
 
 ```powershell
 python -m stock_research run-weekly --write --execute-memory-writer
 ```
+
+Optionally call the OpenAI Agents SDK orchestrator:
+
+```powershell
+python -m stock_research run-weekly --write --execute-orchestrator
+python -m stock_research run-weekly --write --execute-providers --execute-analysis --execute-orchestrator
+```
+
+`--execute-orchestrator` requires `OPENAI_API_KEY` and `--write`.
 
 ## Workflow
 
@@ -47,8 +58,8 @@ load repo state
   -> quality_report
   -> memory finalize-run
   -> memory writer-review
+  -> SDK orchestrator (only with --execute-orchestrator)
   -> orchestration_report
-  -> agent framework decision boundary
 ```
 
 ## Outputs
@@ -63,6 +74,9 @@ When `--write` is used:
 - `agents/runs/{run_id}/memory_writer_prompt.md`
 - `agents/runs/{run_id}/memory_writer_review.md`
 - `agents/runs/{run_id}/finalization.md`
+- `agents/runs/{run_id}/agent_runtime_main_orchestrator.md` when `--execute-orchestrator` is used
+- `agents/runs/{run_id}/trace_links.md` when `--execute-orchestrator` is used
+- `agents/runs/{run_id}/run_metrics.md` when `--execute-orchestrator` is used
 - `agents/runs/{run_id}/orchestration_report.md`
 
 Generated JSON files remain ignored local runtime artifacts.
@@ -70,15 +84,22 @@ Generated JSON files remain ignored local runtime artifacts.
 ## Status Semantics
 
 - `dry_run`: no files were written.
-- `complete`: written run completed without deterministic quality findings, provider errors, analysis errors/skips, or memory finalization issues.
-- `needs_review`: provider errors, analysis errors/skips, quality findings, or finalization issues exist.
+- `complete`: written run completed without deterministic quality findings, provider errors, analysis errors/skips, memory finalization issues, or SDK quality/freshness findings.
+- `needs_review`: provider errors, analysis errors/skips, quality findings, finalization issues, SDK errors, SDK quality findings, or actionable SDK output from dry-run provider/analysis inputs exist.
+
+If the SDK orchestrator is enabled while provider or analysis tasks are dry-run, it receives that execution-mode context in its prompt. If it still produces ready/actionable alerts or file update proposals, the runner appends a freshness finding and marks the scheduled run `needs_review`.
 
 ## Current Boundary
 
-After this runner, the agent framework decision is now resolved:
+The agent framework decision is resolved:
 
 - Selected framework: OpenAI Agents SDK.
 - Dedicated plan: `docs/plans/openai_agents_sdk_orchestration_backlog.md`.
 - Dedicated scratchpad: `docs/scratchpads/openai_agents_sdk_orchestration_scratchpad.md`.
 
-The next pending step is to implement a focused SDK runtime slice. Until that exists, `run-weekly` still stops after deterministic finalization and orchestration report generation.
+Current SDK integration:
+
+- Manual SDK run: `python -m stock_research agent-runtime run --run-id RUN_ID --execute --write`.
+- Scheduled opt-in SDK run: `python -m stock_research run-weekly --write --execute-orchestrator`.
+- Fresh actionable research should normally use `--execute-providers --execute-analysis --execute-orchestrator`; otherwise SDK proposals are review-only.
+- Repeated fresh runs are idempotent at the generated-artifact level because live execution cleans prior generated run artifacts before rebuilding them.

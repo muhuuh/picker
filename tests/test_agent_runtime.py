@@ -1,11 +1,15 @@
 from pathlib import Path
 from contextlib import redirect_stdout
 import io
+import json
+from tempfile import TemporaryDirectory
 import unittest
 
 from agents import Agent
 
 from stock_research.agent_runtime.context import build_research_run_context
+from stock_research.agent_runtime.outputs import OrchestratorDecision
+from stock_research.agent_runtime.reports import build_orchestrator_input, evaluate_runtime_output_quality, output_to_dict
 from stock_research.agent_runtime.registry import build_agent, build_agent_tool, list_agent_specs
 from stock_research.agent_runtime.runner import build_run_config
 from stock_research.cli import main
@@ -37,6 +41,7 @@ class AgentRuntimeTests(unittest.TestCase):
         self.assertIsInstance(agent, Agent)
         self.assertIn("load_run_markdown", tool_names)
         self.assertIn("load_operational_memory", tool_names)
+        self.assertIn("load_stock_tracking_csv", tool_names)
         self.assertIn("company_news_specialist", tool_names)
 
     def test_specialist_can_be_built_as_tool(self):
@@ -62,6 +67,194 @@ class AgentRuntimeTests(unittest.TestCase):
 
         self.assertEqual(exit_code, 0)
         self.assertIn('"live_model_called": false', buffer.getvalue())
+
+    def test_agent_runtime_cli_run_dry_run_does_not_call_model(self):
+        buffer = io.StringIO()
+        with redirect_stdout(buffer):
+            exit_code = main(["--root", str(REPO_ROOT), "agent-runtime", "run", "--run-id", "test_weekly"])
+
+        self.assertEqual(exit_code, 0)
+        output = buffer.getvalue()
+        self.assertIn('"status": "dry_run"', output)
+        self.assertIn('"live_model_called": false', output)
+        self.assertIn("run_summary.md", output)
+
+    def test_agent_runtime_cli_validate_output(self):
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            run_dir = root / "agents" / "runs" / "test_weekly"
+            company_file = root / "stock_tracking" / "stock_info_files" / "monitoring" / "AAPL.md"
+            memory_dir = root / "agents" / "memory"
+            run_dir.mkdir(parents=True)
+            company_file.parent.mkdir(parents=True)
+            memory_dir.mkdir(parents=True)
+            (root / "AGENTS.md").write_text("# Test agents\n", encoding="utf-8")
+            company_file.write_text("# AAPL\n", encoding="utf-8")
+            for name in (
+                "README.md",
+                "memory_index.md",
+                "source_quality.md",
+                "specialist_playbooks.md",
+                "evaluation_metrics.md",
+                "deprecated_memory.md",
+            ):
+                (memory_dir / name).write_text("# Test\n", encoding="utf-8")
+            (memory_dir / "orchestrator_lessons.md").write_text(
+                "\n".join(
+                    [
+                        "# Orchestrator Lessons",
+                        "",
+                        "- id: orch-test",
+                        "- date: 2026-05-06",
+                        "- type: procedural",
+                        "- scope: orchestrator",
+                        "- status: active",
+                        "- confidence: high",
+                        "- trigger/source: test",
+                        "- lesson: Test lesson.",
+                        "- use_when: Testing.",
+                        "- do_not_use_when: Never.",
+                        "- evidence: `tests/test_agent_runtime.py`",
+                        "- owner: tests",
+                        "- next_review: 2026-06-01",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+            (root / "MEMORY.md").write_text("# Memory\n", encoding="utf-8")
+            (run_dir / "agent_runtime_main_orchestrator.json").write_text(
+                json.dumps(
+                    {
+                        "agent_id": "main_orchestrator",
+                        "run_id": "test_weekly",
+                        "status": "partial",
+                        "summary": "This is a sufficiently long summary with a valid source-backed proposal and exact target file path.",
+                        "memory_item_ids_used": ["orch-test"],
+                        "specialist_results": [
+                            {
+                                "agent_id": "company_news_specialist",
+                                "subject_type": "company",
+                                "subject_id": "AAPL",
+                                "status": "partial",
+                                "summary": "Specialist result summary.",
+                                "memory_item_ids_used": ["orch-test"],
+                                "sources": [
+                                    {
+                                        "source_id": "source-1",
+                                        "title": "Run report",
+                                        "artifact_path": "agent_runtime_main_orchestrator.json",
+                                    }
+                                ],
+                            }
+                        ],
+                        "file_update_proposals": [
+                            {
+                                "target_file": "stock_tracking/stock_info_files/monitoring/AAPL.md",
+                                "update_type": "test",
+                                "summary": "Update proposal.",
+                                "source_ids": ["source-1"],
+                            }
+                        ],
+                    }
+                ),
+                encoding="utf-8",
+            )
+            buffer = io.StringIO()
+            with redirect_stdout(buffer):
+                exit_code = main(["--root", str(root), "agent-runtime", "validate-output", "--run-id", "test_weekly"])
+
+        self.assertEqual(exit_code, 2)
+        self.assertIn('"status": "needs_review"', buffer.getvalue())
+
+    def test_orchestrator_input_names_required_artifacts(self):
+        prompt = build_orchestrator_input("test_weekly")
+
+        self.assertIn("run_summary.md", prompt)
+        self.assertIn("quality_report.md", prompt)
+        self.assertIn("reports/company_news_specialist", prompt)
+
+    def test_output_quality_flags_short_summary(self):
+        decision = OrchestratorDecision(
+            agent_id="main_orchestrator",
+            run_id="test_weekly",
+            status="ready",
+            summary="Too short.",
+        )
+
+        findings = evaluate_runtime_output_quality(decision)
+
+        self.assertTrue(any("Summary is too short" in finding for finding in findings))
+
+    def test_output_quality_flags_missing_target_file(self):
+        context = build_research_run_context(root=REPO_ROOT, run_id="test_weekly", task="main orchestrator")
+        decision = OrchestratorDecision(
+            agent_id="main_orchestrator",
+            run_id="test_weekly",
+            status="partial",
+            summary="This is a sufficiently long summary about a partial run result with a bad target file path.",
+            memory_item_ids_used=["orch-2026-05-06-openai-agents-sdk-selected"],
+        )
+        decision.file_update_proposals.append(
+            {
+                "target_file": "companies/AAPL.md",
+                "update_type": "news",
+                "summary": "Bad target path.",
+            }
+        )
+
+        findings = evaluate_runtime_output_quality(decision, context)
+
+        self.assertTrue(any("target does not exist" in finding for finding in findings))
+
+    def test_output_quality_flags_unknown_memory_id(self):
+        context = build_research_run_context(root=REPO_ROOT, run_id="test_weekly", task="main orchestrator")
+        decision = OrchestratorDecision(
+            agent_id="main_orchestrator",
+            run_id="test_weekly",
+            status="partial",
+            summary="This is a sufficiently long summary about a partial run result with an invalid memory id.",
+            memory_item_ids_used=["agents/memory/orchestrator_lessons.md"],
+        )
+
+        findings = evaluate_runtime_output_quality(decision, context)
+
+        self.assertTrue(any("unknown operational memory item ids" in finding for finding in findings))
+
+    def test_output_quality_flags_unknown_proposal_source_id(self):
+        context = build_research_run_context(root=REPO_ROOT, run_id="test_weekly", task="main orchestrator")
+        decision = OrchestratorDecision(
+            agent_id="main_orchestrator",
+            run_id="test_weekly",
+            status="partial",
+            summary="This is a sufficiently long summary about a partial run result with an unknown proposal source id.",
+            memory_item_ids_used=["orch-2026-05-06-openai-agents-sdk-selected"],
+        )
+        decision.file_update_proposals.append(
+            {
+                "target_file": "stock_tracking/stock_info_files/monitoring/AAPL.md",
+                "update_type": "news",
+                "summary": "Unknown source id.",
+                "source_ids": ["missing-source-id"],
+            }
+        )
+
+        findings = evaluate_runtime_output_quality(decision, context)
+
+        self.assertTrue(any("references unknown source_ids" in finding for finding in findings))
+
+    def test_output_to_dict_serializes_dataclass(self):
+        decision = OrchestratorDecision(
+            agent_id="main_orchestrator",
+            run_id="test_weekly",
+            status="partial",
+            summary="This is a sufficiently long summary about a partial run result with evidence gaps.",
+            memory_item_ids_used=["orch-2026-05-06-openai-agents-sdk-selected"],
+        )
+
+        data = output_to_dict(decision)
+
+        self.assertEqual(data["agent_id"], "main_orchestrator")
+        self.assertEqual(data["memory_item_ids_used"], ["orch-2026-05-06-openai-agents-sdk-selected"])
 
 
 if __name__ == "__main__":

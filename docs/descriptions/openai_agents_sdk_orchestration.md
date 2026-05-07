@@ -6,7 +6,7 @@ Last updated: 2026-05-06
 
 This document defines how this repo should use OpenAI Agents SDK for LLM orchestration.
 
-The first SDK runtime foundation is implemented. It can build real SDK `Agent` objects, compose the company-news specialist as a tool for the main orchestrator, and run a no-model-call registry smoke command.
+The first SDK runtime foundation is implemented. It can build real SDK `Agent` objects, compose the company-news specialist as a tool for the main orchestrator, run no-model-call registry smoke checks, manually execute the main orchestrator over existing run artifacts, and run from the weekly wrapper behind an explicit `--execute-orchestrator` flag.
 
 Dedicated backlog: `docs/plans/openai_agents_sdk_orchestration_backlog.md`.
 
@@ -264,16 +264,93 @@ Implemented:
 - `stock_research/agent_runtime/tools/repo_tools.py`: first repo/memory/run-artifact function tools.
 - `stock_research/agent_runtime/runner.py`: run config wrapper with trace metadata and sensitive-data tracing disabled.
 - `stock_research/agent_runtime/tracing.py`: local trace/metrics artifact helpers.
+- `stock_research/agent_runtime/reports.py`: orchestrator input builder, runtime report writer, and output quality checks.
 - `agents/orchestrator/prompts/` and `agents/specialists/prompts/`: prompt files.
 - `agents/orchestrator/specs/` and `agents/specialists/specs/`: spec files.
 - CLI inspection:
   - `python -m stock_research agent-runtime list-agents`
   - `python -m stock_research agent-runtime smoke --run-id RUN_ID`
+  - `python -m stock_research agent-runtime run --run-id RUN_ID`
+  - `python -m stock_research agent-runtime run --run-id RUN_ID --execute --write`
+  - `python -m stock_research agent-runtime validate-output --run-id RUN_ID`
+- Scheduled opt-in:
+  - `python -m stock_research run-weekly --write --execute-orchestrator`
+  - `python -m stock_research run-weekly --write --execute-providers --execute-analysis --execute-orchestrator`
 
 Not implemented yet:
 
-- live `Runner.run(...)` orchestration from `run-weekly`,
-- local metrics writing during actual SDK calls,
 - parallel fanout,
 - full tool guardrail set,
 - additional specialists beyond company-news scaffold.
+
+## Runtime Quality Gates
+
+`quality_findings: []` means the runtime output passed deterministic gates. It is a structural and evidence-traceability signal, not an investment recommendation.
+
+Current gates check:
+
+- useful summary length,
+- valid structured status,
+- no direct buy/sell wording in the summary,
+- top-level and specialist-level operational memory item ids are present and valid,
+- file update proposal targets exist,
+- file update proposal `source_ids` are backed by returned sources,
+- returned source references have a URL or artifact path,
+- returned source artifact paths exist when provided.
+
+These gates are intentionally stricter than "did the model return JSON". Future gates should add confidence calibration, contradiction handling, stale-source checks, and human-review routing checks.
+
+Scheduled SDK runs add one more freshness gate: if provider tasks or analysis tasks were dry-run and the SDK still returns ready/actionable alerts or file update proposals, the scheduled run becomes `needs_review`. This keeps stale-artifact synthesis from being treated as fresh current-cycle research.
+
+Fresh scheduled runs also clean generated artifacts in the target run directory before live provider/analysis execution. This prevents repeated smoke tests from leaving older evidence packets that inflate run summaries or duplicate specialist reviews.
+
+## Live Smoke Result
+
+2026-05-06 live manual command:
+
+```powershell
+python -m stock_research agent-runtime run --run-id 2026-05-09_weekly --execute --write
+```
+
+Result:
+
+- status: complete
+- quality findings: none
+- target file path correctly resolved from monitoring CSV: `stock_tracking/stock_info_files/monitoring/AAPL.md`
+- operational memory ids recorded with valid item ids
+- source-backed update proposals and source artifact paths validated
+- artifacts:
+  - `agents/runs/2026-05-09_weekly/agent_runtime_main_orchestrator.md`
+  - `agents/runs/2026-05-09_weekly/run_metrics.md`
+  - `agents/runs/2026-05-09_weekly/trace_links.md`
+
+## Scheduled Opt-In Result
+
+2026-05-06 scheduled command:
+
+```powershell
+python -m stock_research run-weekly --write --today 2026-05-05 --execute-orchestrator
+```
+
+Result:
+
+- status: needs_review
+- reason: provider and analysis tasks were dry-run, but the SDK produced actionable AAPL file update proposals from existing artifacts
+- expected behavior: the scheduled freshness gate blocked this from being treated as a clean complete current-cycle run
+- next clean live path: `python -m stock_research run-weekly --write --execute-providers --execute-analysis --execute-orchestrator`
+
+2026-05-06 full fresh scheduled command:
+
+```powershell
+python -m stock_research run-weekly --write --today 2026-05-05 --execute-providers --execute-analysis --execute-orchestrator
+```
+
+Result:
+
+- status: complete
+- provider tasks executed: 10
+- analysis tasks executed: 4
+- evidence packets after cleanup: 14
+- quality findings: none
+- SDK quality findings: none
+- notes: cleanup removed earlier smoke-test duplicates before the run summary was rebuilt

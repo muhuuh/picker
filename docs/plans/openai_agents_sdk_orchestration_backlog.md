@@ -65,7 +65,7 @@ Out of scope for the first slice:
   - `load_memory_prompt_context`
   - `list_evidence_packets`
 - [x] Start repo/memory inspection function tools.
-  - Implemented: `load_run_markdown`, `list_run_markdown_artifacts`, `load_operational_memory`.
+  - Implemented: `load_run_markdown`, `list_run_markdown_artifacts`, `load_operational_memory`, `load_stock_tracking_csv`.
 - [ ] Wrap deterministic provider task execution as guarded tools.
   - Default to dry-run unless the runtime has explicit execute permission.
 - [ ] Wrap deterministic analysis task execution as guarded tools.
@@ -75,11 +75,11 @@ Out of scope for the first slice:
 
 ## Priority 3: Observability and Tracking
 
-- [ ] Add OpenAI Agents SDK tracing configuration.
+- [x] Add OpenAI Agents SDK tracing configuration.
   - Use workflow name, trace id, group id, trace metadata, and sensitive-data settings.
 - [ ] Add local run hooks.
   - Capture agent start/end, tool calls, LLM calls, errors, durations, and usage.
-- [ ] Write local observability artifacts.
+- [x] Write local observability artifacts.
   - `agents/runs/{run_id}/trace_links.md`
   - `agents/runs/{run_id}/run_metrics.md`
   - optional ignored JSON metrics for machine inspection.
@@ -124,14 +124,19 @@ Out of scope for the first slice:
 
 - [ ] Add tool guardrails for secrets, source metadata, and write scopes.
 - [ ] Add output guardrails for citation requirements and overconfident claims.
+- [x] Add first deterministic output quality gates.
+  - Implemented checks: summary/status shape, direct trade wording, valid memory item ids, existing file targets, source-backed update proposals, and existing source artifact paths.
 - [ ] Keep buy/sell/position-size recommendations as human review items.
 - [ ] Keep stock moves and major strategy changes behind human review unless explicitly approved.
 - [ ] Enforce rejected-stock cooldown before candidate promotion.
 
 ## Priority 8: Scheduler and Manual Runs
 
-- [ ] Add optional `run-weekly --execute-orchestrator`.
-- [ ] Add manual run command for user-triggered SDK orchestration over selected tickers/topics.
+- [x] Add optional `run-weekly --execute-orchestrator`.
+  - Current command: `python -m stock_research run-weekly --write --execute-orchestrator`.
+  - Freshness behavior: actionable SDK output from dry-run provider/analysis inputs is marked `needs_review`.
+- [x] Add manual run command for user-triggered SDK orchestration over selected tickers/topics.
+  - Current command: `python -m stock_research agent-runtime run --run-id RUN_ID --execute --write`.
 - [ ] Add Saturday automation only after the SDK runtime can run safely and produce reviewable outputs.
 
 ## Priority 9: Tests and Evaluation
@@ -141,6 +146,8 @@ Out of scope for the first slice:
 - [ ] Add golden tests for orchestrator decisions from known evidence packets.
 - [ ] Add failure-injection tests for provider failure, malformed specialist output, missing citations, and timeout behavior.
 - [ ] Add quality gates for no direct writes outside allowed targets.
+- [x] Add saved runtime output validator.
+  - Command: `python -m stock_research agent-runtime validate-output --run-id RUN_ID`.
 
 ## Planned Runtime Diagram
 
@@ -178,7 +185,9 @@ The next build slice should be intentionally small:
 
 Success means the SDK runtime can consume existing deterministic artifacts, call one specialist as a tool, return a validated structured decision, and write auditable run artifacts without broad file writes.
 
-Current status: partial success. The runtime can build the context, registry, main orchestrator, company-news specialist, specialist-as-tool, trace metadata, and no-model-call smoke output. The live `Runner.run(...)` call and real local metrics writing are the next implementation step.
+Current status: success for the first manual and scheduled opt-in runtime slices. The runtime can build the context, registry, main orchestrator, company-news specialist, specialist-as-tool, trace metadata, no-model-call smoke output, a live manual `Runner.run(...)` execution over existing artifacts, saved output validation, and scheduled opt-in orchestration through `run-weekly --write --execute-orchestrator`. The scheduled path now marks actionable SDK output from dry-run provider/analysis inputs as `needs_review`.
+
+Latest validation: `python -m stock_research run-weekly --write --today 2026-05-05 --execute-providers --execute-analysis --execute-orchestrator` completed successfully after adding generated-run-artifact cleanup. The clean run produced 14 evidence packets, one company-news review, one financial review, no deterministic quality findings, and no SDK quality findings.
 
 ## Risks / Gotchas
 

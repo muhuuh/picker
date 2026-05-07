@@ -130,9 +130,13 @@ This file tells Codex, the orchestrator, and future agents where to find and upd
 - `python -m stock_research run-summary --run-id RUN_ID --write`: write run_summary artifacts from run evidence.
 - `python -m stock_research quality-report --run-id RUN_ID --write`: write quality_report artifacts from run evidence.
 - `python -m stock_research run-weekly`: dry-run the deterministic weekly workflow wrapper.
-- `python -m stock_research run-weekly --write --execute-providers --execute-analysis`: execute and persist the deterministic weekly workflow up to the agent-framework boundary.
+- `python -m stock_research run-weekly --write --execute-providers --execute-analysis`: execute and persist the deterministic weekly workflow without SDK synthesis.
+- `python -m stock_research run-weekly --write --execute-orchestrator`: opt into OpenAI Agents SDK synthesis over written run artifacts. Requires `OPENAI_API_KEY`; actionable output from dry-run provider/analysis inputs is marked `needs_review`.
+- `python -m stock_research run-weekly --write --execute-providers --execute-analysis --execute-orchestrator`: execute fresh provider/analysis tasks and then run SDK synthesis.
 - `python -m stock_research agent-runtime list-agents`: list registered OpenAI Agents SDK orchestrators and specialists.
 - `python -m stock_research agent-runtime smoke --run-id RUN_ID`: build the SDK runtime context and main orchestrator without calling a live model.
+- `python -m stock_research agent-runtime run --run-id RUN_ID --execute --write`: run the main SDK orchestrator over existing artifacts and write runtime report/metrics artifacts without editing stock files.
+- `python -m stock_research agent-runtime validate-output --run-id RUN_ID`: validate a saved SDK runtime output without calling a model.
 - `tests/`: unit tests for current deterministic core.
 
 ## OpenAI Agents SDK Runtime Planning
@@ -143,7 +147,8 @@ This file tells Codex, the orchestrator, and future agents where to find and upd
 - Runtime code location: `stock_research/agent_runtime/`.
 - Prompt/spec locations: `agents/orchestrator/` and `agents/specialists/`.
 - Do not add broad LLM orchestration code without following the dedicated backlog.
-- First runtime foundation is implemented under `stock_research/agent_runtime/`; live orchestration from `run-weekly` is still pending.
+- First runtime foundation is implemented under `stock_research/agent_runtime/`.
+- Live orchestration from `run-weekly` is available behind `--execute-orchestrator`; it is opt-in and freshness-gated.
 
 ## Where To Put Common User Requests
 

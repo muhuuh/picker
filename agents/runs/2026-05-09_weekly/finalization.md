@@ -13,8 +13,8 @@ Status: complete
 - ready_memory_update_drafts: 0
 - recurring_runs_scanned: 1
 - recurring_threshold: 2
-- evidence_packets: 17
-- valid_evidence_packets: 17
+- evidence_packets: 14
+- valid_evidence_packets: 14
 - invalid_evidence_packets: 0
 
 ## Artifacts

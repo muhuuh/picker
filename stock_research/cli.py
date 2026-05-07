@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 from datetime import date
 from pathlib import Path
 
@@ -389,14 +390,28 @@ def main(argv: list[str] | None = None) -> int:
     agent_runtime_smoke = agent_runtime_subparsers.add_parser("smoke", help="Build the SDK runtime context and main orchestrator without a live model call.")
     agent_runtime_smoke.add_argument("--run-id", default="2026-05-09_weekly")
     agent_runtime_smoke.add_argument("--task", default="main orchestrator")
+    agent_runtime_run = agent_runtime_subparsers.add_parser("run", help="Run an SDK agent over existing artifacts. Dry-run unless --execute is passed.")
+    agent_runtime_run.add_argument("--run-id", required=True)
+    agent_runtime_run.add_argument("--agent-id", default="main_orchestrator")
+    agent_runtime_run.add_argument("--task", default="main orchestrator")
+    agent_runtime_run.add_argument("--prompt", help="Override the default orchestrator input prompt.")
+    agent_runtime_run.add_argument("--model", help="Optional OpenAI model override.")
+    agent_runtime_run.add_argument("--execute", action="store_true", help="Call OpenAI through the Agents SDK.")
+    agent_runtime_run.add_argument("--write", action="store_true", help="Write agent runtime report, trace links, and metrics artifacts.")
+    agent_runtime_validate = agent_runtime_subparsers.add_parser("validate-output", help="Validate a saved agent runtime JSON output without calling a model.")
+    agent_runtime_validate.add_argument("--run-id", required=True)
+    agent_runtime_validate.add_argument("--agent-id", default="main_orchestrator")
+    agent_runtime_validate.add_argument("--task", default="main orchestrator")
 
     run_weekly_parser = subparsers.add_parser("run-weekly", help="Run the deterministic weekly workflow up to the agent-framework decision boundary.")
     run_weekly_parser.add_argument("--write", action="store_true", help="Persist manifest, reports, finalization, memory-writer review, and orchestration report.")
     run_weekly_parser.add_argument("--execute-providers", action="store_true", help="Execute live provider tasks. Omit for safe dry-run.")
     run_weekly_parser.add_argument("--execute-analysis", action="store_true", help="Execute analysis tasks. Omit for safe dry-run.")
     run_weekly_parser.add_argument("--execute-memory-writer", action="store_true", help="Call OpenAI for bounded memory-writer review. Omit for deterministic review.")
+    run_weekly_parser.add_argument("--execute-orchestrator", action="store_true", help="Call OpenAI Agents SDK orchestrator after deterministic finalization. Requires --write and OPENAI_API_KEY.")
     run_weekly_parser.add_argument("--no-update-memory-drafts", action="store_true", help="Do not rewrite memory_update_drafts from memory-writer recommendations.")
     run_weekly_parser.add_argument("--memory-writer-model", default=DEFAULT_MEMORY_WRITER_MODEL)
+    run_weekly_parser.add_argument("--orchestrator-model", help="Optional OpenAI model override for SDK orchestrator.")
     run_weekly_parser.add_argument("--recurring-threshold", type=int, default=2)
     run_weekly_parser.add_argument("--today", help="Override current date as YYYY-MM-DD.")
 
@@ -972,6 +987,15 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "run-weekly":
         request_date = parse_cli_date(args.today)
+        if args.execute_orchestrator and not args.write:
+            print("ERROR: --execute-orchestrator requires --write so the SDK can read/write run artifacts.")
+            return 1
+        if args.execute_orchestrator:
+            api_key = os.environ.get("OPENAI_API_KEY") or get_config_value(state.root, "OPENAI_API_KEY")
+            if not api_key:
+                print("ERROR: OPENAI_API_KEY is required for run-weekly --execute-orchestrator.")
+                return 1
+            os.environ.setdefault("OPENAI_API_KEY", api_key)
         try:
             result, paths = run_weekly_research_workflow(
                 root=state.root,
@@ -980,9 +1004,11 @@ def main(argv: list[str] | None = None) -> int:
                 execute_providers=args.execute_providers,
                 execute_analysis=args.execute_analysis,
                 execute_memory_writer=args.execute_memory_writer,
+                execute_orchestrator=args.execute_orchestrator,
                 update_memory_drafts=not args.no_update_memory_drafts,
                 recurring_threshold=args.recurring_threshold,
                 memory_writer_model=args.memory_writer_model,
+                orchestrator_model=args.orchestrator_model,
             )
         except Exception as exc:
             print(f"ERROR: {exc}")
@@ -995,8 +1021,9 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "agent-runtime":
         from .agent_runtime.context import build_research_run_context
+        from .agent_runtime.reports import build_orchestrator_input, evaluate_runtime_output_quality, output_status, output_to_dict
         from .agent_runtime.registry import build_agent, list_agent_specs
-        from .agent_runtime.runner import build_run_config
+        from .agent_runtime.runner import build_run_config, run_agent_sync
 
         if args.agent_runtime_command == "list-agents":
             print(
@@ -1014,6 +1041,82 @@ def main(argv: list[str] | None = None) -> int:
                 )
             )
             return 0
+        if args.agent_runtime_command == "run":
+            context = build_research_run_context(
+                root=state.root,
+                run_id=args.run_id,
+                task=args.task,
+                dry_run=not args.execute,
+            )
+            prompt = args.prompt or build_orchestrator_input(args.run_id, context.memory_item_ids)
+            if not args.execute:
+                print(
+                    json.dumps(
+                        {
+                            "status": "dry_run",
+                            "agent_id": args.agent_id,
+                            "run_id": args.run_id,
+                            "model": args.model or "",
+                            "prompt": prompt,
+                            "live_model_called": False,
+                        },
+                        indent=2,
+                        sort_keys=True,
+                    )
+                )
+                return 0
+
+            api_key = os.environ.get("OPENAI_API_KEY") or get_config_value(state.root, "OPENAI_API_KEY")
+            if not api_key:
+                print("ERROR: OPENAI_API_KEY is required for agent-runtime run --execute.")
+                return 1
+            os.environ.setdefault("OPENAI_API_KEY", api_key)
+            try:
+                result = run_agent_sync(args.agent_id, prompt, context, model=args.model, write=args.write)
+            except Exception as exc:
+                print(f"ERROR: {exc}")
+                return 1
+            runtime_status = "complete" if not result.quality_findings and output_status(result.final_output) == "ready" else "needs_review"
+            print(
+                json.dumps(
+                    {
+                        "status": runtime_status,
+                        "agent_id": result.agent_id,
+                        "run_id": args.run_id,
+                        "trace_id": result.trace_id,
+                        "group_id": result.group_id,
+                        "quality_findings": result.quality_findings,
+                        "written_paths": list(result.written_paths),
+                        "final_output": output_to_dict(result.final_output),
+                        "live_model_called": True,
+                    },
+                    indent=2,
+                    sort_keys=True,
+                )
+            )
+            return 0 if runtime_status == "complete" else 2
+        if args.agent_runtime_command == "validate-output":
+            context = build_research_run_context(root=state.root, run_id=args.run_id, task=args.task)
+            output_path = context.run_dir / f"agent_runtime_{args.agent_id}.json"
+            if not output_path.exists():
+                print(f"ERROR: Missing runtime output: {output_path}")
+                return 1
+            data = json.loads(output_path.read_text(encoding="utf-8"))
+            findings = evaluate_runtime_output_quality(data, context)
+            runtime_status = "complete" if not findings and output_status(data) == "ready" else "needs_review"
+            print(
+                json.dumps(
+                    {
+                        "status": runtime_status,
+                        "run_id": args.run_id,
+                        "agent_id": args.agent_id,
+                        "quality_findings": findings,
+                    },
+                    indent=2,
+                    sort_keys=True,
+                )
+            )
+            return 0 if runtime_status == "complete" else 2
         if args.agent_runtime_command == "smoke":
             context = build_research_run_context(root=state.root, run_id=args.run_id, task=args.task)
             agent = build_agent("main_orchestrator", context)

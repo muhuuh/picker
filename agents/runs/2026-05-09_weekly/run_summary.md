@@ -1,12 +1,12 @@
 # Run Summary: 2026-05-09_weekly
 
-Generated: 2026-05-04
+Generated: 2026-05-05
 
 ## Metrics
 
 - provider_tasks_planned: 10
 - analysis_tasks_planned: 4
-- evidence_packets: 17
+- evidence_packets: 14
 - financial_reviews: 1
 - company_news_reviews: 1
 - recommended_updates: 3
@@ -24,13 +24,13 @@ Generated: 2026-05-04
 
 - alpha_vantage: 1
 - company_news_specialist: 1
-- exa: 6
+- exa: 4
 - financial_compare: 1
 - financial_data_specialist: 1
 - fmp: 1
 - polygon: 1
 - sec_edgar: 1
-- xai_grok: 3
+- xai_grok: 2
 - yfinance: 1
 
 ## Financial Reviews

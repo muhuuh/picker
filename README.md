@@ -78,14 +78,30 @@ Run the deterministic weekly workflow wrapper:
 python -m stock_research run-weekly
 python -m stock_research run-weekly --write
 python -m stock_research run-weekly --write --execute-providers --execute-analysis
+python -m stock_research run-weekly --write --execute-orchestrator
+python -m stock_research run-weekly --write --execute-providers --execute-analysis --execute-orchestrator
 ```
+
+`--execute-orchestrator` requires `OPENAI_API_KEY`. If provider or analysis tasks are still dry-run and the SDK proposes alerts or file updates, the scheduled run is marked `needs_review` so stale artifacts cannot look like fresh research.
 
 Inspect the OpenAI Agents SDK runtime registry without making live model calls:
 
 ```powershell
 python -m stock_research agent-runtime list-agents
 python -m stock_research agent-runtime smoke --run-id 2026-05-09_weekly
+python -m stock_research agent-runtime run --run-id 2026-05-09_weekly
+python -m stock_research agent-runtime validate-output --run-id 2026-05-09_weekly
 ```
+
+Run the OpenAI Agents SDK orchestrator over existing run artifacts:
+
+```powershell
+python -m stock_research agent-runtime run --run-id 2026-05-09_weekly --execute --write
+```
+
+This requires `OPENAI_API_KEY`. It writes local runtime report, trace-link, and run-metrics artifacts; it does not edit stock files.
+
+`quality_findings: []` means the saved structured output passed deterministic runtime gates for summary/status shape, valid operational memory ids, exact file targets, source-backed update proposals, and traceable source artifacts. It does not mean the investment conclusion is automatically correct or trade-ready.
 
 Generated run JSON, raw provider JSON, and evidence packet JSON are local runtime artifacts ignored by Git. Commit the markdown summaries/reports and source/docs changes, not the generated JSON blobs.
 
@@ -232,8 +248,10 @@ Implemented:
 - bounded LLM memory writer prompt/review workflow for memory update drafts.
 - prompt-ready operational memory context for future specialist injection.
 - deterministic run finalization command for reflection, recurring-failure, and finalization artifacts.
-- deterministic weekly runner that chains manifest, provider tasks, analysis tasks, summary, quality report, memory finalization, and memory-writer review up to the agent-framework decision boundary.
+- deterministic weekly runner that chains manifest, provider tasks, analysis tasks, summary, quality report, memory finalization, memory-writer review, and optional SDK orchestration.
 - OpenAI Agents SDK runtime foundation: importable runtime package, main orchestrator builder, company-news specialist builder, central registry, specialist-as-tool composition, typed context/output contracts, prompt/spec files, and no-model-call smoke command.
+- live manual OpenAI Agents SDK orchestrator command over existing run artifacts, with local report, trace-link, and run-metrics artifacts.
+- opt-in scheduled OpenAI Agents SDK orchestration through `run-weekly --write --execute-orchestrator`, with freshness gating for dry-run provider/analysis inputs.
 - deterministic human request classifier and queue appender.
 - deterministic request router for stock, industry, theme, strategy, alert-review, manual-run, and status-move requests.
 - provider-neutral evidence packet schema and JSON artifact writer.
@@ -254,6 +272,5 @@ Not implemented yet:
 
 - macro provider integrations,
 - LLM specialist agents,
-- live OpenAI Agents SDK orchestration calls from `run-weekly`,
 - OS/app scheduled execution,
 - immediate research runs.

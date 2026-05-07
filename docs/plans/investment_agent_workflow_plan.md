@@ -106,7 +106,7 @@ Detailed backlog: `docs/plans/investment_agent_backlog.md`.
 - [x] Implement final run summary.
 - [ ] Add tracing IDs and run metrics to artifacts.
 - [ ] Build OpenAI Agents SDK runtime foundation.
-  - Current progress: first foundation slice implemented with dependency, runtime package, context/output contracts, registry, main orchestrator, company-news specialist-as-tool, prompt/spec files, run config, trace helpers, tests, and no-model-call smoke command. Live orchestration from `run-weekly` remains pending.
+  - Current progress: first manual runtime slice implemented with dependency, runtime package, context/output contracts, registry, main orchestrator, company-news specialist-as-tool, prompt/spec files, run config, trace helpers, report/metrics artifacts, quality validation, tests, no-model-call smoke command, live manual `agent-runtime run --execute --write`, and opt-in scheduled `run-weekly --write --execute-orchestrator` with dry-run freshness gating.
 
 ## Priority 6: Learning Loop
 
@@ -176,3 +176,6 @@ Detailed backlog: `docs/plans/investment_agent_backlog.md`.
 - 2026-05-03: Started SDK/framework review before agent runtime work. Current finding: Cursor SDK is likely a coding-agent automation adjunct, not the core stock-research orchestration runtime; OpenAI Agents SDK, Pydantic AI, and LangGraph remain the main candidates.
 - 2026-05-06: User selected OpenAI Agents SDK as the framework. Created a dedicated SDK orchestration scratchpad and backlog. Next implementation slice is a small SDK runtime foundation with context, registry, guarded tools, structured outputs, tracing, memory injection, and one specialist-as-tool spike.
 - 2026-05-06: Implemented the first OpenAI Agents SDK runtime foundation. Added `openai-agents`, `stock_research/agent_runtime/`, central registry, main orchestrator, company-news specialist-as-tool, typed context/output contracts, prompt/spec folders, smoke CLI, and tests. Live SDK orchestration is still pending.
+- 2026-05-06: Added live manual SDK orchestration command and quality loop. The first live runs exposed missing/invalid memory ids and an invented company-file path; tools, prompt, and validation were tightened. The final AAPL live smoke completed with no quality findings and wrote runtime report, trace links, and metrics.
+- 2026-05-06: Wired SDK orchestration into `run-weekly --write --execute-orchestrator`. Live scheduled test produced the expected `needs_review` result because provider/analysis tasks were dry-run while SDK output proposed AAPL file updates.
+- 2026-05-06: Full fresh scheduled SDK run completed with providers, analysis, and orchestrator executed. Added generated-artifact cleanup before live execution after discovering stale smoke-test packets caused duplicate run-summary counts.

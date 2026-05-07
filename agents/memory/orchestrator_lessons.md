@@ -78,7 +78,6 @@ Operational memory for workflow routing, orchestration, run ordering, and user c
 
 ## Pending Lessons To Validate
 
-- Whether the final agent runtime should be OpenAI Agents SDK, Pydantic AI, LangGraph, or a hybrid.
 - Which provider should be the source of truth for conflicting market-data fields.
 - Which file writes require human approval beyond buy/sell/position-size recommendations and stock status moves.
 - How the orchestrator will inject task-relevant operational memory into each specialist prompt.
@@ -165,5 +164,47 @@ Operational memory for workflow routing, orchestration, run ordering, and user c
 - use_when: Adding, removing, or calling OpenAI Agents SDK orchestrators and specialists.
 - do_not_use_when: Running deterministic provider/analysis functions that do not need LLM agents.
 - evidence: `stock_research/agent_runtime/registry.py`, `stock_research/agent_runtime/orchestrators/main.py`, `stock_research/agent_runtime/specialists/company_news.py`, `tests/test_agent_runtime.py`
+- owner: main orchestrator
+- next_review: 2026-06-15
+
+- id: orch-2026-05-06-agent-runtime-quality-gates
+- date: 2026-05-06
+- type: procedural
+- scope: orchestrator
+- status: active
+- confidence: high
+- trigger/source: Live SDK orchestration smoke test exposed bad target paths and invalid memory ids before prompt/tool/validator tightening.
+- lesson: SDK orchestrator output needs deterministic quality gates for exact stock_info_file targets, valid operational memory item ids, source-backed file update proposals, and existing source artifact paths. A live run is not good enough until these gates pass with zero findings.
+- use_when: Running live SDK orchestration, reviewing agent runtime reports, or adding new specialist outputs.
+- do_not_use_when: Pure dry-run registry inspection with no model output.
+- evidence: `stock_research/agent_runtime/reports.py`, `stock_research/agent_runtime/tools/repo_tools.py`, `tests/test_agent_runtime.py`, `agents/runs/2026-05-09_weekly/agent_runtime_main_orchestrator.md`, `agents/runs/2026-05-09_weekly/run_metrics.md`
+- owner: main orchestrator
+- next_review: 2026-06-15
+
+- id: orch-2026-05-06-scheduled-sdk-freshness-gate
+- date: 2026-05-06
+- type: procedural
+- scope: orchestrator
+- status: active
+- confidence: high
+- trigger/source: Live `run-weekly --write --execute-orchestrator` test produced actionable AAPL updates while provider and analysis tasks were dry-run.
+- lesson: Scheduled SDK orchestration is opt-in through `run-weekly --write --execute-orchestrator`. If provider or analysis tasks are dry-run and the SDK produces ready/actionable alerts or file update proposals, mark the scheduled run `needs_review` until fresh deterministic execution runs.
+- use_when: Running scheduled SDK synthesis, interpreting orchestration reports, or adding orchestrator quality gates.
+- do_not_use_when: Manual `agent-runtime run` exploration that is explicitly reviewing existing artifacts without claiming current-cycle freshness.
+- evidence: `stock_research/scheduled_runner.py`, `stock_research/agent_runtime/reports.py`, `tests/test_scheduled_runner.py`, `agents/runs/2026-05-09_weekly/orchestration_report.md`
+- owner: main orchestrator
+- next_review: 2026-06-15
+
+- id: orch-2026-05-06-clean-generated-run-artifacts
+- date: 2026-05-06
+- type: procedural
+- scope: orchestrator
+- status: active
+- confidence: high
+- trigger/source: Fresh full scheduled run initially double-counted AAPL evidence because older smoke-test packets remained in the same run directory.
+- lesson: Before live provider or analysis execution for a scheduled run, clean generated artifacts in the target run directory so run summaries and quality reports do not mix stale packets from earlier reruns with fresh evidence.
+- use_when: Building scheduled execution, rerunning weekly runs, interpreting run summaries, or adding run artifact persistence.
+- do_not_use_when: Reading historical run artifacts that belong to a different immutable run id.
+- evidence: `stock_research/scheduled_runner.py`, `tests/test_scheduled_runner.py`, `agents/runs/2026-05-09_weekly/run_summary.md`, `docs/descriptions/scheduled_runner.md`
 - owner: main orchestrator
 - next_review: 2026-06-15

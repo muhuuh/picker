@@ -125,9 +125,32 @@ Inspect the registry and build the main orchestrator without making live model c
 ```powershell
 python -m stock_research agent-runtime list-agents
 python -m stock_research agent-runtime smoke --run-id 2026-05-09_weekly
+python -m stock_research agent-runtime run --run-id 2026-05-09_weekly
+python -m stock_research agent-runtime validate-output --run-id 2026-05-09_weekly
 ```
 
-Live orchestration calls are not wired into `run-weekly` yet.
+Run the main orchestrator over existing artifacts:
+
+```powershell
+python -m stock_research agent-runtime run --run-id 2026-05-09_weekly --execute --write
+```
+
+This requires `OPENAI_API_KEY`. The command writes local runtime report, trace-link, and run-metrics artifacts. It does not edit stock files.
+
+Validate a saved runtime output without calling the model:
+
+```powershell
+python -m stock_research agent-runtime validate-output --run-id 2026-05-09_weekly
+```
+
+Run the SDK orchestrator from the weekly wrapper:
+
+```powershell
+python -m stock_research run-weekly --write --execute-orchestrator
+python -m stock_research run-weekly --write --execute-providers --execute-analysis --execute-orchestrator
+```
+
+`--execute-orchestrator` requires `OPENAI_API_KEY` and `--write`. When provider or analysis tasks are dry-run, actionable SDK output is marked `needs_review` until fresh deterministic execution runs.
 
 ## SEC EDGAR
 
@@ -284,6 +307,7 @@ Run the deterministic weekly workflow wrapper:
 python -m stock_research run-weekly
 python -m stock_research run-weekly --write
 python -m stock_research run-weekly --write --execute-providers --execute-analysis
+python -m stock_research run-weekly --write --execute-orchestrator
 ```
 
 Write run summary and quality report artifacts:

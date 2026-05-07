@@ -182,8 +182,13 @@ Use this file for information we should not lose across sessions.
   - status: active
 
 - 2026-05-06:
-  - decision/fact: OpenAI Agents SDK is selected as the agent orchestration framework. The first runtime foundation is implemented with `stock_research/agent_runtime/`, central registry, main orchestrator builder, company-news specialist builder, specialist-as-tool composition, typed context/output contracts, prompt/spec files, trace/run config helpers, tests, and a no-model-call smoke CLI.
-  - evidence artifact path(s): `stock_research/agent_runtime/`, `agents/orchestrator/prompts/main.md`, `agents/orchestrator/specs/main.md`, `agents/specialists/prompts/company_news.md`, `agents/specialists/specs/company_news.md`, `tests/test_agent_runtime.py`, `docs/scratchpads/openai_agents_sdk_orchestration_scratchpad.md`, `docs/plans/openai_agents_sdk_orchestration_backlog.md`
+  - decision/fact: OpenAI Agents SDK is selected as the agent orchestration framework. The first runtime foundation is implemented with `stock_research/agent_runtime/`, central registry, main orchestrator builder, company-news specialist builder, specialist-as-tool composition, typed context/output contracts, prompt/spec files, trace/run config helpers, tests, a no-model-call smoke CLI, a live manual `agent-runtime run --execute --write` command, and opt-in scheduled orchestration through `run-weekly --write --execute-orchestrator`. Scheduled SDK runs mark actionable output from dry-run provider/analysis inputs as `needs_review`.
+  - evidence artifact path(s): `stock_research/agent_runtime/`, `agents/orchestrator/prompts/main.md`, `agents/orchestrator/specs/main.md`, `agents/specialists/prompts/company_news.md`, `agents/specialists/specs/company_news.md`, `tests/test_agent_runtime.py`, `agents/runs/2026-05-09_weekly/agent_runtime_main_orchestrator.md`, `agents/runs/2026-05-09_weekly/run_metrics.md`, `agents/runs/2026-05-09_weekly/trace_links.md`, `docs/scratchpads/openai_agents_sdk_orchestration_scratchpad.md`, `docs/plans/openai_agents_sdk_orchestration_backlog.md`
+  - status: active
+
+- 2026-05-06:
+  - decision/fact: Fresh scheduled provider/analysis execution cleans generated artifacts in the target run directory before rebuilding evidence, reports, and SDK outputs. This prevents repeated smoke tests or reruns for the same run id from double-counting stale evidence packets.
+  - evidence artifact path(s): `stock_research/scheduled_runner.py`, `tests/test_scheduled_runner.py`, `docs/descriptions/scheduled_runner.md`, `agents/runs/2026-05-09_weekly/run_summary.md`, `agents/runs/2026-05-09_weekly/orchestration_report.md`
   - status: active
 
 - 2026-05-04:
