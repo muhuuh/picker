@@ -1,6 +1,6 @@
 # Orchestrator Lessons
 
-Last updated: 2026-05-06
+Last updated: 2026-05-07
 
 Operational memory for workflow routing, orchestration, run ordering, and user corrections.
 
@@ -220,5 +220,47 @@ Operational memory for workflow routing, orchestration, run ordering, and user c
 - use_when: Handling SDK file update proposals, building writer specialists, or deciding whether a company file can be modified.
 - do_not_use_when: Updating operational memory through `memory apply-updates`; that has a separate deterministic approval path.
 - evidence: `stock_research/agent_runtime/proposal_review.py`, `tests/test_agent_runtime_proposal_review.py`, `agents/runs/2026-05-09_weekly/orchestrator_update_proposals.md`, `agents/human_review_queue.md`
+- owner: main orchestrator
+- next_review: 2026-06-15
+
+- id: orch-2026-05-07-approved-proposal-writer
+- date: 2026-05-07
+- type: procedural
+- scope: orchestrator
+- status: active
+- confidence: high
+- trigger/source: Implemented deterministic approved SDK proposal writer.
+- lesson: Company-file edits from SDK proposals must go through `python -m stock_research agent-runtime apply-proposal --run-id RUN_ID --proposal-id ORP-0001 --write`. The command requires a matching `approved` human-review queue row, validates the target under `stock_tracking/stock_info_files/`, applies only one proposal id at a time, and writes source/change log entries plus `applied_update_proposals.md`.
+- use_when: Applying SDK file update proposals, building writer specialists, or deciding whether an orchestrator proposal can modify stock files.
+- do_not_use_when: Proposing updates before human approval, moving stocks between buckets, or applying memory updates through the separate `memory apply-updates` path.
+- evidence: `stock_research/agent_runtime/proposal_writer.py`, `tests/test_agent_runtime_proposal_writer.py`, `docs/descriptions/openai_agents_sdk_orchestration.md`
+- owner: main orchestrator
+- next_review: 2026-06-15
+
+- id: orch-2026-05-07-function-first-tooling-boundary
+- date: 2026-05-07
+- type: procedural
+- scope: orchestrator
+- status: active
+- confidence: high
+- trigger/source: User concern about too many CLI commands and confusion about whether CLI is replacing SDK tool calls.
+- lesson: Use a function-first integration boundary. Reusable behavior should be implemented as importable Python functions. Deterministic workflows and SDK tools should call those functions directly. CLI commands are optional thin wrappers for manual operation, scheduler entrypoints, validation/debug, provider smoke tests, and approval-gated side effects.
+- use_when: Adding provider/analysis/writer/memory/orchestrator capabilities, deciding whether to add a CLI command, or creating SDK function tools.
+- do_not_use_when: One-off local debugging by Codex where no durable repo interface is being added.
+- evidence: `docs/descriptions/openai_agents_sdk_orchestration.md`, `docs/descriptions/repo_map.md`, `docs/plans/openai_agents_sdk_orchestration_backlog.md`
+- owner: main orchestrator
+- next_review: 2026-06-15
+
+- id: orch-2026-05-07-task-specific-sdk-memory-injection
+- date: 2026-05-07
+- type: procedural
+- scope: orchestrator
+- status: active
+- confidence: high
+- trigger/source: Hardened SDK repo/memory tools and separated task-relevant memory ids from validator-known ids.
+- lesson: Build each SDK agent or specialist with task-specific operational memory. `ResearchRunContext.memory_item_ids` should contain high-signal task-relevant ids, while `known_memory_item_ids` is only for validation. SDK repo/memory tools should call Python functions directly and expose repo map, run summary, quality report, memory prompt context, and evidence packet index without CLI subprocesses.
+- use_when: Building SDK specialist tools, composing specialists under the main orchestrator, validating memory ids, or adding repo/memory inspection tools.
+- do_not_use_when: Running legacy deterministic CLI inspection manually outside the SDK runtime.
+- evidence: `stock_research/agent_runtime/context.py`, `stock_research/agent_runtime/tools/repo_tools.py`, `stock_research/agent_runtime/orchestrators/main.py`, `tests/test_agent_runtime.py`
 - owner: main orchestrator
 - next_review: 2026-06-15

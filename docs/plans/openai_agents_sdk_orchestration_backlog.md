@@ -1,6 +1,6 @@
 # OpenAI Agents SDK Orchestration Backlog
 
-Last updated: 2026-05-06
+Last updated: 2026-05-07
 
 ## Goal and Scope
 
@@ -25,6 +25,7 @@ Out of scope for the first slice:
 ## Architecture Principles
 
 - Deterministic first: code builds the manifest, runs providers, runs deterministic analysis, and validates outputs before LLM synthesis.
+- Function first: reusable behavior belongs in importable Python functions. Deterministic workflows and SDK tools should call those functions directly; CLI commands are thin manual/scheduler/debug wrappers only.
 - Composable agents: every specialist should be callable directly by code and callable by an orchestrator as a tool.
 - Structured outputs: every orchestrator/specialist output should use a typed schema that can be validated and written as an artifact.
 - Proposal-first writes: agents should propose file changes unless a narrow writer tool has explicit permission and validation.
@@ -58,7 +59,9 @@ Out of scope for the first slice:
 
 ## Priority 2: Tool Wrappers Around Existing Deterministic Code
 
-- [ ] Wrap repo/memory inspection as function tools.
+- [x] Formalize core function vs CLI vs SDK tool boundary.
+  - Rule: implement Python function first, wrap it as SDK tool when useful, add CLI only for scheduler/manual/debug/approval boundaries.
+- [x] Wrap repo/memory inspection as function tools.
   - `load_repo_map`
   - `load_run_summary`
   - `load_quality_report`
@@ -66,6 +69,7 @@ Out of scope for the first slice:
   - `list_evidence_packets`
 - [x] Start repo/memory inspection function tools.
   - Implemented: `load_run_markdown`, `list_run_markdown_artifacts`, `load_operational_memory`, `load_stock_tracking_csv`.
+  - Extended: `load_repo_map`, `load_run_summary`, `load_quality_report`, `load_memory_prompt_context`, `list_evidence_packets`.
 - [ ] Wrap deterministic provider task execution as guarded tools.
   - Default to dry-run unless the runtime has explicit execute permission.
 - [ ] Wrap deterministic analysis task execution as guarded tools.
@@ -74,6 +78,8 @@ Out of scope for the first slice:
 - [x] Wrap file update proposal creation as a controlled tool.
   - Implemented as `agents/runs/{run_id}/orchestrator_update_proposals.md` generated from saved SDK output after validation.
 - [ ] Add tests for tool schemas and guardrails.
+  - [x] Implemented for proposal bridge and approved proposal writer guardrails.
+  - [ ] Still needed for provider, analysis, memory, and future writer SDK function tools.
 
 ## Priority 3: Observability and Tracking
 
@@ -91,10 +97,13 @@ Out of scope for the first slice:
 
 ## Priority 4: Memory Injection
 
-- [ ] Create a runtime memory loader that calls existing memory code directly.
-- [ ] Inject task-relevant memory into every specialist prompt.
-- [ ] Inject only high-signal memory, not every memory file.
+- [x] Create a runtime memory loader that calls existing memory code directly.
+- [x] Inject task-relevant memory into every specialist prompt.
+  - Current coverage: main orchestrator and company-news specialist.
+- [x] Inject only high-signal memory, not every memory file.
+  - Current behavior: `memory_item_ids` are task-relevant; `known_memory_item_ids` are retained only for validation.
 - [ ] Record which memory item ids were used in each specialist artifact.
+  - Current validation requires ids in model outputs, but local tool/hook-level automatic capture is still pending.
 - [ ] Ensure memory writer proposals continue to go through deterministic validation and `memory apply-updates`.
 
 ## Priority 5: Parallel Orchestration
@@ -148,6 +157,9 @@ Out of scope for the first slice:
 - [ ] Add golden tests for orchestrator decisions from known evidence packets.
 - [ ] Add failure-injection tests for provider failure, malformed specialist output, missing citations, and timeout behavior.
 - [ ] Add quality gates for no direct writes outside allowed targets.
+- [x] Add approval-gated company-file writer for SDK proposals.
+  - Implemented: `agent-runtime apply-proposal --run-id RUN_ID --proposal-id ORP-0001 --write`.
+  - Guardrails: matching HRQ row must be `approved`, target must be an existing markdown file under `stock_tracking/stock_info_files/`, and each write is scoped to one proposal id.
 - [x] Add saved runtime output validator.
   - Command: `python -m stock_research agent-runtime validate-output --run-id RUN_ID`.
 
@@ -187,11 +199,13 @@ The next build slice should be intentionally small:
 
 Success means the SDK runtime can consume existing deterministic artifacts, call one specialist as a tool, return a validated structured decision, and write auditable run artifacts without broad file writes.
 
-Current status: success for the first manual and scheduled opt-in runtime slices. The runtime can build the context, registry, main orchestrator, company-news specialist, specialist-as-tool, trace metadata, no-model-call smoke output, a live manual `Runner.run(...)` execution over existing artifacts, saved output validation, and scheduled opt-in orchestration through `run-weekly --write --execute-orchestrator`. The scheduled path now marks actionable SDK output from dry-run provider/analysis inputs as `needs_review`.
+Current status: success for the first manual and scheduled opt-in runtime slices. The runtime can build the context, registry, main orchestrator, company-news specialist, specialist-as-tool, trace metadata, task-relevant memory injection, no-model-call smoke output, a live manual `Runner.run(...)` execution over existing artifacts, saved output validation, and scheduled opt-in orchestration through `run-weekly --write --execute-orchestrator`. The scheduled path now marks actionable SDK output from dry-run provider/analysis inputs as `needs_review`.
 
 Latest validation: `python -m stock_research run-weekly --write --today 2026-05-05 --execute-providers --execute-analysis --execute-orchestrator` completed successfully after adding generated-run-artifact cleanup. The clean run produced 14 evidence packets, one company-news review, one financial review, no deterministic quality findings, and no SDK quality findings.
 
 Proposal bridge status: `python -m stock_research agent-runtime queue-proposals --run-id 2026-05-09_weekly --write --queue-review --today 2026-05-07` wrote `orchestrator_update_proposals.md` and duplicate-safe human-review queue rows HRQ-0002 and HRQ-0003. It does not edit company files.
+
+Proposal writer status: `python -m stock_research agent-runtime apply-proposal --run-id RUN_ID --proposal-id ORP-0001 --write` applies only one approved proposal to its target company file and writes `applied_update_proposals.md`. It blocks open/rejected/missing HRQ rows, so the current AAPL proposals remain unapplied until the user explicitly approves them.
 
 ## Risks / Gotchas
 

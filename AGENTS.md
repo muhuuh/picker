@@ -18,6 +18,7 @@ It defines the required workflow for every new task in this repo.
 11. Do not add/change major dependencies or infra without explicitly calling it out.
 12. After major changes, verify `README.md` and `SETUP.md` still match reality.
 13. Final responses must include a clear outcome judgment: whether the result is good, partial, or bad; whether it matched the expected goal; what is still pending or risky; and the next logical steps from the backlog or from issues discovered during the task.
+14. Prefer function-first tooling. Implement reusable behavior as importable Python functions; deterministic workflows and SDK tools should call those functions directly. Add CLI commands only as thin wrappers for manual operation, scheduler entrypoints, validation/debug, provider smoke tests, or approval-gated side effects.
 
 ## Stock Research Repository Model
 

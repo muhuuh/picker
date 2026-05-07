@@ -51,8 +51,8 @@ def build_orchestrator_input(
         [
             f"Review stock research run `{run_id}`.",
             "",
-            "Use the available run markdown artifacts through tools before deciding.",
-            "Start by listing markdown artifacts. Then inspect at least:",
+            "Use the available repo/run inspection tools before deciding.",
+            "Start by loading the repo map, listing markdown artifacts, and listing evidence packets. Then inspect at least:",
             "- run_summary.md",
             "- quality_report.md",
             "- finalization.md",
@@ -62,7 +62,7 @@ def build_orchestrator_input(
             "Also load the monitoring stock tracking CSV before proposing target files.",
             "Use the exact `stock_info_file` path from the CSV for company-file update proposals.",
             "",
-            "Operational memory is mandatory context. Record the memory ids that materially shaped the decision.",
+            "Operational memory is mandatory context. Load task-relevant memory when needed and record the memory ids that materially shaped the decision.",
             "If deterministic-first workflow and registry composition shaped the decision, include their memory ids.",
             *execution_lines,
             *memory_lines,
@@ -193,7 +193,7 @@ def validate_memory_ids(data: dict[str, Any], context: ResearchRunContext | None
     if not data.get("memory_item_ids_used"):
         findings.append(f"{label} did not record operational memory item ids used.")
     elif context:
-        known_ids = set(context.memory_item_ids)
+        known_ids = set(context.known_memory_item_ids or context.memory_item_ids)
         invalid_ids = [item_id for item_id in data.get("memory_item_ids_used", []) if item_id not in known_ids]
         if invalid_ids:
             findings.append(f"{label} recorded unknown operational memory item ids: {', '.join(invalid_ids)}")

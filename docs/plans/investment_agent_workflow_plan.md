@@ -86,7 +86,7 @@ Detailed backlog: `docs/plans/investment_agent_backlog.md`.
 - [ ] Implement new-candidate discovery alert specialist.
 - [ ] Implement contradiction/risk specialist.
 - [ ] Implement company file updater.
-  - Current prerequisite: SDK proposals are now written to `orchestrator_update_proposals.md` and queued for human review; next step is an approved-proposal writer.
+  - Current progress: approved SDK proposals can now be applied by `agent-runtime apply-proposal --proposal-id ORP-0001 --write`; broader updater specialist behavior is still pending.
 - [ ] Implement category state updater.
 - [ ] Implement CSV updater.
 - [ ] Implement quality reviewer.
@@ -107,7 +107,7 @@ Detailed backlog: `docs/plans/investment_agent_backlog.md`.
 - [x] Implement final run summary.
 - [ ] Add tracing IDs and run metrics to artifacts.
 - [ ] Build OpenAI Agents SDK runtime foundation.
-  - Current progress: first manual runtime slice implemented with dependency, runtime package, context/output contracts, registry, main orchestrator, company-news specialist-as-tool, prompt/spec files, run config, trace helpers, report/metrics artifacts, quality validation, tests, no-model-call smoke command, live manual `agent-runtime run --execute --write`, and opt-in scheduled `run-weekly --write --execute-orchestrator` with dry-run freshness gating.
+  - Current progress: first manual runtime slice implemented with dependency, runtime package, context/output contracts, registry, main orchestrator, company-news specialist-as-tool, task-specific memory injection, repo/memory inspection tools, prompt/spec files, run config, trace helpers, report/metrics artifacts, quality validation, tests, no-model-call smoke command, live manual `agent-runtime run --execute --write`, and opt-in scheduled `run-weekly --write --execute-orchestrator` with dry-run freshness gating.
 
 ## Priority 6: Learning Loop
 
@@ -181,3 +181,5 @@ Detailed backlog: `docs/plans/investment_agent_backlog.md`.
 - 2026-05-06: Wired SDK orchestration into `run-weekly --write --execute-orchestrator`. Live scheduled test produced the expected `needs_review` result because provider/analysis tasks were dry-run while SDK output proposed AAPL file updates.
 - 2026-05-06: Full fresh scheduled SDK run completed with providers, analysis, and orchestrator executed. Added generated-artifact cleanup before live execution after discovering stale smoke-test packets caused duplicate run-summary counts.
 - 2026-05-07: Added deterministic SDK proposal bridge. `agent-runtime queue-proposals --write --queue-review` writes `orchestrator_update_proposals.md` and duplicate-safe human-review queue rows without editing company files.
+- 2026-05-07: Added deterministic approved-proposal writer. `agent-runtime apply-proposal --proposal-id ORP-0001 --write` blocks unless the matching human-review row is `approved`, validates the target under `stock_tracking/stock_info_files/`, and writes source/change log updates plus `applied_update_proposals.md`.
+- 2026-05-07: Hardened SDK repo/memory tools without adding CLI sprawl. Added function-first repo map, run summary, quality report, memory prompt context, and evidence packet index tools; runtime context now separates task-relevant memory ids from validator-known ids.

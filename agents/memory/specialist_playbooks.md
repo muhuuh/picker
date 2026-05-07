@@ -1,6 +1,6 @@
 # Specialist Playbooks
 
-Last updated: 2026-05-04
+Last updated: 2026-05-07
 
 Procedural memory for future specialist agents. Specialists should produce structured evidence packets or narrowly scoped file updates.
 
@@ -80,6 +80,7 @@ Procedural memory for future specialist agents. Specialists should produce struc
 - Use for: surgical updates to one company markdown file.
 - Output: edited target file plus change summary.
 - Gotcha: avoid broad rewrites. Preserve old thesis context unless evidence clearly supersedes it.
+- SDK proposal updates must use `python -m stock_research agent-runtime apply-proposal --run-id RUN_ID --proposal-id ORP-0001 --write`; do not let a writer specialist bypass the approved-proposal gate.
 
 ## Category State Updater
 

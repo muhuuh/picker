@@ -196,6 +196,16 @@ Use this file for information we should not lose across sessions.
   - evidence artifact path(s): `stock_research/agent_runtime/proposal_review.py`, `tests/test_agent_runtime_proposal_review.py`, `agents/runs/2026-05-09_weekly/orchestrator_update_proposals.md`, `agents/human_review_queue.md`, `docs/descriptions/openai_agents_sdk_orchestration.md`
   - status: active
 
+- 2026-05-07:
+  - decision/fact: Approved SDK file update proposals can now be applied through a deterministic writer. Use `python -m stock_research agent-runtime apply-proposal --run-id RUN_ID --proposal-id ORP-0001 --write`; it refuses missing/open/rejected review rows, validates the target is under `stock_tracking/stock_info_files/`, updates source/change logs, and writes an application report.
+  - evidence artifact path(s): `stock_research/agent_runtime/proposal_writer.py`, `tests/test_agent_runtime_proposal_writer.py`, `docs/descriptions/openai_agents_sdk_orchestration.md`
+  - status: active
+
+- 2026-05-07:
+  - decision/fact: SDK repo/memory inspection is now function-first and task-memory aware. Runtime contexts separate task-relevant `memory_item_ids` from validator-only `known_memory_item_ids`, company-news specialist-as-tool receives company-news memory, and SDK repo tools can load repo map, run summary, quality report, memory prompt context, and evidence packet indexes without CLI subprocesses.
+  - evidence artifact path(s): `stock_research/agent_runtime/context.py`, `stock_research/agent_runtime/tools/repo_tools.py`, `stock_research/agent_runtime/orchestrators/main.py`, `tests/test_agent_runtime.py`, `docs/descriptions/openai_agents_sdk_orchestration.md`
+  - status: active
+
 - 2026-05-04:
   - decision/fact: Generated run JSON artifacts are local runtime output and should not be committed. Keep markdown run summaries/reports/finalization files as the reviewable artifacts; `.gitignore` now ignores run-root JSON, raw provider JSON, evidence packet JSON, and generated recurring-failure JSON.
   - evidence artifact path(s): `.gitignore`, `README.md`, `SETUP.md`, `docs/descriptions/run_summary_and_quality.md`

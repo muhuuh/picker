@@ -12,6 +12,7 @@ from stock_research.agent_runtime.outputs import OrchestratorDecision
 from stock_research.agent_runtime.reports import build_orchestrator_input, evaluate_runtime_output_quality, output_to_dict
 from stock_research.agent_runtime.registry import build_agent, build_agent_tool, list_agent_specs
 from stock_research.agent_runtime.runner import build_run_config
+from stock_research.agent_runtime.tools.repo_tools import list_evidence_packets_data, load_memory_prompt_context_for_task
 from stock_research.cli import main
 
 
@@ -32,6 +33,8 @@ class AgentRuntimeTests(unittest.TestCase):
         self.assertEqual(context.run_dir, REPO_ROOT / "agents" / "runs" / "test_weekly")
         self.assertTrue(context.trace_id.startswith("trace_"))
         self.assertIn("Operational Memory Context", context.memory_context)
+        self.assertTrue(context.memory_item_ids)
+        self.assertGreaterEqual(len(context.known_memory_item_ids), len(context.memory_item_ids))
 
     def test_main_orchestrator_exposes_company_news_specialist_as_tool(self):
         context = build_research_run_context(root=REPO_ROOT, run_id="test_weekly", task="main orchestrator")
@@ -41,8 +44,52 @@ class AgentRuntimeTests(unittest.TestCase):
         self.assertIsInstance(agent, Agent)
         self.assertIn("load_run_markdown", tool_names)
         self.assertIn("load_operational_memory", tool_names)
+        self.assertIn("load_memory_prompt_context", tool_names)
+        self.assertIn("load_repo_map", tool_names)
+        self.assertIn("load_run_summary", tool_names)
+        self.assertIn("load_quality_report", tool_names)
+        self.assertIn("list_evidence_packets", tool_names)
         self.assertIn("load_stock_tracking_csv", tool_names)
         self.assertIn("company_news_specialist", tool_names)
+
+    def test_company_news_context_uses_specialist_memory(self):
+        context = build_research_run_context(root=REPO_ROOT, run_id="test_weekly", task="company news specialist")
+
+        self.assertIn("memory-2026-05-04-company-news-specialist-review-is-implemented", context.memory_item_ids)
+        self.assertIn("Company-news specialist review is implemented", context.memory_context)
+
+    def test_memory_prompt_context_tool_core_function_can_load_other_task(self):
+        context = build_research_run_context(root=REPO_ROOT, run_id="test_weekly", task="main orchestrator")
+
+        text = load_memory_prompt_context_for_task(context, "company news specialist")
+
+        self.assertIn("Operational Memory Context: company news specialist", text)
+        self.assertIn("Company-news specialist review is implemented", text)
+
+    def test_list_evidence_packets_data_summarizes_packets(self):
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            evidence_dir = root / "agents" / "runs" / "test_weekly" / "evidence_packets"
+            evidence_dir.mkdir(parents=True)
+            (root / "AGENTS.md").write_text("# Test agents\n", encoding="utf-8")
+            (root / "stock_tracking").mkdir()
+            (evidence_dir / "packet.json").write_text(
+                json.dumps(
+                    {
+                        "packet_id": "packet-1",
+                        "provider": "test_provider",
+                        "subject": {"type": "company", "id": "AAPL"},
+                        "created_at": "2026-05-07T00:00:00",
+                    }
+                ),
+                encoding="utf-8",
+            )
+            context = build_research_run_context(root=root, run_id="test_weekly", task="main orchestrator")
+
+            data = list_evidence_packets_data(context)
+
+        self.assertEqual(data["evidence_packets"][0]["packet_id"], "packet-1")
+        self.assertEqual(data["evidence_packets"][0]["subject_id"], "AAPL")
 
     def test_specialist_can_be_built_as_tool(self):
         context = build_research_run_context(root=REPO_ROOT, run_id="test_weekly", task="company news specialist")
@@ -171,6 +218,7 @@ class AgentRuntimeTests(unittest.TestCase):
 
         self.assertIn("run_summary.md", prompt)
         self.assertIn("quality_report.md", prompt)
+        self.assertIn("listing evidence packets", prompt)
         self.assertIn("reports/company_news_specialist", prompt)
 
     def test_output_quality_flags_short_summary(self):

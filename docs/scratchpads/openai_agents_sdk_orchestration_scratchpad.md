@@ -20,6 +20,9 @@
 - 2026-05-06: Wired SDK synthesis into `run-weekly --write --execute-orchestrator`. Live scheduled test correctly ended `needs_review` because provider/analysis tasks were dry-run while the SDK proposed AAPL updates. This is expected and protects against stale-artifact synthesis being treated as fresh research.
 - 2026-05-06: Full fresh scheduled run with `--execute-providers --execute-analysis --execute-orchestrator` completed. Initial attempt exposed duplicate stale packets from prior smoke tests; added generated-artifact cleanup before live provider/analysis execution. Final run had 14 packets, one news review, one financial review, and zero deterministic/SDK findings.
 - 2026-05-07: Added deterministic proposal review bridge. `agent-runtime queue-proposals --write --queue-review` validates saved SDK output, writes `orchestrator_update_proposals.md`, and appends duplicate-safe human-review rows. Ran it for AAPL; created HRQ-0002 and HRQ-0003.
+- 2026-05-07: Added deterministic approved-proposal writer. `agent-runtime apply-proposal --proposal-id ORP-0001 --write` blocks unless the matching HRQ row is `approved`, validates the target under `stock_tracking/stock_info_files/`, updates the company file source/change logs, and writes `applied_update_proposals.md`.
+- 2026-05-07: Formalized tooling boundary after user concern about CLI sprawl. New rule: build core Python functions first; deterministic workflows and SDK tools call functions directly; CLI commands are thin manual/scheduler/debug wrappers only.
+- 2026-05-07: Hardened repo/memory SDK tools without adding CLI. Added function-first tools for repo map, run summary, quality report, task-specific memory prompt context, and evidence packet index. Runtime context now keeps task-relevant `memory_item_ids` separate from all `known_memory_item_ids`.
 
 ## Official Docs Reviewed
 
@@ -51,6 +54,7 @@
 - Use tool guardrails on custom function tools. Agent-level guardrails only cover workflow boundaries; file/provider tools need their own validation.
 - Use SDK sessions for conversation/runtime continuity, not as the durable investment memory. Durable truth stays in repo files and `agents/memory/`.
 - Do not put secrets into `RunContextWrapper.context`, traces, sessions, or repo artifacts.
+- Task-specific specialist contexts matter: when the main orchestrator exposes the company-news specialist as a tool, build that specialist with `company news specialist` memory rather than reusing only main-orchestrator memory.
 
 ## Proposed Runtime Shape
 
@@ -110,6 +114,7 @@ run-weekly
 ## Key Design Decisions
 
 - Keep existing deterministic tools as first-class Python functions and expose them to agents as function tools.
+- Do not make CLI commands the integration layer. SDK tools should wrap Python functions directly, not subprocess CLI calls.
 - Treat specialist agents as composable units: callable directly by scheduled code, callable as `Agent.as_tool()` by orchestrators, and usable in deterministic task chains through stable input/output contracts.
 - Give every agent run a `run_id`, `task_id`, `agent_id`, `trace_id`, `group_id`, and structured output path.
 - Store local observability artifacts even when OpenAI tracing is enabled.
@@ -158,5 +163,9 @@ run-weekly
 - Freshness behavior: actionable SDK output from dry-run provider/analysis inputs is marked `needs_review`.
 - Idempotence behavior: live provider/analysis execution cleans generated run artifacts first, avoiding duplicate stale evidence when rerunning the same run id.
 - Proposal bridge command: `python -m stock_research agent-runtime queue-proposals --run-id 2026-05-09_weekly --write --queue-review`.
+- Proposal writer command: `python -m stock_research agent-runtime apply-proposal --run-id 2026-05-09_weekly --proposal-id ORP-0001 --write`.
+- Current AAPL proposals HRQ-0002 and HRQ-0003 are open, so `apply-proposal --write` should return `blocked` until the user approves them.
+- Tooling boundary: prefer `function -> SDK tool/direct workflow -> optional CLI`; do not add CLI commands for small helpers.
+- Repo/memory SDK tools now available: `load_repo_map`, `load_run_summary`, `load_quality_report`, `load_memory_prompt_context`, `list_evidence_packets`, `load_run_markdown`, `list_run_markdown_artifacts`, `load_operational_memory`, `load_stock_tracking_csv`.
 - Dependency install command used: `python -m pip install -e .`.
 - Install warning observed: `openai-agents` pulled `starlette 1.0.0`, which conflicts with an unrelated installed `fastapi 0.117.1` requirement in this environment. The repo does not currently use FastAPI, but revisit this if a FastAPI service is added later.

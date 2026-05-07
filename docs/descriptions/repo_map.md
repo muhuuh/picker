@@ -1,6 +1,6 @@
 # Repo Map
 
-Last updated: 2026-05-06
+Last updated: 2026-05-07
 
 ## Purpose
 
@@ -88,6 +88,15 @@ This file tells Codex, the orchestrator, and future agents where to find and upd
 ## Runtime Tooling
 
 - `stock_research/`: stdlib-only deterministic Python core.
+
+Runtime commands are thin handles around importable Python functions. The preferred implementation boundary is:
+
+```text
+core Python function -> deterministic workflow / SDK tool wrapper -> optional CLI
+```
+
+Use CLI commands for manual operation, scheduler entrypoints, validation, smoke tests, and approval-gated side effects. Do not use CLI subprocesses as the normal internal integration between deterministic workflows and SDK tools.
+
 - `python -m stock_research summary`: print repo state summary.
 - `python -m stock_research validate`: validate CSV schemas and required files.
 - `python -m stock_research stale`: scan stock rows for stale dates.
@@ -138,6 +147,7 @@ This file tells Codex, the orchestrator, and future agents where to find and upd
 - `python -m stock_research agent-runtime run --run-id RUN_ID --execute --write`: run the main SDK orchestrator over existing artifacts and write runtime report/metrics artifacts without editing stock files.
 - `python -m stock_research agent-runtime validate-output --run-id RUN_ID`: validate a saved SDK runtime output without calling a model.
 - `python -m stock_research agent-runtime queue-proposals --run-id RUN_ID --write --queue-review`: convert saved SDK file-update proposals into `orchestrator_update_proposals.md` and duplicate-safe human-review queue rows.
+- `python -m stock_research agent-runtime apply-proposal --run-id RUN_ID --proposal-id ORP-0001 --write`: apply one approved SDK proposal to its target company file through the deterministic approval-gated writer.
 - `tests/`: unit tests for current deterministic core.
 
 ## OpenAI Agents SDK Runtime Planning
@@ -149,8 +159,10 @@ This file tells Codex, the orchestrator, and future agents where to find and upd
 - Prompt/spec locations: `agents/orchestrator/` and `agents/specialists/`.
 - Do not add broad LLM orchestration code without following the dedicated backlog.
 - First runtime foundation is implemented under `stock_research/agent_runtime/`.
+- SDK repo/memory tools live in `stock_research/agent_runtime/tools/repo_tools.py` and wrap Python functions directly for repo map, run summary, quality report, memory context, evidence packet index, run markdown, and stock CSV loading.
 - Live orchestration from `run-weekly` is available behind `--execute-orchestrator`; it is opt-in and freshness-gated.
 - SDK output proposals are reviewable through `agents/runs/{run_id}/orchestrator_update_proposals.md` and `agents/human_review_queue.md`; company files are not edited by this bridge.
+- Approved SDK proposals can be applied only through `agent-runtime apply-proposal`, which refuses unapproved review rows and validates the target is an existing file under `stock_tracking/stock_info_files/`.
 
 ## Where To Put Common User Requests
 

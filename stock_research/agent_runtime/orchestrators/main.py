@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from agents import Agent
 
-from stock_research.agent_runtime.context import ResearchRunContext
+from stock_research.agent_runtime.context import ResearchRunContext, with_task_memory
 from stock_research.agent_runtime.outputs import OrchestratorDecision
 from stock_research.agent_runtime.prompts import load_prompt, with_memory
 from stock_research.agent_runtime.specialists.company_news import build_agent as build_company_news_agent
@@ -24,7 +24,8 @@ def build_agent(context: ResearchRunContext | None = None) -> Agent[ResearchRunC
     if context:
         prompt = with_memory(prompt, context.memory_context)
 
-    company_news_agent = build_company_news_agent(context)
+    company_news_context = with_task_memory(context, "company news specialist") if context else None
+    company_news_agent = build_company_news_agent(company_news_context)
     return Agent[ResearchRunContext](
         name="Main Stock Research Orchestrator",
         instructions=prompt,

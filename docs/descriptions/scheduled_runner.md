@@ -1,6 +1,6 @@
 # Scheduled Runner
 
-Last updated: 2026-05-06
+Last updated: 2026-05-07
 
 ## Purpose
 
@@ -9,6 +9,8 @@ The scheduled runner is the deterministic weekly workflow wrapper. It chains the
 Implementation: `stock_research/scheduled_runner.py`.
 
 The runner is deterministic by default, but it can now optionally call the OpenAI Agents SDK main orchestrator after deterministic finalization.
+
+The CLI command is only the scheduler/manual entrypoint. Internal workflow steps should call importable Python functions directly rather than shelling out to other CLI commands.
 
 ## Command
 
@@ -106,3 +108,4 @@ Current SDK integration:
 - Fresh actionable research should normally use `--execute-providers --execute-analysis --execute-orchestrator`; otherwise SDK proposals are review-only.
 - Repeated fresh runs are idempotent at the generated-artifact level because live execution cleans prior generated run artifacts before rebuilding them.
 - Successful SDK file update proposals are routed through `orchestrator_update_proposals.md` and duplicate-safe human-review queue rows before any company-file writer can apply them.
+- Approved proposals can be applied after human review with `python -m stock_research agent-runtime apply-proposal --run-id RUN_ID --proposal-id ORP-0001 --write`; this is intentionally outside the automatic weekly flow for now.

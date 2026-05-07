@@ -1,6 +1,6 @@
 # OpenAI Agents SDK Orchestration Design
 
-Last updated: 2026-05-06
+Last updated: 2026-05-07
 
 ## Purpose
 
@@ -162,13 +162,18 @@ Create a typed runtime context, tentatively `ResearchRunContext`, containing:
 
 Use SDK context for dependencies and runtime state only. Do not put secrets into SDK context, traces, sessions, or artifacts.
 
-Use existing repo memory:
+Use existing repo memory through importable memory functions. The CLI form remains useful for manual inspection:
 
 ```powershell
 python -m stock_research memory prompt-context --task TASK
 ```
 
-This prompt-ready memory must be injected into relevant specialist prompts. The agent artifact should record which memory item ids were used.
+This prompt-ready memory must be injected into relevant specialist prompts. Runtime context now separates:
+
+- `memory_item_ids`: task-relevant ids that should be preferred in prompts and outputs,
+- `known_memory_item_ids`: all active/needs-review ids accepted by validators.
+
+The agent artifact should record which memory item ids materially shaped the decision.
 
 SDK sessions may be useful later for interactive Codex/manual workflows, but they are not durable project memory. Durable truth remains in repo files.
 
@@ -187,6 +192,52 @@ Wrap existing deterministic code as SDK function tools:
 Provider and analysis tools should remain dry-run by default unless the runtime context explicitly permits live execution.
 
 File tools should be proposal-first unless a narrow writer specialist has explicit permission to edit one target file.
+
+Current repo/memory inspection tools are direct wrappers around Python functions, not CLI subprocesses:
+
+- `load_repo_map`
+- `load_run_summary`
+- `load_quality_report`
+- `load_memory_prompt_context`
+- `list_evidence_packets`
+- `load_run_markdown`
+- `list_run_markdown_artifacts`
+- `load_operational_memory`
+- `load_stock_tracking_csv`
+
+## Core Function Vs CLI Vs SDK Tool
+
+The repo should not treat CLI commands as the main architecture. The hierarchy is:
+
+```text
+importable Python function
+  -> deterministic workflow calls the function directly
+  -> OpenAI Agents SDK function tool wraps the function directly
+  -> optional CLI command calls the function for humans, schedulers, tests, or debugging
+```
+
+Rules:
+
+- Implement reusable behavior as an importable Python function first.
+- Deterministic workflows should import and call Python functions directly, not shell out to `python -m stock_research`.
+- SDK tools should wrap Python functions directly, not call CLI subprocesses.
+- Add CLI commands only for high-value operational boundaries:
+  - manual Codex/user-triggered runs,
+  - scheduler entrypoints,
+  - approval-gated side effects,
+  - validation/debug commands,
+  - provider smoke tests where a direct command is useful.
+- Do not add a CLI command for every helper function.
+- If a new CLI command is added, document whether it is user-facing, scheduler-facing, or internal/debug.
+
+Current examples:
+
+| Capability | Core function | CLI purpose | Future SDK tool behavior |
+| --- | --- | --- | --- |
+| Weekly workflow | `run_weekly_research_workflow(...)` | scheduler/manual entrypoint | usually not an agent tool |
+| Proposal review bridge | `build_proposal_review(...)` | approval workflow/debug handle | guarded tool can call function directly |
+| Approved proposal writer | `apply_approved_proposal(...)` | approval-gated manual/scheduler handle | writer tool should call function directly |
+| Memory prompt context | `format_memory_context_for_prompt(...)` / memory loader functions | inspection/debug | specialist prompt injection should call memory code directly |
 
 ## Guardrails
 
@@ -257,12 +308,12 @@ Success criteria:
 
 Implemented:
 
-- `stock_research/agent_runtime/context.py`: `ResearchRunContext` and memory-aware context builder.
+- `stock_research/agent_runtime/context.py`: `ResearchRunContext`, task-relevant memory ids, known memory ids, and task-specific memory context builder.
 - `stock_research/agent_runtime/outputs.py`: typed output contracts for specialist results, orchestrator decisions, alerts, file update proposals, and human review items.
 - `stock_research/agent_runtime/registry.py`: central agent registry.
 - `stock_research/agent_runtime/orchestrators/main.py`: main orchestrator agent builder.
 - `stock_research/agent_runtime/specialists/company_news.py`: company-news specialist agent builder.
-- `stock_research/agent_runtime/tools/repo_tools.py`: first repo/memory/run-artifact function tools.
+- `stock_research/agent_runtime/tools/repo_tools.py`: function-first repo map, memory, run markdown, run summary, quality report, evidence packet index, and stock CSV tools.
 - `stock_research/agent_runtime/runner.py`: run config wrapper with trace metadata and sensitive-data tracing disabled.
 - `stock_research/agent_runtime/tracing.py`: local trace/metrics artifact helpers.
 - `stock_research/agent_runtime/reports.py`: orchestrator input builder, runtime report writer, and output quality checks.
@@ -276,6 +327,7 @@ Implemented:
   - `python -m stock_research agent-runtime run --run-id RUN_ID --execute --write`
   - `python -m stock_research agent-runtime validate-output --run-id RUN_ID`
   - `python -m stock_research agent-runtime queue-proposals --run-id RUN_ID --write --queue-review`
+  - `python -m stock_research agent-runtime apply-proposal --run-id RUN_ID --proposal-id ORP-0001 --write`
 - Scheduled opt-in:
   - `python -m stock_research run-weekly --write --execute-orchestrator`
   - `python -m stock_research run-weekly --write --execute-providers --execute-analysis --execute-orchestrator`
@@ -284,6 +336,7 @@ Not implemented yet:
 
 - parallel fanout,
 - full tool guardrail set,
+- guarded provider/analysis execution tools,
 - additional specialists beyond company-news scaffold.
 
 ## Runtime Quality Gates
@@ -308,6 +361,8 @@ Scheduled SDK runs add one more freshness gate: if provider tasks or analysis ta
 Fresh scheduled runs also clean generated artifacts in the target run directory before live provider/analysis execution. This prevents repeated smoke tests from leaving older evidence packets that inflate run summaries or duplicate specialist reviews.
 
 Saved SDK proposals are converted through a deterministic proposal bridge before any writer can act on them. The bridge validates the saved SDK output, writes `agents/runs/{run_id}/orchestrator_update_proposals.md`, and can append duplicate-safe rows to `agents/human_review_queue.md`. It never edits `stock_tracking/stock_info_files/`.
+
+Approved proposals are applied through a separate deterministic writer. `agent-runtime apply-proposal` reads the proposal report, verifies the matching human-review queue row is `approved`, validates the target path is an existing markdown file under `stock_tracking/stock_info_files/`, and then updates only that company file when `--write` is passed. The writer updates `Last updated`, writes an appropriate section entry, appends `Source Log` and `Change Log` rows, and writes `agents/runs/{run_id}/applied_update_proposals.md`. It is idempotent by proposal id.
 
 ## Live Smoke Result
 
@@ -375,3 +430,18 @@ Result:
 - human review queue rows: HRQ-0002 and HRQ-0003
 - artifact: `agents/runs/2026-05-09_weekly/orchestrator_update_proposals.md`
 - guardrail: no company file edits were applied
+
+## Proposal Writer Result
+
+2026-05-07 writer command shape:
+
+```powershell
+python -m stock_research agent-runtime apply-proposal --run-id 2026-05-09_weekly --proposal-id ORP-0001 --write
+```
+
+Result:
+
+- dry-run by default without `--write`
+- status: `blocked` until the matching `agents/human_review_queue.md` row is `approved`
+- write scope: exactly the proposal target company file
+- audit artifact: `agents/runs/{run_id}/applied_update_proposals.md`

@@ -92,6 +92,7 @@ python -m stock_research agent-runtime smoke --run-id 2026-05-09_weekly
 python -m stock_research agent-runtime run --run-id 2026-05-09_weekly
 python -m stock_research agent-runtime validate-output --run-id 2026-05-09_weekly
 python -m stock_research agent-runtime queue-proposals --run-id 2026-05-09_weekly --write --queue-review
+python -m stock_research agent-runtime apply-proposal --run-id 2026-05-09_weekly --proposal-id ORP-0001
 ```
 
 Run the OpenAI Agents SDK orchestrator over existing run artifacts:
@@ -105,6 +106,8 @@ This requires `OPENAI_API_KEY`. It writes local runtime report, trace-link, and 
 `quality_findings: []` means the saved structured output passed deterministic runtime gates for summary/status shape, valid operational memory ids, exact file targets, source-backed update proposals, and traceable source artifacts. It does not mean the investment conclusion is automatically correct or trade-ready.
 
 `agent-runtime queue-proposals` converts saved SDK proposals into `orchestrator_update_proposals.md` and optional human-review queue rows. It does not edit company files.
+
+`agent-runtime apply-proposal` is the approval-gated company-file writer. It dry-runs by default, refuses proposals without a matching `approved` human-review queue row, and only edits the proposal's target company file when `--write` is passed.
 
 Generated run JSON, raw provider JSON, and evidence packet JSON are local runtime artifacts ignored by Git. Commit the markdown summaries/reports and source/docs changes, not the generated JSON blobs.
 
@@ -252,10 +255,11 @@ Implemented:
 - prompt-ready operational memory context for future specialist injection.
 - deterministic run finalization command for reflection, recurring-failure, and finalization artifacts.
 - deterministic weekly runner that chains manifest, provider tasks, analysis tasks, summary, quality report, memory finalization, memory-writer review, and optional SDK orchestration.
-- OpenAI Agents SDK runtime foundation: importable runtime package, main orchestrator builder, company-news specialist builder, central registry, specialist-as-tool composition, typed context/output contracts, prompt/spec files, and no-model-call smoke command.
+- OpenAI Agents SDK runtime foundation: importable runtime package, main orchestrator builder, company-news specialist builder, central registry, specialist-as-tool composition, typed context/output contracts, task-relevant memory injection, repo/memory inspection tools, prompt/spec files, and no-model-call smoke command.
 - live manual OpenAI Agents SDK orchestrator command over existing run artifacts, with local report, trace-link, and run-metrics artifacts.
 - opt-in scheduled OpenAI Agents SDK orchestration through `run-weekly --write --execute-orchestrator`, with freshness gating for dry-run provider/analysis inputs.
 - deterministic SDK proposal review bridge: `agent-runtime queue-proposals --write --queue-review`.
+- approval-gated SDK proposal writer: `agent-runtime apply-proposal --proposal-id ORP-0001 --write`.
 - deterministic human request classifier and queue appender.
 - deterministic request router for stock, industry, theme, strategy, alert-review, manual-run, and status-move requests.
 - provider-neutral evidence packet schema and JSON artifact writer.

@@ -110,7 +110,7 @@ Use `.env.example` as a local template.
 
 ## OpenAI Agents SDK Runtime
 
-OpenAI Agents SDK is selected as the LLM orchestration framework. The package is declared in `pyproject.toml`, and the initial runtime foundation exists under `stock_research/agent_runtime/`.
+OpenAI Agents SDK is selected as the LLM orchestration framework. The package is declared in `pyproject.toml`, and the initial runtime foundation exists under `stock_research/agent_runtime/`. SDK tools wrap importable Python functions directly; CLI commands are only manual/scheduler/debug handles.
 
 Planning files:
 
@@ -128,6 +128,7 @@ python -m stock_research agent-runtime smoke --run-id 2026-05-09_weekly
 python -m stock_research agent-runtime run --run-id 2026-05-09_weekly
 python -m stock_research agent-runtime validate-output --run-id 2026-05-09_weekly
 python -m stock_research agent-runtime queue-proposals --run-id 2026-05-09_weekly --write --queue-review
+python -m stock_research agent-runtime apply-proposal --run-id 2026-05-09_weekly --proposal-id ORP-0001
 ```
 
 Run the main orchestrator over existing artifacts:
@@ -151,6 +152,20 @@ python -m stock_research agent-runtime queue-proposals --run-id 2026-05-09_weekl
 ```
 
 This writes `agents/runs/RUN_ID/orchestrator_update_proposals.md` and appends duplicate-safe review rows to `agents/human_review_queue.md`. It does not edit company files.
+
+Dry-run an approved proposal application:
+
+```powershell
+python -m stock_research agent-runtime apply-proposal --run-id 2026-05-09_weekly --proposal-id ORP-0001
+```
+
+Apply it only after the matching `agents/human_review_queue.md` row is set to `approved`:
+
+```powershell
+python -m stock_research agent-runtime apply-proposal --run-id 2026-05-09_weekly --proposal-id ORP-0001 --write
+```
+
+This command refuses open/rejected/missing review rows and only edits the proposal target company file.
 
 Run the SDK orchestrator from the weekly wrapper:
 
