@@ -256,6 +256,11 @@ Use this file for information we should not lose across sessions.
   - evidence artifact path(s): `stock_research/scheduled_runner.py`, `stock_research/agent_runtime/orchestrators/company_research.py`, `stock_research/agent_runtime/specialists/risk_thesis.py`, `stock_research/agent_runtime/specialists/writer.py`, `stock_research/agent_runtime/specialists/quality_review.py`, `stock_research/agent_runtime/reports.py`, `tests/test_scheduled_runner.py`, `tests/test_agent_runtime.py`
   - status: active
 
+- 2026-05-10:
+  - decision/fact: Market discovery must use xAI/Grok `x_search` as a first-class lane for X-based niche trends, hype, rumors, community sentiment, and emerging ticker leads, alongside Exa/web discovery for verification. Grok/X output remains social signal and lead generation only; material claims and candidate promotion require Exa, filings, or market-data verification.
+  - evidence artifact path(s): `stock_research/agent_runtime/orchestrators/market_research.py`, `stock_research/agent_runtime/specialists/grok_discovery.py`, `stock_research/agent_runtime/specialists/exa_industry.py`, `stock_research/agent_runtime/specialists/discovery.py`, `stock_research/providers/xai_grok.py`, `stock_research/manifest.py`, `docs/descriptions/xai_grok_provider.md`, `tests/test_agent_runtime.py`, `tests/test_stock_research_core.py`
+  - status: active
+
 - 2026-05-04:
   - decision/fact: Generated run JSON artifacts are local runtime output and should not be committed. Keep markdown run summaries/reports/finalization files as the reviewable artifacts; `.gitignore` now ignores run-root JSON, raw provider JSON, evidence packet JSON, and generated recurring-failure JSON.
   - evidence artifact path(s): `.gitignore`, `README.md`, `SETUP.md`, `docs/descriptions/run_summary_and_quality.md`

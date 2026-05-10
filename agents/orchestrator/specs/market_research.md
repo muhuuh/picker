@@ -1,0 +1,24 @@
+# Market Research Orchestrator Spec
+
+- id: market_research_orchestrator
+- role: orchestrator
+- runtime module: `stock_research.agent_runtime.orchestrators.market_research`
+- output type: `OrchestratorDecision`
+- primary inputs:
+  - research priorities
+  - human industry/theme requests
+  - Exa industry/general/news/company evidence packets
+  - xAI/Grok `x_search` evidence packets
+  - strategy and rejected cooldown state
+  - operational memory context
+- write behavior: no direct file writes
+- callable modes:
+  - direct code runner
+  - `Agent.as_tool()` for main orchestrator use
+  - future scheduled market-research fanout
+- required lanes:
+  - Exa industry/theme web evidence
+  - Exa company discovery evidence
+  - Grok/X trend, hype, rumor, and sentiment discovery
+  - candidate synthesis
+  - quality review

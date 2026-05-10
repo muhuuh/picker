@@ -258,6 +258,7 @@ Implemented:
 - deterministic weekly runner that chains manifest, provider tasks, analysis tasks, summary, quality report, memory finalization, memory-writer review, and optional SDK orchestration.
 - OpenAI Agents SDK runtime foundation: importable runtime package, main orchestrator builder, company-research sub-orchestrator, company-news specialist builder, company-search specialist builder, financial specialist builder, filing specialist builder, sentiment specialist builder, risk/thesis specialist builder, writer specialist builder, quality-review specialist builder, central registry, specialist-as-tool composition, typed context/output contracts, task-relevant memory injection, repo/memory inspection tools, prompt/spec files, and no-model-call smoke command.
 - Company-research SDK sub-orchestrator for one ticker, with evidence lanes for financials, company news, filings, sentiment, company search, risk/thesis impact, writer proposals, and quality review, plus financial, company-news, company-search, filing, sentiment, risk/thesis, writer, and quality-review specialist fanout.
+- Market-research SDK sub-orchestrator for one industry/theme, with Exa industry/company discovery, Grok/X trend and rumor discovery, candidate discovery, and quality-review specialist fanout.
 - guarded OpenAI Agents SDK provider/analysis function tools that plan by default and require context permission for live side effects.
 - live manual OpenAI Agents SDK orchestrator command over existing run artifacts, with local report, trace-link, and run-metrics artifacts.
 - SDK local telemetry hooks for agent lifecycle, tool calls, LLM calls/usage when available, injected operational memory ids, and final-output reported memory ids.
@@ -285,6 +286,6 @@ Implemented:
 Not implemented yet:
 
 - macro provider integrations,
-- market/portfolio/memory-evaluation sub-orchestrators,
+- scheduled market-research fanout, portfolio review, and memory-evaluation sub-orchestrators,
 - OS/app scheduled execution,
 - immediate research runs.

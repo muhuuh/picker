@@ -1,6 +1,6 @@
 # xAI Grok Provider
 
-Last updated: 2026-05-04
+Last updated: 2026-05-10
 
 ## Purpose
 
@@ -13,6 +13,8 @@ Implementation: `stock_research/providers/xai_grok.py`.
 - xAI tools overview: https://docs.x.ai/developers/tools/overview
 - xAI X Search tool: https://docs.x.ai/developers/tools/x-search
 - xAI citations: https://docs.x.ai/developers/tools/citations
+
+Rechecked on 2026-05-10 before market-discovery specialist work.
 
 ## Correct Design
 
@@ -62,6 +64,8 @@ Useful options:
 - `--enable-image-understanding`
 - `--enable-video-understanding`
 
+Official xAI docs currently list these `x_search` parameters: `allowed_x_handles`, `excluded_x_handles`, `from_date`, `to_date`, `enable_image_understanding`, and `enable_video_understanding`. Allowed/excluded handle filters are mutually exclusive and each supports up to 10 handles.
+
 ## Weekly Manifest Usage
 
 Weekly manifests should plan `xai_grok` provider tasks by default:
@@ -69,6 +73,13 @@ Weekly manifests should plan `xai_grok` provider tasks by default:
 - current holdings and monitoring stocks: Grok `x_search` stock sentiment;
 - research priorities: Grok `x_search` industry/theme sentiment;
 - human stock/industry/theme requests: routed to Grok `x_search`.
+
+Discovery-specific usage:
+
+- Use a bounded recent date window by default: 14 days for stock/latest-news scans and 21 days for industry/theme discovery.
+- Enable image understanding for industry/theme discovery when useful, because X posts often contain charts, screenshots, and product/media context.
+- Prompt Grok to surface niche companies, emerging tickers, credible accounts/posts, rumors, hype cycles, skepticism, and verification tasks.
+- Treat results as social signal and lead generation only.
 
 Inspect planned xAI tasks:
 

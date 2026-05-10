@@ -101,3 +101,26 @@ class CompanyResearchPacket:
     planned_provider_task_ids: list[str] = field(default_factory=list)
     planned_analysis_task_ids: list[str] = field(default_factory=list)
     memory_item_ids: list[str] = field(default_factory=list)
+
+
+@dataclass(frozen=True)
+class MarketResearchLane:
+    lane_id: str
+    status: Literal["ready", "partial", "missing"]
+    summary: str
+    evidence_packet_ids: list[str] = field(default_factory=list)
+    planned_task_ids: list[str] = field(default_factory=list)
+    missing_items: list[str] = field(default_factory=list)
+
+
+@dataclass(frozen=True)
+class MarketResearchPacket:
+    run_id: str
+    subject_type: str
+    subject_id: str
+    topic: str
+    source_bucket: str = ""
+    lanes: list[MarketResearchLane] = field(default_factory=list)
+    evidence_packet_count: int = 0
+    planned_provider_task_ids: list[str] = field(default_factory=list)
+    memory_item_ids: list[str] = field(default_factory=list)

@@ -6,7 +6,7 @@ Last updated: 2026-05-10
 
 This document defines how this repo should use OpenAI Agents SDK for LLM orchestration.
 
-The first SDK runtime foundation is implemented. It can build real SDK `Agent` objects, compose company-news, company-search, financial, filing, sentiment, risk/thesis, writer, and quality-review specialists as tools for orchestrators, run no-model-call registry smoke checks, manually execute orchestrators over existing run artifacts, and run scheduled per-ticker company research plus main orchestration from the weekly wrapper behind an explicit `--execute-orchestrator` flag.
+The first SDK runtime foundation is implemented. It can build real SDK `Agent` objects, compose company-news, company-search, financial, filing, sentiment, risk/thesis, writer, quality-review, Exa industry, Grok discovery, and candidate discovery specialists as tools for orchestrators, run no-model-call registry smoke checks, manually execute orchestrators over existing run artifacts, and run scheduled per-ticker company research plus main orchestration from the weekly wrapper behind an explicit `--execute-orchestrator` flag.
 
 Dedicated backlog: `docs/plans/openai_agents_sdk_orchestration_backlog.md`.
 
@@ -334,11 +334,15 @@ Implemented:
 - `stock_research/agent_runtime/registry.py`: central agent registry.
 - `stock_research/agent_runtime/orchestrators/main.py`: main orchestrator agent builder.
 - `stock_research/agent_runtime/orchestrators/company_research.py`: first company-research sub-orchestrator, one-ticker lane packet builder for financials/company-news/filings/sentiment/company-search/risk-thesis/writer/quality lanes, fanout task builder, aggregation helper, and per-ticker scheduled artifact writer.
+- `stock_research/agent_runtime/orchestrators/market_research.py`: first market-research sub-orchestrator for industry/theme packets, Exa web/company discovery, Grok/X trend discovery, candidate synthesis, and quality review.
 - `stock_research/agent_runtime/specialists/company_news.py`: company-news specialist agent builder.
 - `stock_research/agent_runtime/specialists/company_search.py`: Exa company-search specialist agent builder over existing Exa company/general search artifacts.
 - `stock_research/agent_runtime/specialists/financial.py`: financial specialist agent builder over deterministic financial comparison/review artifacts.
 - `stock_research/agent_runtime/specialists/filing.py`: SEC filing specialist agent builder over existing SEC EDGAR artifacts.
 - `stock_research/agent_runtime/specialists/sentiment.py`: xAI/Grok sentiment specialist agent builder over existing `x_search` artifacts.
+- `stock_research/agent_runtime/specialists/exa_industry.py`: Exa industry/theme/company-discovery specialist builder over existing Exa artifacts.
+- `stock_research/agent_runtime/specialists/grok_discovery.py`: xAI/Grok X discovery specialist builder for niche trends, hype, rumors, and emerging ticker leads.
+- `stock_research/agent_runtime/specialists/discovery.py`: candidate discovery specialist builder that combines Exa-verified and Grok-surfaced leads.
 - `stock_research/agent_runtime/specialists/risk_thesis.py`: risk/thesis specialist agent builder over aggregated company-research evidence.
 - `stock_research/agent_runtime/specialists/writer.py`: proposal-drafting specialist agent builder; actual file writes remain approval-gated.
 - `stock_research/agent_runtime/specialists/quality_review.py`: quality-review specialist agent builder for citation/source/approval-gate checks.

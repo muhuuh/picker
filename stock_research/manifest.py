@@ -464,6 +464,7 @@ def build_provider_tasks(
                         "run_id": run_id,
                         "research_kind": "stock_sentiment",
                         "model": "grok-4.3",
+                        **x_search_window_args(run_date, days=14),
                     },
                     reason=f"Default Grok x_search community-sentiment scan for {bucket} ticker {label}.",
                     priority="high" if bucket == "current_holdings" else "medium",
@@ -528,12 +529,14 @@ def build_provider_tasks(
                 tool="x_search",
                 subject_type=subject_type,
                 subject_id=subject_id,
-                args={
-                    "prompt": industry_sentiment_prompt(topic),
-                    "run_id": run_id,
-                    "research_kind": "industry_sentiment",
-                    "model": "grok-4.3",
-                },
+                    args={
+                        "prompt": industry_sentiment_prompt(topic),
+                        "run_id": run_id,
+                        "research_kind": "industry_sentiment",
+                        "model": "grok-4.3",
+                        **x_search_window_args(run_date, days=21),
+                        "enable_image_understanding": True,
+                    },
                 reason=f"Default Grok x_search sentiment scan for active research priority: {topic}.",
                 priority=priority.get("Priority", "").strip().lower() or "medium",
                 source_bucket="research_priorities",
@@ -636,6 +639,7 @@ def provider_tasks_for_human_request(request: dict[str, str], run_id: str) -> li
                         "run_id": run_id,
                         "research_kind": "stock_sentiment",
                         "model": "grok-4.3",
+                        **x_search_window_args_from_run_id(run_id, days=14),
                     },
                     reason=f"Human input queue Grok x_search stock sentiment request {request_id}.",
                     priority=priority,
@@ -680,6 +684,8 @@ def provider_tasks_for_human_request(request: dict[str, str], run_id: str) -> li
                             "run_id": run_id,
                             "research_kind": "industry_sentiment",
                             "model": "grok-4.3",
+                            **x_search_window_args_from_run_id(run_id, days=21),
+                            "enable_image_understanding": True,
                         },
                         reason=f"Human input queue Grok x_search industry sentiment request {request_id}.",
                         priority=priority,
@@ -730,6 +736,8 @@ def provider_tasks_for_human_request(request: dict[str, str], run_id: str) -> li
                             "run_id": run_id,
                             "research_kind": "latest_news",
                             "model": "grok-4.3",
+                            **x_search_window_args_from_run_id(run_id, days=14),
+                            "enable_image_understanding": True,
                         },
                         reason=f"Human input queue Grok x_search theme/news request {request_id}.",
                         priority=priority,
@@ -847,6 +855,19 @@ def normalize_priority(value: str) -> str:
     if normalized in {"low", "medium", "high", "urgent"}:
         return normalized
     return "medium"
+
+
+def x_search_window_args(run_date: date, days: int) -> dict[str, str]:
+    start = run_date - timedelta(days=days)
+    return {"from_date": start.isoformat(), "to_date": run_date.isoformat()}
+
+
+def x_search_window_args_from_run_id(run_id: str, days: int) -> dict[str, str]:
+    try:
+        run_date = date.fromisoformat(run_id.split("_", 1)[0])
+    except ValueError:
+        return {}
+    return x_search_window_args(run_date, days)
 
 
 def slugify(value: str) -> str:

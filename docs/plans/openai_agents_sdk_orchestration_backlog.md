@@ -136,6 +136,7 @@ Out of scope for the first slice:
   - Current implementation: `company_research_orchestrator` is registered, exposed to the main orchestrator, has prompt/spec artifacts, can build a one-ticker company research packet, can run financial, company-news, Exa company-search, SEC filing, xAI/Grok sentiment, risk/thesis, writer, and quality-review fanout, and writes per-ticker scheduled artifacts.
 - [ ] Build market research sub-orchestrator.
   - Coordinates industry/theme research, discovery, candidate validation, and strategy fit.
+  - Current progress: first SDK version registered as `market_research_orchestrator`; it builds an industry/theme packet and runs Exa industry, Grok/X discovery, candidate discovery, and quality-review fanout. Grok/X is a required discovery lane for niche trends, hype, rumors, sentiment, and emerging ticker leads; promotion still requires Exa/filing/market-data verification.
 - [ ] Build portfolio review sub-orchestrator.
   - Synthesizes current holdings, monitoring, rejected cooldowns, bucket-level changes, and alerts.
 - [ ] Build memory/evaluation sub-orchestrator.

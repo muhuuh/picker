@@ -36,6 +36,7 @@ Procedural memory for future specialist agents. Specialists should produce struc
 - Use for: finding new candidate stocks linked to strategy priorities, industries, and user requests.
 - Output: candidate discovery evidence packet plus suggested monitoring additions for human/orchestrator review.
 - Gotcha: Grok-discovered tickers require Exa or financial-provider validation before promotion.
+- SDK status: `discovery_specialist` is implemented for market-research fanout and should combine Exa-verified leads with Grok/X social-signal leads.
 
 ## xAI Grok Stock Sentiment Specialist
 
@@ -50,6 +51,15 @@ Procedural memory for future specialist agents. Specialists should produce struc
 - Use for: industry mood, emerging tickers, narratives, and possible bubbles.
 - Output: industry sentiment evidence packet and candidate leads.
 - Gotcha: candidate leads are leads only until validated by Exa/company/financial sources.
+- SDK status: `grok_discovery_specialist` is implemented for market-research fanout and should explicitly surface niche trends, hype, rumors, credible X posts/accounts, and verification tasks.
+
+## Exa Industry Research Specialist
+
+- Primary tools: Exa `industry`, Exa `general`, Exa `news`, Exa `company`, and Exa `contents`.
+- Use for: source-backed industry context, public-company discovery, supplier/customer ecosystems, and verification of Grok/X leads.
+- Output: industry/theme specialist result with sources, candidate leads, contradictions, and follow-up contents tasks.
+- Gotcha: Exa snippets are not enough for material claims; use contents extraction or primary sources for high-impact updates.
+- SDK status: `exa_industry_specialist` is implemented for market-research fanout.
 
 ## Financial Data Specialist
 

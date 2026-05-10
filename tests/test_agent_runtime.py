@@ -2,6 +2,7 @@ from pathlib import Path
 import asyncio
 from contextlib import redirect_stdout
 from datetime import date
+from dataclasses import replace
 import io
 import json
 from types import SimpleNamespace
@@ -18,6 +19,12 @@ from stock_research.agent_runtime.orchestrators.company_research import (
     build_company_research_fanout_tasks,
     build_company_research_packet,
     run_company_research_sub_orchestrator_sync,
+)
+from stock_research.agent_runtime.orchestrators.market_research import (
+    build_market_research_fanout_tasks,
+    build_market_research_input,
+    build_market_research_packet,
+    run_market_research_sub_orchestrator_sync,
 )
 from stock_research.agent_runtime.outputs import OrchestratorDecision
 from stock_research.agent_runtime.reports import build_orchestrator_input, evaluate_runtime_output_quality, output_to_dict
@@ -133,16 +140,101 @@ def write_company_research_test_artifacts(root: Path) -> None:
         write_packet(packet, evidence_dir / f"{packet.packet_id}.json")
 
 
+def write_market_research_test_artifacts(root: Path) -> Path:
+    run_dir = root / "agents" / "runs" / "test_weekly"
+    manifest_path = run_dir / "manifest.json"
+    manifest_path.parent.mkdir(parents=True, exist_ok=True)
+    manifest_path.write_text(
+        json.dumps(
+            {
+                "manifest_id": "weekly_test",
+                "inputs": {
+                    "research_priorities": [
+                        {
+                            "Topic": "European grid infrastructure",
+                            "Type": "industry",
+                            "Priority": "high",
+                            "Status": "active",
+                        }
+                    ]
+                },
+                "provider_tasks": [
+                    {
+                        "id": "exa_research_priority_european_grid_infrastructure",
+                        "provider": "exa",
+                        "tool": "search",
+                        "subject_type": "industry",
+                        "subject_id": "european_grid_infrastructure",
+                        "priority": "high",
+                        "source_bucket": "research_priorities",
+                        "args": {"mode": "industry", "query": "European grid infrastructure", "run_id": "test_weekly"},
+                    },
+                    {
+                        "id": "exa_discovery_priority_european_grid_infrastructure",
+                        "provider": "exa",
+                        "tool": "search",
+                        "subject_type": "industry",
+                        "subject_id": "european_grid_infrastructure",
+                        "priority": "high",
+                        "source_bucket": "research_priorities",
+                        "args": {"mode": "company", "query": "European grid infrastructure public companies", "run_id": "test_weekly"},
+                    },
+                    {
+                        "id": "xai_x_search_priority_european_grid_infrastructure",
+                        "provider": "xai_grok",
+                        "tool": "x_search",
+                        "subject_type": "industry",
+                        "subject_id": "european_grid_infrastructure",
+                        "priority": "high",
+                        "source_bucket": "research_priorities",
+                        "args": {
+                            "prompt": "Search X for European grid infrastructure niche companies rumors hype",
+                            "run_id": "test_weekly",
+                            "from_date": "2026-04-18",
+                            "to_date": "2026-05-09",
+                            "enable_image_understanding": True,
+                        },
+                    },
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+    evidence_dir = run_dir / "evidence_packets"
+    source = Source(
+        source_id="src",
+        provider="test",
+        source_type="internal",
+        artifact_path="agents/runs/test_weekly/raw/test.json",
+    )
+    for provider, suffix in (("exa", "industry"), ("exa", "company_discovery"), ("xai_grok", "x_search")):
+        packet = new_packet(
+            provider=provider,
+            subject_type="industry",
+            subject_id="european_grid_infrastructure",
+            time_window="test",
+            current_date=date(2026, 5, 10),
+            sources=[source],
+        )
+        packet = replace(packet, packet_id=f"{packet.packet_id}_{suffix}")
+        write_packet(packet, evidence_dir / f"{packet.packet_id}_{provider}.json")
+    return manifest_path
+
+
 class AgentRuntimeTests(unittest.TestCase):
     def test_registry_lists_orchestrator_and_specialist(self):
         specs = {spec.agent_id: spec for spec in list_agent_specs()}
 
         self.assertEqual(specs["main_orchestrator"].role, "orchestrator")
         self.assertEqual(specs["company_research_orchestrator"].role, "orchestrator")
+        self.assertEqual(specs["market_research_orchestrator"].role, "orchestrator")
         self.assertEqual(specs["company_news_specialist"].role, "specialist")
         self.assertEqual(specs["company_search_specialist"].role, "specialist")
+        self.assertEqual(specs["discovery_specialist"].role, "specialist")
+        self.assertEqual(specs["exa_industry_specialist"].role, "specialist")
         self.assertEqual(specs["filing_specialist"].role, "specialist")
         self.assertEqual(specs["financial_specialist"].role, "specialist")
+        self.assertEqual(specs["grok_discovery_specialist"].role, "specialist")
         self.assertEqual(specs["quality_reviewer_specialist"].role, "specialist")
         self.assertEqual(specs["risk_thesis_specialist"].role, "specialist")
         self.assertEqual(specs["sentiment_specialist"].role, "specialist")
@@ -175,10 +267,14 @@ class AgentRuntimeTests(unittest.TestCase):
         self.assertIn("run_provider_tasks_guarded", tool_names)
         self.assertIn("run_analysis_tasks_guarded", tool_names)
         self.assertIn("company_research_orchestrator", tool_names)
+        self.assertIn("market_research_orchestrator", tool_names)
         self.assertIn("company_news_specialist", tool_names)
         self.assertIn("company_search_specialist", tool_names)
+        self.assertIn("discovery_specialist", tool_names)
+        self.assertIn("exa_industry_specialist", tool_names)
         self.assertIn("filing_specialist", tool_names)
         self.assertIn("financial_specialist", tool_names)
+        self.assertIn("grok_discovery_specialist", tool_names)
         self.assertIn("quality_reviewer_specialist", tool_names)
         self.assertIn("risk_thesis_specialist", tool_names)
         self.assertIn("sentiment_specialist", tool_names)
@@ -367,6 +463,17 @@ class AgentRuntimeTests(unittest.TestCase):
 
         self.assertEqual(getattr(tool, "name", ""), "company_search_specialist")
 
+    def test_market_research_specialists_can_be_built_as_tools(self):
+        for agent_id, task in (
+            ("exa_industry_specialist", "Exa industry research specialist"),
+            ("grok_discovery_specialist", "xAI Grok industry sentiment specialist"),
+            ("discovery_specialist", "discovery specialist"),
+        ):
+            context = build_research_run_context(root=REPO_ROOT, run_id="test_weekly", task=task)
+            tool = build_agent_tool(agent_id, context)
+
+            self.assertEqual(getattr(tool, "name", ""), agent_id)
+
     def test_filing_specialist_can_be_built_as_tool(self):
         context = build_research_run_context(root=REPO_ROOT, run_id="test_weekly", task="SEC filing specialist")
         tool = build_agent_tool("filing_specialist", context)
@@ -396,6 +503,20 @@ class AgentRuntimeTests(unittest.TestCase):
         self.assertIn("risk_thesis_specialist", tool_names)
         self.assertIn("sentiment_specialist", tool_names)
         self.assertIn("writer_specialist", tool_names)
+        self.assertNotIn("write_company_file", tool_names)
+
+    def test_market_research_orchestrator_can_be_built(self):
+        context = build_research_run_context(root=REPO_ROOT, run_id="test_weekly", task="market research sub-orchestrator")
+        agent = build_agent("market_research_orchestrator", context)
+        tool_names = {getattr(tool, "name", type(tool).__name__) for tool in agent.tools}
+
+        self.assertIsInstance(agent, Agent)
+        self.assertIn("load_run_markdown", tool_names)
+        self.assertIn("run_provider_tasks_guarded", tool_names)
+        self.assertIn("exa_industry_specialist", tool_names)
+        self.assertIn("grok_discovery_specialist", tool_names)
+        self.assertIn("discovery_specialist", tool_names)
+        self.assertIn("quality_reviewer_specialist", tool_names)
         self.assertNotIn("write_company_file", tool_names)
 
     def test_company_research_packet_groups_existing_company_artifacts(self):
@@ -502,6 +623,73 @@ class AgentRuntimeTests(unittest.TestCase):
             ],
         )
         self.assertTrue(any("company_search" in task for task in decision.next_run_tasks))
+
+    def test_market_research_packet_requires_grok_discovery_lane(self):
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            write_runtime_test_repo(root)
+            manifest_path = write_market_research_test_artifacts(root)
+            context = build_research_run_context(
+                root=root,
+                run_id="test_weekly",
+                task="market research sub-orchestrator",
+                manifest_path=manifest_path,
+            )
+
+            packet = build_market_research_packet(context, "european_grid_infrastructure", "industry")
+            prompt = build_market_research_input(context, "european_grid_infrastructure", "industry")
+            tasks = build_market_research_fanout_tasks(context, "european_grid_infrastructure", "industry", timeout_seconds=12)
+
+        lanes = {lane.lane_id: lane for lane in packet.lanes}
+        self.assertEqual(lanes["exa_industry"].status, "ready")
+        self.assertEqual(lanes["exa_company_discovery"].status, "ready")
+        self.assertEqual(lanes["grok_x_discovery"].status, "ready")
+        self.assertIn("Grok/X is mandatory", prompt)
+        self.assertEqual(
+            [task.agent_id for task in tasks],
+            ["exa_industry_specialist", "grok_discovery_specialist", "discovery_specialist", "quality_reviewer_specialist"],
+        )
+        self.assertTrue(all(task.timeout_seconds == 12 for task in tasks))
+
+    def test_market_research_sub_orchestrator_aggregates_fanout_results(self):
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            write_runtime_test_repo(root)
+            manifest_path = write_market_research_test_artifacts(root)
+            context = build_research_run_context(
+                root=root,
+                run_id="test_weekly",
+                task="market research sub-orchestrator",
+                manifest_path=manifest_path,
+            )
+
+            async def fake_runner(agent_id, _prompt, task_context, **_kwargs):
+                return AgentRuntimeResult(
+                    agent_id=agent_id,
+                    final_output={
+                        "agent_id": agent_id,
+                        "subject_type": "industry",
+                        "subject_id": "european_grid_infrastructure",
+                        "status": "ready",
+                        "summary": "Market discovery evidence is adequate for this deterministic sub-orchestrator unit test.",
+                        "memory_item_ids_used": list(task_context.memory_item_ids[:1]),
+                    },
+                    trace_id=task_context.trace_id,
+                    group_id=task_context.trace_group_id,
+                    quality_findings=[],
+                )
+
+            decision, fanout = run_market_research_sub_orchestrator_sync(
+                context,
+                "european_grid_infrastructure",
+                "industry",
+                runner=fake_runner,
+            )
+
+        self.assertEqual(fanout.status, "complete")
+        self.assertEqual(decision.agent_id, "market_research_orchestrator")
+        self.assertEqual(len(decision.specialist_results), 4)
+        self.assertIn("Grok/X discovery is required", decision.summary)
 
     def test_run_config_uses_trace_metadata_without_sensitive_data(self):
         context = build_research_run_context(root=REPO_ROOT, run_id="test_weekly", task="main orchestrator")

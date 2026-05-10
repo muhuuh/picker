@@ -36,6 +36,8 @@
 - 2026-05-10: Clarified fanout task naming after user concern: `financial_aapl`/similar are per-run task ids generated from the ticker parameter, not AAPL-specific agents. Added generic `company_search_specialist` plus deterministic Exa `company` mode provider tasks for tracked tickers and human stock-research tickers.
 - 2026-05-10: Added the remaining generic company-research SDK lanes: `risk_thesis_specialist`, `writer_specialist`, and `quality_reviewer_specialist`. They are prompt/spec/module definitions reusable for any ticker.
 - 2026-05-10: Wired company-research fanout into scheduled `run-weekly` for all current-holding and monitoring tickers when SDK orchestration is enabled. The scheduled path writes per-ticker artifacts under `agents/runs/{run_id}/company_research/` before the main orchestrator synthesis.
+- 2026-05-10: Added first market-research SDK sub-orchestrator and discovery specialists. Discovery now has explicit Exa industry/company lanes and a required Grok/X lane for niche trends, hype, rumors, sentiment, and emerging ticker leads. Grok leads require Exa/filing/market-data verification before promotion.
+- 2026-05-10: Rechecked official xAI X Search docs. Current supported `x_search` controls are `from_date`, `to_date`, `allowed_x_handles`, `excluded_x_handles`, `enable_image_understanding`, and `enable_video_understanding`; allowed and excluded handles are mutually exclusive and capped at 10.
 
 ## Official Docs Reviewed
 
@@ -145,6 +147,7 @@ run-weekly
 - Add provider failure, malformed specialist output, and missing-citation golden tests.
 - Add deeper memory-use evaluation beyond injected/reported ids.
 - Build market research, portfolio review, and memory/evaluation sub-orchestrators.
+- Wire market-research fanout into scheduled `run-weekly` after validating the manual market-research sub-orchestrator path.
 - Add Saturday automation only after the scheduled SDK path is validated with a realistic multi-ticker universe.
 
 ## Risks / Gotchas

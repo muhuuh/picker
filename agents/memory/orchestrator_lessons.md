@@ -348,3 +348,17 @@ Operational memory for workflow routing, orchestration, run ordering, and user c
 - evidence: `stock_research/scheduled_runner.py`, `stock_research/agent_runtime/orchestrators/company_research.py`, `tests/test_scheduled_runner.py`
 - owner: main orchestrator
 - next_review: 2026-06-15
+
+- id: orch-2026-05-10-grok-required-for-discovery
+- date: 2026-05-10
+- type: procedural
+- scope: orchestrator
+- status: active
+- confidence: high
+- trigger/source: User explicitly required Grok/X coverage for discovery because X surfaces niche, rumor, hype, and sentiment signals.
+- lesson: Market discovery must include a Grok/X lane for niche trends, hype, rumors, emerging tickers, and community sentiment. Use Exa/web and financial/filing providers to verify material claims before candidate promotion.
+- use_when: Building market research, industry/theme discovery, candidate discovery, or discovery alert workflows.
+- do_not_use_when: Treating Grok/X output as verified fact or bypassing rejected-stock cooldowns.
+- evidence: `stock_research/agent_runtime/orchestrators/market_research.py`, `stock_research/agent_runtime/specialists/grok_discovery.py`, `stock_research/manifest.py`, `docs/descriptions/xai_grok_provider.md`
+- owner: market research orchestrator
+- next_review: 2026-06-15

@@ -8,10 +8,14 @@ from agents import Agent
 from stock_research.agent_runtime.context import ResearchRunContext
 from stock_research.agent_runtime.orchestrators.company_research import build_agent as build_company_research_orchestrator
 from stock_research.agent_runtime.orchestrators.main import build_agent as build_main_orchestrator
+from stock_research.agent_runtime.orchestrators.market_research import build_agent as build_market_research_orchestrator
 from stock_research.agent_runtime.specialists.company_news import build_agent as build_company_news_specialist
 from stock_research.agent_runtime.specialists.company_search import build_agent as build_company_search_specialist
+from stock_research.agent_runtime.specialists.discovery import build_agent as build_discovery_specialist
+from stock_research.agent_runtime.specialists.exa_industry import build_agent as build_exa_industry_specialist
 from stock_research.agent_runtime.specialists.filing import build_agent as build_filing_specialist
 from stock_research.agent_runtime.specialists.financial import build_agent as build_financial_specialist
+from stock_research.agent_runtime.specialists.grok_discovery import build_agent as build_grok_discovery_specialist
 from stock_research.agent_runtime.specialists.quality_review import build_agent as build_quality_reviewer_specialist
 from stock_research.agent_runtime.specialists.risk_thesis import build_agent as build_risk_thesis_specialist
 from stock_research.agent_runtime.specialists.sentiment import build_agent as build_sentiment_specialist
@@ -43,6 +47,12 @@ _AGENT_SPECS: dict[str, AgentSpec] = {
         description="Sub-orchestrator that coordinates one-ticker company research across evidence lanes and bounded specialists.",
         builder=build_company_research_orchestrator,
     ),
+    "market_research_orchestrator": AgentSpec(
+        agent_id="market_research_orchestrator",
+        role="orchestrator",
+        description="Sub-orchestrator that coordinates industry/theme research, Grok/X trend discovery, and candidate discovery.",
+        builder=build_market_research_orchestrator,
+    ),
     "company_news_specialist": AgentSpec(
         agent_id="company_news_specialist",
         role="specialist",
@@ -55,11 +65,29 @@ _AGENT_SPECS: dict[str, AgentSpec] = {
         description="Specialist agent that synthesizes existing Exa company/general search artifacts.",
         builder=build_company_search_specialist,
     ),
+    "discovery_specialist": AgentSpec(
+        agent_id="discovery_specialist",
+        role="specialist",
+        description="Specialist agent that combines Exa-verified and Grok-surfaced leads into candidate discovery output.",
+        builder=build_discovery_specialist,
+    ),
+    "exa_industry_specialist": AgentSpec(
+        agent_id="exa_industry_specialist",
+        role="specialist",
+        description="Specialist agent that synthesizes existing Exa industry/theme/company-discovery artifacts.",
+        builder=build_exa_industry_specialist,
+    ),
     "financial_specialist": AgentSpec(
         agent_id="financial_specialist",
         role="specialist",
         description="Specialist agent that synthesizes existing financial comparison and review artifacts.",
         builder=build_financial_specialist,
+    ),
+    "grok_discovery_specialist": AgentSpec(
+        agent_id="grok_discovery_specialist",
+        role="specialist",
+        description="Specialist agent that synthesizes xAI/Grok X trend, hype, rumor, and niche company-discovery signals.",
+        builder=build_grok_discovery_specialist,
     ),
     "filing_specialist": AgentSpec(
         agent_id="filing_specialist",

@@ -6,10 +6,14 @@ from stock_research.agent_runtime.context import ResearchRunContext, with_task_m
 from stock_research.agent_runtime.outputs import OrchestratorDecision
 from stock_research.agent_runtime.prompts import load_prompt, with_memory
 from stock_research.agent_runtime.orchestrators.company_research import build_agent as build_company_research_agent
+from stock_research.agent_runtime.orchestrators.market_research import build_agent as build_market_research_agent
 from stock_research.agent_runtime.specialists.company_news import build_agent as build_company_news_agent
 from stock_research.agent_runtime.specialists.company_search import build_agent as build_company_search_agent
+from stock_research.agent_runtime.specialists.discovery import build_agent as build_discovery_agent
+from stock_research.agent_runtime.specialists.exa_industry import build_agent as build_exa_industry_agent
 from stock_research.agent_runtime.specialists.filing import build_agent as build_filing_agent
 from stock_research.agent_runtime.specialists.financial import build_agent as build_financial_agent
+from stock_research.agent_runtime.specialists.grok_discovery import build_agent as build_grok_discovery_agent
 from stock_research.agent_runtime.specialists.quality_review import build_agent as build_quality_review_agent
 from stock_research.agent_runtime.specialists.risk_thesis import build_agent as build_risk_thesis_agent
 from stock_research.agent_runtime.specialists.sentiment import build_agent as build_sentiment_agent
@@ -50,8 +54,16 @@ def build_agent(context: ResearchRunContext | None = None) -> Agent[ResearchRunC
     writer_agent = build_writer_agent(writer_context)
     quality_context = with_task_memory(context, "quality reviewer specialist") if context else None
     quality_agent = build_quality_review_agent(quality_context)
+    exa_industry_context = with_task_memory(context, "Exa industry research specialist") if context else None
+    exa_industry_agent = build_exa_industry_agent(exa_industry_context)
+    grok_discovery_context = with_task_memory(context, "xAI Grok industry sentiment specialist") if context else None
+    grok_discovery_agent = build_grok_discovery_agent(grok_discovery_context)
+    discovery_context = with_task_memory(context, "discovery specialist") if context else None
+    discovery_agent = build_discovery_agent(discovery_context)
     company_research_context = with_task_memory(context, "company research sub-orchestrator") if context else None
     company_research_agent = build_company_research_agent(company_research_context)
+    market_research_context = with_task_memory(context, "market research sub-orchestrator") if context else None
+    market_research_agent = build_market_research_agent(market_research_context)
     return Agent[ResearchRunContext](
         name="Main Stock Research Orchestrator",
         instructions=prompt,
@@ -92,9 +104,25 @@ def build_agent(context: ResearchRunContext | None = None) -> Agent[ResearchRunC
                 tool_name="quality_reviewer_specialist",
                 tool_description="Review company-research output quality, citations, source gaps, and approval gates.",
             ),
+            exa_industry_agent.as_tool(
+                tool_name="exa_industry_specialist",
+                tool_description="Review existing Exa industry/theme/company-discovery artifacts.",
+            ),
+            grok_discovery_agent.as_tool(
+                tool_name="grok_discovery_specialist",
+                tool_description="Review existing xAI/Grok X trend, hype, rumor, sentiment, and emerging ticker artifacts.",
+            ),
+            discovery_agent.as_tool(
+                tool_name="discovery_specialist",
+                tool_description="Combine Exa-verified and Grok-surfaced leads into candidate discovery output.",
+            ),
             company_research_agent.as_tool(
                 tool_name="company_research_orchestrator",
                 tool_description="Coordinate one-ticker company research across financials, news, filings, sentiment, and update proposals.",
+            ),
+            market_research_agent.as_tool(
+                tool_name="market_research_orchestrator",
+                tool_description="Coordinate industry/theme research, Grok/X trend discovery, and candidate discovery.",
             ),
         ],
     )

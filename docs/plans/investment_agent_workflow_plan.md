@@ -80,8 +80,8 @@ Detailed backlog: `docs/plans/investment_agent_backlog.md`.
 - [x] Implement financial data specialist.
 - [x] Implement SDK xAI Grok stock sentiment specialist.
 - [ ] Implement xAI Grok industry sentiment specialist.
-- [ ] Implement Exa industry research specialist.
-- [ ] Implement discovery specialist.
+- [x] Implement Exa industry research specialist.
+- [x] Implement discovery specialist.
 - [ ] Implement tracked-stock alert specialist.
 - [ ] Implement new-candidate discovery alert specialist.
 - [x] Implement contradiction/risk specialist.
@@ -99,7 +99,8 @@ Detailed backlog: `docs/plans/investment_agent_backlog.md`.
 - [ ] Implement OS/app scheduled execution.
   - Current progress: automatic Saturday invocation is still pending.
 - [x] Implement deterministic Codex chat intake routing for user requests.
-- [ ] Implement market research sub-orchestrator.
+- [x] Implement market research sub-orchestrator.
+  - Current progress: first SDK market-research sub-orchestrator exists for one industry/theme and includes Exa industry/company discovery, Grok/X discovery, candidate synthesis, and quality-review fanout. Scheduled market fanout is still pending.
 - [x] Implement company research sub-orchestrator.
 - [ ] Implement portfolio review sub-orchestrator.
 - [ ] Implement main orchestrator synthesis.
@@ -196,3 +197,4 @@ Detailed backlog: `docs/plans/investment_agent_backlog.md`.
 - 2026-05-10: Added generic SDK Exa company-search specialist and deterministic Exa company-search provider planning for tracked tickers and human stock-research tickers. Per-ticker task ids are generated labels, not ticker-specific agents.
 - 2026-05-10: Added generic SDK risk/thesis, writer, and quality-review specialists and wired them into main/company-research orchestrator tools plus company-research fanout.
 - 2026-05-10: Wired scheduled `run-weekly --write --execute-orchestrator` to run per-ticker company-research fanout for all current-holding and monitoring tickers before the main orchestrator, writing per-ticker company-research markdown and metrics artifacts.
+- 2026-05-10: Added first market-research SDK sub-orchestrator plus Exa industry, Grok/X discovery, and candidate discovery specialists. Discovery explicitly uses Grok/X for niche trends, hype, rumors, sentiment, and emerging ticker leads, while requiring Exa/filing/market-data verification before promotion.

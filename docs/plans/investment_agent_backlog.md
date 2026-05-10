@@ -249,9 +249,9 @@ This is the clear task backlog for building the stock tracking and investment re
 - [x] Build xAI Grok stock sentiment specialist.
   - Description: SDK sentiment specialist consumes xAI/Grok `x_search` artifacts as social-signal evidence and is included in company-research fanout.
 - [ ] Build xAI Grok industry sentiment specialist.
-- [ ] Build Exa industry research specialist.
+- [x] Build Exa industry research specialist.
   - Description: should choose Exa `industry`, `news`, `general`, `company`, and `contents` based on the research goal.
-- [ ] Build discovery specialist.
+- [x] Build discovery specialist.
   - Description: should use Exa `company` for candidate discovery and Exa `general` for context/validation.
 - [ ] Build tracked-stock alert specialist.
 - [ ] Build new-candidate discovery alert specialist.
@@ -280,6 +280,7 @@ This is the clear task backlog for building the stock tracking and investment re
   - Current progress: first SDK version registered as `company_research_orchestrator`; it builds a one-ticker lane packet, uses financial, company-news, company-search, filing, sentiment, risk/thesis, writer, and quality-review fanout, writes per-ticker scheduled artifacts, and aggregates partial results into next-run tasks.
 - [ ] Build market research sub-orchestrator.
   - Description: coordinates industry, macro, theme, and candidate discovery.
+  - Current progress: first SDK market-research sub-orchestrator is implemented with Exa industry, Grok/X discovery, candidate discovery, and quality-review fanout. Scheduled run-weekly integration is still pending.
 - [ ] Build portfolio review sub-orchestrator.
   - Description: assesses impact across current holdings, monitoring, and rejected buckets.
 - [ ] Build memory and evaluation sub-orchestrator.

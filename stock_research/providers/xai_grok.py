@@ -194,8 +194,9 @@ def stock_sentiment_prompt(ticker: str, company_name: str = "") -> str:
     return (
         f"Search X for recent discussion about {label}. "
         "Summarize community sentiment, recurring bullish and bearish claims, notable news people are reacting to, "
-        "credible accounts or posts worth reviewing, hype/noise level, and concrete implications for an investor. "
-        "Separate facts from social sentiment. Include citations to X posts where possible."
+        "credible accounts or posts worth reviewing, hype/noise level, rumors or unverified claims, "
+        "and concrete implications for an investor. Separate verified facts, social sentiment, and speculation. "
+        "Include citations to X posts where possible."
     )
 
 
@@ -203,16 +204,18 @@ def industry_sentiment_prompt(topic: str) -> str:
     return (
         f"Search X for recent discussion about {topic}. "
         "Summarize industry sentiment, emerging narratives, new public companies/tickers people are discussing, "
-        "bullish and bearish arguments, likely hype cycles, and concrete follow-up research tasks. "
-        "Separate facts from social sentiment. Include citations to X posts where possible."
+        "niche or under-followed companies, rumors or unverified claims, bullish and bearish arguments, "
+        "likely hype cycles, credible accounts/posts worth reviewing, and concrete follow-up research tasks. "
+        "Separate verified facts, social sentiment, and speculation. Include citations to X posts where possible."
     )
 
 
 def latest_news_prompt(topic: str) -> str:
     return (
         f"Search X for the latest material news and market-moving developments about {topic}. "
-        "Identify what changed, who is discussing it, which claims need verification, and what an investor should investigate next. "
-        "Separate facts from social sentiment. Include citations to X posts where possible."
+        "Identify what changed, who is discussing it, niche companies or tickers being surfaced, which claims need verification, "
+        "what looks like rumor or hype, and what an investor should investigate next. "
+        "Separate verified facts, social sentiment, and speculation. Include citations to X posts where possible."
     )
 
 
