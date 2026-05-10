@@ -114,7 +114,9 @@ OpenAI Agents SDK is selected as the LLM orchestration framework. The package is
 
 The main orchestrator currently exposes repo/memory inspection tools, `company_news_specialist` as an agent tool, and guarded provider/analysis SDK function tools. Provider and analysis tools plan by default and block live side effects unless the runtime context explicitly allows execution.
 
-When SDK execution writes metrics, `run_metrics.md` includes local hook telemetry for agent lifecycle, tool calls, LLM usage when available, injected operational memory ids, and final-output reported memory ids. It does not log raw prompts or raw tool payloads.
+When SDK execution writes metrics, `run_metrics.md` includes local hook telemetry for agent lifecycle, tool calls, LLM usage when available, injected operational memory ids, final-output reported memory ids, and runner-level timeout/error status. It does not log raw prompts or raw tool payloads. Post-run memory reflection reads those metrics and flags SDK timeouts/errors as reviewable learning-loop issues.
+
+`stock_research/agent_runtime/fanout.py` provides the first code-level fanout helper for future sub-orchestrators. It runs independent SDK agent tasks concurrently with task-specific memory, per-task timeout, and partial-failure preservation, but it is not yet wired into scheduled `run-weekly`.
 
 Planning files:
 
@@ -175,7 +177,7 @@ Run the SDK orchestrator from the weekly wrapper:
 
 ```powershell
 python -m stock_research run-weekly --write --execute-orchestrator
-python -m stock_research run-weekly --write --execute-providers --execute-analysis --execute-orchestrator
+python -m stock_research run-weekly --write --execute-providers --execute-analysis --execute-orchestrator --orchestrator-timeout-seconds 300
 ```
 
 `--execute-orchestrator` requires `OPENAI_API_KEY` and `--write`. When provider or analysis tasks are dry-run, actionable SDK output is marked `needs_review` until fresh deterministic execution runs.

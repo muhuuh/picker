@@ -74,6 +74,81 @@ class MemoryReflectionTests(unittest.TestCase):
             self.assertTrue(md_path.exists())
             self.assertIn("Memory Reflection", md_path.read_text(encoding="utf-8"))
 
+    def test_reflection_reads_sdk_run_metrics_and_surfaces_failures(self):
+        with TemporaryDirectory() as temp_dir:
+            root = seed_run_repo(Path(temp_dir))
+            run_dir = root / "agents/runs/2026-05-09_weekly"
+            (run_dir / "manifest.json").write_text(json.dumps({"provider_tasks": [], "analysis_tasks": []}), encoding="utf-8")
+            (run_dir / "run_summary.md").write_text("# Summary\n", encoding="utf-8")
+            (run_dir / "quality_report.md").write_text("# Quality\n", encoding="utf-8")
+            (run_dir / "agent_runtime_main_orchestrator.json").write_text(json.dumps({"status": "blocked"}), encoding="utf-8")
+            (run_dir / "run_metrics.md").write_text(
+                "\n".join(
+                    [
+                        "# Run Metrics",
+                        "",
+                        "| metric | status | started_at | ended_at | memory_item_ids | detail |",
+                        "| --- | --- | --- | --- | --- | --- |",
+                        "| agent_run:main_orchestrator | timeout | 2026-05-10T00:00:00+00:00 | 2026-05-10T00:01:00+00:00 | orch-1 | SDK agent run timed out after 300 second(s). |",
+                        "| memory_context:Main | injected | 2026-05-10T00:00:00+00:00 | 2026-05-10T00:00:00+00:00 | orch-1, source-1 | 2 memory ids injected. |",
+                        "| memory_output:main_orchestrator | reported | 2026-05-10T00:01:00+00:00 | 2026-05-10T00:01:00+00:00 | orch-1 | Operational memory reported. |",
+                        "| tool:load_repo_map | complete | 2026-05-10T00:00:01+00:00 | 2026-05-10T00:00:02+00:00 |  | result_chars=10 |",
+                    ]
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            reflection = build_run_reflection(root, "2026-05-09_weekly", date(2026, 5, 10))
+
+        self.assertEqual(reflection.metrics["run_metrics_exists"], True)
+        self.assertEqual(reflection.metrics["sdk_timeout_metrics"], 1)
+        self.assertEqual(reflection.metrics["sdk_tool_calls"], 1)
+        self.assertEqual(reflection.metrics["sdk_memory_context_ids"], ["orch-1", "source-1"])
+        self.assertEqual(reflection.metrics["sdk_memory_output_ids"], ["orch-1"])
+        self.assertTrue(any(issue.category == "sdk_runtime_timeout" for issue in reflection.issues))
+        self.assertTrue(reflection.memory_update_proposals)
+
+    def test_reflection_flags_missing_sdk_metrics_for_runtime_artifact(self):
+        with TemporaryDirectory() as temp_dir:
+            root = seed_run_repo(Path(temp_dir))
+            run_dir = root / "agents/runs/2026-05-09_weekly"
+            (run_dir / "manifest.json").write_text(json.dumps({"provider_tasks": [], "analysis_tasks": []}), encoding="utf-8")
+            (run_dir / "run_summary.md").write_text("# Summary\n", encoding="utf-8")
+            (run_dir / "quality_report.md").write_text("# Quality\n", encoding="utf-8")
+            (run_dir / "agent_runtime_main_orchestrator.json").write_text(json.dumps({"status": "ready"}), encoding="utf-8")
+
+            reflection = build_run_reflection(root, "2026-05-09_weekly", date(2026, 5, 10))
+
+        self.assertTrue(any(issue.category == "missing_sdk_run_metrics" for issue in reflection.issues))
+
+    def test_reflection_supports_legacy_five_column_run_metrics(self):
+        with TemporaryDirectory() as temp_dir:
+            root = seed_run_repo(Path(temp_dir))
+            run_dir = root / "agents/runs/2026-05-09_weekly"
+            (run_dir / "manifest.json").write_text(json.dumps({"provider_tasks": [], "analysis_tasks": []}), encoding="utf-8")
+            (run_dir / "run_summary.md").write_text("# Summary\n", encoding="utf-8")
+            (run_dir / "quality_report.md").write_text("# Quality\n", encoding="utf-8")
+            (run_dir / "agent_runtime_main_orchestrator.json").write_text(json.dumps({"status": "ready"}), encoding="utf-8")
+            (run_dir / "run_metrics.md").write_text(
+                "\n".join(
+                    [
+                        "# Run Metrics",
+                        "",
+                        "| metric | status | started_at | ended_at | detail |",
+                        "| --- | --- | --- | --- | --- |",
+                        "| agent:main_orchestrator | complete | 2026-05-10T00:00:00+00:00 | 2026-05-10T00:01:00+00:00 | output_type=OrchestratorDecision |",
+                    ]
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            reflection = build_run_reflection(root, "2026-05-09_weekly", date(2026, 5, 10))
+
+        self.assertEqual(reflection.metrics["sdk_metric_rows"], 1)
+        self.assertFalse(any(issue.category == "empty_or_unreadable_sdk_run_metrics" for issue in reflection.issues))
+
     def test_recurring_failure_report_detects_repeated_issue_category(self):
         with TemporaryDirectory() as temp_dir:
             root = seed_run_repo(Path(temp_dir))

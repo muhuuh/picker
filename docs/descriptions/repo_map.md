@@ -140,8 +140,8 @@ Use CLI commands for manual operation, scheduler entrypoints, validation, smoke 
 - `python -m stock_research quality-report --run-id RUN_ID --write`: write quality_report artifacts from run evidence.
 - `python -m stock_research run-weekly`: dry-run the deterministic weekly workflow wrapper.
 - `python -m stock_research run-weekly --write --execute-providers --execute-analysis`: execute and persist the deterministic weekly workflow without SDK synthesis.
-- `python -m stock_research run-weekly --write --execute-orchestrator`: opt into OpenAI Agents SDK synthesis over written run artifacts. Requires `OPENAI_API_KEY`; actionable output from dry-run provider/analysis inputs is marked `needs_review`.
-- `python -m stock_research run-weekly --write --execute-providers --execute-analysis --execute-orchestrator`: execute fresh provider/analysis tasks and then run SDK synthesis.
+- `python -m stock_research run-weekly --write --execute-orchestrator --orchestrator-timeout-seconds 300`: opt into OpenAI Agents SDK synthesis over written run artifacts. Requires `OPENAI_API_KEY`; actionable output from dry-run provider/analysis inputs is marked `needs_review`.
+- `python -m stock_research run-weekly --write --execute-providers --execute-analysis --execute-orchestrator --orchestrator-timeout-seconds 300`: execute fresh provider/analysis tasks and then run SDK synthesis.
 - `python -m stock_research agent-runtime list-agents`: list registered OpenAI Agents SDK orchestrators and specialists.
 - `python -m stock_research agent-runtime smoke --run-id RUN_ID`: build the SDK runtime context and main orchestrator without calling a live model.
 - `python -m stock_research agent-runtime run --run-id RUN_ID --execute --write`: run the main SDK orchestrator over existing artifacts and write runtime report/metrics artifacts without editing stock files.
@@ -161,7 +161,9 @@ Use CLI commands for manual operation, scheduler entrypoints, validation, smoke 
 - First runtime foundation is implemented under `stock_research/agent_runtime/`.
 - SDK repo/memory tools live in `stock_research/agent_runtime/tools/repo_tools.py` and wrap Python functions directly for repo map, run summary, quality report, memory context, evidence packet index, run markdown, and stock CSV loading.
 - SDK provider/analysis tools live in `stock_research/agent_runtime/tools/provider_tools.py` and `stock_research/agent_runtime/tools/analysis_tools.py`; they plan by default and block live side effects unless runtime context explicitly grants execution.
-- SDK local telemetry lives in `stock_research/agent_runtime/tracing.py`; `run_metrics.md` records agent/tool/LLM rows plus injected and reported operational memory ids.
+- SDK local telemetry lives in `stock_research/agent_runtime/tracing.py`; `run_metrics.md` records agent/tool/LLM rows plus injected and reported operational memory ids and runner-level timeout/error status.
+- Post-run reflection in `stock_research/memory_reflection.py` reads `run_metrics.md` and turns SDK runtime failures or missing metrics into reflection issues.
+- SDK fanout infrastructure lives in `stock_research/agent_runtime/fanout.py`; it is for future sub-orchestrators and is not yet wired into scheduled `run-weekly`.
 - Live orchestration from `run-weekly` is available behind `--execute-orchestrator`; it is opt-in and freshness-gated.
 - SDK output proposals are reviewable through `agents/runs/{run_id}/orchestrator_update_proposals.md` and `agents/human_review_queue.md`; company files are not edited by this bridge.
 - Approved SDK proposals can be applied only through `agent-runtime apply-proposal`, which refuses unapproved review rows and validates the target is an existing file under `stock_tracking/stock_info_files/`.

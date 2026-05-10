@@ -50,6 +50,7 @@ def run_weekly_research_workflow(
     recurring_threshold: int = 2,
     memory_writer_model: str = DEFAULT_MEMORY_WRITER_MODEL,
     orchestrator_model: str | None = None,
+    orchestrator_timeout_seconds: float | None = 300.0,
     provider_executor: ProviderExecutor | None = None,
     analysis_executor: AnalysisExecutor | None = None,
     memory_writer_responder=None,
@@ -145,6 +146,7 @@ def run_weekly_research_workflow(
                         context,
                         model=orchestrator_model,
                         write=True,
+                        timeout_seconds=orchestrator_timeout_seconds,
                     )
                 orchestrator_result = agent_runtime_result_to_dict(sdk_result)
                 add_scheduled_orchestrator_findings(

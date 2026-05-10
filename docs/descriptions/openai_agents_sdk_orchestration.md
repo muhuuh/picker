@@ -294,6 +294,7 @@ OpenAI trace data is helpful, but local artifacts are required because this repo
 Current local metrics use SDK run hooks plus a local telemetry object. `run_metrics.md` records:
 
 - `agent_run:*` rows for the overall SDK run,
+- runner-level `timeout` and `error` status when live SDK execution does not complete normally,
 - `agent:*` lifecycle rows,
 - `llm:*` rows with token/request usage when available,
 - `tool:*` rows with tool-call completion metadata,
@@ -301,6 +302,8 @@ Current local metrics use SDK run hooks plus a local telemetry object. `run_metr
 - `memory_output:*` rows for operational memory ids reported in the final structured output.
 
 Do not log raw tool inputs, raw tool outputs, prompts, or secrets in local metrics.
+
+Post-run memory reflection reads `run_metrics.md`. SDK timeouts, SDK runtime errors, missing metrics for saved SDK output, and missing reported memory ids become deterministic reflection issues and memory update proposal candidates.
 
 ## First Implementation Slice
 
@@ -335,6 +338,8 @@ Implemented:
 - `stock_research/agent_runtime/tools/provider_tools.py`: dry-run-by-default SDK wrapper around manifest provider tasks.
 - `stock_research/agent_runtime/tools/analysis_tools.py`: dry-run-by-default SDK wrapper around manifest analysis tasks.
 - `stock_research/agent_runtime/runner.py`: run config wrapper with trace metadata and sensitive-data tracing disabled.
+- `stock_research/agent_runtime/runner.py`: timeout/error policy that returns blocked reviewable output and writes metrics instead of silently failing.
+- `stock_research/agent_runtime/fanout.py`: function-first parallel fanout helper for independent SDK agent tasks with task-specific memory, per-task timeouts, partial-failure preservation, and aggregate metrics.
 - `stock_research/agent_runtime/tracing.py`: local trace/metrics artifact helpers and SDK run hooks for agent/tool/LLM/memory-id telemetry.
 - `stock_research/agent_runtime/reports.py`: orchestrator input builder, runtime report writer, and output quality checks.
 - `stock_research/agent_runtime/proposal_review.py`: deterministic bridge from saved SDK proposals to `orchestrator_update_proposals.md` and human-review queue rows.
@@ -344,20 +349,21 @@ Implemented:
   - `python -m stock_research agent-runtime list-agents`
   - `python -m stock_research agent-runtime smoke --run-id RUN_ID`
   - `python -m stock_research agent-runtime run --run-id RUN_ID`
-  - `python -m stock_research agent-runtime run --run-id RUN_ID --execute --write`
+  - `python -m stock_research agent-runtime run --run-id RUN_ID --execute --write --timeout-seconds 300`
   - `python -m stock_research agent-runtime validate-output --run-id RUN_ID`
   - `python -m stock_research agent-runtime queue-proposals --run-id RUN_ID --write --queue-review`
   - `python -m stock_research agent-runtime apply-proposal --run-id RUN_ID --proposal-id ORP-0001 --write`
 - Scheduled opt-in:
   - `python -m stock_research run-weekly --write --execute-orchestrator`
-  - `python -m stock_research run-weekly --write --execute-providers --execute-analysis --execute-orchestrator`
+  - `python -m stock_research run-weekly --write --execute-providers --execute-analysis --execute-orchestrator --orchestrator-timeout-seconds 300`
 
 Not implemented yet:
 
-- parallel fanout,
+- wiring fanout into scheduled sub-orchestrators,
+- dependency-group aggregation contracts,
 - full tool guardrail set,
 - additional specialists beyond company-news scaffold.
-- timeout/retry policy and deeper memory-use evaluation beyond injected/reported ids.
+- per-specialist retry policy for future fanout and deeper memory-use evaluation beyond injected/reported ids.
 
 ## Runtime Quality Gates
 

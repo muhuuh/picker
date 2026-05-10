@@ -26,6 +26,9 @@
 - 2026-05-07: Added guarded provider/analysis SDK function tools without adding CLI. `run_provider_tasks_guarded` and `run_analysis_tasks_guarded` plan by default and block live side effects unless runtime context explicitly disables dry-run and grants the matching execution permission.
 - 2026-05-07: Tightened memory selection for SDK/tool/guardrail tasks so future agents load orchestrator lessons alongside provider/source-quality notes.
 - 2026-05-10: Added local SDK run telemetry hooks. `run_metrics.md` now records agent lifecycle, tool calls, LLM usage when available, injected operational memory ids, and final-output reported memory ids.
+- 2026-05-10: Added SDK timeout/error policy. Manual `agent-runtime run` and scheduled `run-weekly --execute-orchestrator` now accept timeout settings; runtime timeouts/errors produce blocked reviewable artifacts and metrics instead of crashing silently.
+- 2026-05-10: Memory reflection now reads SDK `run_metrics.md`, surfaces runtime timeouts/errors/missing metrics, and records injected/reported memory ids in reflection metrics.
+- 2026-05-10: Added function-first SDK fanout helper. `stock_research/agent_runtime/fanout.py` runs independent agent tasks concurrently with task-specific memory, per-task timeout, partial-failure preservation, and aggregate metrics. It is not wired into scheduled runs yet.
 
 ## Official Docs Reviewed
 
@@ -132,10 +135,10 @@ run-weekly
 
 ## Next Steps
 
-- Add timeout/error policy for SDK agents and specialists.
-- Feed local SDK telemetry into post-run memory reflection.
-- Add memory/future-writer SDK function tool guardrail tests.
-- Add the next specialist or sub-orchestrator only after timeout/error behavior is clear.
+- Define dependency-group and aggregation contracts for the first real sub-orchestrator.
+- Add provider failure, malformed specialist output, and missing-citation golden tests.
+- Add deeper memory-use evaluation beyond injected/reported ids.
+- Wire fanout into a company-research or market-research sub-orchestrator after the aggregation contract is clear.
 
 ## Risks / Gotchas
 
@@ -162,6 +165,9 @@ run-weekly
 - Current runtime quality gates check summary/status, direct trade wording, valid memory ids, existing file targets, proposal source ids, and source artifact paths.
 - Scheduled SDK command: `python -m stock_research run-weekly --write --execute-orchestrator`.
 - Fresh scheduled SDK command: `python -m stock_research run-weekly --write --execute-providers --execute-analysis --execute-orchestrator`.
+- SDK timeout knobs:
+  - `python -m stock_research agent-runtime run --run-id RUN_ID --execute --write --timeout-seconds 300`
+  - `python -m stock_research run-weekly --write --execute-orchestrator --orchestrator-timeout-seconds 300`
 - Freshness behavior: actionable SDK output from dry-run provider/analysis inputs is marked `needs_review`.
 - Idempotence behavior: live provider/analysis execution cleans generated run artifacts first, avoiding duplicate stale evidence when rerunning the same run id.
 - Proposal bridge command: `python -m stock_research agent-runtime queue-proposals --run-id 2026-05-09_weekly --write --queue-review`.
@@ -173,5 +179,7 @@ run-weekly
 - Provider/analysis SDK execution guard: live side effects require `execute=True`, `dry_run=False`, and the matching context permission (`execute_providers` or `execute_analysis`).
 - Memory selector note: task labels containing `sdk`, `tool`, or `guardrail` now include orchestrator lessons, so guarded-tool implementation lessons are visible during future SDK work.
 - Local telemetry note: `LocalRunHooks` records `agent:*`, `llm:*`, `tool:*`, `memory_context:*`, and `memory_output:*` metrics. Metrics intentionally avoid raw prompts/tool input/output.
+- Reflection telemetry note: `memory_reflection.py` now treats SDK timeout/error/missing metrics as reflection issues and proposals, so runtime reliability problems feed the learning loop.
+- Fanout note: `AgentFanoutTask` and `run_agent_fanout_sync` exist for code-level parallel specialist execution, but scheduled `run-weekly` still calls the single main orchestrator path.
 - Dependency install command used: `python -m pip install -e .`.
 - Install warning observed: `openai-agents` pulled `starlette 1.0.0`, which conflicts with an unrelated installed `fastapi 0.117.1` requirement in this environment. The repo does not currently use FastAPI, but revisit this if a FastAPI service is added later.

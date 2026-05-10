@@ -292,3 +292,31 @@ Operational memory for workflow routing, orchestration, run ordering, and user c
 - evidence: `stock_research/agent_runtime/tracing.py`, `stock_research/agent_runtime/runner.py`, `tests/test_agent_runtime.py`, `docs/descriptions/openai_agents_sdk_orchestration.md`
 - owner: main orchestrator
 - next_review: 2026-06-15
+
+- id: orch-2026-05-10-sdk-timeout-error-policy
+- date: 2026-05-10
+- type: procedural
+- scope: orchestrator
+- status: active
+- confidence: high
+- trigger/source: Implemented SDK timeout/error policy for manual and scheduled orchestrator execution.
+- lesson: Live SDK agent calls should use explicit timeout settings. If a timeout or runtime error occurs, return a blocked reviewable output, write runtime report/trace/metrics artifacts, and let memory reflection surface the failure instead of treating the run as complete.
+- use_when: Running SDK orchestrators, adding specialist fanout, deciding how to handle slow or failed specialist calls, or reviewing scheduled SDK output.
+- do_not_use_when: Suppressing deterministic provider/analysis validation errors or making investment conclusions from failed runtime output.
+- evidence: `stock_research/agent_runtime/runner.py`, `stock_research/scheduled_runner.py`, `stock_research/cli.py`, `tests/test_agent_runtime.py`, `docs/descriptions/openai_agents_sdk_orchestration.md`
+- owner: main orchestrator
+- next_review: 2026-06-15
+
+- id: orch-2026-05-10-sdk-fanout-helper
+- date: 2026-05-10
+- type: procedural
+- scope: orchestrator
+- status: active
+- confidence: high
+- trigger/source: Implemented function-first parallel fanout helper for future sub-orchestrators.
+- lesson: Use `stock_research.agent_runtime.fanout` for independent SDK specialist tasks that can run concurrently. Each fanout task gets task-specific operational memory, its own trace id in the parent group, per-task timeout handling, and a preserved result even when another task fails.
+- use_when: Building company, market, portfolio, or memory/evaluation sub-orchestrators that need parallel specialist calls.
+- do_not_use_when: The next step depends on one specialist result before another can run; define dependency groups first.
+- evidence: `stock_research/agent_runtime/fanout.py`, `tests/test_agent_runtime.py`, `docs/plans/openai_agents_sdk_orchestration_backlog.md`
+- owner: main orchestrator
+- next_review: 2026-06-15

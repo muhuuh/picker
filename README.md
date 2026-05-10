@@ -79,10 +79,10 @@ python -m stock_research run-weekly
 python -m stock_research run-weekly --write
 python -m stock_research run-weekly --write --execute-providers --execute-analysis
 python -m stock_research run-weekly --write --execute-orchestrator
-python -m stock_research run-weekly --write --execute-providers --execute-analysis --execute-orchestrator
+python -m stock_research run-weekly --write --execute-providers --execute-analysis --execute-orchestrator --orchestrator-timeout-seconds 300
 ```
 
-`--execute-orchestrator` requires `OPENAI_API_KEY`. If provider or analysis tasks are still dry-run and the SDK proposes alerts or file updates, the scheduled run is marked `needs_review` so stale artifacts cannot look like fresh research.
+`--execute-orchestrator` requires `OPENAI_API_KEY`. If provider or analysis tasks are still dry-run and the SDK proposes alerts or file updates, the scheduled run is marked `needs_review` so stale artifacts cannot look like fresh research. If live SDK execution times out or errors, it writes a blocked reviewable artifact plus `run_metrics.md` instead of silently failing.
 
 Inspect the OpenAI Agents SDK runtime registry without making live model calls:
 
@@ -259,6 +259,8 @@ Implemented:
 - guarded OpenAI Agents SDK provider/analysis function tools that plan by default and require context permission for live side effects.
 - live manual OpenAI Agents SDK orchestrator command over existing run artifacts, with local report, trace-link, and run-metrics artifacts.
 - SDK local telemetry hooks for agent lifecycle, tool calls, LLM calls/usage when available, injected operational memory ids, and final-output reported memory ids.
+- SDK timeout/error handling that writes blocked reviewable outputs and feeds runtime failures into memory reflection.
+- function-first SDK fanout helper for independent agent tasks with per-task timeout, task-specific memory, partial-failure preservation, and aggregate metrics.
 - opt-in scheduled OpenAI Agents SDK orchestration through `run-weekly --write --execute-orchestrator`, with freshness gating for dry-run provider/analysis inputs.
 - deterministic SDK proposal review bridge: `agent-runtime queue-proposals --write --queue-review`.
 - approval-gated SDK proposal writer: `agent-runtime apply-proposal --proposal-id ORP-0001 --write`.

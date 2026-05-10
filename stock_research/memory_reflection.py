@@ -114,6 +114,7 @@ def build_run_reflection(
 
     run_summary_path = run_dir / "run_summary.md"
     quality_report_path = run_dir / "quality_report.md"
+    run_metrics_path = run_dir / "run_metrics.md"
     if not run_summary_path.exists():
         issues.append(
             ReflectionIssue(
@@ -130,6 +131,64 @@ def build_run_reflection(
                 category="missing_quality_report",
                 summary="Run has no quality_report.md artifact.",
                 evidence=relative_to_root(repo_root, quality_report_path).as_posix(),
+            )
+        )
+    run_metric_rows = read_run_metrics(run_metrics_path)
+    agent_runtime_artifacts = sorted(run_dir.glob("agent_runtime_*.json"))
+    if agent_runtime_artifacts and not run_metrics_path.exists():
+        issues.append(
+            ReflectionIssue(
+                severity="medium",
+                category="missing_sdk_run_metrics",
+                summary="Run has SDK runtime output but no run_metrics.md telemetry artifact.",
+                evidence=relative_to_root(repo_root, run_dir).as_posix(),
+            )
+        )
+    elif agent_runtime_artifacts and not run_metric_rows:
+        issues.append(
+            ReflectionIssue(
+                severity="medium",
+                category="empty_or_unreadable_sdk_run_metrics",
+                summary="Run has SDK runtime output but run_metrics.md has no parseable telemetry rows.",
+                evidence=relative_to_root(repo_root, run_metrics_path).as_posix(),
+            )
+        )
+
+    timeout_rows = [row for row in run_metric_rows if row["status"] == "timeout"]
+    error_rows = [row for row in run_metric_rows if row["status"] == "error"]
+    for row in timeout_rows:
+        issues.append(
+            ReflectionIssue(
+                severity="high",
+                category="sdk_runtime_timeout",
+                summary=f"SDK metric {row['metric']} timed out: {row['detail'] or 'no detail'}",
+                evidence=relative_to_root(repo_root, run_metrics_path).as_posix(),
+            )
+        )
+    for row in error_rows:
+        issues.append(
+            ReflectionIssue(
+                severity="high",
+                category="sdk_runtime_error",
+                summary=f"SDK metric {row['metric']} failed: {row['detail'] or 'no detail'}",
+                evidence=relative_to_root(repo_root, run_metrics_path).as_posix(),
+            )
+        )
+
+    memory_context_ids = sorted(unique_memory_ids(row for row in run_metric_rows if row["metric"].startswith("memory_context:")))
+    memory_output_ids = sorted(unique_memory_ids(row for row in run_metric_rows if row["metric"].startswith("memory_output:")))
+    successful_agent_rows = [
+        row
+        for row in run_metric_rows
+        if row["metric"].startswith("agent_run:") and row["status"] in {"complete", "needs_review"}
+    ]
+    if successful_agent_rows and memory_context_ids and not memory_output_ids:
+        issues.append(
+            ReflectionIssue(
+                severity="medium",
+                category="sdk_output_missing_reported_memory_ids",
+                summary="SDK run injected operational memory but the final output did not report any memory_item_ids_used.",
+                evidence=relative_to_root(repo_root, run_metrics_path).as_posix(),
             )
         )
 
@@ -162,6 +221,15 @@ def build_run_reflection(
         "contradictions": sum(len(packet.contradictions) for _, packet, _, _ in packets if packet is not None),
         "recommended_updates": sum(len(packet.recommended_updates) for _, packet, _, _ in packets if packet is not None),
         "unknowns": sum(len(packet.unknowns) for _, packet, _, _ in packets if packet is not None),
+        "run_metrics_exists": run_metrics_path.exists(),
+        "sdk_metric_rows": len(run_metric_rows),
+        "sdk_agent_runs": len([row for row in run_metric_rows if row["metric"].startswith("agent_run:")]),
+        "sdk_tool_calls": len([row for row in run_metric_rows if row["metric"].startswith("tool:")]),
+        "sdk_llm_calls": len([row for row in run_metric_rows if row["metric"].startswith("llm:")]),
+        "sdk_timeout_metrics": len(timeout_rows),
+        "sdk_error_metrics": len(error_rows),
+        "sdk_memory_context_ids": memory_context_ids,
+        "sdk_memory_output_ids": memory_output_ids,
         "issues": len(issues),
     }
 
@@ -483,6 +551,71 @@ def read_json_if_exists(path: Path) -> dict[str, Any]:
     if not path.exists():
         return {}
     return json.loads(path.read_text(encoding="utf-8"))
+
+
+def read_run_metrics(path: Path) -> list[dict[str, Any]]:
+    if not path.exists():
+        return []
+    rows: list[dict[str, Any]] = []
+    for line in path.read_text(encoding="utf-8").splitlines():
+        stripped = line.strip()
+        if not stripped.startswith("|") or "---" in stripped or "metric | status" in stripped:
+            continue
+        parts = split_markdown_table_row(stripped)
+        if len(parts) < 5:
+            continue
+        if len(parts) >= 6:
+            memory_ids = tuple(item.strip() for item in parts[4].split(",") if item.strip())
+            detail = parts[5].strip()
+        else:
+            memory_ids = ()
+            detail = parts[4].strip()
+        rows.append(
+            {
+                "metric": parts[0].strip(),
+                "status": parts[1].strip(),
+                "started_at": parts[2].strip(),
+                "ended_at": parts[3].strip(),
+                "memory_item_ids": memory_ids,
+                "detail": detail,
+            }
+        )
+    return rows
+
+
+def split_markdown_table_row(row: str) -> list[str]:
+    value = row.strip()
+    if value.startswith("|"):
+        value = value[1:]
+    if value.endswith("|"):
+        value = value[:-1]
+    parts: list[str] = []
+    current: list[str] = []
+    escaped = False
+    for char in value:
+        if escaped:
+            current.append(char)
+            escaped = False
+            continue
+        if char == "\\":
+            escaped = True
+            continue
+        if char == "|":
+            parts.append("".join(current).strip())
+            current = []
+            continue
+        current.append(char)
+    parts.append("".join(current).strip())
+    return parts
+
+
+def unique_memory_ids(rows) -> set[str]:
+    ids: set[str] = set()
+    for row in rows:
+        for item in row.get("memory_item_ids", ()):
+            if item:
+                ids.add(str(item))
+    return ids
 
 
 def count_packets_by_provider(packets: list[tuple[Path, EvidencePacket | None, list[str], list[str]]]) -> dict[str, int]:

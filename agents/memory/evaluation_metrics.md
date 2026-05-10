@@ -176,3 +176,17 @@ After a weekly or manual run:
 - evidence: `stock_research/agent_runtime/tracing.py`, `stock_research/agent_runtime/runner.py`, `tests/test_agent_runtime.py`
 - owner: memory and evaluation orchestrator
 - next_review: 2026-06-15
+
+- id: eval-2026-05-10-sdk-telemetry-reflection
+- date: 2026-05-10
+- type: evaluation
+- scope: orchestrator
+- status: active
+- confidence: high
+- trigger/source: Wired SDK run metrics into deterministic memory reflection.
+- lesson: Post-run memory reflection should inspect `run_metrics.md` for SDK timeout/error rows, missing metrics when SDK output exists, injected memory ids, reported memory ids, tool-call counts, and LLM-call counts. These telemetry-derived issues should produce reviewable memory proposals rather than staying isolated in runtime artifacts.
+- use_when: Reviewing SDK weekly/manual runs, building the memory/evaluation sub-orchestrator, or diagnosing why an SDK run ended blocked or needs_review.
+- do_not_use_when: Treating telemetry as investment evidence or as a substitute for provider/company facts.
+- evidence: `stock_research/memory_reflection.py`, `tests/test_memory_reflection.py`, `stock_research/agent_runtime/tracing.py`, `docs/descriptions/agent_memory_workflow.md`
+- owner: memory and evaluation orchestrator
+- next_review: 2026-06-15

@@ -6,14 +6,16 @@ import json
 from types import SimpleNamespace
 from tempfile import TemporaryDirectory
 import unittest
+from unittest.mock import patch
 
 from agents import Agent
 
 from stock_research.agent_runtime.context import build_research_run_context
+from stock_research.agent_runtime.fanout import AgentFanoutTask, fanout_result_to_dict, run_agent_fanout_sync
 from stock_research.agent_runtime.outputs import OrchestratorDecision
 from stock_research.agent_runtime.reports import build_orchestrator_input, evaluate_runtime_output_quality, output_to_dict
 from stock_research.agent_runtime.registry import build_agent, build_agent_tool, list_agent_specs
-from stock_research.agent_runtime.runner import build_run_config, reported_memory_item_ids
+from stock_research.agent_runtime.runner import AgentRuntimeResult, build_run_config, reported_memory_item_ids, run_agent_sync
 from stock_research.agent_runtime.tracing import LocalRunHooks, LocalRunMetric, LocalRunTelemetry, write_run_metrics
 from stock_research.agent_runtime.tools.analysis_tools import run_analysis_tasks_for_context
 from stock_research.agent_runtime.tools.provider_tools import run_provider_tasks_for_context
@@ -122,6 +124,10 @@ class AgentRuntimeTests(unittest.TestCase):
         self.assertIn("run_provider_tasks_guarded", tool_names)
         self.assertIn("run_analysis_tasks_guarded", tool_names)
         self.assertIn("company_news_specialist", tool_names)
+        self.assertNotIn("memory_apply_updates", tool_names)
+        self.assertNotIn("apply_memory_updates", tool_names)
+        self.assertNotIn("memory_writer_apply", tool_names)
+        self.assertNotIn("write_company_file", tool_names)
 
     def test_provider_tool_plans_by_default_without_execute_permission(self):
         with TemporaryDirectory() as temp_dir:
@@ -298,6 +304,128 @@ class AgentRuntimeTests(unittest.TestCase):
 
         self.assertIn("memory_item_ids", text)
         self.assertIn("orch-test-memory", text)
+
+    def test_run_agent_sync_writes_blocked_result_on_timeout(self):
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            write_runtime_test_repo(root)
+            context = build_research_run_context(root=root, run_id="test_weekly", task="main orchestrator")
+
+            async def timeout_run_agent(*_args, **_kwargs):
+                raise TimeoutError()
+
+            with patch("stock_research.agent_runtime.runner.run_agent", timeout_run_agent):
+                result = run_agent_sync("main_orchestrator", "prompt", context, write=True, timeout_seconds=0.01)
+
+            report = json.loads((context.run_dir / "agent_runtime_main_orchestrator.json").read_text(encoding="utf-8"))
+            metrics = (context.run_dir / "run_metrics.md").read_text(encoding="utf-8")
+
+        self.assertEqual(report["status"], "blocked")
+        self.assertIn("timed out", result.quality_findings[0])
+        self.assertIn("| agent_run:main_orchestrator | timeout |", metrics)
+
+    def test_run_agent_sync_writes_blocked_result_on_runtime_error(self):
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            write_runtime_test_repo(root)
+            context = build_research_run_context(root=root, run_id="test_weekly", task="main orchestrator")
+
+            async def failing_run_agent(*_args, **_kwargs):
+                raise RuntimeError("provider tool exploded")
+
+            with patch("stock_research.agent_runtime.runner.run_agent", failing_run_agent):
+                result = run_agent_sync("main_orchestrator", "prompt", context, write=True)
+
+            report = json.loads((context.run_dir / "agent_runtime_main_orchestrator.json").read_text(encoding="utf-8"))
+            metrics = (context.run_dir / "run_metrics.md").read_text(encoding="utf-8")
+
+        self.assertEqual(report["status"], "blocked")
+        self.assertIn("provider tool exploded", result.quality_findings[0])
+        self.assertIn("| agent_run:main_orchestrator | error |", metrics)
+
+    def test_agent_fanout_runs_tasks_and_aggregates_metrics(self):
+        context = build_research_run_context(root=REPO_ROOT, run_id="test_weekly", task="main orchestrator")
+
+        async def fake_runner(agent_id, _prompt, task_context, **_kwargs):
+            await asyncio.sleep(0.01)
+            return AgentRuntimeResult(
+                agent_id=agent_id,
+                final_output={
+                    "agent_id": agent_id,
+                    "run_id": task_context.run_id,
+                    "status": "ready",
+                    "summary": "This fake fanout result is long enough for a deterministic unit test.",
+                    "memory_item_ids_used": list(task_context.memory_item_ids[:1]),
+                },
+                trace_id=task_context.trace_id,
+                group_id=task_context.trace_group_id,
+                quality_findings=[],
+            )
+
+        result = run_agent_fanout_sync(
+            context,
+            [
+                AgentFanoutTask("news-aapl", "company_news_specialist", "company news specialist", "review AAPL"),
+                AgentFanoutTask("news-msft", "company_news_specialist", "company news specialist", "review MSFT"),
+            ],
+            runner=fake_runner,
+        )
+        data = fanout_result_to_dict(result)
+
+        self.assertEqual(result.status, "complete")
+        self.assertEqual(len(result.results), 2)
+        self.assertIn("fanout_task:news-aapl", [metric.name for metric in result.metrics])
+        self.assertEqual(data["results"][0]["status"], "complete")
+
+    def test_agent_fanout_preserves_partial_results_on_error(self):
+        context = build_research_run_context(root=REPO_ROOT, run_id="test_weekly", task="main orchestrator")
+
+        async def mixed_runner(agent_id, prompt, task_context, **_kwargs):
+            if "fail" in prompt:
+                raise RuntimeError("specialist failed")
+            return AgentRuntimeResult(
+                agent_id=agent_id,
+                final_output={
+                    "agent_id": agent_id,
+                    "run_id": task_context.run_id,
+                    "status": "ready",
+                    "summary": "This fake successful fanout result is long enough for a deterministic unit test.",
+                    "memory_item_ids_used": list(task_context.memory_item_ids[:1]),
+                },
+                trace_id=task_context.trace_id,
+                group_id=task_context.trace_group_id,
+                quality_findings=[],
+            )
+
+        result = run_agent_fanout_sync(
+            context,
+            [
+                AgentFanoutTask("ok", "company_news_specialist", "company news specialist", "succeed"),
+                AgentFanoutTask("bad", "company_news_specialist", "company news specialist", "fail"),
+            ],
+            runner=mixed_runner,
+        )
+
+        self.assertEqual(result.status, "partial")
+        self.assertEqual([item.status for item in result.results], ["complete", "error"])
+        self.assertEqual(result.results[1].final_output["status"], "blocked")
+
+    def test_agent_fanout_applies_per_task_timeout(self):
+        context = build_research_run_context(root=REPO_ROOT, run_id="test_weekly", task="main orchestrator")
+
+        async def slow_runner(*_args, **_kwargs):
+            await asyncio.sleep(0.2)
+            raise AssertionError("timeout should cancel before this point")
+
+        result = run_agent_fanout_sync(
+            context,
+            [AgentFanoutTask("slow", "company_news_specialist", "company news specialist", "slow", timeout_seconds=0.01)],
+            runner=slow_runner,
+        )
+
+        self.assertEqual(result.status, "partial")
+        self.assertEqual(result.results[0].status, "timeout")
+        self.assertIn("timed out", result.results[0].quality_findings[0])
 
     def test_local_run_hooks_capture_tool_and_memory_metrics(self):
         with TemporaryDirectory() as temp_dir:

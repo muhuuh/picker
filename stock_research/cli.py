@@ -398,6 +398,7 @@ def main(argv: list[str] | None = None) -> int:
     agent_runtime_run.add_argument("--model", help="Optional OpenAI model override.")
     agent_runtime_run.add_argument("--execute", action="store_true", help="Call OpenAI through the Agents SDK.")
     agent_runtime_run.add_argument("--write", action="store_true", help="Write agent runtime report, trace links, and metrics artifacts.")
+    agent_runtime_run.add_argument("--timeout-seconds", type=float, default=300.0, help="Maximum live SDK run duration before returning a blocked reviewable result.")
     agent_runtime_validate = agent_runtime_subparsers.add_parser("validate-output", help="Validate a saved agent runtime JSON output without calling a model.")
     agent_runtime_validate.add_argument("--run-id", required=True)
     agent_runtime_validate.add_argument("--agent-id", default="main_orchestrator")
@@ -423,6 +424,7 @@ def main(argv: list[str] | None = None) -> int:
     run_weekly_parser.add_argument("--no-update-memory-drafts", action="store_true", help="Do not rewrite memory_update_drafts from memory-writer recommendations.")
     run_weekly_parser.add_argument("--memory-writer-model", default=DEFAULT_MEMORY_WRITER_MODEL)
     run_weekly_parser.add_argument("--orchestrator-model", help="Optional OpenAI model override for SDK orchestrator.")
+    run_weekly_parser.add_argument("--orchestrator-timeout-seconds", type=float, default=300.0, help="Maximum live SDK orchestrator duration before returning a blocked reviewable result.")
     run_weekly_parser.add_argument("--recurring-threshold", type=int, default=2)
     run_weekly_parser.add_argument("--today", help="Override current date as YYYY-MM-DD.")
 
@@ -1020,6 +1022,7 @@ def main(argv: list[str] | None = None) -> int:
                 recurring_threshold=args.recurring_threshold,
                 memory_writer_model=args.memory_writer_model,
                 orchestrator_model=args.orchestrator_model,
+                orchestrator_timeout_seconds=args.orchestrator_timeout_seconds,
             )
         except Exception as exc:
             print(f"ERROR: {exc}")
@@ -1085,7 +1088,7 @@ def main(argv: list[str] | None = None) -> int:
                 return 1
             os.environ.setdefault("OPENAI_API_KEY", api_key)
             try:
-                result = run_agent_sync(args.agent_id, prompt, context, model=args.model, write=args.write)
+                result = run_agent_sync(args.agent_id, prompt, context, model=args.model, write=args.write, timeout_seconds=args.timeout_seconds)
             except Exception as exc:
                 print(f"ERROR: {exc}")
                 return 1

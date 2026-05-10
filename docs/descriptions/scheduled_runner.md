@@ -44,10 +44,10 @@ Optionally call the OpenAI Agents SDK orchestrator:
 
 ```powershell
 python -m stock_research run-weekly --write --execute-orchestrator
-python -m stock_research run-weekly --write --execute-providers --execute-analysis --execute-orchestrator
+python -m stock_research run-weekly --write --execute-providers --execute-analysis --execute-orchestrator --orchestrator-timeout-seconds 300
 ```
 
-`--execute-orchestrator` requires `OPENAI_API_KEY` and `--write`.
+`--execute-orchestrator` requires `OPENAI_API_KEY` and `--write`. SDK timeout/error results are written as blocked reviewable artifacts plus `run_metrics.md`, then memory reflection can turn them into learning-loop issues.
 
 ## Workflow
 

@@ -88,14 +88,16 @@ Out of scope for the first slice:
   - Use workflow name, trace id, group id, trace metadata, and sensitive-data settings.
 - [x] Add local run hooks.
   - Capture agent start/end, tool calls, LLM calls, errors, durations, and usage.
-  - Current coverage: SDK hook rows for agent lifecycle, tool calls, LLM calls/usage when available, injected memory ids, and final-output reported memory ids. Runner-level exception status is recorded in local telemetry, but deeper timeout/retry policy is still pending.
+  - Current coverage: SDK hook rows for agent lifecycle, tool calls, LLM calls/usage when available, injected memory ids, final-output reported memory ids, and runner-level timeout/error status.
 - [x] Write local observability artifacts.
   - `agents/runs/{run_id}/trace_links.md`
   - `agents/runs/{run_id}/run_metrics.md`
   - optional ignored JSON metrics for machine inspection.
-- [ ] Add timeout/error policy.
-  - Per-specialist timeout, retry policy, partial-result handling, and final `needs_review` status when incomplete.
-- [ ] Feed observability output into memory reflection.
+- [x] Add timeout/error policy.
+  - Implemented for live SDK runner and scheduled orchestrator calls. Timeouts/errors return blocked reviewable artifacts, write `run_metrics.md`, and do not silently fail the run.
+  - Still pending for future code-level parallel specialist fanout: per-specialist retry settings and partial-result aggregation.
+- [x] Feed observability output into memory reflection.
+  - `memory_reflection.py` now reads `run_metrics.md`, counts SDK rows/tool/LLM calls, tracks injected/reported memory ids, and surfaces SDK timeouts/errors/missing metrics as reflection issues.
 
 ## Priority 4: Memory Injection
 
@@ -107,19 +109,22 @@ Out of scope for the first slice:
 - [x] Record which memory item ids were injected and reported in runtime artifacts.
   - `run_metrics.md` now records `memory_context:*` rows for injected ids and `memory_output:*` rows for ids reported by final structured output.
   - Remaining evaluation gap: judge whether reported ids were genuinely used correctly, not merely listed.
-- [ ] Ensure memory writer proposals continue to go through deterministic validation and `memory apply-updates`.
+- [x] Ensure memory writer proposals continue to go through deterministic validation and `memory apply-updates`.
+  - Current guardrail coverage confirms the main SDK orchestrator exposes read/plan tools but no direct memory-apply, memory-writer-apply, or company-file writer tool.
 
 ## Priority 5: Parallel Orchestration
 
-- [ ] Implement code-level fanout with `asyncio.gather`.
+- [x] Implement code-level fanout with `asyncio.gather`.
   - Parallel by ticker when independent.
   - Parallel by specialist when inputs do not depend on each other.
+  - Current implementation: `stock_research/agent_runtime/fanout.py` runs independent SDK agent tasks concurrently with task-specific memory, per-task timeout, partial failure preservation, and aggregate metrics.
 - [ ] Implement dependency groups.
   - Example: provider evidence before synthesis; Exa contents before company-news ready state; financial_compare before financial synthesis.
 - [ ] Add aggregation step.
   - Merge specialist outputs into a structured orchestrator input packet.
-- [ ] Add partial-failure behavior.
-  - Missing or failed specialists should create review items and memory reflection candidates, not silently vanish.
+- [x] Add partial-failure behavior.
+  - Current fanout helper preserves complete/error/timeout item results and returns overall `partial` status when any specialist fails.
+  - Still pending: writing fanout outputs into scheduled run artifacts and feeding fanout partial failures into final orchestrator aggregation.
 
 ## Priority 6: Main and Sub-Orchestrators
 
@@ -159,6 +164,7 @@ Out of scope for the first slice:
 - [ ] Add integration tests with fake model/tool outputs.
 - [ ] Add golden tests for orchestrator decisions from known evidence packets.
 - [ ] Add failure-injection tests for provider failure, malformed specialist output, missing citations, and timeout behavior.
+  - Current progress: timeout and runtime-error failure injection tests are implemented for `run_agent_sync`; provider failure, malformed specialist output, and missing-citation golden tests remain.
 - [ ] Add quality gates for no direct writes outside allowed targets.
 - [x] Add approval-gated company-file writer for SDK proposals.
   - Implemented: `agent-runtime apply-proposal --run-id RUN_ID --proposal-id ORP-0001 --write`.

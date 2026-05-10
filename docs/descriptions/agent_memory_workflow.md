@@ -88,10 +88,10 @@ Major memory changes that affect strategy, approval gates, or high-impact workfl
 
 ## Pending Automation
 
-The current memory layer can be read, validated, summarized, filtered by task, formatted for prompt injection, updated through deterministic add/deprecate commands, reflected on after a run, checked for recurring failure patterns across reflected runs, drafted into schema-valid memory updates, reviewed by a bounded LLM memory writer, finalized with one deterministic command, and invoked by the deterministic weekly runner. The following automation is still pending:
+The current memory layer can be read, validated, summarized, filtered by task, formatted for prompt injection, updated through deterministic add/deprecate commands, reflected on after a run, checked for recurring failure patterns across reflected runs, drafted into schema-valid memory updates, reviewed by a bounded LLM memory writer, finalized with one deterministic command, invoked by the deterministic weekly runner, and informed by SDK `run_metrics.md` telemetry. The following automation is still pending:
 
-- orchestrator runtime invocation of `memory prompt-context --task TASK` for each specialist prompt.
 - OS/app scheduled execution of `python -m stock_research run-weekly`.
+- deeper evaluation of whether reported memory ids were genuinely used well, beyond injected/reported id checks.
 
 Until orchestrator automation is implemented, Codex should use the deterministic commands for structured memory changes, then run:
 

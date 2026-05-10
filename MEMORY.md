@@ -216,6 +216,16 @@ Use this file for information we should not lose across sessions.
   - evidence artifact path(s): `stock_research/agent_runtime/tracing.py`, `stock_research/agent_runtime/runner.py`, `tests/test_agent_runtime.py`, `docs/descriptions/openai_agents_sdk_orchestration.md`
   - status: active
 
+- 2026-05-10:
+  - decision/fact: SDK timeout/error policy and telemetry-informed memory reflection are implemented. Live SDK timeouts/errors now produce blocked reviewable runtime artifacts and `run_metrics.md`; post-run reflection reads those metrics and surfaces SDK failures or missing metrics as learning-loop issues.
+  - evidence artifact path(s): `stock_research/agent_runtime/runner.py`, `stock_research/memory_reflection.py`, `stock_research/scheduled_runner.py`, `stock_research/cli.py`, `tests/test_agent_runtime.py`, `tests/test_memory_reflection.py`, `docs/plans/openai_agents_sdk_orchestration_backlog.md`
+  - status: active
+
+- 2026-05-10:
+  - decision/fact: Code-level SDK fanout infrastructure is implemented. `stock_research/agent_runtime/fanout.py` can run independent agent tasks concurrently with task-specific memory, per-task timeout, partial-failure preservation, and aggregate metrics; scheduled sub-orchestrator integration is still pending.
+  - evidence artifact path(s): `stock_research/agent_runtime/fanout.py`, `tests/test_agent_runtime.py`, `docs/plans/openai_agents_sdk_orchestration_backlog.md`, `docs/scratchpads/openai_agents_sdk_orchestration_scratchpad.md`
+  - status: active
+
 - 2026-05-04:
   - decision/fact: Generated run JSON artifacts are local runtime output and should not be committed. Keep markdown run summaries/reports/finalization files as the reviewable artifacts; `.gitignore` now ignores run-root JSON, raw provider JSON, evidence packet JSON, and generated recurring-failure JSON.
   - evidence artifact path(s): `.gitignore`, `README.md`, `SETUP.md`, `docs/descriptions/run_summary_and_quality.md`
