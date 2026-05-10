@@ -1,7 +1,9 @@
 from pathlib import Path
+import asyncio
 from contextlib import redirect_stdout
 import io
 import json
+from types import SimpleNamespace
 from tempfile import TemporaryDirectory
 import unittest
 
@@ -11,12 +13,79 @@ from stock_research.agent_runtime.context import build_research_run_context
 from stock_research.agent_runtime.outputs import OrchestratorDecision
 from stock_research.agent_runtime.reports import build_orchestrator_input, evaluate_runtime_output_quality, output_to_dict
 from stock_research.agent_runtime.registry import build_agent, build_agent_tool, list_agent_specs
-from stock_research.agent_runtime.runner import build_run_config
+from stock_research.agent_runtime.runner import build_run_config, reported_memory_item_ids
+from stock_research.agent_runtime.tracing import LocalRunHooks, LocalRunMetric, LocalRunTelemetry, write_run_metrics
+from stock_research.agent_runtime.tools.analysis_tools import run_analysis_tasks_for_context
+from stock_research.agent_runtime.tools.provider_tools import run_provider_tasks_for_context
 from stock_research.agent_runtime.tools.repo_tools import list_evidence_packets_data, load_memory_prompt_context_for_task
 from stock_research.cli import main
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
+
+
+def write_runtime_test_repo(root: Path) -> Path:
+    (root / "AGENTS.md").write_text("# Test agents\n", encoding="utf-8")
+    (root / "stock_tracking").mkdir()
+    memory_dir = root / "agents" / "memory"
+    memory_dir.mkdir(parents=True)
+    for name in (
+        "README.md",
+        "memory_index.md",
+        "orchestrator_lessons.md",
+        "source_quality.md",
+        "specialist_playbooks.md",
+        "evaluation_metrics.md",
+        "deprecated_memory.md",
+    ):
+        (memory_dir / name).write_text("# Test memory\n", encoding="utf-8")
+
+    run_dir = root / "agents" / "runs" / "test_weekly"
+    run_dir.mkdir(parents=True)
+    manifest_path = run_dir / "manifest.json"
+    manifest_path.write_text(
+        json.dumps(
+            {
+                "manifest_id": "weekly_test",
+                "provider_tasks": [
+                    {
+                        "id": "exa_news_aapl",
+                        "provider": "exa",
+                        "tool": "search",
+                        "subject_type": "company",
+                        "subject_id": "AAPL",
+                        "priority": "high",
+                        "args": {"query": "AAPL news", "run_id": "test_weekly"},
+                        "reason": "test provider task",
+                    }
+                ],
+                "analysis_tasks": [
+                    {
+                        "id": "financial_compare_aapl",
+                        "tool": "financial_compare",
+                        "subject_type": "company",
+                        "subject_id": "AAPL",
+                        "priority": "high",
+                        "args": {"ticker": "AAPL", "run_id": "test_weekly"},
+                        "depends_on": [],
+                        "reason": "test analysis dependency",
+                    },
+                    {
+                        "id": "financial_review_aapl",
+                        "tool": "financial_review",
+                        "subject_type": "company",
+                        "subject_id": "AAPL",
+                        "priority": "high",
+                        "args": {"ticker": "AAPL", "run_id": "test_weekly"},
+                        "depends_on": ["financial_compare_aapl"],
+                        "reason": "test analysis task",
+                    },
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+    return manifest_path
 
 
 class AgentRuntimeTests(unittest.TestCase):
@@ -50,7 +119,106 @@ class AgentRuntimeTests(unittest.TestCase):
         self.assertIn("load_quality_report", tool_names)
         self.assertIn("list_evidence_packets", tool_names)
         self.assertIn("load_stock_tracking_csv", tool_names)
+        self.assertIn("run_provider_tasks_guarded", tool_names)
+        self.assertIn("run_analysis_tasks_guarded", tool_names)
         self.assertIn("company_news_specialist", tool_names)
+
+    def test_provider_tool_plans_by_default_without_execute_permission(self):
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            manifest_path = write_runtime_test_repo(root)
+            context = build_research_run_context(
+                root=root,
+                run_id="test_weekly",
+                task="provider tool",
+                manifest_path=manifest_path,
+            )
+
+            result = run_provider_tasks_for_context(context, provider="exa")
+
+        self.assertEqual(result["status"], "planned")
+        self.assertEqual(result["mode"], "dry_run")
+        self.assertEqual(result["planned_count"], 1)
+        self.assertEqual(result["planned"][0]["id"], "exa_news_aapl")
+
+    def test_provider_tool_blocks_execute_without_permission(self):
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            manifest_path = write_runtime_test_repo(root)
+            context = build_research_run_context(
+                root=root,
+                run_id="test_weekly",
+                task="provider tool",
+                manifest_path=manifest_path,
+            )
+
+            result = run_provider_tasks_for_context(context, provider="exa", execute=True)
+
+        self.assertEqual(result["status"], "blocked")
+        self.assertEqual(result["reason"], "provider_execution_not_permitted")
+
+    def test_provider_tool_execute_allowed_uses_injected_executor(self):
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            manifest_path = write_runtime_test_repo(root)
+            context = build_research_run_context(
+                root=root,
+                run_id="test_weekly",
+                task="provider tool",
+                manifest_path=manifest_path,
+                dry_run=False,
+                execute_providers=True,
+            )
+
+            result = run_provider_tasks_for_context(
+                context,
+                task_id="exa_news_aapl",
+                execute=True,
+                executor=lambda _root, task, _today: {"packet_id": f"packet-{task['id']}", "paths": []},
+            )
+
+        self.assertEqual(result["status"], "executed")
+        self.assertEqual(result["mode"], "execute")
+        self.assertEqual(result["executed"][0]["packet_id"], "packet-exa_news_aapl")
+
+    def test_analysis_tool_blocks_execute_without_permission(self):
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            manifest_path = write_runtime_test_repo(root)
+            context = build_research_run_context(
+                root=root,
+                run_id="test_weekly",
+                task="analysis tool",
+                manifest_path=manifest_path,
+            )
+
+            result = run_analysis_tasks_for_context(context, tool="financial_compare", execute=True)
+
+        self.assertEqual(result["status"], "blocked")
+        self.assertEqual(result["reason"], "analysis_execution_not_permitted")
+
+    def test_analysis_tool_execute_allowed_respects_dependencies(self):
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            manifest_path = write_runtime_test_repo(root)
+            context = build_research_run_context(
+                root=root,
+                run_id="test_weekly",
+                task="analysis tool",
+                manifest_path=manifest_path,
+                dry_run=False,
+                execute_analysis=True,
+            )
+
+            result = run_analysis_tasks_for_context(
+                context,
+                execute=True,
+                executor=lambda _root, task, _today: {"packet_id": f"packet-{task['id']}", "paths": []},
+            )
+
+        self.assertEqual(result["status"], "executed")
+        self.assertEqual(result["mode"], "execute")
+        self.assertEqual([item["id"] for item in result["executed"]], ["financial_compare_aapl", "financial_review_aapl"])
 
     def test_company_news_context_uses_specialist_memory(self):
         context = build_research_run_context(root=REPO_ROOT, run_id="test_weekly", task="company news specialist")
@@ -106,6 +274,74 @@ class AgentRuntimeTests(unittest.TestCase):
         self.assertEqual(run_config.trace_id, context.trace_id)
         self.assertFalse(run_config.trace_include_sensitive_data)
         self.assertEqual(run_config.trace_metadata["run_id"], "test_weekly")
+
+    def test_write_run_metrics_records_memory_ids(self):
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            write_runtime_test_repo(root)
+            context = build_research_run_context(root=root, run_id="test_weekly", task="sdk tool guardrails")
+
+            path = write_run_metrics(
+                context,
+                [
+                    LocalRunMetric(
+                        name="memory_context:Main",
+                        status="injected",
+                        started_at="2026-05-10T00:00:00+00:00",
+                        ended_at="2026-05-10T00:00:00+00:00",
+                        detail="memory injected",
+                        memory_item_ids=("orch-test-memory",),
+                    )
+                ],
+            )
+            text = path.read_text(encoding="utf-8")
+
+        self.assertIn("memory_item_ids", text)
+        self.assertIn("orch-test-memory", text)
+
+    def test_local_run_hooks_capture_tool_and_memory_metrics(self):
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            write_runtime_test_repo(root)
+            context = build_research_run_context(root=root, run_id="test_weekly", task="main orchestrator")
+            telemetry = LocalRunTelemetry(context)
+            hooks = LocalRunHooks(telemetry)
+            wrapped_context = SimpleNamespace(context=context, tool_call_id="call-1")
+            agent = SimpleNamespace(name="Main")
+            tool = SimpleNamespace(name="load_repo_map")
+
+            async def exercise_hooks():
+                await hooks.on_agent_start(wrapped_context, agent)
+                await hooks.on_tool_start(wrapped_context, agent, tool)
+                await hooks.on_tool_end(wrapped_context, agent, tool, "tool result")
+                await hooks.on_agent_end(wrapped_context, agent, {"status": "ready"})
+
+            asyncio.run(exercise_hooks())
+
+        metric_names = [metric.name for metric in telemetry.metrics]
+        self.assertIn("memory_context:Main", metric_names)
+        self.assertIn("tool:load_repo_map", metric_names)
+        memory_metric = next(metric for metric in telemetry.metrics if metric.name == "memory_context:Main")
+        self.assertEqual(memory_metric.memory_item_ids, context.memory_item_ids)
+
+    def test_reported_memory_item_ids_includes_specialist_outputs(self):
+        decision = OrchestratorDecision(
+            agent_id="main_orchestrator",
+            run_id="test_weekly",
+            status="partial",
+            summary="This is a sufficiently long summary about a partial run result with memory reporting.",
+            memory_item_ids_used=["orch-1"],
+        )
+        decision.specialist_results.append(
+            {
+                "agent_id": "company_news_specialist",
+                "status": "partial",
+                "summary": "Specialist used memory.",
+                "memory_item_ids_used": ["news-1", "orch-1"],
+            }
+        )
+
+        self.assertEqual(reported_memory_item_ids(decision), ("orch-1", "news-1"))
 
     def test_agent_runtime_cli_smoke_does_not_call_model(self):
         buffer = io.StringIO()

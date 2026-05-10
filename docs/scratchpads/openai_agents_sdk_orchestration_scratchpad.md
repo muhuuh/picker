@@ -23,6 +23,9 @@
 - 2026-05-07: Added deterministic approved-proposal writer. `agent-runtime apply-proposal --proposal-id ORP-0001 --write` blocks unless the matching HRQ row is `approved`, validates the target under `stock_tracking/stock_info_files/`, updates the company file source/change logs, and writes `applied_update_proposals.md`.
 - 2026-05-07: Formalized tooling boundary after user concern about CLI sprawl. New rule: build core Python functions first; deterministic workflows and SDK tools call functions directly; CLI commands are thin manual/scheduler/debug wrappers only.
 - 2026-05-07: Hardened repo/memory SDK tools without adding CLI. Added function-first tools for repo map, run summary, quality report, task-specific memory prompt context, and evidence packet index. Runtime context now keeps task-relevant `memory_item_ids` separate from all `known_memory_item_ids`.
+- 2026-05-07: Added guarded provider/analysis SDK function tools without adding CLI. `run_provider_tasks_guarded` and `run_analysis_tasks_guarded` plan by default and block live side effects unless runtime context explicitly disables dry-run and grants the matching execution permission.
+- 2026-05-07: Tightened memory selection for SDK/tool/guardrail tasks so future agents load orchestrator lessons alongside provider/source-quality notes.
+- 2026-05-10: Added local SDK run telemetry hooks. `run_metrics.md` now records agent lifecycle, tool calls, LLM usage when available, injected operational memory ids, and final-output reported memory ids.
 
 ## Official Docs Reviewed
 
@@ -69,8 +72,8 @@ stock_research/agent_runtime/
   outputs.py              # Pydantic output contracts for orchestrators/specialists
   tools/
     repo_tools.py         # read repo map, load memory, inspect artifacts
-    provider_tools.py     # wrappers around existing deterministic provider commands/functions
-    analysis_tools.py     # wrappers around financial/news specialist deterministic steps
+    provider_tools.py     # guarded wrappers around deterministic provider functions
+    analysis_tools.py     # guarded wrappers around financial/news analysis functions
     memory_tools.py       # prompt-context, draft/apply flow, human review queue
     writer_tools.py       # proposal-only file updates, scoped by target file
   orchestrators/
@@ -129,11 +132,10 @@ run-weekly
 
 ## Next Steps
 
-- Add OpenAI Agents SDK dependency only when implementing the first runtime spike.
-- Build a minimal SDK runtime spike with one manager agent, one specialist-as-tool, structured output, tool guardrails, local metrics, and trace metadata.
-- Wire `run-weekly` to optionally call the SDK runtime after deterministic finalization.
-- Add tests with fake tools/model paths where possible before live API smoke tests.
-- Next implementation should build the approved-proposal company-file writer path: only apply selected HRQ-approved proposal ids, scoped to one target file, with source log and change log updates.
+- Add timeout/error policy for SDK agents and specialists.
+- Feed local SDK telemetry into post-run memory reflection.
+- Add memory/future-writer SDK function tool guardrail tests.
+- Add the next specialist or sub-orchestrator only after timeout/error behavior is clear.
 
 ## Risks / Gotchas
 
@@ -167,5 +169,9 @@ run-weekly
 - Current AAPL proposals HRQ-0002 and HRQ-0003 are open, so `apply-proposal --write` should return `blocked` until the user approves them.
 - Tooling boundary: prefer `function -> SDK tool/direct workflow -> optional CLI`; do not add CLI commands for small helpers.
 - Repo/memory SDK tools now available: `load_repo_map`, `load_run_summary`, `load_quality_report`, `load_memory_prompt_context`, `list_evidence_packets`, `load_run_markdown`, `list_run_markdown_artifacts`, `load_operational_memory`, `load_stock_tracking_csv`.
+- Guarded provider/analysis SDK tools now available: `run_provider_tasks_guarded`, `run_analysis_tasks_guarded`.
+- Provider/analysis SDK execution guard: live side effects require `execute=True`, `dry_run=False`, and the matching context permission (`execute_providers` or `execute_analysis`).
+- Memory selector note: task labels containing `sdk`, `tool`, or `guardrail` now include orchestrator lessons, so guarded-tool implementation lessons are visible during future SDK work.
+- Local telemetry note: `LocalRunHooks` records `agent:*`, `llm:*`, `tool:*`, `memory_context:*`, and `memory_output:*` metrics. Metrics intentionally avoid raw prompts/tool input/output.
 - Dependency install command used: `python -m pip install -e .`.
 - Install warning observed: `openai-agents` pulled `starlette 1.0.0`, which conflicts with an unrelated installed `fastapi 0.117.1` requirement in this environment. The repo does not currently use FastAPI, but revisit this if a FastAPI service is added later.

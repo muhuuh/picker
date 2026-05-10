@@ -46,6 +46,14 @@ class MemoryTests(unittest.TestCase):
         self.assertIn("agents/memory/deprecated_memory.md", context["memory_files"])
         self.assertTrue(any(item["status"] == "deprecated" for item in context["active_items"]))
 
+    def test_sdk_tool_guardrail_context_includes_orchestrator_lessons(self):
+        memory = load_memory_state(REPO_ROOT)
+        context = build_memory_context(memory, "sdk provider analysis tool guardrails")
+
+        self.assertIn("agents/memory/orchestrator_lessons.md", context["memory_files"])
+        self.assertIn("agents/memory/source_quality.md", context["memory_files"])
+        self.assertTrue(any(item["id"] == "orch-2026-05-07-guarded-sdk-provider-analysis-tools" for item in context["active_items"]))
+
     def test_prompt_context_formats_task_relevant_lessons(self):
         memory = load_memory_state(REPO_ROOT)
         prompt_context = format_memory_context_for_prompt(memory, "news specialist", max_items=5)

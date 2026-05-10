@@ -1,6 +1,6 @@
 # OpenAI Agents SDK Orchestration Backlog
 
-Last updated: 2026-05-07
+Last updated: 2026-05-10
 
 ## Goal and Scope
 
@@ -70,23 +70,25 @@ Out of scope for the first slice:
 - [x] Start repo/memory inspection function tools.
   - Implemented: `load_run_markdown`, `list_run_markdown_artifacts`, `load_operational_memory`, `load_stock_tracking_csv`.
   - Extended: `load_repo_map`, `load_run_summary`, `load_quality_report`, `load_memory_prompt_context`, `list_evidence_packets`.
-- [ ] Wrap deterministic provider task execution as guarded tools.
+- [x] Wrap deterministic provider task execution as guarded tools.
   - Default to dry-run unless the runtime has explicit execute permission.
-- [ ] Wrap deterministic analysis task execution as guarded tools.
+- [x] Wrap deterministic analysis task execution as guarded tools.
 - [x] Wrap human review queue writing as a controlled tool.
   - Implemented as deterministic `agent-runtime queue-proposals --write --queue-review`, not as free-form LLM writes.
 - [x] Wrap file update proposal creation as a controlled tool.
   - Implemented as `agents/runs/{run_id}/orchestrator_update_proposals.md` generated from saved SDK output after validation.
 - [ ] Add tests for tool schemas and guardrails.
   - [x] Implemented for proposal bridge and approved proposal writer guardrails.
-  - [ ] Still needed for provider, analysis, memory, and future writer SDK function tools.
+  - [x] Implemented for provider and analysis SDK function tools.
+  - [ ] Still needed for memory and future writer SDK function tools.
 
 ## Priority 3: Observability and Tracking
 
 - [x] Add OpenAI Agents SDK tracing configuration.
   - Use workflow name, trace id, group id, trace metadata, and sensitive-data settings.
-- [ ] Add local run hooks.
+- [x] Add local run hooks.
   - Capture agent start/end, tool calls, LLM calls, errors, durations, and usage.
+  - Current coverage: SDK hook rows for agent lifecycle, tool calls, LLM calls/usage when available, injected memory ids, and final-output reported memory ids. Runner-level exception status is recorded in local telemetry, but deeper timeout/retry policy is still pending.
 - [x] Write local observability artifacts.
   - `agents/runs/{run_id}/trace_links.md`
   - `agents/runs/{run_id}/run_metrics.md`
@@ -102,8 +104,9 @@ Out of scope for the first slice:
   - Current coverage: main orchestrator and company-news specialist.
 - [x] Inject only high-signal memory, not every memory file.
   - Current behavior: `memory_item_ids` are task-relevant; `known_memory_item_ids` are retained only for validation.
-- [ ] Record which memory item ids were used in each specialist artifact.
-  - Current validation requires ids in model outputs, but local tool/hook-level automatic capture is still pending.
+- [x] Record which memory item ids were injected and reported in runtime artifacts.
+  - `run_metrics.md` now records `memory_context:*` rows for injected ids and `memory_output:*` rows for ids reported by final structured output.
+  - Remaining evaluation gap: judge whether reported ids were genuinely used correctly, not merely listed.
 - [ ] Ensure memory writer proposals continue to go through deterministic validation and `memory apply-updates`.
 
 ## Priority 5: Parallel Orchestration
@@ -200,6 +203,10 @@ The next build slice should be intentionally small:
 Success means the SDK runtime can consume existing deterministic artifacts, call one specialist as a tool, return a validated structured decision, and write auditable run artifacts without broad file writes.
 
 Current status: success for the first manual and scheduled opt-in runtime slices. The runtime can build the context, registry, main orchestrator, company-news specialist, specialist-as-tool, trace metadata, task-relevant memory injection, no-model-call smoke output, a live manual `Runner.run(...)` execution over existing artifacts, saved output validation, and scheduled opt-in orchestration through `run-weekly --write --execute-orchestrator`. The scheduled path now marks actionable SDK output from dry-run provider/analysis inputs as `needs_review`.
+
+Guarded provider/analysis tool status: `run_provider_tasks_guarded` and `run_analysis_tasks_guarded` are exposed to the main orchestrator as SDK function tools. They wrap importable Python runner functions directly, load the current manifest from runtime context, plan by default, and block live execution unless the context explicitly sets `dry_run=False` plus the matching execution permission.
+
+Local hook/telemetry status: SDK runtime now attaches local hooks that record agent lifecycle, LLM calls, tool calls, injected operational memory ids, and final-output reported memory ids into `run_metrics.md`. This gives the future memory/evaluation sub-orchestrator a repo-local audit trail without relying only on OpenAI hosted traces.
 
 Latest validation: `python -m stock_research run-weekly --write --today 2026-05-05 --execute-providers --execute-analysis --execute-orchestrator` completed successfully after adding generated-run-artifact cleanup. The clean run produced 14 evidence packets, one company-news review, one financial review, no deterministic quality findings, and no SDK quality findings.
 

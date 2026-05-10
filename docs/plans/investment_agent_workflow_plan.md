@@ -107,7 +107,7 @@ Detailed backlog: `docs/plans/investment_agent_backlog.md`.
 - [x] Implement final run summary.
 - [ ] Add tracing IDs and run metrics to artifacts.
 - [ ] Build OpenAI Agents SDK runtime foundation.
-  - Current progress: first manual runtime slice implemented with dependency, runtime package, context/output contracts, registry, main orchestrator, company-news specialist-as-tool, task-specific memory injection, repo/memory inspection tools, prompt/spec files, run config, trace helpers, report/metrics artifacts, quality validation, tests, no-model-call smoke command, live manual `agent-runtime run --execute --write`, and opt-in scheduled `run-weekly --write --execute-orchestrator` with dry-run freshness gating.
+  - Current progress: first manual runtime slice implemented with dependency, runtime package, context/output contracts, registry, main orchestrator, company-news specialist-as-tool, task-specific memory injection, repo/memory inspection tools, guarded provider/analysis SDK tools, prompt/spec files, run config, trace helpers, local SDK telemetry hooks, report/metrics artifacts, quality validation, tests, no-model-call smoke command, live manual `agent-runtime run --execute --write`, and opt-in scheduled `run-weekly --write --execute-orchestrator` with dry-run freshness gating.
 
 ## Priority 6: Learning Loop
 
@@ -183,3 +183,5 @@ Detailed backlog: `docs/plans/investment_agent_backlog.md`.
 - 2026-05-07: Added deterministic SDK proposal bridge. `agent-runtime queue-proposals --write --queue-review` writes `orchestrator_update_proposals.md` and duplicate-safe human-review queue rows without editing company files.
 - 2026-05-07: Added deterministic approved-proposal writer. `agent-runtime apply-proposal --proposal-id ORP-0001 --write` blocks unless the matching human-review row is `approved`, validates the target under `stock_tracking/stock_info_files/`, and writes source/change log updates plus `applied_update_proposals.md`.
 - 2026-05-07: Hardened SDK repo/memory tools without adding CLI sprawl. Added function-first repo map, run summary, quality report, memory prompt context, and evidence packet index tools; runtime context now separates task-relevant memory ids from validator-known ids.
+- 2026-05-07: Added guarded provider/analysis SDK function tools. The main orchestrator can now plan manifest provider and analysis tasks through tools, while live side effects are blocked unless runtime context grants execution.
+- 2026-05-10: Added local SDK telemetry hooks. `run_metrics.md` now records agent lifecycle, tool calls, LLM calls/usage when available, injected operational memory ids, and final-output reported memory ids.

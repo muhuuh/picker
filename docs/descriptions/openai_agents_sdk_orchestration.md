@@ -1,6 +1,6 @@
 # OpenAI Agents SDK Orchestration Design
 
-Last updated: 2026-05-07
+Last updated: 2026-05-10
 
 ## Purpose
 
@@ -205,6 +205,13 @@ Current repo/memory inspection tools are direct wrappers around Python functions
 - `load_operational_memory`
 - `load_stock_tracking_csv`
 
+Current guarded provider/analysis execution tools are also direct wrappers around Python functions, not CLI subprocesses:
+
+- `run_provider_tasks_guarded`
+- `run_analysis_tasks_guarded`
+
+These tools load the current run manifest from `ResearchRunContext.manifest_path` or `agents/runs/{run_id}/manifest.json`. They plan tasks by default. Live provider execution requires `execute=True`, `context.dry_run == False`, and `context.execute_providers == True`. Live analysis execution requires `execute=True`, `context.dry_run == False`, and `context.execute_analysis == True`. Otherwise, the tool returns a structured `blocked` result instead of running side effects.
+
 ## Core Function Vs CLI Vs SDK Tool
 
 The repo should not treat CLI commands as the main architecture. The hierarchy is:
@@ -284,6 +291,17 @@ Track:
 
 OpenAI trace data is helpful, but local artifacts are required because this repo is the durable audit trail.
 
+Current local metrics use SDK run hooks plus a local telemetry object. `run_metrics.md` records:
+
+- `agent_run:*` rows for the overall SDK run,
+- `agent:*` lifecycle rows,
+- `llm:*` rows with token/request usage when available,
+- `tool:*` rows with tool-call completion metadata,
+- `memory_context:*` rows for task-relevant operational memory ids injected into the agent context,
+- `memory_output:*` rows for operational memory ids reported in the final structured output.
+
+Do not log raw tool inputs, raw tool outputs, prompts, or secrets in local metrics.
+
 ## First Implementation Slice
 
 The first SDK slice should be small and verifiable:
@@ -314,8 +332,10 @@ Implemented:
 - `stock_research/agent_runtime/orchestrators/main.py`: main orchestrator agent builder.
 - `stock_research/agent_runtime/specialists/company_news.py`: company-news specialist agent builder.
 - `stock_research/agent_runtime/tools/repo_tools.py`: function-first repo map, memory, run markdown, run summary, quality report, evidence packet index, and stock CSV tools.
+- `stock_research/agent_runtime/tools/provider_tools.py`: dry-run-by-default SDK wrapper around manifest provider tasks.
+- `stock_research/agent_runtime/tools/analysis_tools.py`: dry-run-by-default SDK wrapper around manifest analysis tasks.
 - `stock_research/agent_runtime/runner.py`: run config wrapper with trace metadata and sensitive-data tracing disabled.
-- `stock_research/agent_runtime/tracing.py`: local trace/metrics artifact helpers.
+- `stock_research/agent_runtime/tracing.py`: local trace/metrics artifact helpers and SDK run hooks for agent/tool/LLM/memory-id telemetry.
 - `stock_research/agent_runtime/reports.py`: orchestrator input builder, runtime report writer, and output quality checks.
 - `stock_research/agent_runtime/proposal_review.py`: deterministic bridge from saved SDK proposals to `orchestrator_update_proposals.md` and human-review queue rows.
 - `agents/orchestrator/prompts/` and `agents/specialists/prompts/`: prompt files.
@@ -336,8 +356,8 @@ Not implemented yet:
 
 - parallel fanout,
 - full tool guardrail set,
-- guarded provider/analysis execution tools,
 - additional specialists beyond company-news scaffold.
+- timeout/retry policy and deeper memory-use evaluation beyond injected/reported ids.
 
 ## Runtime Quality Gates
 

@@ -1,6 +1,6 @@
 # Setup
 
-Last updated: 2026-05-06
+Last updated: 2026-05-10
 
 ## Requirements
 
@@ -111,6 +111,10 @@ Use `.env.example` as a local template.
 ## OpenAI Agents SDK Runtime
 
 OpenAI Agents SDK is selected as the LLM orchestration framework. The package is declared in `pyproject.toml`, and the initial runtime foundation exists under `stock_research/agent_runtime/`. SDK tools wrap importable Python functions directly; CLI commands are only manual/scheduler/debug handles.
+
+The main orchestrator currently exposes repo/memory inspection tools, `company_news_specialist` as an agent tool, and guarded provider/analysis SDK function tools. Provider and analysis tools plan by default and block live side effects unless the runtime context explicitly allows execution.
+
+When SDK execution writes metrics, `run_metrics.md` includes local hook telemetry for agent lifecycle, tool calls, LLM usage when available, injected operational memory ids, and final-output reported memory ids. It does not log raw prompts or raw tool payloads.
 
 Planning files:
 

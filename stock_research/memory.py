@@ -47,6 +47,9 @@ REQUIRED_ITEM_FIELDS = (
 TASK_MEMORY_MAP = {
     "orchestration": ("orchestrator_lessons.md",),
     "manifest": ("orchestrator_lessons.md", "source_quality.md"),
+    "sdk": ("orchestrator_lessons.md", "specialist_playbooks.md"),
+    "tool": ("orchestrator_lessons.md", "source_quality.md"),
+    "guardrail": ("orchestrator_lessons.md", "evaluation_metrics.md", "source_quality.md"),
     "provider": ("source_quality.md",),
     "source": ("source_quality.md",),
     "citation": ("source_quality.md",),

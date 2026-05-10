@@ -206,6 +206,16 @@ Use this file for information we should not lose across sessions.
   - evidence artifact path(s): `stock_research/agent_runtime/context.py`, `stock_research/agent_runtime/tools/repo_tools.py`, `stock_research/agent_runtime/orchestrators/main.py`, `tests/test_agent_runtime.py`, `docs/descriptions/openai_agents_sdk_orchestration.md`
   - status: active
 
+- 2026-05-07:
+  - decision/fact: SDK provider and analysis tools are function-first and guarded. `run_provider_tasks_guarded` and `run_analysis_tasks_guarded` wrap manifest runner functions directly, plan by default, and block live side effects unless the runtime context has `dry_run=False` and the matching execute permission.
+  - evidence artifact path(s): `stock_research/agent_runtime/tools/provider_tools.py`, `stock_research/agent_runtime/tools/analysis_tools.py`, `stock_research/agent_runtime/orchestrators/main.py`, `tests/test_agent_runtime.py`, `docs/descriptions/openai_agents_sdk_orchestration.md`
+  - status: active
+
+- 2026-05-10:
+  - decision/fact: SDK runtime local telemetry hooks are implemented. `run_metrics.md` records agent lifecycle, tool calls, LLM calls/usage when available, injected operational memory ids, and final-output reported memory ids without logging raw prompts/tool payloads.
+  - evidence artifact path(s): `stock_research/agent_runtime/tracing.py`, `stock_research/agent_runtime/runner.py`, `tests/test_agent_runtime.py`, `docs/descriptions/openai_agents_sdk_orchestration.md`
+  - status: active
+
 - 2026-05-04:
   - decision/fact: Generated run JSON artifacts are local runtime output and should not be committed. Keep markdown run summaries/reports/finalization files as the reviewable artifacts; `.gitignore` now ignores run-root JSON, raw provider JSON, evidence packet JSON, and generated recurring-failure JSON.
   - evidence artifact path(s): `.gitignore`, `README.md`, `SETUP.md`, `docs/descriptions/run_summary_and_quality.md`

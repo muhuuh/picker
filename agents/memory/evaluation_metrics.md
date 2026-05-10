@@ -1,6 +1,6 @@
 # Evaluation Metrics
 
-Last updated: 2026-05-05
+Last updated: 2026-05-10
 
 Run-quality memory for weekly/manual runs and future post-run reflection.
 
@@ -23,6 +23,9 @@ Run-quality memory for weekly/manual runs and future post-run reflection.
 - human review items created
 - user corrections received
 - memory items added/updated/deprecated
+- SDK agent/tool/LLM metrics
+- operational memory ids injected into agent context
+- operational memory ids reported by final structured output
 
 ## Current Baseline
 
@@ -47,10 +50,10 @@ Run-quality memory for weekly/manual runs and future post-run reflection.
 - status: needs_review
 - confidence: high
 - trigger/source: User asked whether missing memory automation is recorded.
-- lesson: The memory layer currently supports deterministic read, validate, summary, task-context selection, prompt-context formatting, add, deprecate, post-run reflection, memory update proposal generation, memory update draft/apply, bounded memory writer review, recurring failure detection, run finalization, and scheduled-run invocation through `run-weekly --write`. Still pending: orchestrator injection of prompt-ready memory context into actual LLM specialist prompts after the agent framework is chosen.
+- lesson: The memory layer supports deterministic read/write/review flows, scheduled invocation, prompt-ready task context, initial SDK prompt injection, and SDK telemetry for injected/reported memory ids. Still pending: full specialist coverage, evaluating whether reported memory ids were used correctly, and feeding telemetry into reflection.
 - use_when: Planning Priority 6 orchestration or Priority 7 learning-loop work.
 - do_not_use_when: Treating the memory system as already fully autonomous.
-- evidence: `docs/plans/investment_agent_backlog.md`, `docs/descriptions/agent_memory_workflow.md`, `stock_research/memory.py`, `stock_research/memory_updates.py`
+- evidence: `docs/plans/investment_agent_backlog.md`, `docs/descriptions/agent_memory_workflow.md`, `stock_research/memory.py`, `stock_research/agent_runtime/tracing.py`
 - owner: memory and evaluation orchestrator
 - next_review: 2026-06-01
 
@@ -68,7 +71,8 @@ After a weekly or manual run:
 
 ## Pending Automation
 
-- Orchestrator injection of task-relevant memory into actual LLM specialist prompts after the agent framework is chosen.
+- Evaluate whether final-output reported memory ids were used correctly, not merely listed.
+- Feed SDK local telemetry into post-run memory reflection.
 
 ## Recurring Failure Patterns
 
@@ -158,3 +162,17 @@ After a weekly or manual run:
 - evidence: `stock_research/scheduled_runner.py`, `tests/test_scheduled_runner.py`, `docs/descriptions/scheduled_runner.md`
 - owner: memory and evaluation orchestrator
 - next_review: 2026-06-01
+
+- id: eval-2026-05-10-sdk-local-telemetry
+- date: 2026-05-10
+- type: evaluation
+- scope: orchestrator
+- status: active
+- confidence: high
+- trigger/source: SDK local telemetry hook implementation.
+- lesson: SDK `run_metrics.md` now captures agent lifecycle, tool calls, LLM calls/usage when available, injected operational memory ids, and final-output reported memory ids. Future reflection should use these metrics to find slow/brittle tools, missing memory usage, repeated tool failures, and specialist output gaps.
+- use_when: Building memory/evaluation orchestration, debugging SDK runs, or deciding whether a run produced enough telemetry for learning-loop updates.
+- do_not_use_when: Treating metrics as investment evidence; they describe workflow behavior only.
+- evidence: `stock_research/agent_runtime/tracing.py`, `stock_research/agent_runtime/runner.py`, `tests/test_agent_runtime.py`
+- owner: memory and evaluation orchestrator
+- next_review: 2026-06-15

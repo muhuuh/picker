@@ -160,6 +160,8 @@ Use CLI commands for manual operation, scheduler entrypoints, validation, smoke 
 - Do not add broad LLM orchestration code without following the dedicated backlog.
 - First runtime foundation is implemented under `stock_research/agent_runtime/`.
 - SDK repo/memory tools live in `stock_research/agent_runtime/tools/repo_tools.py` and wrap Python functions directly for repo map, run summary, quality report, memory context, evidence packet index, run markdown, and stock CSV loading.
+- SDK provider/analysis tools live in `stock_research/agent_runtime/tools/provider_tools.py` and `stock_research/agent_runtime/tools/analysis_tools.py`; they plan by default and block live side effects unless runtime context explicitly grants execution.
+- SDK local telemetry lives in `stock_research/agent_runtime/tracing.py`; `run_metrics.md` records agent/tool/LLM rows plus injected and reported operational memory ids.
 - Live orchestration from `run-weekly` is available behind `--execute-orchestrator`; it is opt-in and freshness-gated.
 - SDK output proposals are reviewable through `agents/runs/{run_id}/orchestrator_update_proposals.md` and `agents/human_review_queue.md`; company files are not edited by this bridge.
 - Approved SDK proposals can be applied only through `agent-runtime apply-proposal`, which refuses unapproved review rows and validates the target is an existing file under `stock_tracking/stock_info_files/`.

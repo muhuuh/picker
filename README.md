@@ -256,7 +256,9 @@ Implemented:
 - deterministic run finalization command for reflection, recurring-failure, and finalization artifacts.
 - deterministic weekly runner that chains manifest, provider tasks, analysis tasks, summary, quality report, memory finalization, memory-writer review, and optional SDK orchestration.
 - OpenAI Agents SDK runtime foundation: importable runtime package, main orchestrator builder, company-news specialist builder, central registry, specialist-as-tool composition, typed context/output contracts, task-relevant memory injection, repo/memory inspection tools, prompt/spec files, and no-model-call smoke command.
+- guarded OpenAI Agents SDK provider/analysis function tools that plan by default and require context permission for live side effects.
 - live manual OpenAI Agents SDK orchestrator command over existing run artifacts, with local report, trace-link, and run-metrics artifacts.
+- SDK local telemetry hooks for agent lifecycle, tool calls, LLM calls/usage when available, injected operational memory ids, and final-output reported memory ids.
 - opt-in scheduled OpenAI Agents SDK orchestration through `run-weekly --write --execute-orchestrator`, with freshness gating for dry-run provider/analysis inputs.
 - deterministic SDK proposal review bridge: `agent-runtime queue-proposals --write --queue-review`.
 - approval-gated SDK proposal writer: `agent-runtime apply-proposal --proposal-id ORP-0001 --write`.

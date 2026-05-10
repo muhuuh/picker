@@ -6,6 +6,8 @@ from stock_research.agent_runtime.context import ResearchRunContext, with_task_m
 from stock_research.agent_runtime.outputs import OrchestratorDecision
 from stock_research.agent_runtime.prompts import load_prompt, with_memory
 from stock_research.agent_runtime.specialists.company_news import build_agent as build_company_news_agent
+from stock_research.agent_runtime.tools.analysis_tools import analysis_tools
+from stock_research.agent_runtime.tools.provider_tools import provider_tools
 from stock_research.agent_runtime.tools.repo_tools import repo_tools
 
 
@@ -32,6 +34,8 @@ def build_agent(context: ResearchRunContext | None = None) -> Agent[ResearchRunC
         output_type=OrchestratorDecision,
         tools=[
             *repo_tools(),
+            *provider_tools(),
+            *analysis_tools(),
             company_news_agent.as_tool(
                 tool_name="company_news_specialist",
                 tool_description="Review existing company-news artifacts and produce a structured specialist result.",

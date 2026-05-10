@@ -1,6 +1,6 @@
 # Orchestrator Lessons
 
-Last updated: 2026-05-07
+Last updated: 2026-05-10
 
 Operational memory for workflow routing, orchestration, run ordering, and user corrections.
 
@@ -262,5 +262,33 @@ Operational memory for workflow routing, orchestration, run ordering, and user c
 - use_when: Building SDK specialist tools, composing specialists under the main orchestrator, validating memory ids, or adding repo/memory inspection tools.
 - do_not_use_when: Running legacy deterministic CLI inspection manually outside the SDK runtime.
 - evidence: `stock_research/agent_runtime/context.py`, `stock_research/agent_runtime/tools/repo_tools.py`, `stock_research/agent_runtime/orchestrators/main.py`, `tests/test_agent_runtime.py`
+- owner: main orchestrator
+- next_review: 2026-06-15
+
+- id: orch-2026-05-07-guarded-sdk-provider-analysis-tools
+- date: 2026-05-07
+- type: procedural
+- scope: orchestrator
+- status: active
+- confidence: high
+- trigger/source: Implemented provider and analysis task SDK function tools after user clarified that SDK tools should not mean CLI subprocesses.
+- lesson: Provider and analysis SDK tools must wrap deterministic Python runner functions directly. They should plan by default and block live side effects unless the runtime context explicitly sets `dry_run=False` and grants the matching execute permission.
+- use_when: Adding SDK provider/analysis tools, letting orchestrators inspect or run manifest tasks, or reviewing whether an agent can make live API/file-writing side effects.
+- do_not_use_when: Running deterministic weekly workflow code directly; that path may call the same Python functions without going through SDK tools.
+- evidence: `stock_research/agent_runtime/tools/provider_tools.py`, `stock_research/agent_runtime/tools/analysis_tools.py`, `stock_research/agent_runtime/orchestrators/main.py`, `tests/test_agent_runtime.py`
+- owner: main orchestrator
+- next_review: 2026-06-15
+
+- id: orch-2026-05-10-local-sdk-telemetry-hooks
+- date: 2026-05-10
+- type: procedural
+- scope: orchestrator
+- status: active
+- confidence: high
+- trigger/source: Implemented local SDK run hooks for observability and memory-id audit trail.
+- lesson: SDK runs should write local `run_metrics.md` telemetry for agent lifecycle, tool calls, LLM usage when available, injected operational memory ids, and final-output reported memory ids. Do not log raw prompts, raw tool payloads, or secrets in metrics.
+- use_when: Running or extending SDK orchestrators, building memory/evaluation sub-orchestrators, or debugging tool/specialist behavior.
+- do_not_use_when: Replacing hosted OpenAI tracing; local metrics complement hosted traces and remain the repo audit trail.
+- evidence: `stock_research/agent_runtime/tracing.py`, `stock_research/agent_runtime/runner.py`, `tests/test_agent_runtime.py`, `docs/descriptions/openai_agents_sdk_orchestration.md`
 - owner: main orchestrator
 - next_review: 2026-06-15

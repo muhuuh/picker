@@ -321,6 +321,17 @@ def agent_runtime_result_to_dict(result: AgentRuntimeResult) -> dict[str, Any]:
         "group_id": result.group_id,
         "quality_findings": result.quality_findings,
         "written_paths": list(result.written_paths),
+        "metrics": [
+            {
+                "name": metric.name,
+                "status": metric.status,
+                "started_at": metric.started_at,
+                "ended_at": metric.ended_at,
+                "detail": metric.detail,
+                "memory_item_ids": list(metric.memory_item_ids),
+            }
+            for metric in result.metrics
+        ],
         "final_output": output_to_dict(result.final_output),
     }
 
