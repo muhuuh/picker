@@ -231,6 +231,21 @@ Use this file for information we should not lose across sessions.
   - evidence artifact path(s): `stock_research/agent_runtime/orchestrators/company_research.py`, `agents/orchestrator/prompts/company_research.md`, `agents/orchestrator/specs/company_research.md`, `stock_research/agent_runtime/registry.py`, `stock_research/agent_runtime/orchestrators/main.py`, `tests/test_agent_runtime.py`, `docs/plans/openai_agents_sdk_orchestration_backlog.md`
   - status: active
 
+- 2026-05-10:
+  - decision/fact: The first SDK financial specialist is implemented. `financial_specialist` is registered, exposed to the main and company-research orchestrators, and runs in company-research fanout alongside company-news synthesis while preserving deterministic `financial_compare` and financial review artifacts as the required source of financial truth.
+  - evidence artifact path(s): `stock_research/agent_runtime/specialists/financial.py`, `agents/specialists/prompts/financial.md`, `agents/specialists/specs/financial.md`, `stock_research/agent_runtime/orchestrators/company_research.py`, `stock_research/agent_runtime/orchestrators/main.py`, `tests/test_agent_runtime.py`
+  - status: active
+
+- 2026-05-10:
+  - decision/fact: The first SDK xAI/Grok sentiment specialist is implemented. `sentiment_specialist` is registered, exposed to the main and company-research orchestrators, and runs in company-research fanout using existing xAI/Grok `x_search` artifacts as social-signal evidence only. Sentiment memory selection now includes the active direct-X replacement rule.
+  - evidence artifact path(s): `stock_research/agent_runtime/specialists/sentiment.py`, `agents/specialists/prompts/sentiment.md`, `agents/specialists/specs/sentiment.md`, `stock_research/memory.py`, `stock_research/agent_runtime/orchestrators/company_research.py`, `stock_research/agent_runtime/orchestrators/main.py`, `tests/test_agent_runtime.py`
+  - status: active
+
+- 2026-05-10:
+  - decision/fact: The first SDK SEC filing specialist is implemented. `filing_specialist` is registered, exposed to the main and company-research orchestrators, and runs in company-research fanout using existing SEC EDGAR artifacts as filing evidence.
+  - evidence artifact path(s): `stock_research/agent_runtime/specialists/filing.py`, `agents/specialists/prompts/filing.md`, `agents/specialists/specs/filing.md`, `stock_research/agent_runtime/orchestrators/company_research.py`, `stock_research/agent_runtime/orchestrators/main.py`, `tests/test_agent_runtime.py`
+  - status: active
+
 - 2026-05-04:
   - decision/fact: Generated run JSON artifacts are local runtime output and should not be committed. Keep markdown run summaries/reports/finalization files as the reviewable artifacts; `.gitignore` now ignores run-root JSON, raw provider JSON, evidence packet JSON, and generated recurring-failure JSON.
   - evidence artifact path(s): `.gitignore`, `README.md`, `SETUP.md`, `docs/descriptions/run_summary_and_quality.md`

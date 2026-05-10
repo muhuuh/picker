@@ -9,6 +9,9 @@ from stock_research.agent_runtime.context import ResearchRunContext
 from stock_research.agent_runtime.orchestrators.company_research import build_agent as build_company_research_orchestrator
 from stock_research.agent_runtime.orchestrators.main import build_agent as build_main_orchestrator
 from stock_research.agent_runtime.specialists.company_news import build_agent as build_company_news_specialist
+from stock_research.agent_runtime.specialists.filing import build_agent as build_filing_specialist
+from stock_research.agent_runtime.specialists.financial import build_agent as build_financial_specialist
+from stock_research.agent_runtime.specialists.sentiment import build_agent as build_sentiment_specialist
 
 
 AgentRole = Literal["orchestrator", "specialist"]
@@ -41,6 +44,24 @@ _AGENT_SPECS: dict[str, AgentSpec] = {
         role="specialist",
         description="Specialist agent that synthesizes existing company-news evidence and run artifacts.",
         builder=build_company_news_specialist,
+    ),
+    "financial_specialist": AgentSpec(
+        agent_id="financial_specialist",
+        role="specialist",
+        description="Specialist agent that synthesizes existing financial comparison and review artifacts.",
+        builder=build_financial_specialist,
+    ),
+    "filing_specialist": AgentSpec(
+        agent_id="filing_specialist",
+        role="specialist",
+        description="Specialist agent that synthesizes existing SEC EDGAR filing artifacts.",
+        builder=build_filing_specialist,
+    ),
+    "sentiment_specialist": AgentSpec(
+        agent_id="sentiment_specialist",
+        role="specialist",
+        description="Specialist agent that synthesizes existing xAI/Grok X sentiment artifacts.",
+        builder=build_sentiment_specialist,
     ),
 }
 

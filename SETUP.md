@@ -112,13 +112,13 @@ Use `.env.example` as a local template.
 
 OpenAI Agents SDK is selected as the LLM orchestration framework. The package is declared in `pyproject.toml`, and the initial runtime foundation exists under `stock_research/agent_runtime/`. SDK tools wrap importable Python functions directly; CLI commands are only manual/scheduler/debug handles.
 
-The main orchestrator currently exposes repo/memory inspection tools, `company_news_specialist` as an agent tool, and guarded provider/analysis SDK function tools. Provider and analysis tools plan by default and block live side effects unless the runtime context explicitly allows execution.
+The main orchestrator currently exposes repo/memory inspection tools, `company_news_specialist`, `financial_specialist`, `filing_specialist`, and `sentiment_specialist` as agent tools, and guarded provider/analysis SDK function tools. Provider and analysis tools plan by default and block live side effects unless the runtime context explicitly allows execution.
 
 When SDK execution writes metrics, `run_metrics.md` includes local hook telemetry for agent lifecycle, tool calls, LLM usage when available, injected operational memory ids, final-output reported memory ids, and runner-level timeout/error status. It does not log raw prompts or raw tool payloads. Post-run memory reflection reads those metrics and flags SDK timeouts/errors as reviewable learning-loop issues.
 
 `stock_research/agent_runtime/fanout.py` provides the first code-level fanout helper for future sub-orchestrators. It runs independent SDK agent tasks concurrently with task-specific memory, per-task timeout, and partial-failure preservation, but it is not yet wired into scheduled `run-weekly`.
 
-`company_research_orchestrator` is the first SDK sub-orchestrator. It can build a one-ticker company research packet, group evidence into financials/company-news/filings/sentiment/company-search/risk-thesis lanes, run available specialist fanout, and preserve missing lanes as next-run tasks.
+`company_research_orchestrator` is the first SDK sub-orchestrator. It can build a one-ticker company research packet, group evidence into financials/company-news/filings/sentiment/company-search/risk-thesis lanes, run financial, company-news, filing, and sentiment specialist fanout, and preserve missing lanes as next-run tasks.
 
 Planning files:
 
@@ -134,6 +134,7 @@ Inspect the registry and build the main orchestrator without making live model c
 python -m stock_research agent-runtime list-agents
 python -m stock_research agent-runtime smoke --run-id 2026-05-09_weekly
 python -m stock_research agent-runtime run --run-id 2026-05-09_weekly
+python -m stock_research agent-runtime run --run-id 2026-05-09_weekly --agent-id company_research_orchestrator --task "company research sub-orchestrator" --ticker AAPL
 python -m stock_research agent-runtime validate-output --run-id 2026-05-09_weekly
 python -m stock_research agent-runtime queue-proposals --run-id 2026-05-09_weekly --write --queue-review
 python -m stock_research agent-runtime apply-proposal --run-id 2026-05-09_weekly --proposal-id ORP-0001

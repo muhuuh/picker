@@ -132,7 +132,7 @@ Out of scope for the first slice:
 
 - [x] Build company research sub-orchestrator.
   - Coordinates filings, news, financials, sentiment, risks, and update proposals for one ticker.
-  - Current implementation: `company_research_orchestrator` is registered, exposed to the main orchestrator, has prompt/spec artifacts, can build a one-ticker company research packet, can run company-news fanout, and preserves missing lanes as next-run tasks. Future work: add SDK specialists for financials, filings, sentiment, Exa company search, risk/thesis, writer, and quality review.
+  - Current implementation: `company_research_orchestrator` is registered, exposed to the main orchestrator, has prompt/spec artifacts, can build a one-ticker company research packet, can run financial, company-news, SEC filing, and xAI/Grok sentiment fanout, and preserves missing lanes as next-run tasks. Future work: add SDK specialists for Exa company search, risk/thesis, writer, and quality review.
 - [ ] Build market research sub-orchestrator.
   - Coordinates industry/theme research, discovery, candidate validation, and strategy fit.
 - [ ] Build portfolio review sub-orchestrator.
@@ -211,7 +211,7 @@ The next build slice should be intentionally small:
 
 Success means the SDK runtime can consume existing deterministic artifacts, call one specialist as a tool, return a validated structured decision, and write auditable run artifacts without broad file writes.
 
-Current status: success for the first manual and scheduled opt-in runtime slices. The runtime can build the context, registry, main orchestrator, company-news specialist, specialist-as-tool, trace metadata, task-relevant memory injection, no-model-call smoke output, a live manual `Runner.run(...)` execution over existing artifacts, saved output validation, and scheduled opt-in orchestration through `run-weekly --write --execute-orchestrator`. The scheduled path now marks actionable SDK output from dry-run provider/analysis inputs as `needs_review`.
+Current status: success for the first manual and scheduled opt-in runtime slices. The runtime can build the context, registry, main orchestrator, company-news specialist, financial specialist, filing specialist, sentiment specialist, specialist-as-tool composition, trace metadata, task-relevant memory injection, no-model-call smoke output, a live manual `Runner.run(...)` execution over existing artifacts, saved output validation, and scheduled opt-in orchestration through `run-weekly --write --execute-orchestrator`. The scheduled path now marks actionable SDK output from dry-run provider/analysis inputs as `needs_review`.
 
 Guarded provider/analysis tool status: `run_provider_tasks_guarded` and `run_analysis_tasks_guarded` are exposed to the main orchestrator as SDK function tools. They wrap importable Python runner functions directly, load the current manifest from runtime context, plan by default, and block live execution unless the context explicitly sets `dry_run=False` plus the matching execution permission.
 

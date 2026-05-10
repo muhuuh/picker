@@ -1,6 +1,6 @@
 # Specialist Playbooks
 
-Last updated: 2026-05-07
+Last updated: 2026-05-10
 
 Procedural memory for future specialist agents. Specialists should produce structured evidence packets or narrowly scoped file updates.
 
@@ -123,3 +123,45 @@ Procedural memory for future specialist agents. Specialists should produce struc
 - evidence: stock_research/company_news_specialist.py, docs/descriptions/company_news_specialist.md, tests/test_company_news_specialist.py
 - owner: company news specialist
 - next_review: 2026-06-01
+
+- id: memory-2026-05-10-sdk-financial-specialist-uses-deterministic-financial-artifacts
+- date: 2026-05-10
+- type: procedural
+- scope: financial
+- status: active
+- confidence: high
+- trigger/source: SDK financial specialist implementation
+- lesson: The SDK financial specialist is a synthesis layer over existing deterministic financial_compare and financial_data_specialist artifacts. It is registered as financial_specialist, exposed as an agent tool, and included in company-research fanout. It must not replace financial_compare or treat Exa/Grok as financial metric providers.
+- use_when: Building company-research fanout, financial specialist prompts, main orchestrator financial review tools, or tests around SDK specialist composition.
+- do_not_use_when: Planning raw market-data provider execution, bypassing deterministic financial comparison, or using social/news sources as financial metric evidence.
+- evidence: stock_research/agent_runtime/specialists/financial.py, agents/specialists/prompts/financial.md, agents/specialists/specs/financial.md, tests/test_agent_runtime.py
+- owner: financial specialist
+- next_review: 2026-06-10
+
+- id: memory-2026-05-10-sdk-sentiment-specialist-uses-grok-social-signal
+- date: 2026-05-10
+- type: procedural
+- scope: sentiment
+- status: active
+- confidence: high
+- trigger/source: SDK xAI/Grok sentiment specialist implementation
+- lesson: The SDK sentiment specialist is a synthesis layer over existing xAI/Grok x_search artifacts. It is registered as sentiment_specialist, exposed as an agent tool, and included in company-research fanout. It must not call direct X.com APIs or treat social output as verified fact.
+- use_when: Building sentiment specialist prompts, company-research fanout, social-signal alerts, or tests around Grok/X sentiment handling.
+- do_not_use_when: Verifying factual claims, updating financial metrics, or bypassing Exa/SEC/financial-provider verification for material claims found in social discussion.
+- evidence: stock_research/agent_runtime/specialists/sentiment.py, agents/specialists/prompts/sentiment.md, agents/specialists/specs/sentiment.md, stock_research/memory.py, tests/test_agent_runtime.py
+- owner: xAI Grok sentiment specialist
+- next_review: 2026-06-10
+
+- id: memory-2026-05-10-sdk-filing-specialist-uses-sec-artifacts
+- date: 2026-05-10
+- type: procedural
+- scope: provider
+- status: active
+- confidence: high
+- trigger/source: SDK SEC filing specialist implementation
+- lesson: The SDK filing specialist is a synthesis layer over existing SEC EDGAR artifacts. It is registered as filing_specialist, exposed as an agent tool, and included in company-research fanout. It must not assume European filing coverage from SEC.
+- use_when: Building filing specialist prompts, company-research fanout, SEC filing review, or tests around filing evidence handling.
+- do_not_use_when: Researching non-U.S. filings without a separate provider, bypassing SEC User-Agent requirements, or updating company files without source-backed proposals.
+- evidence: stock_research/agent_runtime/specialists/filing.py, agents/specialists/prompts/filing.md, agents/specialists/specs/filing.md, tests/test_agent_runtime.py
+- owner: SEC filing specialist
+- next_review: 2026-06-10

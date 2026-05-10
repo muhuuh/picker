@@ -6,7 +6,7 @@ Last updated: 2026-05-10
 
 This document defines how this repo should use OpenAI Agents SDK for LLM orchestration.
 
-The first SDK runtime foundation is implemented. It can build real SDK `Agent` objects, compose the company-news specialist as a tool for the main orchestrator, run no-model-call registry smoke checks, manually execute the main orchestrator over existing run artifacts, and run from the weekly wrapper behind an explicit `--execute-orchestrator` flag.
+The first SDK runtime foundation is implemented. It can build real SDK `Agent` objects, compose company-news, financial, filing, and sentiment specialists as tools for orchestrators, run no-model-call registry smoke checks, manually execute orchestrators over existing run artifacts, and run from the weekly wrapper behind an explicit `--execute-orchestrator` flag.
 
 Dedicated backlog: `docs/plans/openai_agents_sdk_orchestration_backlog.md`.
 
@@ -335,6 +335,9 @@ Implemented:
 - `stock_research/agent_runtime/orchestrators/main.py`: main orchestrator agent builder.
 - `stock_research/agent_runtime/orchestrators/company_research.py`: first company-research sub-orchestrator, one-ticker lane packet builder for financials/company-news/filings/sentiment/company-search/risk-thesis lanes, fanout task builder, and aggregation helper.
 - `stock_research/agent_runtime/specialists/company_news.py`: company-news specialist agent builder.
+- `stock_research/agent_runtime/specialists/financial.py`: financial specialist agent builder over deterministic financial comparison/review artifacts.
+- `stock_research/agent_runtime/specialists/filing.py`: SEC filing specialist agent builder over existing SEC EDGAR artifacts.
+- `stock_research/agent_runtime/specialists/sentiment.py`: xAI/Grok sentiment specialist agent builder over existing `x_search` artifacts.
 - `stock_research/agent_runtime/tools/repo_tools.py`: function-first repo map, memory, run markdown, run summary, quality report, evidence packet index, and stock CSV tools.
 - `stock_research/agent_runtime/tools/provider_tools.py`: dry-run-by-default SDK wrapper around manifest provider tasks.
 - `stock_research/agent_runtime/tools/analysis_tools.py`: dry-run-by-default SDK wrapper around manifest analysis tasks.
@@ -363,7 +366,7 @@ Not implemented yet:
 
 - wiring company-research fanout into scheduled `run-weekly` across all current/monitoring tickers,
 - full tool guardrail set,
-- additional SDK specialists beyond company-news scaffold.
+- additional SDK specialists beyond company-news, financial, filing, and sentiment scaffolds.
 - per-specialist retry policy for future fanout and deeper memory-use evaluation beyond injected/reported ids.
 
 ## Runtime Quality Gates

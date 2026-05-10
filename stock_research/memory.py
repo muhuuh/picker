@@ -55,7 +55,7 @@ TASK_MEMORY_MAP = {
     "citation": ("source_quality.md",),
     "financial": ("source_quality.md", "specialist_playbooks.md"),
     "news": ("source_quality.md", "specialist_playbooks.md"),
-    "sentiment": ("source_quality.md", "specialist_playbooks.md", "deprecated_memory.md"),
+    "sentiment": ("orchestrator_lessons.md", "source_quality.md", "specialist_playbooks.md", "deprecated_memory.md"),
     "specialist": ("specialist_playbooks.md", "source_quality.md"),
     "writer": ("specialist_playbooks.md",),
     "quality": ("evaluation_metrics.md", "source_quality.md", "deprecated_memory.md"),

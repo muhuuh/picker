@@ -90,6 +90,7 @@ Inspect the OpenAI Agents SDK runtime registry without making live model calls:
 python -m stock_research agent-runtime list-agents
 python -m stock_research agent-runtime smoke --run-id 2026-05-09_weekly
 python -m stock_research agent-runtime run --run-id 2026-05-09_weekly
+python -m stock_research agent-runtime run --run-id 2026-05-09_weekly --agent-id company_research_orchestrator --task "company research sub-orchestrator" --ticker AAPL
 python -m stock_research agent-runtime validate-output --run-id 2026-05-09_weekly
 python -m stock_research agent-runtime queue-proposals --run-id 2026-05-09_weekly --write --queue-review
 python -m stock_research agent-runtime apply-proposal --run-id 2026-05-09_weekly --proposal-id ORP-0001
@@ -255,8 +256,8 @@ Implemented:
 - prompt-ready operational memory context for future specialist injection.
 - deterministic run finalization command for reflection, recurring-failure, and finalization artifacts.
 - deterministic weekly runner that chains manifest, provider tasks, analysis tasks, summary, quality report, memory finalization, memory-writer review, and optional SDK orchestration.
-- OpenAI Agents SDK runtime foundation: importable runtime package, main orchestrator builder, company-news specialist builder, central registry, specialist-as-tool composition, typed context/output contracts, task-relevant memory injection, repo/memory inspection tools, prompt/spec files, and no-model-call smoke command.
-- Company-research SDK sub-orchestrator for one ticker, with evidence lanes for financials, company news, filings, sentiment, company search, and risk/thesis impact.
+- OpenAI Agents SDK runtime foundation: importable runtime package, main orchestrator builder, company-news specialist builder, financial specialist builder, filing specialist builder, sentiment specialist builder, central registry, specialist-as-tool composition, typed context/output contracts, task-relevant memory injection, repo/memory inspection tools, prompt/spec files, and no-model-call smoke command.
+- Company-research SDK sub-orchestrator for one ticker, with evidence lanes for financials, company news, filings, sentiment, company search, and risk/thesis impact, plus financial, company-news, filing, and sentiment specialist fanout.
 - guarded OpenAI Agents SDK provider/analysis function tools that plan by default and require context permission for live side effects.
 - live manual OpenAI Agents SDK orchestrator command over existing run artifacts, with local report, trace-link, and run-metrics artifacts.
 - SDK local telemetry hooks for agent lifecycle, tool calls, LLM calls/usage when available, injected operational memory ids, and final-output reported memory ids.

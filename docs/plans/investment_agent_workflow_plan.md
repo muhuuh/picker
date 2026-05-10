@@ -76,9 +76,9 @@ Detailed backlog: `docs/plans/investment_agent_backlog.md`.
 - [x] Implement evidence packet schemas.
 - [ ] Implement human request triage specialist.
 - [x] Implement company news specialist.
-- [ ] Implement SEC filing specialist.
+- [x] Implement SDK SEC filing specialist.
 - [x] Implement financial data specialist.
-- [ ] Implement xAI Grok stock sentiment specialist.
+- [x] Implement SDK xAI Grok stock sentiment specialist.
 - [ ] Implement xAI Grok industry sentiment specialist.
 - [ ] Implement Exa industry research specialist.
 - [ ] Implement discovery specialist.
@@ -107,7 +107,7 @@ Detailed backlog: `docs/plans/investment_agent_backlog.md`.
 - [x] Implement final run summary.
 - [ ] Add tracing IDs and run metrics to artifacts.
 - [ ] Build OpenAI Agents SDK runtime foundation.
-  - Current progress: first manual runtime slice implemented with dependency, runtime package, context/output contracts, registry, main orchestrator, company-news specialist-as-tool, task-specific memory injection, repo/memory inspection tools, guarded provider/analysis SDK tools, prompt/spec files, run config, trace helpers, local SDK telemetry hooks, report/metrics artifacts, quality validation, tests, no-model-call smoke command, live manual `agent-runtime run --execute --write`, and opt-in scheduled `run-weekly --write --execute-orchestrator` with dry-run freshness gating.
+  - Current progress: first manual runtime slice implemented with dependency, runtime package, context/output contracts, registry, main orchestrator, company-news, financial, filing, and sentiment specialists as tools, task-specific memory injection, repo/memory inspection tools, guarded provider/analysis SDK tools, prompt/spec files, run config, trace helpers, local SDK telemetry hooks, report/metrics artifacts, quality validation, tests, no-model-call smoke command, live manual `agent-runtime run --execute --write`, and opt-in scheduled `run-weekly --write --execute-orchestrator` with dry-run freshness gating.
 
 ## Priority 6: Learning Loop
 
@@ -188,3 +188,6 @@ Detailed backlog: `docs/plans/investment_agent_backlog.md`.
 - 2026-05-10: Added SDK timeout/error policy and telemetry-informed memory reflection. SDK runtime failures now produce blocked reviewable artifacts, and post-run reflection reads `run_metrics.md` to surface timeout/error/missing-metrics issues.
 - 2026-05-10: Added code-level SDK fanout infrastructure for future sub-orchestrators with per-task memory, timeout, partial-failure preservation, and aggregate metrics.
 - 2026-05-10: Added first company-research SDK sub-orchestrator for one-ticker lane aggregation and company-news fanout.
+- 2026-05-10: Added SDK financial specialist and wired it into main/company-research orchestrator tools plus company-research fanout. Financial synthesis still depends on deterministic `financial_compare` and financial review artifacts.
+- 2026-05-10: Added SDK xAI/Grok stock sentiment specialist and wired it into main/company-research orchestrator tools plus company-research fanout. Sentiment synthesis uses Grok `x_search` artifacts as social signal only and now receives the active direct-X replacement memory.
+- 2026-05-10: Added SDK SEC filing specialist and wired it into main/company-research orchestrator tools plus company-research fanout. Filing synthesis uses existing SEC EDGAR artifacts and does not assume European filing coverage.

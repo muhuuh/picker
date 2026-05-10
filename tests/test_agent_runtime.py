@@ -140,6 +140,9 @@ class AgentRuntimeTests(unittest.TestCase):
         self.assertEqual(specs["main_orchestrator"].role, "orchestrator")
         self.assertEqual(specs["company_research_orchestrator"].role, "orchestrator")
         self.assertEqual(specs["company_news_specialist"].role, "specialist")
+        self.assertEqual(specs["filing_specialist"].role, "specialist")
+        self.assertEqual(specs["financial_specialist"].role, "specialist")
+        self.assertEqual(specs["sentiment_specialist"].role, "specialist")
 
     def test_build_research_context_includes_trace_and_memory(self):
         context = build_research_run_context(root=REPO_ROOT, run_id="test_weekly", task="openai agents sdk runtime")
@@ -169,6 +172,9 @@ class AgentRuntimeTests(unittest.TestCase):
         self.assertIn("run_analysis_tasks_guarded", tool_names)
         self.assertIn("company_research_orchestrator", tool_names)
         self.assertIn("company_news_specialist", tool_names)
+        self.assertIn("filing_specialist", tool_names)
+        self.assertIn("financial_specialist", tool_names)
+        self.assertIn("sentiment_specialist", tool_names)
         self.assertNotIn("memory_apply_updates", tool_names)
         self.assertNotIn("apply_memory_updates", tool_names)
         self.assertNotIn("memory_writer_apply", tool_names)
@@ -277,6 +283,25 @@ class AgentRuntimeTests(unittest.TestCase):
         self.assertIn("memory-2026-05-04-company-news-specialist-review-is-implemented", context.memory_item_ids)
         self.assertIn("Company-news specialist review is implemented", context.memory_context)
 
+    def test_financial_context_uses_specialist_memory(self):
+        context = build_research_run_context(root=REPO_ROOT, run_id="test_weekly", task="financial specialist")
+
+        self.assertIn("memory-2026-05-04-financial-data-specialist-review-is-implemented", context.memory_item_ids)
+        self.assertIn("Financial-data specialist review is implemented", context.memory_context)
+
+    def test_filing_context_uses_sec_memory(self):
+        context = build_research_run_context(root=REPO_ROOT, run_id="test_weekly", task="SEC filing specialist")
+
+        self.assertIn("source-2026-05-03-sec-user-agent-compression", context.memory_item_ids)
+        self.assertIn("SEC EDGAR is the official U.S. filings source", context.memory_context)
+
+    def test_sentiment_context_uses_grok_memory(self):
+        context = build_research_run_context(root=REPO_ROOT, run_id="test_weekly", task="xAI Grok stock sentiment specialist")
+
+        self.assertIn("orch-2026-05-03-direct-x-replaced", context.memory_item_ids)
+        self.assertIn("source-2026-05-03-grok-social-signal", context.memory_item_ids)
+        self.assertIn("Do not implement or route to direct X.com API", context.memory_context)
+
     def test_memory_prompt_context_tool_core_function_can_load_other_task(self):
         context = build_research_run_context(root=REPO_ROOT, run_id="test_weekly", task="main orchestrator")
 
@@ -316,6 +341,24 @@ class AgentRuntimeTests(unittest.TestCase):
 
         self.assertEqual(getattr(tool, "name", ""), "company_news_specialist")
 
+    def test_financial_specialist_can_be_built_as_tool(self):
+        context = build_research_run_context(root=REPO_ROOT, run_id="test_weekly", task="financial specialist")
+        tool = build_agent_tool("financial_specialist", context)
+
+        self.assertEqual(getattr(tool, "name", ""), "financial_specialist")
+
+    def test_filing_specialist_can_be_built_as_tool(self):
+        context = build_research_run_context(root=REPO_ROOT, run_id="test_weekly", task="SEC filing specialist")
+        tool = build_agent_tool("filing_specialist", context)
+
+        self.assertEqual(getattr(tool, "name", ""), "filing_specialist")
+
+    def test_sentiment_specialist_can_be_built_as_tool(self):
+        context = build_research_run_context(root=REPO_ROOT, run_id="test_weekly", task="xAI Grok stock sentiment specialist")
+        tool = build_agent_tool("sentiment_specialist", context)
+
+        self.assertEqual(getattr(tool, "name", ""), "sentiment_specialist")
+
     def test_company_research_orchestrator_can_be_built(self):
         context = build_research_run_context(root=REPO_ROOT, run_id="test_weekly", task="company research sub-orchestrator")
         agent = build_agent("company_research_orchestrator", context)
@@ -326,6 +369,9 @@ class AgentRuntimeTests(unittest.TestCase):
         self.assertIn("run_provider_tasks_guarded", tool_names)
         self.assertIn("run_analysis_tasks_guarded", tool_names)
         self.assertIn("company_news_specialist", tool_names)
+        self.assertIn("filing_specialist", tool_names)
+        self.assertIn("financial_specialist", tool_names)
+        self.assertIn("sentiment_specialist", tool_names)
         self.assertNotIn("write_company_file", tool_names)
 
     def test_company_research_packet_groups_existing_company_artifacts(self):
@@ -353,7 +399,7 @@ class AgentRuntimeTests(unittest.TestCase):
         self.assertEqual(lanes["company_search"].status, "missing")
         self.assertIn("Company research packet", prompt)
 
-    def test_company_research_fanout_task_uses_company_news_specialist(self):
+    def test_company_research_fanout_tasks_use_available_specialists(self):
         with TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
             manifest_path = write_runtime_test_repo(root)
@@ -367,10 +413,13 @@ class AgentRuntimeTests(unittest.TestCase):
 
             tasks = build_company_research_fanout_tasks(context, "AAPL", timeout_seconds=12)
 
-        self.assertEqual(len(tasks), 1)
-        self.assertEqual(tasks[0].agent_id, "company_news_specialist")
-        self.assertEqual(tasks[0].timeout_seconds, 12)
-        self.assertIn("Company research packet", tasks[0].prompt)
+        self.assertEqual(len(tasks), 4)
+        self.assertEqual(
+            [task.agent_id for task in tasks],
+            ["financial_specialist", "company_news_specialist", "filing_specialist", "sentiment_specialist"],
+        )
+        self.assertTrue(all(task.timeout_seconds == 12 for task in tasks))
+        self.assertTrue(all("Company research packet" in task.prompt for task in tasks))
 
     def test_company_research_sub_orchestrator_aggregates_fanout_results(self):
         with TemporaryDirectory() as temp_dir:
@@ -405,7 +454,11 @@ class AgentRuntimeTests(unittest.TestCase):
         self.assertEqual(fanout.status, "complete")
         self.assertEqual(decision.agent_id, "company_research_orchestrator")
         self.assertEqual(decision.status, "partial")
-        self.assertEqual(len(decision.specialist_results), 1)
+        self.assertEqual(len(decision.specialist_results), 4)
+        self.assertEqual(
+            [result.agent_id for result in decision.specialist_results],
+            ["financial_specialist", "company_news_specialist", "filing_specialist", "sentiment_specialist"],
+        )
         self.assertTrue(any("company_search" in task for task in decision.next_run_tasks))
 
     def test_run_config_uses_trace_metadata_without_sensitive_data(self):
