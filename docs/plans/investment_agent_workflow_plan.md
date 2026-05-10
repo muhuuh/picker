@@ -84,17 +84,18 @@ Detailed backlog: `docs/plans/investment_agent_backlog.md`.
 - [ ] Implement discovery specialist.
 - [ ] Implement tracked-stock alert specialist.
 - [ ] Implement new-candidate discovery alert specialist.
-- [ ] Implement contradiction/risk specialist.
+- [x] Implement contradiction/risk specialist.
+- [x] Implement SDK writer specialist for proposal drafting.
 - [ ] Implement company file updater.
-  - Current progress: approved SDK proposals can now be applied by `agent-runtime apply-proposal --proposal-id ORP-0001 --write`; broader updater specialist behavior is still pending.
+  - Current progress: approved SDK proposals can now be applied by `agent-runtime apply-proposal --proposal-id ORP-0001 --write`; SDK writer specialist can draft proposal-ready updates; broader updater behavior remains approval-gated and pending.
 - [ ] Implement category state updater.
 - [ ] Implement CSV updater.
-- [ ] Implement quality reviewer.
+- [x] Implement quality reviewer.
 
 ## Priority 5: Build Orchestration
 
 - [x] Implement deterministic weekly runner.
-  - Current progress: `python -m stock_research run-weekly` chains deterministic run steps through memory writer review and stops at the framework decision boundary.
+  - Current progress: `python -m stock_research run-weekly` chains deterministic run steps through memory writer review and can optionally run scheduled SDK company-research fanout plus main orchestration.
 - [ ] Implement OS/app scheduled execution.
   - Current progress: automatic Saturday invocation is still pending.
 - [x] Implement deterministic Codex chat intake routing for user requests.
@@ -102,12 +103,13 @@ Detailed backlog: `docs/plans/investment_agent_backlog.md`.
 - [x] Implement company research sub-orchestrator.
 - [ ] Implement portfolio review sub-orchestrator.
 - [ ] Implement main orchestrator synthesis.
+  - Current progress: first SDK main orchestrator exists and runs in scheduled/manual flows; full market/portfolio/memory sub-orchestrator aggregation is still pending.
 - [x] Implement human review queue writer.
 - [x] Implement manual run manifest path for immediate user-requested research.
 - [x] Implement final run summary.
-- [ ] Add tracing IDs and run metrics to artifacts.
-- [ ] Build OpenAI Agents SDK runtime foundation.
-  - Current progress: first manual runtime slice implemented with dependency, runtime package, context/output contracts, registry, main orchestrator, company-news, company-search, financial, filing, and sentiment specialists as tools, task-specific memory injection, repo/memory inspection tools, guarded provider/analysis SDK tools, prompt/spec files, run config, trace helpers, local SDK telemetry hooks, report/metrics artifacts, quality validation, tests, no-model-call smoke command, live manual `agent-runtime run --execute --write`, and opt-in scheduled `run-weekly --write --execute-orchestrator` with dry-run freshness gating.
+- [x] Add tracing IDs and run metrics to artifacts.
+- [x] Build OpenAI Agents SDK runtime foundation.
+  - Current progress: first manual and scheduled runtime slices implemented with dependency, runtime package, context/output contracts, registry, main orchestrator, company-research sub-orchestrator, company-news, company-search, financial, filing, sentiment, risk/thesis, writer, and quality-review specialists as tools, task-specific memory injection, repo/memory inspection tools, guarded provider/analysis SDK tools, prompt/spec files, run config, trace helpers, local SDK telemetry hooks, report/metrics artifacts, quality validation, tests, no-model-call smoke command, live manual `agent-runtime run --execute --write`, opt-in scheduled `run-weekly --write --execute-orchestrator`, and scheduled company-research fanout across current/monitoring tickers.
 
 ## Priority 6: Learning Loop
 
@@ -125,7 +127,7 @@ Detailed backlog: `docs/plans/investment_agent_backlog.md`.
 - [x] Add memory update draft/apply workflow.
 - [x] Add prompt-ready memory context command for future specialist injection.
 - [x] Build LLM memory writer agent.
-- [ ] Inject task-relevant memory context into specialist prompts from the orchestrator.
+- [x] Inject task-relevant memory context into specialist prompts from the orchestrator.
 - [x] Add deterministic run finalization command.
 - [x] Wire run finalization into scheduled/orchestrated runs.
 - [x] Wire bounded memory writer review into scheduled/orchestrated runs.
@@ -192,3 +194,5 @@ Detailed backlog: `docs/plans/investment_agent_backlog.md`.
 - 2026-05-10: Added SDK xAI/Grok stock sentiment specialist and wired it into main/company-research orchestrator tools plus company-research fanout. Sentiment synthesis uses Grok `x_search` artifacts as social signal only and now receives the active direct-X replacement memory.
 - 2026-05-10: Added SDK SEC filing specialist and wired it into main/company-research orchestrator tools plus company-research fanout. Filing synthesis uses existing SEC EDGAR artifacts and does not assume European filing coverage.
 - 2026-05-10: Added generic SDK Exa company-search specialist and deterministic Exa company-search provider planning for tracked tickers and human stock-research tickers. Per-ticker task ids are generated labels, not ticker-specific agents.
+- 2026-05-10: Added generic SDK risk/thesis, writer, and quality-review specialists and wired them into main/company-research orchestrator tools plus company-research fanout.
+- 2026-05-10: Wired scheduled `run-weekly --write --execute-orchestrator` to run per-ticker company-research fanout for all current-holding and monitoring tickers before the main orchestrator, writing per-ticker company-research markdown and metrics artifacts.

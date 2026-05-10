@@ -56,6 +56,7 @@ def build_orchestrator_input(
             "- run_summary.md",
             "- quality_report.md",
             "- finalization.md",
+            "- company_research/*.md when present",
             "- reports/company_news_specialist/AAPL_company_news_review.md when present",
             "- reports/financial_data_specialist/AAPL_financial_review.md when present",
             "",

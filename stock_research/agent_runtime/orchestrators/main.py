@@ -10,7 +10,10 @@ from stock_research.agent_runtime.specialists.company_news import build_agent as
 from stock_research.agent_runtime.specialists.company_search import build_agent as build_company_search_agent
 from stock_research.agent_runtime.specialists.filing import build_agent as build_filing_agent
 from stock_research.agent_runtime.specialists.financial import build_agent as build_financial_agent
+from stock_research.agent_runtime.specialists.quality_review import build_agent as build_quality_review_agent
+from stock_research.agent_runtime.specialists.risk_thesis import build_agent as build_risk_thesis_agent
 from stock_research.agent_runtime.specialists.sentiment import build_agent as build_sentiment_agent
+from stock_research.agent_runtime.specialists.writer import build_agent as build_writer_agent
 from stock_research.agent_runtime.tools.analysis_tools import analysis_tools
 from stock_research.agent_runtime.tools.provider_tools import provider_tools
 from stock_research.agent_runtime.tools.repo_tools import repo_tools
@@ -41,6 +44,12 @@ def build_agent(context: ResearchRunContext | None = None) -> Agent[ResearchRunC
     filing_agent = build_filing_agent(filing_context)
     sentiment_context = with_task_memory(context, "xAI Grok stock sentiment specialist") if context else None
     sentiment_agent = build_sentiment_agent(sentiment_context)
+    risk_context = with_task_memory(context, "risk thesis specialist") if context else None
+    risk_agent = build_risk_thesis_agent(risk_context)
+    writer_context = with_task_memory(context, "writer specialist") if context else None
+    writer_agent = build_writer_agent(writer_context)
+    quality_context = with_task_memory(context, "quality reviewer specialist") if context else None
+    quality_agent = build_quality_review_agent(quality_context)
     company_research_context = with_task_memory(context, "company research sub-orchestrator") if context else None
     company_research_agent = build_company_research_agent(company_research_context)
     return Agent[ResearchRunContext](
@@ -70,6 +79,18 @@ def build_agent(context: ResearchRunContext | None = None) -> Agent[ResearchRunC
             sentiment_agent.as_tool(
                 tool_name="sentiment_specialist",
                 tool_description="Review existing xAI/Grok X sentiment artifacts and label social signals carefully.",
+            ),
+            risk_agent.as_tool(
+                tool_name="risk_thesis_specialist",
+                tool_description="Review risks, contradictions, stale thesis assumptions, and thesis impact.",
+            ),
+            writer_agent.as_tool(
+                tool_name="writer_specialist",
+                tool_description="Draft source-backed company-file update proposals without editing files.",
+            ),
+            quality_agent.as_tool(
+                tool_name="quality_reviewer_specialist",
+                tool_description="Review company-research output quality, citations, source gaps, and approval gates.",
             ),
             company_research_agent.as_tool(
                 tool_name="company_research_orchestrator",

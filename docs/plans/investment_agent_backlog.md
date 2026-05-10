@@ -1,6 +1,6 @@
 # Investment Agent Backlog
 
-Last updated: 2026-05-06
+Last updated: 2026-05-10
 
 ## Purpose
 
@@ -242,10 +242,12 @@ This is the clear task backlog for building the stock tracking and investment re
   - Description: deterministic first company-news specialist consumes Exa company-news packets plus contents follow-up, writes specialist evidence, raw review JSON, and markdown review.
 - [x] Add automatic Exa contents follow-up for company news.
   - Description: manifests now plan `company_news_contents_follow_up` before `company_news_review`; search-highlight-only reviews remain `partial_review` until Exa contents confirms selected URLs.
-- [ ] Build SEC filing specialist.
+- [x] Build SEC filing specialist.
+  - Description: SDK filing specialist consumes SEC EDGAR artifacts and is included in company-research fanout. European filing coverage still needs future providers.
 - [x] Build financial data specialist.
   - Description: deterministic first specialist that consumes `financial_compare` packets, writes a specialist evidence packet, raw review JSON, and markdown financial review. Future LLM version can extend this surface without changing the input/output contract.
-- [ ] Build xAI Grok stock sentiment specialist.
+- [x] Build xAI Grok stock sentiment specialist.
+  - Description: SDK sentiment specialist consumes xAI/Grok `x_search` artifacts as social-signal evidence and is included in company-research fanout.
 - [ ] Build xAI Grok industry sentiment specialist.
 - [ ] Build Exa industry research specialist.
   - Description: should choose Exa `industry`, `news`, `general`, `company`, and `contents` based on the research goal.
@@ -253,27 +255,29 @@ This is the clear task backlog for building the stock tracking and investment re
   - Description: should use Exa `company` for candidate discovery and Exa `general` for context/validation.
 - [ ] Build tracked-stock alert specialist.
 - [ ] Build new-candidate discovery alert specialist.
-- [ ] Build contradiction and risk specialist.
+- [x] Build contradiction and risk specialist.
+  - Description: SDK risk/thesis specialist is included in company-research fanout and reviews thesis impact, contradictions, and risk deltas from the aggregated packet.
 - [ ] Build human request triage specialist.
 - [ ] Build company file updater.
-  - Current progress: deterministic approved-proposal writer exists for SDK proposals with `agent-runtime apply-proposal --proposal-id ORP-0001 --write`; broader company-file updater specialist logic is still pending.
+  - Current progress: deterministic approved-proposal writer exists for SDK proposals with `agent-runtime apply-proposal --proposal-id ORP-0001 --write`; SDK writer specialist now drafts proposal-ready updates inside company-research fanout. Broader automatic company-file update strategy is still approval-gated and pending.
 - [ ] Build category state updater.
 - [ ] Build CSV updater.
-- [ ] Build quality reviewer.
+- [x] Build quality reviewer.
+  - Description: SDK quality-review specialist is included in company-research fanout for citation/source/approval-gate checks.
 
 ## Priority 6: Orchestration
 
 - [x] Build deterministic weekly runner.
   - Description: `python -m stock_research run-weekly` now chains manifest generation, provider tasks, analysis tasks, run summary, quality report, memory finalization, bounded memory-writer review, optional SDK orchestration, and orchestration report. Live provider/analysis execution cleans generated run artifacts first to avoid stale duplicate packets on reruns.
-- [ ] Build OpenAI Agents SDK runtime foundation.
+- [x] Build OpenAI Agents SDK runtime foundation.
   - Description: implement the dedicated SDK runtime backlog with context, registry, guarded tools, structured outputs, tracing, memory injection, and one specialist-as-tool spike.
-  - Current progress: first manual runtime slice is implemented and live-smoke-tested with no quality findings after prompt/tool/validator tightening. `run-weekly --write --execute-orchestrator` is implemented as an opt-in scheduled SDK path, with freshness gating when provider/analysis tasks are dry-run. Full fresh `--execute-providers --execute-analysis --execute-orchestrator` validation completed with no findings after adding generated-artifact cleanup. SDK proposals now flow through `agent-runtime queue-proposals --write --queue-review`, approved individual proposals can be applied through `agent-runtime apply-proposal`, repo/memory inspection tools now wrap Python functions directly with task-specific memory injection, guarded provider/analysis SDK tools plan by default while blocking live side effects unless runtime context grants execution, local SDK hooks now record agent/tool/LLM telemetry plus injected/reported memory ids, SDK timeouts/errors now return blocked reviewable artifacts, memory reflection now reads SDK run metrics, code-level fanout infrastructure exists for future sub-orchestrators, and the first company-research sub-orchestrator is implemented for one-ticker lane aggregation with financial, company-news, Exa company-search, SEC filing, and sentiment specialist fanout.
+  - Current progress: first manual runtime slice is implemented and live-smoke-tested with no quality findings after prompt/tool/validator tightening. `run-weekly --write --execute-orchestrator` is implemented as an opt-in scheduled SDK path, with freshness gating when provider/analysis tasks are dry-run. Full fresh `--execute-providers --execute-analysis --execute-orchestrator` validation completed with no findings after adding generated-artifact cleanup. SDK proposals now flow through `agent-runtime queue-proposals --write --queue-review`, approved individual proposals can be applied through `agent-runtime apply-proposal`, repo/memory inspection tools now wrap Python functions directly with task-specific memory injection, guarded provider/analysis SDK tools plan by default while blocking live side effects unless runtime context grants execution, local SDK hooks now record agent/tool/LLM telemetry plus injected/reported memory ids, SDK timeouts/errors now return blocked reviewable artifacts, memory reflection now reads SDK run metrics, code-level fanout infrastructure exists for sub-orchestrators, and scheduled company-research fanout now runs across current-holding and monitoring tickers with financial, company-news, Exa company-search, SEC filing, sentiment, risk/thesis, writer, and quality-review specialist lanes.
   - Output: `stock_research/agent_runtime/`, `docs/descriptions/openai_agents_sdk_orchestration.md`, tests, `python -m stock_research agent-runtime smoke`, and `python -m stock_research agent-runtime run --run-id RUN_ID --execute --write`.
 - [ ] Build OS/app scheduled execution.
   - Description: run the deterministic weekly runner automatically on Saturday and support manual trigger flows.
 - [x] Build company research sub-orchestrator.
   - Description: coordinates filings, news, financials, sentiment, and risk checks for one ticker.
-  - Current progress: first SDK version registered as `company_research_orchestrator`; it builds a one-ticker lane packet, uses financial, company-news, company-search, filing, and sentiment fanout, and aggregates missing lanes into next-run tasks.
+  - Current progress: first SDK version registered as `company_research_orchestrator`; it builds a one-ticker lane packet, uses financial, company-news, company-search, filing, sentiment, risk/thesis, writer, and quality-review fanout, writes per-ticker scheduled artifacts, and aggregates partial results into next-run tasks.
 - [ ] Build market research sub-orchestrator.
   - Description: coordinates industry, macro, theme, and candidate discovery.
 - [ ] Build portfolio review sub-orchestrator.
@@ -282,7 +286,7 @@ This is the clear task backlog for building the stock tracking and investment re
   - Description: extracts lessons from traces, run summaries, quality reports, provider failures, and user corrections.
 - [ ] Build main orchestrator.
   - Description: synthesizes all evidence, chooses updates, creates alerts, incorporates human input queue items, and prepares next actions.
-- [ ] Inject operational memory into specialist prompts.
+- [x] Inject operational memory into specialist prompts.
   - Description: orchestrator should call `python -m stock_research memory context --task TASK` or the equivalent Python function and pass the relevant lessons into each specialist prompt before execution.
 - [ ] Build human review queue.
   - Description: collects moves, strategy changes, and high-impact recommendations for user approval.

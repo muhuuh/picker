@@ -1,6 +1,6 @@
 # Repo Map
 
-Last updated: 2026-05-07
+Last updated: 2026-05-10
 
 ## Purpose
 
@@ -163,10 +163,10 @@ Use CLI commands for manual operation, scheduler entrypoints, validation, smoke 
 - SDK provider/analysis tools live in `stock_research/agent_runtime/tools/provider_tools.py` and `stock_research/agent_runtime/tools/analysis_tools.py`; they plan by default and block live side effects unless runtime context explicitly grants execution.
 - SDK local telemetry lives in `stock_research/agent_runtime/tracing.py`; `run_metrics.md` records agent/tool/LLM rows plus injected and reported operational memory ids and runner-level timeout/error status.
 - Post-run reflection in `stock_research/memory_reflection.py` reads `run_metrics.md` and turns SDK runtime failures or missing metrics into reflection issues.
-- SDK fanout infrastructure lives in `stock_research/agent_runtime/fanout.py`; it is for future sub-orchestrators and is not yet wired into scheduled `run-weekly`.
-- Company-research sub-orchestrator infrastructure lives in `stock_research/agent_runtime/orchestrators/company_research.py` with prompt/spec artifacts under `agents/orchestrator/prompts/company_research.md` and `agents/orchestrator/specs/company_research.md`; current SDK fanout covers financial, company-news, company-search, filing, and sentiment specialists.
-- SDK specialist modules live under `stock_research/agent_runtime/specialists/`; current implemented specialists are `company_news_specialist`, `company_search_specialist`, `financial_specialist`, `filing_specialist`, and `sentiment_specialist`.
-- Live orchestration from `run-weekly` is available behind `--execute-orchestrator`; it is opt-in and freshness-gated.
+- SDK fanout infrastructure lives in `stock_research/agent_runtime/fanout.py`; scheduled `run-weekly --write --execute-orchestrator` now uses it for per-ticker company research across current-holding and monitoring tickers.
+- Company-research sub-orchestrator infrastructure lives in `stock_research/agent_runtime/orchestrators/company_research.py` with prompt/spec artifacts under `agents/orchestrator/prompts/company_research.md` and `agents/orchestrator/specs/company_research.md`; current SDK fanout covers financial, company-news, company-search, filing, sentiment, risk/thesis, writer, and quality-review specialists.
+- SDK specialist modules live under `stock_research/agent_runtime/specialists/`; current implemented specialists are `company_news_specialist`, `company_search_specialist`, `financial_specialist`, `filing_specialist`, `sentiment_specialist`, `risk_thesis_specialist`, `writer_specialist`, and `quality_reviewer_specialist`.
+- Live orchestration from `run-weekly` is available behind `--execute-orchestrator`; it is opt-in, freshness-gated, and writes per-ticker company-research artifacts under `agents/runs/{run_id}/company_research/`.
 - SDK output proposals are reviewable through `agents/runs/{run_id}/orchestrator_update_proposals.md` and `agents/human_review_queue.md`; company files are not edited by this bridge.
 - Approved SDK proposals can be applied only through `agent-runtime apply-proposal`, which refuses unapproved review rows and validates the target is an existing file under `stock_tracking/stock_info_files/`.
 

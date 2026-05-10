@@ -82,7 +82,7 @@ python -m stock_research run-weekly --write --execute-orchestrator
 python -m stock_research run-weekly --write --execute-providers --execute-analysis --execute-orchestrator --orchestrator-timeout-seconds 300
 ```
 
-`--execute-orchestrator` requires `OPENAI_API_KEY`. If provider or analysis tasks are still dry-run and the SDK proposes alerts or file updates, the scheduled run is marked `needs_review` so stale artifacts cannot look like fresh research. If live SDK execution times out or errors, it writes a blocked reviewable artifact plus `run_metrics.md` instead of silently failing.
+`--execute-orchestrator` requires `OPENAI_API_KEY`. It now runs per-ticker company-research fanout for current-holding and monitoring tickers before main orchestration. If provider or analysis tasks are still dry-run and the SDK proposes alerts or file updates, the scheduled run is marked `needs_review` so stale artifacts cannot look like fresh research. If live SDK execution times out or errors, it writes a blocked reviewable artifact plus `run_metrics.md` instead of silently failing.
 
 Inspect the OpenAI Agents SDK runtime registry without making live model calls:
 
@@ -256,14 +256,14 @@ Implemented:
 - prompt-ready operational memory context for future specialist injection.
 - deterministic run finalization command for reflection, recurring-failure, and finalization artifacts.
 - deterministic weekly runner that chains manifest, provider tasks, analysis tasks, summary, quality report, memory finalization, memory-writer review, and optional SDK orchestration.
-- OpenAI Agents SDK runtime foundation: importable runtime package, main orchestrator builder, company-news specialist builder, company-search specialist builder, financial specialist builder, filing specialist builder, sentiment specialist builder, central registry, specialist-as-tool composition, typed context/output contracts, task-relevant memory injection, repo/memory inspection tools, prompt/spec files, and no-model-call smoke command.
-- Company-research SDK sub-orchestrator for one ticker, with evidence lanes for financials, company news, filings, sentiment, company search, and risk/thesis impact, plus financial, company-news, company-search, filing, and sentiment specialist fanout.
+- OpenAI Agents SDK runtime foundation: importable runtime package, main orchestrator builder, company-research sub-orchestrator, company-news specialist builder, company-search specialist builder, financial specialist builder, filing specialist builder, sentiment specialist builder, risk/thesis specialist builder, writer specialist builder, quality-review specialist builder, central registry, specialist-as-tool composition, typed context/output contracts, task-relevant memory injection, repo/memory inspection tools, prompt/spec files, and no-model-call smoke command.
+- Company-research SDK sub-orchestrator for one ticker, with evidence lanes for financials, company news, filings, sentiment, company search, risk/thesis impact, writer proposals, and quality review, plus financial, company-news, company-search, filing, sentiment, risk/thesis, writer, and quality-review specialist fanout.
 - guarded OpenAI Agents SDK provider/analysis function tools that plan by default and require context permission for live side effects.
 - live manual OpenAI Agents SDK orchestrator command over existing run artifacts, with local report, trace-link, and run-metrics artifacts.
 - SDK local telemetry hooks for agent lifecycle, tool calls, LLM calls/usage when available, injected operational memory ids, and final-output reported memory ids.
 - SDK timeout/error handling that writes blocked reviewable outputs and feeds runtime failures into memory reflection.
 - function-first SDK fanout helper for independent agent tasks with per-task timeout, task-specific memory, partial-failure preservation, and aggregate metrics.
-- opt-in scheduled OpenAI Agents SDK orchestration through `run-weekly --write --execute-orchestrator`, with freshness gating for dry-run provider/analysis inputs.
+- opt-in scheduled OpenAI Agents SDK orchestration through `run-weekly --write --execute-orchestrator`, with per-ticker company-research fanout for current/monitoring tickers and freshness gating for dry-run provider/analysis inputs.
 - deterministic SDK proposal review bridge: `agent-runtime queue-proposals --write --queue-review`.
 - approval-gated SDK proposal writer: `agent-runtime apply-proposal --proposal-id ORP-0001 --write`.
 - deterministic human request classifier and queue appender.
@@ -285,6 +285,6 @@ Implemented:
 Not implemented yet:
 
 - macro provider integrations,
-- LLM specialist agents,
+- market/portfolio/memory-evaluation sub-orchestrators,
 - OS/app scheduled execution,
 - immediate research runs.

@@ -4,6 +4,8 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 import unittest
 
+from stock_research.agent_runtime.fanout import AgentFanoutItemResult, AgentFanoutResult
+from stock_research.agent_runtime.outputs import OrchestratorDecision
 from stock_research.agent_runtime.runner import AgentRuntimeResult
 from stock_research.scheduled_runner import run_weekly_research_workflow
 
@@ -137,6 +139,29 @@ class ScheduledRunnerTests(unittest.TestCase):
             self.assertFalse(stale_packet.exists())
             self.assertFalse(stale_report.exists())
 
+    def test_weekly_workflow_can_write_company_research_for_tracked_tickers(self):
+        with TemporaryDirectory() as temp_dir:
+            root = seed_repo(
+                Path(temp_dir),
+                monitoring_rows=[
+                    "AAPL,Apple Inc.,NASDAQ,US,Technology,Consumer Electronics,monitoring,test,100,USD,1000,20,2026-05-01,2026-05-01,2026-05-09,stock_tracking/stock_info_files/monitoring/AAPL_apple_inc.md,test"
+                ],
+            )
+
+            result, paths = run_weekly_research_workflow(
+                root=root,
+                current_date=date(2026, 5, 5),
+                write=True,
+                execute_company_research=True,
+                company_research_executor=fake_company_research_executor,
+            )
+
+            report_path = root / "agents/runs/2026-05-09_weekly/company_research/AAPL_company_research.md"
+            self.assertEqual(result.steps["company_research"]["status"], "complete")
+            self.assertEqual(result.steps["company_research"]["tickers"], ["AAPL"])
+            self.assertTrue(report_path.exists())
+            self.assertTrue(report_path in paths)
+
 
 def seed_repo(root: Path, monitoring_rows: list[str] | None = None) -> Path:
     (root / "AGENTS.md").write_text("# AGENTS\n", encoding="utf-8")
@@ -260,6 +285,37 @@ def fake_ready_no_action_orchestrator_executor(context, prompt: str, model: str 
         quality_findings=[],
         written_paths=(str(report_path),),
     )
+
+
+def fake_company_research_executor(context, ticker: str, model: str | None):
+    decision = OrchestratorDecision(
+        agent_id="company_research_orchestrator",
+        run_id=context.run_id,
+        status="ready",
+        summary=f"Fake company research decision for {ticker} with enough detail for scheduled-run artifact tests.",
+        memory_item_ids_used=list(context.memory_item_ids[:1]),
+    )
+    fanout = AgentFanoutResult(
+        status="complete",
+        results=(
+            AgentFanoutItemResult(
+                task_id=f"financial_{ticker.lower()}",
+                agent_id="financial_specialist",
+                task="financial specialist",
+                status="complete",
+                final_output={
+                    "agent_id": "financial_specialist",
+                    "subject_type": "company",
+                    "subject_id": ticker,
+                    "status": "ready",
+                    "summary": "Fake financial specialist result for scheduled company research tests.",
+                    "memory_item_ids_used": list(context.memory_item_ids[:1]),
+                },
+            ),
+        ),
+        metrics=(),
+    )
+    return decision, fanout
 
 
 if __name__ == "__main__":

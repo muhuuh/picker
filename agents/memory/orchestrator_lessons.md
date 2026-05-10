@@ -328,9 +328,23 @@ Operational memory for workflow routing, orchestration, run ordering, and user c
 - status: active
 - confidence: high
 - trigger/source: Implemented the first company-research SDK sub-orchestrator.
-- lesson: Use `company_research_orchestrator` for one-ticker synthesis. It starts from a deterministic company research packet with financials, company-news, filings, sentiment, company-search, and risk-thesis lanes, then uses available specialist fanout and preserves missing lanes as next-run tasks.
+- lesson: Use `company_research_orchestrator` for one-ticker synthesis. It starts from a deterministic company research packet with financials, company-news, filings, sentiment, company-search, risk/thesis, writer, and quality lanes, then uses available specialist fanout and preserves partial lanes as next-run tasks.
 - use_when: Building one-ticker company research, wiring scheduled research across monitored/current holdings, or deciding how specialist outputs should be aggregated.
 - do_not_use_when: Running broad market/theme discovery; that belongs in the future market research sub-orchestrator.
 - evidence: `stock_research/agent_runtime/orchestrators/company_research.py`, `agents/orchestrator/prompts/company_research.md`, `agents/orchestrator/specs/company_research.md`, `tests/test_agent_runtime.py`
+- owner: main orchestrator
+- next_review: 2026-06-15
+
+- id: orch-2026-05-10-scheduled-company-research-fanout
+- date: 2026-05-10
+- type: procedural
+- scope: orchestrator
+- status: active
+- confidence: high
+- trigger/source: Scheduled company-research fanout implementation.
+- lesson: `run-weekly --write --execute-orchestrator` now runs generic per-ticker company-research fanout for all current-holding and monitoring tickers before main orchestration. Per-ticker task ids such as `financial_aapl` are labels only; never create ticker-specific specialist code.
+- use_when: Running weekly SDK orchestration, interpreting company-research artifacts, or adding new company-research lanes.
+- do_not_use_when: Running broad industry/theme discovery; use the future market research sub-orchestrator for that.
+- evidence: `stock_research/scheduled_runner.py`, `stock_research/agent_runtime/orchestrators/company_research.py`, `tests/test_scheduled_runner.py`
 - owner: main orchestrator
 - next_review: 2026-06-15

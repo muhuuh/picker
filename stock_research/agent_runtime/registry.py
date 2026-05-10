@@ -12,7 +12,10 @@ from stock_research.agent_runtime.specialists.company_news import build_agent as
 from stock_research.agent_runtime.specialists.company_search import build_agent as build_company_search_specialist
 from stock_research.agent_runtime.specialists.filing import build_agent as build_filing_specialist
 from stock_research.agent_runtime.specialists.financial import build_agent as build_financial_specialist
+from stock_research.agent_runtime.specialists.quality_review import build_agent as build_quality_reviewer_specialist
+from stock_research.agent_runtime.specialists.risk_thesis import build_agent as build_risk_thesis_specialist
 from stock_research.agent_runtime.specialists.sentiment import build_agent as build_sentiment_specialist
+from stock_research.agent_runtime.specialists.writer import build_agent as build_writer_specialist
 
 
 AgentRole = Literal["orchestrator", "specialist"]
@@ -64,11 +67,29 @@ _AGENT_SPECS: dict[str, AgentSpec] = {
         description="Specialist agent that synthesizes existing SEC EDGAR filing artifacts.",
         builder=build_filing_specialist,
     ),
+    "quality_reviewer_specialist": AgentSpec(
+        agent_id="quality_reviewer_specialist",
+        role="specialist",
+        description="Specialist agent that reviews company-research outputs for source, quality, and approval-gate issues.",
+        builder=build_quality_reviewer_specialist,
+    ),
+    "risk_thesis_specialist": AgentSpec(
+        agent_id="risk_thesis_specialist",
+        role="specialist",
+        description="Specialist agent that synthesizes risk, contradiction, and thesis-impact evidence.",
+        builder=build_risk_thesis_specialist,
+    ),
     "sentiment_specialist": AgentSpec(
         agent_id="sentiment_specialist",
         role="specialist",
         description="Specialist agent that synthesizes existing xAI/Grok X sentiment artifacts.",
         builder=build_sentiment_specialist,
+    ),
+    "writer_specialist": AgentSpec(
+        agent_id="writer_specialist",
+        role="specialist",
+        description="Specialist agent that drafts source-backed company-file update proposals without editing files.",
+        builder=build_writer_specialist,
     ),
 }
 

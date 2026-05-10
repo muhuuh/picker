@@ -8,6 +8,11 @@ from pathlib import Path
 from typing import Any
 
 from .agent_runtime.context import build_research_run_context
+from .agent_runtime.orchestrators.company_research import (
+    company_research_result_to_dict,
+    run_company_research_sub_orchestrator_sync,
+    write_company_research_report,
+)
 from .agent_runtime.proposal_review import build_proposal_review, proposal_review_to_dict
 from .agent_runtime.reports import build_orchestrator_input, output_status, output_to_dict
 from .agent_runtime.runner import AgentRuntimeResult, run_agent_sync
@@ -46,6 +51,7 @@ def run_weekly_research_workflow(
     execute_analysis: bool = False,
     execute_memory_writer: bool = False,
     execute_orchestrator: bool = False,
+    execute_company_research: bool | None = None,
     update_memory_drafts: bool = True,
     recurring_threshold: int = 2,
     memory_writer_model: str = DEFAULT_MEMORY_WRITER_MODEL,
@@ -54,6 +60,7 @@ def run_weekly_research_workflow(
     provider_executor: ProviderExecutor | None = None,
     analysis_executor: AnalysisExecutor | None = None,
     memory_writer_responder=None,
+    company_research_executor=None,
     orchestrator_executor=None,
 ) -> tuple[ScheduledRunResult, list[Path]]:
     repo_root = find_repo_root(root)
@@ -90,6 +97,7 @@ def run_weekly_research_workflow(
     quality_report = None
     finalization: RunFinalization | None = None
     memory_writer_review: MemoryWriterReview | None = None
+    company_research_result: dict[str, Any] = {"status": "not_run"}
     orchestrator_result: dict[str, Any] = {"status": "not_run"}
     proposal_review_result: dict[str, Any] = {"status": "not_run"}
 
@@ -119,6 +127,21 @@ def run_weekly_research_workflow(
             write_artifacts=True,
         )
         artifacts.extend(memory_writer_paths)
+
+        if should_execute_company_research(execute_orchestrator, execute_company_research, orchestrator_executor):
+            company_research_result, company_research_paths = run_scheduled_company_research(
+                repo_root=repo_root,
+                run_id=run_id,
+                manifest=manifest,
+                manifest_path=manifest_path,
+                execute_providers=execute_providers,
+                execute_analysis=execute_analysis,
+                model=orchestrator_model,
+                timeout_seconds=orchestrator_timeout_seconds,
+                executor=company_research_executor,
+                write_artifacts=True,
+            )
+            artifacts.extend(company_research_paths)
 
         if execute_orchestrator:
             context = build_research_run_context(
@@ -177,7 +200,15 @@ def run_weekly_research_workflow(
     result = ScheduledRunResult(
         run_id=run_id,
         generated_at=today.isoformat(),
-        status=determine_status(write, provider_result, analysis_result, quality_report, finalization, orchestrator_result),
+        status=determine_status(
+            write,
+            provider_result,
+            analysis_result,
+            quality_report,
+            finalization,
+            company_research_result,
+            orchestrator_result,
+        ),
         mode=run_mode(write, execute_providers, execute_analysis, execute_memory_writer, execute_orchestrator),
         steps=build_steps(
             manifest=manifest,
@@ -189,10 +220,19 @@ def run_weekly_research_workflow(
             finalization=finalization,
             memory_writer_review=memory_writer_review,
             orchestrator_result=orchestrator_result,
+            company_research_result=company_research_result,
             proposal_review_result=proposal_review_result,
         ),
         artifacts=[relative_to_root(repo_root, path).as_posix() for path in artifacts],
-        next_actions=next_actions(write, provider_result, analysis_result, quality_report, finalization, orchestrator_result),
+        next_actions=next_actions(
+            write,
+            provider_result,
+            analysis_result,
+            quality_report,
+            finalization,
+            company_research_result,
+            orchestrator_result,
+        ),
     )
 
     if write:
@@ -207,6 +247,7 @@ def determine_status(
     analysis_result: dict[str, Any],
     quality_report,
     finalization: RunFinalization | None,
+    company_research_result: dict[str, Any] | None = None,
     orchestrator_result: dict[str, Any] | None = None,
 ) -> str:
     if not write:
@@ -217,6 +258,8 @@ def determine_status(
         return "needs_review"
     if finalization and finalization.status != "complete":
         return finalization.status
+    if company_research_result and company_research_result.get("status") in {"error", "needs_review"}:
+        return "needs_review"
     if orchestrator_result and orchestrator_result.get("status") in {"error", "needs_review"}:
         return "needs_review"
     return "complete"
@@ -250,6 +293,7 @@ def build_steps(
     finalization: RunFinalization | None,
     memory_writer_review: MemoryWriterReview | None,
     orchestrator_result: dict[str, Any],
+    company_research_result: dict[str, Any],
     proposal_review_result: dict[str, Any],
 ) -> dict[str, Any]:
     return {
@@ -265,6 +309,7 @@ def build_steps(
         "quality_report": quality_report_to_dict(quality_report) if quality_report else {"status": "not_written"},
         "memory_finalization": finalization_to_dict(finalization) if finalization else {"status": "not_written"},
         "memory_writer_review": memory_writer_review_to_dict(memory_writer_review) if memory_writer_review else {"status": "not_written"},
+        "company_research": company_research_result,
         "agent_orchestrator": orchestrator_result,
         "orchestrator_proposal_review": proposal_review_result,
         "framework_boundary": {
@@ -281,6 +326,7 @@ def next_actions(
     analysis_result: dict[str, Any],
     quality_report,
     finalization: RunFinalization | None,
+    company_research_result: dict[str, Any] | None = None,
     orchestrator_result: dict[str, Any] | None = None,
 ) -> list[str]:
     actions: list[str] = []
@@ -298,6 +344,10 @@ def next_actions(
         actions.append("Review `quality_report.md`; deterministic quality findings remain.")
     if finalization and finalization.next_actions:
         actions.extend(finalization.next_actions)
+    if company_research_result and company_research_result.get("status") == "needs_review":
+        actions.append("Review per-ticker company research artifacts before accepting scheduled synthesis.")
+    if company_research_result and company_research_result.get("status") == "error":
+        actions.append("Review scheduled company-research errors before treating synthesis as complete.")
     if not write:
         actions.append("Use `--write --execute-orchestrator` after deterministic artifacts are ready to run SDK synthesis.")
     elif not orchestrator_result or orchestrator_result.get("status") == "not_run":
@@ -311,6 +361,97 @@ def next_actions(
             )
         actions.append("Review SDK orchestrator quality findings and tighten prompts/tools before accepting synthesis.")
     return unique(actions)
+
+
+def should_execute_company_research(
+    execute_orchestrator: bool,
+    execute_company_research: bool | None,
+    orchestrator_executor,
+) -> bool:
+    if execute_company_research is not None:
+        return execute_company_research
+    return execute_orchestrator and orchestrator_executor is None
+
+
+def run_scheduled_company_research(
+    *,
+    repo_root: Path,
+    run_id: str,
+    manifest: dict[str, Any],
+    manifest_path: Path | None,
+    execute_providers: bool,
+    execute_analysis: bool,
+    model: str | None,
+    timeout_seconds: float | None,
+    executor=None,
+    write_artifacts: bool = False,
+) -> tuple[dict[str, Any], list[Path]]:
+    tickers = scheduled_company_research_tickers(manifest)
+    if not tickers:
+        return {"status": "not_run", "reason": "no_current_or_monitoring_tickers", "results": []}, []
+
+    results: list[dict[str, Any]] = []
+    artifacts: list[Path] = []
+    for ticker in tickers:
+        context = build_research_run_context(
+            root=repo_root,
+            run_id=run_id,
+            task="company research sub-orchestrator",
+            manifest_path=manifest_path,
+            dry_run=not (execute_providers and execute_analysis),
+            execute_providers=execute_providers,
+            execute_analysis=execute_analysis,
+        )
+        try:
+            if executor:
+                decision, fanout = executor(context, ticker, model)
+            else:
+                decision, fanout = run_company_research_sub_orchestrator_sync(
+                    context,
+                    ticker,
+                    timeout_seconds=timeout_seconds,
+                )
+            written_paths: tuple[Path, ...] = ()
+            if write_artifacts:
+                written_paths = write_company_research_report(context, ticker, decision, fanout)
+                artifacts.extend(written_paths)
+            item = {
+                "ticker": ticker,
+                "status": "complete" if decision.status == "ready" and fanout.status == "complete" else "needs_review",
+                "decision_status": decision.status,
+                "fanout_status": fanout.status,
+                "written_paths": [relative_to_root(repo_root, path).as_posix() for path in written_paths],
+                **company_research_result_to_dict(decision, fanout),
+            }
+        except Exception as exc:  # noqa: BLE001 - preserve per-ticker failure.
+            item = {
+                "ticker": ticker,
+                "status": "error",
+                "errors": [str(exc)],
+                "written_paths": [],
+            }
+        results.append(item)
+
+    statuses = {item["status"] for item in results}
+    status = "complete" if statuses <= {"complete"} else "needs_review"
+    if "error" in statuses:
+        status = "error"
+    return {
+        "status": status,
+        "tickers": tickers,
+        "results": results,
+    }, artifacts
+
+
+def scheduled_company_research_tickers(manifest: dict[str, Any]) -> list[str]:
+    tracked = manifest.get("tracked_tickers") or {}
+    tickers: list[str] = []
+    for bucket in ("current_holdings", "monitoring"):
+        for ticker in tracked.get(bucket, []) or []:
+            normalized = str(ticker).strip().upper()
+            if normalized and normalized not in tickers:
+                tickers.append(normalized)
+    return tickers
 
 
 def agent_runtime_result_to_dict(result: AgentRuntimeResult) -> dict[str, Any]:
@@ -390,7 +531,7 @@ def clean_generated_run_artifacts(repo_root: Path, run_id: str) -> None:
     if resolved_run_dir.parent != allowed_parent:
         raise ValueError(f"Refusing to clean unexpected run directory: {run_dir}")
 
-    for dirname in ("evidence_packets", "raw", "reports"):
+    for dirname in ("evidence_packets", "raw", "reports", "company_research"):
         target = run_dir / dirname
         if target.exists():
             safe_remove_tree(target, resolved_run_dir)
@@ -471,6 +612,7 @@ def format_scheduled_run_report_markdown(result: ScheduledRunResult) -> str:
         f"- quality_report: {result.steps['quality_report'].get('metrics', {}).get('findings', 'not_written')} finding(s)",
         f"- memory_finalization: {result.steps['memory_finalization'].get('status', 'not_written')}",
         f"- memory_writer_review: {result.steps['memory_writer_review'].get('mode', 'not_written')}",
+        f"- company_research: {result.steps['company_research'].get('status', 'not_run')} ({len(result.steps['company_research'].get('results', []))} ticker(s))",
         f"- agent_orchestrator: {result.steps['agent_orchestrator'].get('status', 'not_run')}",
         f"- orchestrator_proposal_review: {result.steps['orchestrator_proposal_review'].get('status', 'not_run')}",
         "",

@@ -179,3 +179,17 @@ Procedural memory for future specialist agents. Specialists should produce struc
 - evidence: stock_research/agent_runtime/specialists/company_search.py, agents/specialists/prompts/company_search.md, agents/specialists/specs/company_search.md, stock_research/manifest.py, tests/test_agent_runtime.py, tests/test_stock_research_core.py
 - owner: Exa company-search specialist
 - next_review: 2026-06-10
+
+- id: memory-2026-05-10-sdk-risk-thesis-writer-quality-lanes
+- date: 2026-05-10
+- type: procedural
+- scope: global
+- status: active
+- confidence: high
+- trigger/source: Added remaining SDK company-research specialist lanes.
+- lesson: Risk/thesis, writer, and quality-review SDK specialists are generic synthesis lanes in company-research fanout. The writer lane should draft proposal-ready updates only; deterministic proposal review and approved-proposal writer gates still control actual company-file edits.
+- use_when: Building company-research fanout, interpreting scheduled company-research artifacts, or extending writer/quality specialists.
+- do_not_use_when: Applying unapproved file writes, bypassing human review, or treating quality-review output as an automatic trade decision.
+- evidence: stock_research/agent_runtime/specialists/risk_thesis.py, stock_research/agent_runtime/specialists/writer.py, stock_research/agent_runtime/specialists/quality_review.py, agents/specialists/prompts/risk_thesis.md, agents/specialists/prompts/writer.md, agents/specialists/prompts/quality_review.md, tests/test_agent_runtime.py
+- owner: company research specialists
+- next_review: 2026-06-10

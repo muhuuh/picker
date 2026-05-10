@@ -112,13 +112,13 @@ Use `.env.example` as a local template.
 
 OpenAI Agents SDK is selected as the LLM orchestration framework. The package is declared in `pyproject.toml`, and the initial runtime foundation exists under `stock_research/agent_runtime/`. SDK tools wrap importable Python functions directly; CLI commands are only manual/scheduler/debug handles.
 
-The main orchestrator currently exposes repo/memory inspection tools, `company_news_specialist`, `company_search_specialist`, `financial_specialist`, `filing_specialist`, and `sentiment_specialist` as agent tools, and guarded provider/analysis SDK function tools. Provider and analysis tools plan by default and block live side effects unless the runtime context explicitly allows execution.
+The main orchestrator currently exposes repo/memory inspection tools, `company_news_specialist`, `company_search_specialist`, `financial_specialist`, `filing_specialist`, `sentiment_specialist`, `risk_thesis_specialist`, `writer_specialist`, and `quality_reviewer_specialist` as agent tools, and guarded provider/analysis SDK function tools. Provider and analysis tools plan by default and block live side effects unless the runtime context explicitly allows execution.
 
 When SDK execution writes metrics, `run_metrics.md` includes local hook telemetry for agent lifecycle, tool calls, LLM usage when available, injected operational memory ids, final-output reported memory ids, and runner-level timeout/error status. It does not log raw prompts or raw tool payloads. Post-run memory reflection reads those metrics and flags SDK timeouts/errors as reviewable learning-loop issues.
 
-`stock_research/agent_runtime/fanout.py` provides the first code-level fanout helper for future sub-orchestrators. It runs independent SDK agent tasks concurrently with task-specific memory, per-task timeout, and partial-failure preservation, but it is not yet wired into scheduled `run-weekly`.
+`stock_research/agent_runtime/fanout.py` provides the code-level fanout helper for sub-orchestrators. It runs independent SDK agent tasks concurrently with task-specific memory, per-task timeout, and partial-failure preservation. Scheduled `run-weekly --write --execute-orchestrator` uses it for per-ticker company research.
 
-`company_research_orchestrator` is the first SDK sub-orchestrator. It can build a one-ticker company research packet, group evidence into financials/company-news/filings/sentiment/company-search/risk-thesis lanes, run financial, company-news, company-search, filing, and sentiment specialist fanout, and preserve missing lanes as next-run tasks.
+`company_research_orchestrator` is the first SDK sub-orchestrator. It can build a one-ticker company research packet, group evidence into financials/company-news/filings/sentiment/company-search/risk-thesis/writer/quality lanes, run financial, company-news, company-search, filing, sentiment, risk/thesis, writer, and quality-review specialist fanout, and preserve partial lanes as next-run tasks.
 
 Planning files:
 
@@ -184,6 +184,8 @@ python -m stock_research run-weekly --write --execute-providers --execute-analys
 ```
 
 `--execute-orchestrator` requires `OPENAI_API_KEY` and `--write`. When provider or analysis tasks are dry-run, actionable SDK output is marked `needs_review` until fresh deterministic execution runs.
+
+When SDK orchestration is enabled, the weekly wrapper runs company-research fanout for all current-holding and monitoring tickers before the main orchestrator and writes per-ticker reports under `agents/runs/RUN_ID/company_research/`.
 
 ## SEC EDGAR
 

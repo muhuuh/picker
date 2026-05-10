@@ -143,7 +143,10 @@ class AgentRuntimeTests(unittest.TestCase):
         self.assertEqual(specs["company_search_specialist"].role, "specialist")
         self.assertEqual(specs["filing_specialist"].role, "specialist")
         self.assertEqual(specs["financial_specialist"].role, "specialist")
+        self.assertEqual(specs["quality_reviewer_specialist"].role, "specialist")
+        self.assertEqual(specs["risk_thesis_specialist"].role, "specialist")
         self.assertEqual(specs["sentiment_specialist"].role, "specialist")
+        self.assertEqual(specs["writer_specialist"].role, "specialist")
 
     def test_build_research_context_includes_trace_and_memory(self):
         context = build_research_run_context(root=REPO_ROOT, run_id="test_weekly", task="openai agents sdk runtime")
@@ -176,7 +179,10 @@ class AgentRuntimeTests(unittest.TestCase):
         self.assertIn("company_search_specialist", tool_names)
         self.assertIn("filing_specialist", tool_names)
         self.assertIn("financial_specialist", tool_names)
+        self.assertIn("quality_reviewer_specialist", tool_names)
+        self.assertIn("risk_thesis_specialist", tool_names)
         self.assertIn("sentiment_specialist", tool_names)
+        self.assertIn("writer_specialist", tool_names)
         self.assertNotIn("memory_apply_updates", tool_names)
         self.assertNotIn("apply_memory_updates", tool_names)
         self.assertNotIn("memory_writer_apply", tool_names)
@@ -386,7 +392,10 @@ class AgentRuntimeTests(unittest.TestCase):
         self.assertIn("company_search_specialist", tool_names)
         self.assertIn("filing_specialist", tool_names)
         self.assertIn("financial_specialist", tool_names)
+        self.assertIn("quality_reviewer_specialist", tool_names)
+        self.assertIn("risk_thesis_specialist", tool_names)
         self.assertIn("sentiment_specialist", tool_names)
+        self.assertIn("writer_specialist", tool_names)
         self.assertNotIn("write_company_file", tool_names)
 
     def test_company_research_packet_groups_existing_company_artifacts(self):
@@ -428,10 +437,19 @@ class AgentRuntimeTests(unittest.TestCase):
 
             tasks = build_company_research_fanout_tasks(context, "AAPL", timeout_seconds=12)
 
-        self.assertEqual(len(tasks), 5)
+        self.assertEqual(len(tasks), 8)
         self.assertEqual(
             [task.agent_id for task in tasks],
-            ["financial_specialist", "company_news_specialist", "company_search_specialist", "filing_specialist", "sentiment_specialist"],
+            [
+                "financial_specialist",
+                "company_news_specialist",
+                "company_search_specialist",
+                "filing_specialist",
+                "sentiment_specialist",
+                "risk_thesis_specialist",
+                "writer_specialist",
+                "quality_reviewer_specialist",
+            ],
         )
         self.assertTrue(all(task.timeout_seconds == 12 for task in tasks))
         self.assertTrue(all("Company research packet" in task.prompt for task in tasks))
@@ -469,10 +487,19 @@ class AgentRuntimeTests(unittest.TestCase):
         self.assertEqual(fanout.status, "complete")
         self.assertEqual(decision.agent_id, "company_research_orchestrator")
         self.assertEqual(decision.status, "partial")
-        self.assertEqual(len(decision.specialist_results), 5)
+        self.assertEqual(len(decision.specialist_results), 8)
         self.assertEqual(
             [result.agent_id for result in decision.specialist_results],
-            ["financial_specialist", "company_news_specialist", "company_search_specialist", "filing_specialist", "sentiment_specialist"],
+            [
+                "financial_specialist",
+                "company_news_specialist",
+                "company_search_specialist",
+                "filing_specialist",
+                "sentiment_specialist",
+                "risk_thesis_specialist",
+                "writer_specialist",
+                "quality_reviewer_specialist",
+            ],
         )
         self.assertTrue(any("company_search" in task for task in decision.next_run_tasks))
 

@@ -16,10 +16,14 @@ from stock_research.agent_runtime.specialists.company_news import build_agent as
 from stock_research.agent_runtime.specialists.company_search import build_agent as build_company_search_agent
 from stock_research.agent_runtime.specialists.filing import build_agent as build_filing_agent
 from stock_research.agent_runtime.specialists.financial import build_agent as build_financial_agent
+from stock_research.agent_runtime.specialists.quality_review import build_agent as build_quality_review_agent
+from stock_research.agent_runtime.specialists.risk_thesis import build_agent as build_risk_thesis_agent
 from stock_research.agent_runtime.specialists.sentiment import build_agent as build_sentiment_agent
+from stock_research.agent_runtime.specialists.writer import build_agent as build_writer_agent
 from stock_research.agent_runtime.tools.analysis_tools import analysis_tools
 from stock_research.agent_runtime.tools.provider_tools import provider_tools
 from stock_research.agent_runtime.tools.repo_tools import repo_tools
+from stock_research.agent_runtime.tracing import write_run_metrics
 from stock_research.evidence import EvidencePacket, read_packet
 
 
@@ -82,6 +86,12 @@ def build_agent(context: ResearchRunContext | None = None) -> Agent[ResearchRunC
     filing_agent = build_filing_agent(filing_context)
     sentiment_context = with_task_memory(context, "xAI Grok stock sentiment specialist") if context else None
     sentiment_agent = build_sentiment_agent(sentiment_context)
+    risk_context = with_task_memory(context, "risk thesis specialist") if context else None
+    risk_agent = build_risk_thesis_agent(risk_context)
+    writer_context = with_task_memory(context, "writer specialist") if context else None
+    writer_agent = build_writer_agent(writer_context)
+    quality_context = with_task_memory(context, "quality reviewer specialist") if context else None
+    quality_agent = build_quality_review_agent(quality_context)
     return Agent[ResearchRunContext](
         name="Company Research Orchestrator",
         instructions=prompt,
@@ -110,6 +120,18 @@ def build_agent(context: ResearchRunContext | None = None) -> Agent[ResearchRunC
             sentiment_agent.as_tool(
                 tool_name="sentiment_specialist",
                 tool_description="Review existing xAI/Grok X sentiment artifacts for this ticker and label social signals carefully.",
+            ),
+            risk_agent.as_tool(
+                tool_name="risk_thesis_specialist",
+                tool_description="Review risks, contradictions, stale thesis assumptions, and thesis impact for this ticker.",
+            ),
+            writer_agent.as_tool(
+                tool_name="writer_specialist",
+                tool_description="Draft source-backed company-file update proposals for this ticker without editing files.",
+            ),
+            quality_agent.as_tool(
+                tool_name="quality_reviewer_specialist",
+                tool_description="Review company-research output quality, citations, source gaps, and approval gates for this ticker.",
             ),
         ],
     )
@@ -183,6 +205,27 @@ def build_company_research_fanout_tasks(
             task="xAI Grok stock sentiment specialist",
             prompt=build_company_research_specialist_prompt(packet, "sentiment"),
             timeout_seconds=timeout_seconds,
+        ),
+        AgentFanoutTask(
+            task_id=f"risk_thesis_{packet.ticker.lower()}",
+            agent_id="risk_thesis_specialist",
+            task="risk thesis specialist",
+            prompt=build_company_research_specialist_prompt(packet, "risk_thesis"),
+            timeout_seconds=timeout_seconds,
+        ),
+        AgentFanoutTask(
+            task_id=f"writer_{packet.ticker.lower()}",
+            agent_id="writer_specialist",
+            task="writer specialist",
+            prompt=build_company_research_specialist_prompt(packet, "writer"),
+            timeout_seconds=timeout_seconds,
+        ),
+        AgentFanoutTask(
+            task_id=f"quality_{packet.ticker.lower()}",
+            agent_id="quality_reviewer_specialist",
+            task="quality reviewer specialist",
+            prompt=build_company_research_specialist_prompt(packet, "quality_review"),
+            timeout_seconds=timeout_seconds,
         )
     ]
 
@@ -255,6 +298,75 @@ def aggregate_company_research(context: ResearchRunContext, ticker: str, fanout:
         next_run_tasks=next_tasks,
         memory_item_ids_used=list(context.memory_item_ids),
     )
+
+
+def company_research_result_to_dict(decision: OrchestratorDecision, fanout: AgentFanoutResult) -> dict[str, Any]:
+    from stock_research.agent_runtime.fanout import fanout_result_to_dict
+
+    return {
+        "decision": output_to_dict(decision),
+        "fanout": fanout_result_to_dict(fanout),
+    }
+
+
+def write_company_research_report(
+    context: ResearchRunContext,
+    ticker: str,
+    decision: OrchestratorDecision,
+    fanout: AgentFanoutResult,
+) -> tuple[Path, Path, Path]:
+    target_dir = context.run_dir / "company_research"
+    target_dir.mkdir(parents=True, exist_ok=True)
+    normalized = ticker.upper()
+    json_path = target_dir / f"{normalized}_company_research.json"
+    md_path = target_dir / f"{normalized}_company_research.md"
+    metrics_path = target_dir / f"{normalized}_company_research_metrics.md"
+    json_path.write_text(json.dumps(company_research_result_to_dict(decision, fanout), indent=2, sort_keys=True), encoding="utf-8")
+    md_path.write_text(format_company_research_markdown(context, normalized, decision, fanout), encoding="utf-8")
+    write_run_metrics(context, list(fanout.metrics), path=metrics_path)
+    return json_path, md_path, metrics_path
+
+
+def format_company_research_markdown(
+    context: ResearchRunContext,
+    ticker: str,
+    decision: OrchestratorDecision,
+    fanout: AgentFanoutResult,
+) -> str:
+    packet = build_company_research_packet(context, ticker)
+    lines = [
+        f"# Company Research: {ticker}",
+        "",
+        f"- run_id: {context.run_id}",
+        f"- status: {decision.status}",
+        f"- fanout_status: {fanout.status}",
+        f"- stock_bucket: {packet.stock_bucket or 'unknown'}",
+        f"- stock_info_file: {packet.stock_info_file or 'unknown'}",
+        "",
+        "## Summary",
+        "",
+        decision.summary,
+        "",
+        "## Lanes",
+        "",
+    ]
+    for lane in packet.lanes:
+        lines.append(f"- {lane.lane_id}: {lane.status} ({len(lane.evidence_packet_ids)} packet(s), {len(lane.report_paths)} report(s))")
+        for missing in lane.missing_items:
+            lines.append(f"  - missing: {missing}")
+    lines.extend(["", "## Specialist Fanout", ""])
+    for item in fanout.results:
+        lines.append(f"- {item.task_id}: {item.status} via `{item.agent_id}`")
+        if item.quality_findings:
+            for finding in item.quality_findings:
+                lines.append(f"  - finding: {finding}")
+    lines.extend(["", "## Next Run Tasks", ""])
+    if decision.next_run_tasks:
+        for task in decision.next_run_tasks:
+            lines.append(f"- {task}")
+    else:
+        lines.append("- None.")
+    return "\n".join(lines).rstrip() + "\n"
 
 
 def build_company_research_specialist_prompt(packet: CompanyResearchPacket, lane_id: str) -> str:

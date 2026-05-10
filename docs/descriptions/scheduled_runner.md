@@ -1,6 +1,6 @@
 # Scheduled Runner
 
-Last updated: 2026-05-07
+Last updated: 2026-05-10
 
 ## Purpose
 
@@ -8,7 +8,7 @@ The scheduled runner is the deterministic weekly workflow wrapper. It chains the
 
 Implementation: `stock_research/scheduled_runner.py`.
 
-The runner is deterministic by default, but it can now optionally call the OpenAI Agents SDK main orchestrator after deterministic finalization.
+The runner is deterministic by default, but it can now optionally call OpenAI Agents SDK company-research fanout and the main orchestrator after deterministic finalization.
 
 The CLI command is only the scheduler/manual entrypoint. Internal workflow steps should call importable Python functions directly rather than shelling out to other CLI commands.
 
@@ -49,6 +49,8 @@ python -m stock_research run-weekly --write --execute-providers --execute-analys
 
 `--execute-orchestrator` requires `OPENAI_API_KEY` and `--write`. SDK timeout/error results are written as blocked reviewable artifacts plus `run_metrics.md`, then memory reflection can turn them into learning-loop issues.
 
+When SDK orchestration is enabled, the runner first runs generic company-research fanout for every ticker in `stock_tracking/current_holdings/current_holdings.csv` and `stock_tracking/monitoring/monitoring.csv`. This produces per-ticker research artifacts before the main orchestrator synthesis.
+
 ## Workflow
 
 ```text
@@ -60,6 +62,7 @@ load repo state
   -> quality_report
   -> memory finalize-run
   -> memory writer-review
+  -> SDK company-research fanout for current/monitoring tickers (only with --execute-orchestrator)
   -> SDK orchestrator (only with --execute-orchestrator)
   -> SDK proposal review bridge (only after successful SDK orchestrator output)
   -> orchestration_report
@@ -77,6 +80,8 @@ When `--write` is used:
 - `agents/runs/{run_id}/memory_writer_prompt.md`
 - `agents/runs/{run_id}/memory_writer_review.md`
 - `agents/runs/{run_id}/finalization.md`
+- `agents/runs/{run_id}/company_research/{TICKER}_company_research.md` when `--execute-orchestrator` is used and tracked tickers exist
+- `agents/runs/{run_id}/company_research/{TICKER}_company_research_metrics.md` when company-research fanout writes metrics
 - `agents/runs/{run_id}/agent_runtime_main_orchestrator.md` when `--execute-orchestrator` is used
 - `agents/runs/{run_id}/orchestrator_update_proposals.md` when successful SDK output contains file update proposals
 - `agents/runs/{run_id}/trace_links.md` when `--execute-orchestrator` is used
@@ -89,7 +94,7 @@ Generated JSON files remain ignored local runtime artifacts.
 
 - `dry_run`: no files were written.
 - `complete`: written run completed without deterministic quality findings, provider errors, analysis errors/skips, memory finalization issues, or SDK quality/freshness findings.
-- `needs_review`: provider errors, analysis errors/skips, quality findings, finalization issues, SDK errors, SDK quality findings, or actionable SDK output from dry-run provider/analysis inputs exist.
+- `needs_review`: provider errors, analysis errors/skips, quality findings, finalization issues, SDK errors, company-research fanout errors/partial results, SDK quality findings, or actionable SDK output from dry-run provider/analysis inputs exist.
 
 If the SDK orchestrator is enabled while provider or analysis tasks are dry-run, it receives that execution-mode context in its prompt. If it still produces ready/actionable alerts or file update proposals, the runner appends a freshness finding and marks the scheduled run `needs_review`.
 
@@ -106,6 +111,7 @@ Current SDK integration:
 - Manual SDK run: `python -m stock_research agent-runtime run --run-id RUN_ID --execute --write`.
 - Scheduled opt-in SDK run: `python -m stock_research run-weekly --write --execute-orchestrator`.
 - Fresh actionable research should normally use `--execute-providers --execute-analysis --execute-orchestrator`; otherwise SDK proposals are review-only.
+- Scheduled SDK orchestration now includes per-ticker company-research fanout before the main orchestrator. Fanout task names include tickers as labels only; specialists are generic and reusable.
 - Repeated fresh runs are idempotent at the generated-artifact level because live execution cleans prior generated run artifacts before rebuilding them.
 - Successful SDK file update proposals are routed through `orchestrator_update_proposals.md` and duplicate-safe human-review queue rows before any company-file writer can apply them.
 - Approved proposals can be applied after human review with `python -m stock_research agent-runtime apply-proposal --run-id RUN_ID --proposal-id ORP-0001 --write`; this is intentionally outside the automatic weekly flow for now.

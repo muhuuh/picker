@@ -251,6 +251,11 @@ Use this file for information we should not lose across sessions.
   - evidence artifact path(s): `stock_research/agent_runtime/specialists/company_search.py`, `agents/specialists/prompts/company_search.md`, `agents/specialists/specs/company_search.md`, `stock_research/manifest.py`, `stock_research/agent_runtime/orchestrators/company_research.py`, `stock_research/agent_runtime/orchestrators/main.py`, `tests/test_agent_runtime.py`, `tests/test_stock_research_core.py`
   - status: active
 
+- 2026-05-10:
+  - decision/fact: Scheduled SDK company research fanout is implemented for all current-holding and monitoring tickers. `run-weekly --write --execute-orchestrator` now runs generic per-ticker company-research packets before main orchestration, including financial, company-news, Exa company-search, SEC filing, xAI/Grok sentiment, risk/thesis, writer, and quality-review lanes, and writes per-ticker company-research markdown/metrics artifacts.
+  - evidence artifact path(s): `stock_research/scheduled_runner.py`, `stock_research/agent_runtime/orchestrators/company_research.py`, `stock_research/agent_runtime/specialists/risk_thesis.py`, `stock_research/agent_runtime/specialists/writer.py`, `stock_research/agent_runtime/specialists/quality_review.py`, `stock_research/agent_runtime/reports.py`, `tests/test_scheduled_runner.py`, `tests/test_agent_runtime.py`
+  - status: active
+
 - 2026-05-04:
   - decision/fact: Generated run JSON artifacts are local runtime output and should not be committed. Keep markdown run summaries/reports/finalization files as the reviewable artifacts; `.gitignore` now ignores run-root JSON, raw provider JSON, evidence packet JSON, and generated recurring-failure JSON.
   - evidence artifact path(s): `.gitignore`, `README.md`, `SETUP.md`, `docs/descriptions/run_summary_and_quality.md`

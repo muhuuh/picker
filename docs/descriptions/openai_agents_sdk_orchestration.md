@@ -6,7 +6,7 @@ Last updated: 2026-05-10
 
 This document defines how this repo should use OpenAI Agents SDK for LLM orchestration.
 
-The first SDK runtime foundation is implemented. It can build real SDK `Agent` objects, compose company-news, company-search, financial, filing, and sentiment specialists as tools for orchestrators, run no-model-call registry smoke checks, manually execute orchestrators over existing run artifacts, and run from the weekly wrapper behind an explicit `--execute-orchestrator` flag.
+The first SDK runtime foundation is implemented. It can build real SDK `Agent` objects, compose company-news, company-search, financial, filing, sentiment, risk/thesis, writer, and quality-review specialists as tools for orchestrators, run no-model-call registry smoke checks, manually execute orchestrators over existing run artifacts, and run scheduled per-ticker company research plus main orchestration from the weekly wrapper behind an explicit `--execute-orchestrator` flag.
 
 Dedicated backlog: `docs/plans/openai_agents_sdk_orchestration_backlog.md`.
 
@@ -77,7 +77,7 @@ run-weekly
   -> memory finalize-run
   -> load prompt-ready memory context
   -> OpenAI Agents SDK runtime
-     -> code-level parallel specialist calls
+     -> code-level per-ticker company-research specialist fanout
      -> main orchestrator synthesis
      -> alerts, update proposals, review items, next-run plan
   -> deterministic proposal review bridge
@@ -333,12 +333,15 @@ Implemented:
 - `stock_research/agent_runtime/outputs.py`: typed output contracts for specialist results, orchestrator decisions, alerts, file update proposals, and human review items.
 - `stock_research/agent_runtime/registry.py`: central agent registry.
 - `stock_research/agent_runtime/orchestrators/main.py`: main orchestrator agent builder.
-- `stock_research/agent_runtime/orchestrators/company_research.py`: first company-research sub-orchestrator, one-ticker lane packet builder for financials/company-news/filings/sentiment/company-search/risk-thesis lanes, fanout task builder, and aggregation helper.
+- `stock_research/agent_runtime/orchestrators/company_research.py`: first company-research sub-orchestrator, one-ticker lane packet builder for financials/company-news/filings/sentiment/company-search/risk-thesis/writer/quality lanes, fanout task builder, aggregation helper, and per-ticker scheduled artifact writer.
 - `stock_research/agent_runtime/specialists/company_news.py`: company-news specialist agent builder.
 - `stock_research/agent_runtime/specialists/company_search.py`: Exa company-search specialist agent builder over existing Exa company/general search artifacts.
 - `stock_research/agent_runtime/specialists/financial.py`: financial specialist agent builder over deterministic financial comparison/review artifacts.
 - `stock_research/agent_runtime/specialists/filing.py`: SEC filing specialist agent builder over existing SEC EDGAR artifacts.
 - `stock_research/agent_runtime/specialists/sentiment.py`: xAI/Grok sentiment specialist agent builder over existing `x_search` artifacts.
+- `stock_research/agent_runtime/specialists/risk_thesis.py`: risk/thesis specialist agent builder over aggregated company-research evidence.
+- `stock_research/agent_runtime/specialists/writer.py`: proposal-drafting specialist agent builder; actual file writes remain approval-gated.
+- `stock_research/agent_runtime/specialists/quality_review.py`: quality-review specialist agent builder for citation/source/approval-gate checks.
 - `stock_research/agent_runtime/tools/repo_tools.py`: function-first repo map, memory, run markdown, run summary, quality report, evidence packet index, and stock CSV tools.
 - `stock_research/agent_runtime/tools/provider_tools.py`: dry-run-by-default SDK wrapper around manifest provider tasks.
 - `stock_research/agent_runtime/tools/analysis_tools.py`: dry-run-by-default SDK wrapper around manifest analysis tasks.
@@ -365,9 +368,8 @@ Implemented:
 
 Not implemented yet:
 
-- wiring company-research fanout into scheduled `run-weekly` across all current/monitoring tickers,
 - full tool guardrail set,
-- additional SDK specialists beyond company-news, company-search, financial, filing, and sentiment scaffolds.
+- market research, portfolio review, and memory/evaluation sub-orchestrators.
 - per-specialist retry policy for future fanout and deeper memory-use evaluation beyond injected/reported ids.
 
 ## Runtime Quality Gates
@@ -390,6 +392,8 @@ These gates are intentionally stricter than "did the model return JSON". Future 
 Scheduled SDK runs add one more freshness gate: if provider tasks or analysis tasks were dry-run and the SDK still returns ready/actionable alerts or file update proposals, the scheduled run becomes `needs_review`. This keeps stale-artifact synthesis from being treated as fresh current-cycle research.
 
 Fresh scheduled runs also clean generated artifacts in the target run directory before live provider/analysis execution. This prevents repeated smoke tests from leaving older evidence packets that inflate run summaries or duplicate specialist reviews.
+
+Scheduled SDK runs also execute company-research fanout for every ticker in current holdings and monitoring before the main orchestrator. The fanout is generic: task ids include the ticker as a run label, but all specialists are reusable modules. Per-ticker reports are written under `agents/runs/{run_id}/company_research/`.
 
 Saved SDK proposals are converted through a deterministic proposal bridge before any writer can act on them. The bridge validates the saved SDK output, writes `agents/runs/{run_id}/orchestrator_update_proposals.md`, and can append duplicate-safe rows to `agents/human_review_queue.md`. It never edits `stock_tracking/stock_info_files/`.
 
