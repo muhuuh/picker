@@ -145,6 +145,7 @@ def evaluate_runtime_output_quality(output: Any, context: ResearchRunContext | N
                 f"specialist_results[{index}]",
             )
     validate_file_update_proposals(data.get("file_update_proposals") or [], context, findings, source_ids, "top-level output")
+    validate_candidate_leads(data.get("candidate_leads") or [], findings, "top-level output")
     return findings
 
 
@@ -224,3 +225,25 @@ def validate_sources(
             ]
             if not any(candidate.exists() for candidate in candidates):
                 findings.append(f"{label} source[{index}] artifact_path does not exist: {artifact_path}")
+
+
+def validate_candidate_leads(candidate_leads: list[Any], findings: list[str], label: str) -> None:
+    for index, lead in enumerate(candidate_leads):
+        if not isinstance(lead, dict):
+            findings.append(f"{label} candidate_leads[{index}] is not an object.")
+            continue
+        candidate_label = str(lead.get("ticker") or lead.get("company_name") or f"candidate_leads[{index}]")
+        source_ids = [str(source_id) for source_id in lead.get("source_ids") or []]
+        verification_status = str(lead.get("verification_status", "")).strip()
+        next_action = str(lead.get("next_action", "")).strip()
+        cooldown_status = str(lead.get("rejected_cooldown_status", "")).strip()
+        if not source_ids:
+            findings.append(f"{label} candidate lead {candidate_label} has no source_ids.")
+        if not verification_status:
+            findings.append(f"{label} candidate lead {candidate_label} has no verification_status.")
+        if verification_status == "grok_only" and next_action == "add_to_monitoring":
+            findings.append(f"{label} candidate lead {candidate_label} is Grok-only but marked for monitoring.")
+        if cooldown_status == "cooldown_active" and next_action == "add_to_monitoring":
+            findings.append(f"{label} candidate lead {candidate_label} is still in rejected cooldown but marked for monitoring.")
+        if bool(lead.get("rumor_flag")) and verification_status == "verified" and next_action == "add_to_monitoring":
+            findings.append(f"{label} candidate lead {candidate_label} is rumor-flagged but marked as verified promotion.")

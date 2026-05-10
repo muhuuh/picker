@@ -113,7 +113,7 @@ The deterministic financial comparison layer was added on 2026-05-04 under `stoc
 The deterministic financial-data specialist review layer was added on 2026-05-04 under `stock_research/financial_specialist.py`.
 The deterministic analysis-task runner was added on 2026-05-04 under `stock_research/analysis_runner.py`.
 The operational agent memory layer was added on 2026-05-04 under `agents/memory/`, with deterministic inspection support under `stock_research/memory.py` and run finalization support under `stock_research/run_finalization.py`.
-The deterministic scheduled runner was added on 2026-05-05 under `stock_research/scheduled_runner.py`; it chains the deterministic weekly lifecycle and now stops before the selected OpenAI Agents SDK runtime is implemented.
+The deterministic scheduled runner was added on 2026-05-05 under `stock_research/scheduled_runner.py`; it chains the deterministic weekly lifecycle and can optionally call the OpenAI Agents SDK runtime.
 
 The agent framework decision was resolved on 2026-05-06: use OpenAI Agents SDK for the LLM orchestrator and specialists. Detailed SDK implementation planning lives in `docs/plans/openai_agents_sdk_orchestration_backlog.md` and `docs/scratchpads/openai_agents_sdk_orchestration_scratchpad.md`.
 
@@ -227,7 +227,8 @@ Current implementation status:
 - Implemented providers: SEC EDGAR submissions and optional companyfacts evidence packet writer, yfinance market-data snapshots, FMP market-data/fundamentals snapshots, Polygon/Massive U.S. ticker/OHLC snapshots, Alpha Vantage quote/overview snapshots, Exa search/contents evidence packet writers, and xAI Grok x_search evidence packet writers.
 - Implemented: weekly manifests now include deterministic provider tasks and post-provider `analysis_tasks` for financial comparison plus financial-data specialist review. `provider-tasks` and `analysis-tasks` can dry-run or explicitly execute those manifest tasks.
 - Implemented: deterministic weekly workflow wrapper through `python -m stock_research run-weekly`.
-- Pending: macro providers, LLM specialists, LLM orchestrator runtime, OS/app scheduled execution, immediate manual research runs.
+- Implemented: OpenAI Agents SDK runtime foundation, company-research sub-orchestrator, market-research sub-orchestrator, and a manual market-research runner for industry/theme discovery with Exa, Grok/X, candidate lead extraction, and discovery quality gates.
+- Pending: macro providers, portfolio/memory-evaluation sub-orchestrators, OS/app scheduled execution, and deeper live prompt iteration across real manual examples.
 
 ### Layer 2: Specialist research agents
 
@@ -257,6 +258,14 @@ xAI Grok specialist tool selection:
 - Stock sentiment specialist should use Grok `x_search` for representative recent posts, sentiment, news reactions, and cited X posts.
 - Industry sentiment specialist should use Grok `x_search` against topic prompts; discovered tickers require Exa/company validation before they become candidates.
 - Grok/X evidence must stay labeled as social sentiment and should not be treated as verified fact.
+
+Manual market-research loop:
+
+```powershell
+python -m stock_research market-research run --topic "robotics suppliers in Europe" --subject-type industry --write --execute-providers
+```
+
+This path is the preferred near-term workflow while prompts and specialists are still being improved. It builds a manual manifest with Exa context, Exa company discovery, and Grok/X discovery lanes; writes a market report under `agents/runs/{run_id}/market_research/`; extracts typed candidate leads; and applies deterministic quality gates so Grok-only leads remain verification tasks, rumors are labeled, and rejected-stock cooldowns are respected.
 
 ### Layer 3: Sub-orchestrators
 

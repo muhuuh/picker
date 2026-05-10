@@ -78,13 +78,47 @@ def list_evidence_packets_data(context: ResearchRunContext) -> dict[str, Any]:
                 {
                     "packet_id": data.get("packet_id", ""),
                     "provider": data.get("provider", ""),
-                    "subject_type": data.get("subject", {}).get("type", "") if isinstance(data.get("subject"), dict) else "",
-                    "subject_id": data.get("subject", {}).get("id", "") if isinstance(data.get("subject"), dict) else "",
+                    "subject_type": data.get("subject_type", "")
+                    or (data.get("subject", {}).get("type", "") if isinstance(data.get("subject"), dict) else ""),
+                    "subject_id": data.get("subject_id", "")
+                    or (data.get("subject", {}).get("id", "") if isinstance(data.get("subject"), dict) else ""),
                     "created_at": data.get("created_at", ""),
                 }
             )
         packets.append(item)
     return {"run_id": context.run_id, "evidence_packets": packets}
+
+
+def load_evidence_packet_data(context: ResearchRunContext, packet_id_or_path: str, max_claims: int = 8, max_sources: int = 12) -> dict[str, Any]:
+    evidence_dir = context.run_dir / "evidence_packets"
+    if not evidence_dir.exists():
+        return {"error": "missing_evidence_packets_dir", "packet_id_or_path": packet_id_or_path}
+    requested = packet_id_or_path.strip()
+    candidates: list[Path] = []
+    if requested.endswith(".json"):
+        candidates.append(safe_run_path(context, requested))
+    candidates.extend(evidence_dir.glob(f"{requested}.json"))
+    candidates.extend(path for path in evidence_dir.glob("*.json") if path.name == requested or path.stem == requested)
+    candidates.extend(path for path in evidence_dir.glob("*.json") if requested and requested in path.stem)
+    path = next((candidate for candidate in candidates if candidate.exists() and evidence_dir.resolve() in candidate.resolve().parents), None)
+    if path is None:
+        return {"error": "missing_evidence_packet", "packet_id_or_path": packet_id_or_path}
+    data = json.loads(path.read_text(encoding="utf-8"))
+    return {
+        "path": str(path.relative_to(context.run_dir)).replace("\\", "/"),
+        "packet_id": data.get("packet_id", ""),
+        "provider": data.get("provider", ""),
+        "subject_type": data.get("subject_type", ""),
+        "subject_id": data.get("subject_id", ""),
+        "time_window": data.get("time_window", ""),
+        "notes": data.get("notes", ""),
+        "sources": list(data.get("sources", []))[:max_sources],
+        "claims": list(data.get("claims", []))[:max_claims],
+        "risks": list(data.get("risks", []))[:max_claims],
+        "contradictions": list(data.get("contradictions", []))[:max_claims],
+        "recommended_updates": list(data.get("recommended_updates", []))[:max_claims],
+        "unknowns": list(data.get("unknowns", []))[:max_claims],
+    }
 
 
 @function_tool
@@ -136,6 +170,16 @@ def list_evidence_packets(ctx: RunContextWrapper[ResearchRunContext]) -> str:
 
 
 @function_tool
+def load_evidence_packet(ctx: RunContextWrapper[ResearchRunContext], packet_id_or_path: str, max_claims: int = 8, max_sources: int = 12) -> str:
+    """Load a summarized provider-neutral evidence packet JSON from evidence_packets by packet id or relative path."""
+    return json.dumps(
+        load_evidence_packet_data(ctx.context, packet_id_or_path, max_claims=max_claims, max_sources=max_sources),
+        indent=2,
+        sort_keys=True,
+    )
+
+
+@function_tool
 def load_stock_tracking_csv(ctx: RunContextWrapper[ResearchRunContext], category: str) -> str:
     """Load a stock tracking CSV: current_holdings, monitoring, or rejected."""
     allowed = {
@@ -161,5 +205,6 @@ def repo_tools() -> list[Any]:
         load_run_summary,
         load_quality_report,
         list_evidence_packets,
+        load_evidence_packet,
         load_stock_tracking_csv,
     ]

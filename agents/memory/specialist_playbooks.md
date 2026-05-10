@@ -203,3 +203,17 @@ Procedural memory for future specialist agents. Specialists should produce struc
 - evidence: stock_research/agent_runtime/specialists/risk_thesis.py, stock_research/agent_runtime/specialists/writer.py, stock_research/agent_runtime/specialists/quality_review.py, agents/specialists/prompts/risk_thesis.md, agents/specialists/prompts/writer.md, agents/specialists/prompts/quality_review.md, tests/test_agent_runtime.py
 - owner: company research specialists
 - next_review: 2026-06-10
+
+- id: memory-2026-05-10-discovery-candidate-lead-schema
+- date: 2026-05-10
+- type: procedural
+- scope: specialist
+- status: active
+- confidence: high
+- trigger/source: Manual market-research runner now extracts and gates typed discovery candidates.
+- lesson: Discovery specialists should output candidate leads with ticker/company, source channels, source ids, verification status, hype level, rumor flag, rejected cooldown status, and next action. Grok-only leads are verification tasks; Exa/Grok overlap can move to human review, not automatic monitoring.
+- use_when: Building discovery prompts, reviewing market-research reports, adding discovery quality gates, or deciding how to classify candidate leads from Exa and Grok.
+- do_not_use_when: Updating company facts, making direct trade recommendations, or promoting candidates without source ids and non-social verification.
+- evidence: stock_research/agent_runtime/outputs.py, stock_research/market_research_runner.py, tests/test_market_research_runner.py
+- owner: discovery specialist
+- next_review: 2026-06-10

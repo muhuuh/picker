@@ -261,6 +261,11 @@ Use this file for information we should not lose across sessions.
   - evidence artifact path(s): `stock_research/agent_runtime/orchestrators/market_research.py`, `stock_research/agent_runtime/specialists/grok_discovery.py`, `stock_research/agent_runtime/specialists/exa_industry.py`, `stock_research/agent_runtime/specialists/discovery.py`, `stock_research/providers/xai_grok.py`, `stock_research/manifest.py`, `docs/descriptions/xai_grok_provider.md`, `tests/test_agent_runtime.py`, `tests/test_stock_research_core.py`
   - status: active
 
+- 2026-05-10:
+  - decision/fact: The near-term discovery workflow should be manual-first, not scheduled-first. `python -m stock_research market-research run --topic TOPIC --subject-type industry|theme --write [--execute-providers] [--execute-orchestrator]` is the clean manual loop for industry/theme research. It plans Exa context, Exa company discovery, and Grok/X discovery, writes a market report, extracts typed candidate leads, and applies discovery gates for Grok-only leads, rejected cooldowns, source ids, and verification labels.
+  - evidence artifact path(s): `stock_research/market_research_runner.py`, `stock_research/cli.py`, `stock_research/agent_runtime/outputs.py`, `tests/test_market_research_runner.py`, `README.md`, `SETUP.md`
+  - status: active
+
 - 2026-05-04:
   - decision/fact: Generated run JSON artifacts are local runtime output and should not be committed. Keep markdown run summaries/reports/finalization files as the reviewable artifacts; `.gitignore` now ignores run-root JSON, raw provider JSON, evidence packet JSON, and generated recurring-failure JSON.
   - evidence artifact path(s): `.gitignore`, `README.md`, `SETUP.md`, `docs/descriptions/run_summary_and_quality.md`

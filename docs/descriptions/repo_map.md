@@ -148,6 +148,7 @@ Use CLI commands for manual operation, scheduler entrypoints, validation, smoke 
 - `python -m stock_research agent-runtime validate-output --run-id RUN_ID`: validate a saved SDK runtime output without calling a model.
 - `python -m stock_research agent-runtime queue-proposals --run-id RUN_ID --write --queue-review`: convert saved SDK file-update proposals into `orchestrator_update_proposals.md` and duplicate-safe human-review queue rows.
 - `python -m stock_research agent-runtime apply-proposal --run-id RUN_ID --proposal-id ORP-0001 --write`: apply one approved SDK proposal to its target company file through the deterministic approval-gated writer.
+- `python -m stock_research market-research run --topic "robotics suppliers in Europe" --subject-type industry --write`: run a manual industry/theme research loop. It creates a manual manifest with Exa context, Exa company discovery, and Grok/X discovery lanes, writes a markdown market report, writes ignored candidate-lead JSON, and applies discovery quality gates.
 - `tests/`: unit tests for current deterministic core.
 
 ## OpenAI Agents SDK Runtime Planning
@@ -160,6 +161,7 @@ Use CLI commands for manual operation, scheduler entrypoints, validation, smoke 
 - Do not add broad LLM orchestration code without following the dedicated backlog.
 - First runtime foundation is implemented under `stock_research/agent_runtime/`.
 - SDK repo/memory tools live in `stock_research/agent_runtime/tools/repo_tools.py` and wrap Python functions directly for repo map, run summary, quality report, memory context, evidence packet index, run markdown, and stock CSV loading.
+- SDK repo/memory tools also include `load_evidence_packet` so specialists can inspect summarized provider-neutral JSON packets directly instead of relying on markdown-only evidence exports.
 - SDK provider/analysis tools live in `stock_research/agent_runtime/tools/provider_tools.py` and `stock_research/agent_runtime/tools/analysis_tools.py`; they plan by default and block live side effects unless runtime context explicitly grants execution.
 - SDK local telemetry lives in `stock_research/agent_runtime/tracing.py`; `run_metrics.md` records agent/tool/LLM rows plus injected and reported operational memory ids and runner-level timeout/error status.
 - Post-run reflection in `stock_research/memory_reflection.py` reads `run_metrics.md` and turns SDK runtime failures or missing metrics into reflection issues.

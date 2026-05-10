@@ -200,6 +200,7 @@ Current repo/memory inspection tools are direct wrappers around Python functions
 - `load_quality_report`
 - `load_memory_prompt_context`
 - `list_evidence_packets`
+- `load_evidence_packet`
 - `load_run_markdown`
 - `list_run_markdown_artifacts`
 - `load_operational_memory`
@@ -335,6 +336,7 @@ Implemented:
 - `stock_research/agent_runtime/orchestrators/main.py`: main orchestrator agent builder.
 - `stock_research/agent_runtime/orchestrators/company_research.py`: first company-research sub-orchestrator, one-ticker lane packet builder for financials/company-news/filings/sentiment/company-search/risk-thesis/writer/quality lanes, fanout task builder, aggregation helper, and per-ticker scheduled artifact writer.
 - `stock_research/agent_runtime/orchestrators/market_research.py`: first market-research sub-orchestrator for industry/theme packets, Exa web/company discovery, Grok/X trend discovery, candidate synthesis, and quality review.
+- `stock_research/market_research_runner.py`: manual market-research runner for user-triggered industry/theme discovery. It builds a manual manifest, can execute provider tasks, can run the SDK market fanout, extracts candidate leads into a typed schema, applies discovery quality gates, and writes a reviewable market report.
 - `stock_research/agent_runtime/specialists/company_news.py`: company-news specialist agent builder.
 - `stock_research/agent_runtime/specialists/company_search.py`: Exa company-search specialist agent builder over existing Exa company/general search artifacts.
 - `stock_research/agent_runtime/specialists/financial.py`: financial specialist agent builder over deterministic financial comparison/review artifacts.
@@ -346,7 +348,7 @@ Implemented:
 - `stock_research/agent_runtime/specialists/risk_thesis.py`: risk/thesis specialist agent builder over aggregated company-research evidence.
 - `stock_research/agent_runtime/specialists/writer.py`: proposal-drafting specialist agent builder; actual file writes remain approval-gated.
 - `stock_research/agent_runtime/specialists/quality_review.py`: quality-review specialist agent builder for citation/source/approval-gate checks.
-- `stock_research/agent_runtime/tools/repo_tools.py`: function-first repo map, memory, run markdown, run summary, quality report, evidence packet index, and stock CSV tools.
+- `stock_research/agent_runtime/tools/repo_tools.py`: function-first repo map, memory, run markdown, run summary, quality report, evidence packet index/loaders, and stock CSV tools. `load_evidence_packet` lets specialists inspect summarized provider-neutral JSON evidence packets directly; market discovery should not depend on markdown-only evidence exports.
 - `stock_research/agent_runtime/tools/provider_tools.py`: dry-run-by-default SDK wrapper around manifest provider tasks.
 - `stock_research/agent_runtime/tools/analysis_tools.py`: dry-run-by-default SDK wrapper around manifest analysis tasks.
 - `stock_research/agent_runtime/runner.py`: run config wrapper with trace metadata and sensitive-data tracing disabled.
@@ -373,7 +375,7 @@ Implemented:
 Not implemented yet:
 
 - full tool guardrail set,
-- market research, portfolio review, and memory/evaluation sub-orchestrators.
+- portfolio review and memory/evaluation sub-orchestrators.
 - per-specialist retry policy for future fanout and deeper memory-use evaluation beyond injected/reported ids.
 
 ## Runtime Quality Gates
@@ -390,6 +392,10 @@ Current gates check:
 - file update proposal `source_ids` are backed by returned sources,
 - returned source references have a URL or artifact path,
 - returned source artifact paths exist when provided.
+- market candidate leads include source ids and verification status,
+- Grok-only candidate leads cannot be marked for monitoring,
+- active rejected-stock cooldown blocks candidate promotion,
+- rumor-flagged leads remain verification-limited.
 
 These gates are intentionally stricter than "did the model return JSON". Future gates should add confidence calibration, contradiction handling, stale-source checks, and human-review routing checks.
 

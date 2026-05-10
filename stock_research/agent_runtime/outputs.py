@@ -7,6 +7,16 @@ from typing import Literal
 Confidence = Literal["low", "medium", "high"]
 Severity = Literal["low", "medium", "high", "critical"]
 DecisionStatus = Literal["ready", "partial", "needs_human_review", "blocked"]
+VerificationStatus = Literal[
+    "verified",
+    "partially_verified",
+    "grok_only",
+    "exa_only",
+    "unverified",
+    "cooldown_blocked",
+]
+CandidateNextAction = Literal["ignore", "verify", "add_to_monitoring", "human_review", "reject"]
+HypeLevel = Literal["low", "medium", "high", "unknown"]
 
 
 @dataclass
@@ -66,6 +76,28 @@ class SpecialistResult:
 
 
 @dataclass
+class CandidateLead:
+    ticker: str = ""
+    company_name: str = ""
+    exchange: str = ""
+    country: str = ""
+    sector: str = ""
+    industry: str = ""
+    why_surfaced: str = ""
+    source_channels: list[str] = field(default_factory=list)
+    source_ids: list[str] = field(default_factory=list)
+    hype_level: HypeLevel = "unknown"
+    sentiment: str = "unknown"
+    verification_status: VerificationStatus = "unverified"
+    strategy_fit: str = "unknown"
+    rejected_cooldown_status: str = "not_rejected"
+    next_action: CandidateNextAction = "verify"
+    rumor_flag: bool = False
+    needs_human_review: bool = True
+    notes: str = ""
+
+
+@dataclass
 class OrchestratorDecision:
     agent_id: str
     run_id: str
@@ -75,6 +107,7 @@ class OrchestratorDecision:
     alerts: list[AlertProposal] = field(default_factory=list)
     file_update_proposals: list[FileUpdateProposal] = field(default_factory=list)
     human_review_items: list[HumanReviewItem] = field(default_factory=list)
+    candidate_leads: list[CandidateLead] = field(default_factory=list)
     next_run_tasks: list[str] = field(default_factory=list)
     memory_item_ids_used: list[str] = field(default_factory=list)
 

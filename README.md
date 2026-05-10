@@ -96,6 +96,16 @@ python -m stock_research agent-runtime queue-proposals --run-id 2026-05-09_weekl
 python -m stock_research agent-runtime apply-proposal --run-id 2026-05-09_weekly --proposal-id ORP-0001
 ```
 
+Run a manual market/industry/theme research loop while we are still iterating manually:
+
+```powershell
+python -m stock_research market-research run --topic "robotics suppliers in Europe" --subject-type industry
+python -m stock_research market-research run --topic "robotics suppliers in Europe" --subject-type industry --write --execute-providers
+python -m stock_research market-research run --topic "robotics suppliers in Europe" --subject-type industry --write --execute-providers --execute-orchestrator
+```
+
+This creates a manual manifest with Exa context, Exa company discovery, and Grok/X discovery lanes. With `--write`, it writes a reviewable market report and ignored candidate-lead JSON. Discovery gates keep Grok-only leads as verification tasks, enforce rejected-stock cooldowns, and require source ids plus verification labels.
+
 Run the OpenAI Agents SDK orchestrator over existing run artifacts:
 
 ```powershell
@@ -258,7 +268,7 @@ Implemented:
 - deterministic weekly runner that chains manifest, provider tasks, analysis tasks, summary, quality report, memory finalization, memory-writer review, and optional SDK orchestration.
 - OpenAI Agents SDK runtime foundation: importable runtime package, main orchestrator builder, company-research sub-orchestrator, company-news specialist builder, company-search specialist builder, financial specialist builder, filing specialist builder, sentiment specialist builder, risk/thesis specialist builder, writer specialist builder, quality-review specialist builder, central registry, specialist-as-tool composition, typed context/output contracts, task-relevant memory injection, repo/memory inspection tools, prompt/spec files, and no-model-call smoke command.
 - Company-research SDK sub-orchestrator for one ticker, with evidence lanes for financials, company news, filings, sentiment, company search, risk/thesis impact, writer proposals, and quality review, plus financial, company-news, company-search, filing, sentiment, risk/thesis, writer, and quality-review specialist fanout.
-- Market-research SDK sub-orchestrator for one industry/theme, with Exa industry/company discovery, Grok/X trend and rumor discovery, candidate discovery, and quality-review specialist fanout.
+- Market-research SDK sub-orchestrator and manual runner for one industry/theme, with Exa industry/company discovery, Grok/X trend and rumor discovery, candidate discovery, quality-review specialist fanout, typed candidate leads, and discovery quality gates.
 - guarded OpenAI Agents SDK provider/analysis function tools that plan by default and require context permission for live side effects.
 - live manual OpenAI Agents SDK orchestrator command over existing run artifacts, with local report, trace-link, and run-metrics artifacts.
 - SDK local telemetry hooks for agent lifecycle, tool calls, LLM calls/usage when available, injected operational memory ids, and final-output reported memory ids.

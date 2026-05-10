@@ -38,6 +38,9 @@
 - 2026-05-10: Wired company-research fanout into scheduled `run-weekly` for all current-holding and monitoring tickers when SDK orchestration is enabled. The scheduled path writes per-ticker artifacts under `agents/runs/{run_id}/company_research/` before the main orchestrator synthesis.
 - 2026-05-10: Added first market-research SDK sub-orchestrator and discovery specialists. Discovery now has explicit Exa industry/company lanes and a required Grok/X lane for niche trends, hype, rumors, sentiment, and emerging ticker leads. Grok leads require Exa/filing/market-data verification before promotion.
 - 2026-05-10: Rechecked official xAI X Search docs. Current supported `x_search` controls are `from_date`, `to_date`, `allowed_x_handles`, `excluded_x_handles`, `enable_image_understanding`, and `enable_video_understanding`; allowed and excluded handles are mutually exclusive and capped at 10.
+- 2026-05-10: Added clean manual market-research runner. `python -m stock_research market-research run --topic TOPIC --subject-type industry|theme --write [--execute-providers] [--execute-orchestrator]` builds a manual manifest, plans/runs Exa context + Exa company discovery + Grok/X discovery, extracts typed candidate leads, writes a market report, and applies discovery gates for Grok-only leads, rejected cooldowns, source ids, verification labels, and rumor flags.
+- 2026-05-10: Live manual provider examples ran for `robotics suppliers in Europe` and `grid scale energy storage`. First robotics run exposed noisy ticker extraction (countries/acronyms); tightened extraction and reran successfully. Energy-storage provider run produced plausible Exa-only and Grok-only candidates.
+- 2026-05-10: Live SDK market fanout on `grid scale energy storage` initially exposed a markdown-only artifact gap for JSON evidence packets. Added `load_evidence_packet` repo tool, fixed evidence packet listing subject fields, updated specialist prompts, and reran successfully with status `complete` and no quality findings.
 
 ## Official Docs Reviewed
 
@@ -146,8 +149,10 @@ run-weekly
 
 - Add provider failure, malformed specialist output, and missing-citation golden tests.
 - Add deeper memory-use evaluation beyond injected/reported ids.
-- Build market research, portfolio review, and memory/evaluation sub-orchestrators.
-- Wire market-research fanout into scheduled `run-weekly` after validating the manual market-research sub-orchestrator path.
+- Run 2-3 real manual market-research examples with live providers and inspect whether Exa/Grok prompts surface useful candidate leads.
+- Improve candidate extraction beyond ticker regex if live provider output uses company names without tickers, and add grouping for duplicate listings/share classes such as `EXA`, `EXA.PA`, and `EXALF`.
+- Build portfolio review and memory/evaluation sub-orchestrators.
+- Wire market-research fanout into scheduled `run-weekly` only after validating the manual market-research quality.
 - Add Saturday automation only after the scheduled SDK path is validated with a realistic multi-ticker universe.
 
 ## Risks / Gotchas
@@ -194,5 +199,13 @@ run-weekly
 - Company-research dry-run command: `python -m stock_research agent-runtime run --run-id 2026-05-09_weekly --agent-id company_research_orchestrator --task "company research sub-orchestrator" --ticker AAPL`.
 - Company-research fanout currently includes `financial_specialist`, `company_news_specialist`, `company_search_specialist`, `filing_specialist`, `sentiment_specialist`, `risk_thesis_specialist`, `writer_specialist`, and `quality_reviewer_specialist`.
 - Fanout task names are generated as `{lane}_{ticker.lower()}` from the requested ticker. They are run labels, not ticker-specific agent code.
+- Manual market-research command: `python -m stock_research market-research run --topic "robotics suppliers in Europe" --subject-type industry --write --execute-providers`.
+- Manual market-research live SDK command: `python -m stock_research market-research run --topic "robotics suppliers in Europe" --subject-type industry --write --execute-providers --execute-orchestrator`.
+- Manual discovery gates: no Grok-only monitoring promotion, source ids required, verification status required, active rejected cooldown blocks promotion, rumor-flagged leads stay verification-limited.
+- SDK evidence tool: `load_evidence_packet` lets specialists load summarized provider-neutral JSON packets by id/path. Use it for market-research specialists; do not rely on markdown-only evidence artifacts.
+- Live validation artifacts:
+  - `agents/runs/2026-05-10_manual-market/market_research/robotics_suppliers_in_europe_manual_market_research.md`
+  - `agents/runs/2026-05-10_manual-market-energy-storage/market_research/grid_scale_energy_storage_manual_market_research.md`
+  - `agents/runs/2026-05-10_manual-market-energy-storage/market_research/grid_scale_energy_storage_market_research.md`
 - Dependency install command used: `python -m pip install -e .`.
 - Install warning observed: `openai-agents` pulled `starlette 1.0.0`, which conflicts with an unrelated installed `fastapi 0.117.1` requirement in this environment. The repo does not currently use FastAPI, but revisit this if a FastAPI service is added later.

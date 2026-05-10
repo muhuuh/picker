@@ -203,10 +203,12 @@ def aggregate_market_research(context: ResearchRunContext, subject_id: str, subj
     specialist_results = [specialist_result_from_output(item.final_output, packet) for item in fanout.results]
     missing_lanes = [lane.lane_id for lane in packet.lanes if lane.status == "missing"]
     fanout_failures = [item.task_id for item in fanout.results if item.status in {"error", "timeout"}]
+    blocked_specialists = [result.agent_id for result in specialist_results if result.status in {"blocked", "needs_human_review"}]
+    partial_specialists = [result.agent_id for result in specialist_results if result.status == "partial"]
     status = "ready"
-    if fanout_failures or missing_lanes:
+    if fanout_failures or missing_lanes or partial_specialists:
         status = "partial"
-    if "grok_x_discovery" in missing_lanes:
+    if "grok_x_discovery" in missing_lanes or blocked_specialists:
         status = "needs_human_review"
     summary = (
         f"Market research packet for {packet.topic} covers {packet.evidence_packet_count} evidence packet(s), "
@@ -216,6 +218,8 @@ def aggregate_market_research(context: ResearchRunContext, subject_id: str, subj
     )
     next_tasks = [f"Fill missing market research lane `{lane_id}` for {packet.topic}." for lane_id in missing_lanes]
     next_tasks.extend(f"Review fanout failure `{task_id}` for {packet.topic}." for task_id in fanout_failures)
+    next_tasks.extend(f"Review blocked market specialist `{agent_id}` for {packet.topic}." for agent_id in blocked_specialists)
+    next_tasks.extend(f"Review partial market specialist `{agent_id}` for {packet.topic}." for agent_id in partial_specialists)
     return OrchestratorDecision(
         agent_id="market_research_orchestrator",
         run_id=context.run_id,

@@ -419,6 +419,21 @@ def main(argv: list[str] | None = None) -> int:
     agent_runtime_apply_proposal.add_argument("--write", action="store_true", help="Apply the edit. Omit for approval-gated dry-run.")
     agent_runtime_apply_proposal.add_argument("--today", help="Override current date as YYYY-MM-DD.")
 
+    market_research_parser = subparsers.add_parser("market-research", help="Run manual market/industry/theme research.")
+    market_research_subparsers = market_research_parser.add_subparsers(dest="market_research_command", required=True)
+    market_research_run = market_research_subparsers.add_parser("run", help="Build a manual market-research manifest, optional provider execution, and a reviewable report.")
+    market_research_run.add_argument("--topic", required=True, help="Industry/theme/topic to research, e.g. 'robotics suppliers in Europe'.")
+    market_research_run.add_argument("--subject-type", default="theme", choices=["industry", "theme", "macro"], help="Research subject type.")
+    market_research_run.add_argument("--subject-id", help="Stable subject id. Defaults to a slug from --topic.")
+    market_research_run.add_argument("--run-id", help="Run id for artifacts. Defaults to YYYY-MM-DD_manual-market.")
+    market_research_run.add_argument("--write", action="store_true", help="Write manifest, candidate leads, and markdown report artifacts.")
+    market_research_run.add_argument("--execute-providers", action="store_true", help="Execute Exa and Grok provider tasks. Omit for safe planning only.")
+    market_research_run.add_argument("--execute-orchestrator", action="store_true", help="Run the market-research SDK fanout over written artifacts.")
+    market_research_run.add_argument("--model", help="Reserved model override for future SDK fanout tuning.")
+    market_research_run.add_argument("--timeout-seconds", type=float, default=300.0)
+    market_research_run.add_argument("--days", type=int, default=21, help="Grok/X lookback window in days.")
+    market_research_run.add_argument("--today", help="Override current date as YYYY-MM-DD.")
+
     run_weekly_parser = subparsers.add_parser("run-weekly", help="Run the deterministic weekly workflow up to the agent-framework decision boundary.")
     run_weekly_parser.add_argument("--write", action="store_true", help="Persist manifest, reports, finalization, memory-writer review, and orchestration report.")
     run_weekly_parser.add_argument("--execute-providers", action="store_true", help="Execute live provider tasks. Omit for safe dry-run.")
@@ -1001,6 +1016,41 @@ def main(argv: list[str] | None = None) -> int:
             print(f"ERROR: {exc}")
             return 1
         return 0
+
+    if args.command == "market-research":
+        from .market_research_runner import manual_market_result_to_dict, run_manual_market_research
+
+        if args.market_research_command == "run":
+            request_date = parse_cli_date(args.today)
+            if args.execute_orchestrator and not args.write:
+                print("ERROR: --execute-orchestrator requires --write so the SDK fanout can read/write run artifacts.")
+                return 1
+            if args.execute_orchestrator:
+                api_key = os.environ.get("OPENAI_API_KEY") or get_config_value(state.root, "OPENAI_API_KEY")
+                if not api_key:
+                    print("ERROR: OPENAI_API_KEY is required for market-research run --execute-orchestrator.")
+                    return 1
+                os.environ.setdefault("OPENAI_API_KEY", api_key)
+            try:
+                result = run_manual_market_research(
+                    root=state.root,
+                    topic=args.topic,
+                    subject_type=args.subject_type,
+                    subject_id=args.subject_id or "",
+                    run_id=args.run_id or "",
+                    write=args.write,
+                    execute_providers=args.execute_providers,
+                    execute_orchestrator=args.execute_orchestrator,
+                    current_date=request_date,
+                    days=args.days,
+                    model=args.model,
+                    timeout_seconds=args.timeout_seconds,
+                )
+            except Exception as exc:
+                print(f"ERROR: {exc}")
+                return 1
+            print(json.dumps(manual_market_result_to_dict(result), indent=2, sort_keys=True))
+            return 0 if result.status in {"complete", "partial", "dry_run"} else 2
 
     if args.command == "run-weekly":
         request_date = parse_cli_date(args.today)

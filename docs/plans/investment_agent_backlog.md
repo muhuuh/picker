@@ -248,13 +248,15 @@ This is the clear task backlog for building the stock tracking and investment re
   - Description: deterministic first specialist that consumes `financial_compare` packets, writes a specialist evidence packet, raw review JSON, and markdown financial review. Future LLM version can extend this surface without changing the input/output contract.
 - [x] Build xAI Grok stock sentiment specialist.
   - Description: SDK sentiment specialist consumes xAI/Grok `x_search` artifacts as social-signal evidence and is included in company-research fanout.
-- [ ] Build xAI Grok industry sentiment specialist.
+- [x] Build xAI Grok industry sentiment specialist.
+  - Description: SDK Grok discovery specialist consumes xAI/Grok `x_search` industry/theme artifacts for X narratives, hype, rumors, sentiment, and emerging ticker leads. Grok output remains social-signal lead generation until verified.
 - [x] Build Exa industry research specialist.
   - Description: should choose Exa `industry`, `news`, `general`, `company`, and `contents` based on the research goal.
 - [x] Build discovery specialist.
   - Description: should use Exa `company` for candidate discovery and Exa `general` for context/validation.
 - [ ] Build tracked-stock alert specialist.
-- [ ] Build new-candidate discovery alert specialist.
+- [x] Build new-candidate discovery alert specialist.
+  - Description: first candidate discovery schema and quality gates are implemented for manual market research. Candidate leads track ticker/company, source channels, verification status, hype level, rejected cooldown status, and next action.
 - [x] Build contradiction and risk specialist.
   - Description: SDK risk/thesis specialist is included in company-research fanout and reviews thesis impact, contradictions, and risk deltas from the aggregated packet.
 - [ ] Build human request triage specialist.
@@ -278,9 +280,9 @@ This is the clear task backlog for building the stock tracking and investment re
 - [x] Build company research sub-orchestrator.
   - Description: coordinates filings, news, financials, sentiment, and risk checks for one ticker.
   - Current progress: first SDK version registered as `company_research_orchestrator`; it builds a one-ticker lane packet, uses financial, company-news, company-search, filing, sentiment, risk/thesis, writer, and quality-review fanout, writes per-ticker scheduled artifacts, and aggregates partial results into next-run tasks.
-- [ ] Build market research sub-orchestrator.
+- [x] Build market research sub-orchestrator.
   - Description: coordinates industry, macro, theme, and candidate discovery.
-  - Current progress: first SDK market-research sub-orchestrator is implemented with Exa industry, Grok/X discovery, candidate discovery, and quality-review fanout. Scheduled run-weekly integration is still pending.
+  - Current progress: first SDK market-research sub-orchestrator is implemented with Exa industry, Grok/X discovery, candidate discovery, and quality-review fanout. A clean manual run path now exists through `python -m stock_research market-research run --topic TOPIC --subject-type industry|theme --write [--execute-providers] [--execute-orchestrator]`, which writes a market report plus candidate lead artifacts and applies discovery quality gates. Scheduled run-weekly integration is intentionally deferred until manual iteration quality is good.
 - [ ] Build portfolio review sub-orchestrator.
   - Description: assesses impact across current holdings, monitoring, and rejected buckets.
 - [ ] Build memory and evaluation sub-orchestrator.

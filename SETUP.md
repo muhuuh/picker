@@ -122,6 +122,16 @@ When SDK execution writes metrics, `run_metrics.md` includes local hook telemetr
 
 `market_research_orchestrator` is the first discovery sub-orchestrator. It can build an industry/theme market research packet, group evidence into Exa industry, Exa company discovery, Grok/X discovery, and candidate-synthesis lanes, and run Exa industry, Grok discovery, candidate discovery, and quality-review specialist fanout. Grok/X is required for niche trends, hype, rumors, and emerging ticker leads, but those leads must be verified elsewhere before promotion.
 
+The manual market-research runner is the preferred near-term path for learning and prompt iteration:
+
+```powershell
+python -m stock_research market-research run --topic "robotics suppliers in Europe" --subject-type industry
+python -m stock_research market-research run --topic "robotics suppliers in Europe" --subject-type industry --write --execute-providers
+python -m stock_research market-research run --topic "robotics suppliers in Europe" --subject-type industry --write --execute-providers --execute-orchestrator
+```
+
+It plans Exa context, Exa company-discovery, and Grok/X discovery lanes. With `--write`, it writes a markdown market report and ignored candidate-lead JSON under `agents/runs/RUN_ID/market_research/`. Candidate quality gates prevent Grok-only promotion, enforce rejected-stock cooldowns, and require source ids plus verification labels.
+
 Planning files:
 
 ```text

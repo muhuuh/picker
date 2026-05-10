@@ -33,7 +33,7 @@ from stock_research.agent_runtime.runner import AgentRuntimeResult, build_run_co
 from stock_research.agent_runtime.tracing import LocalRunHooks, LocalRunMetric, LocalRunTelemetry, write_run_metrics
 from stock_research.agent_runtime.tools.analysis_tools import run_analysis_tasks_for_context
 from stock_research.agent_runtime.tools.provider_tools import run_provider_tasks_for_context
-from stock_research.agent_runtime.tools.repo_tools import list_evidence_packets_data, load_memory_prompt_context_for_task
+from stock_research.agent_runtime.tools.repo_tools import list_evidence_packets_data, load_evidence_packet_data, load_memory_prompt_context_for_task
 from stock_research.cli import main
 from stock_research.evidence import Source, new_packet, write_packet
 
@@ -263,6 +263,7 @@ class AgentRuntimeTests(unittest.TestCase):
         self.assertIn("load_run_summary", tool_names)
         self.assertIn("load_quality_report", tool_names)
         self.assertIn("list_evidence_packets", tool_names)
+        self.assertIn("load_evidence_packet", tool_names)
         self.assertIn("load_stock_tracking_csv", tool_names)
         self.assertIn("run_provider_tasks_guarded", tool_names)
         self.assertIn("run_analysis_tasks_guarded", tool_names)
@@ -444,6 +445,29 @@ class AgentRuntimeTests(unittest.TestCase):
 
         self.assertEqual(data["evidence_packets"][0]["packet_id"], "packet-1")
         self.assertEqual(data["evidence_packets"][0]["subject_id"], "AAPL")
+        self.assertEqual(data["evidence_packets"][0]["subject_type"], "company")
+
+    def test_load_evidence_packet_data_returns_packet_summary(self):
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            write_runtime_test_repo(root)
+            context = build_research_run_context(root=root, run_id="test_weekly", task="grok discovery specialist")
+            source = Source(source_id="src", provider="exa", source_type="web", url="https://example.com")
+            packet = new_packet(
+                provider="exa",
+                subject_type="theme",
+                subject_id="grid_storage",
+                time_window="test",
+                current_date=date(2026, 5, 10),
+                sources=[source],
+            )
+            write_packet(packet, context.run_dir / "evidence_packets" / f"{packet.packet_id}.json")
+
+            data = load_evidence_packet_data(context, packet.packet_id)
+
+        self.assertEqual(data["packet_id"], packet.packet_id)
+        self.assertEqual(data["subject_id"], "grid_storage")
+        self.assertEqual(data["sources"][0]["source_id"], "src")
 
     def test_specialist_can_be_built_as_tool(self):
         context = build_research_run_context(root=REPO_ROOT, run_id="test_weekly", task="company news specialist")

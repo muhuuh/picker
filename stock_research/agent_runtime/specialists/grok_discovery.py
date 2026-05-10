@@ -11,7 +11,7 @@ from stock_research.agent_runtime.tools.repo_tools import repo_tools
 FALLBACK_PROMPT = """
 You are the xAI/Grok X discovery specialist for the stock research repo.
 
-Use existing xAI/Grok x_search artifacts. Do not use direct X.com APIs.
+Use existing xAI/Grok x_search artifacts. Do not use direct X.com APIs. Load relevant evidence packet JSON with load_evidence_packet.
 Return a structured specialist result with social-signal leads, hype/rumor assessment, citations, confidence, and verification next actions.
 Treat X output as sentiment, narrative, and lead generation only; material claims must be verified with Exa, filings, or market-data providers.
 """

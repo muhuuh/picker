@@ -362,3 +362,17 @@ Operational memory for workflow routing, orchestration, run ordering, and user c
 - evidence: `stock_research/agent_runtime/orchestrators/market_research.py`, `stock_research/agent_runtime/specialists/grok_discovery.py`, `stock_research/manifest.py`, `docs/descriptions/xai_grok_provider.md`
 - owner: market research orchestrator
 - next_review: 2026-06-15
+
+- id: orch-2026-05-10-manual-market-research-runner
+- date: 2026-05-10
+- type: procedural
+- scope: orchestrator
+- status: active
+- confidence: high
+- trigger/source: Implemented the manual market-research runner and discovery quality gates.
+- lesson: Use `python -m stock_research market-research run --topic TOPIC --subject-type industry|theme --write [--execute-providers] [--execute-orchestrator]` as the preferred near-term manual discovery loop. It plans Exa context, Exa company discovery, and Grok/X discovery lanes, writes a market report, extracts typed candidate leads, gates Grok-only or rejected-cooldown candidates before promotion, and lets SDK specialists load JSON evidence through `load_evidence_packet`.
+- use_when: Running user-triggered industry/theme discovery, testing prompts, validating candidate discovery quality, or deciding whether a discovered company can be added to monitoring.
+- do_not_use_when: Treating the report as an automatic buy/sell decision, promoting Grok-only leads without verification, or bypassing human review for stock status changes.
+- evidence: `stock_research/market_research_runner.py`, `stock_research/agent_runtime/tools/repo_tools.py`, `stock_research/cli.py`, `tests/test_market_research_runner.py`, `tests/test_agent_runtime.py`, `docs/descriptions/openai_agents_sdk_orchestration.md`
+- owner: market research orchestrator
+- next_review: 2026-06-15

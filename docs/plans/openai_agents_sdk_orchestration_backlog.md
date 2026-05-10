@@ -67,6 +67,7 @@ Out of scope for the first slice:
   - `load_quality_report`
   - `load_memory_prompt_context`
   - `list_evidence_packets`
+  - `load_evidence_packet`
 - [x] Start repo/memory inspection function tools.
   - Implemented: `load_run_markdown`, `list_run_markdown_artifacts`, `load_operational_memory`, `load_stock_tracking_csv`.
   - Extended: `load_repo_map`, `load_run_summary`, `load_quality_report`, `load_memory_prompt_context`, `list_evidence_packets`.
@@ -134,9 +135,9 @@ Out of scope for the first slice:
 - [x] Build company research sub-orchestrator.
   - Coordinates filings, news, financials, sentiment, risks, and update proposals for one ticker.
   - Current implementation: `company_research_orchestrator` is registered, exposed to the main orchestrator, has prompt/spec artifacts, can build a one-ticker company research packet, can run financial, company-news, Exa company-search, SEC filing, xAI/Grok sentiment, risk/thesis, writer, and quality-review fanout, and writes per-ticker scheduled artifacts.
-- [ ] Build market research sub-orchestrator.
+- [x] Build market research sub-orchestrator.
   - Coordinates industry/theme research, discovery, candidate validation, and strategy fit.
-  - Current progress: first SDK version registered as `market_research_orchestrator`; it builds an industry/theme packet and runs Exa industry, Grok/X discovery, candidate discovery, and quality-review fanout. Grok/X is a required discovery lane for niche trends, hype, rumors, sentiment, and emerging ticker leads; promotion still requires Exa/filing/market-data verification.
+  - Current progress: first SDK version registered as `market_research_orchestrator`; it builds an industry/theme packet and runs Exa industry, Grok/X discovery, candidate discovery, and quality-review fanout. Manual market research is now available through `python -m stock_research market-research run --topic TOPIC --subject-type industry|theme --write [--execute-providers] [--execute-orchestrator]`. The manual path writes a market report, candidate lead schema, and discovery quality gates. Grok/X is a required discovery lane for niche trends, hype, rumors, sentiment, and emerging ticker leads; promotion still requires Exa/filing/market-data verification.
 - [ ] Build portfolio review sub-orchestrator.
   - Synthesizes current holdings, monitoring, rejected cooldowns, bucket-level changes, and alerts.
 - [ ] Build memory/evaluation sub-orchestrator.
@@ -152,7 +153,8 @@ Out of scope for the first slice:
   - Implemented checks: summary/status shape, direct trade wording, valid memory item ids, existing file targets, source-backed update proposals, and existing source artifact paths.
 - [ ] Keep buy/sell/position-size recommendations as human review items.
 - [ ] Keep stock moves and major strategy changes behind human review unless explicitly approved.
-- [ ] Enforce rejected-stock cooldown before candidate promotion.
+- [x] Enforce rejected-stock cooldown before candidate promotion.
+  - Current progress: manual market-research candidate gates mark active rejected cooldowns and prevent those leads from being promoted.
 
 ## Priority 8: Scheduler and Manual Runs
 
@@ -163,6 +165,10 @@ Out of scope for the first slice:
   - Current behavior: `run-weekly --write --execute-orchestrator` runs per-ticker company research for all current-holding and monitoring tickers before the main orchestrator and writes `agents/runs/{run_id}/company_research/{TICKER}_company_research.md`.
 - [x] Add manual run command for user-triggered SDK orchestration over selected tickers/topics.
   - Current command: `python -m stock_research agent-runtime run --run-id RUN_ID --execute --write`.
+- [x] Add clean manual market-research run path for industry/theme discovery.
+  - Current command: `python -m stock_research market-research run --topic "robotics suppliers in Europe" --subject-type industry --write [--execute-providers] [--execute-orchestrator]`.
+  - Current behavior: creates a manual manifest with Exa context, Exa company discovery, and Grok/X discovery lanes; writes a report with candidate leads, verified/unverified status, hype/rumor labels, cooldown checks, and next research tasks.
+  - Live validation: `robotics suppliers in Europe` and `grid scale energy storage` provider runs completed. The energy-storage SDK market fanout completed after adding direct JSON evidence packet loading for specialists.
 - [ ] Add Saturday automation only after the SDK runtime can run safely and produce reviewable outputs.
 
 ## Priority 9: Tests and Evaluation

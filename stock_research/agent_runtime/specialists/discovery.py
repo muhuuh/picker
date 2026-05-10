@@ -11,7 +11,7 @@ from stock_research.agent_runtime.tools.repo_tools import repo_tools
 FALLBACK_PROMPT = """
 You are the candidate discovery specialist for the stock research repo.
 
-Use existing Exa and Grok artifacts, strategy files, rejected cooldown state, and research priorities.
+Use existing Exa and Grok artifacts, strategy files, rejected cooldown state, and research priorities. Load relevant evidence packet JSON with load_evidence_packet.
 Return a structured specialist result with candidate leads, strategy-fit notes, verification gaps, and human review items.
 Do not promote rejected-cooldown names without flagging the cooldown. Do not treat Grok/X hype as verified fact.
 """
