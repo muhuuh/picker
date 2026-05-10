@@ -333,6 +333,7 @@ Implemented:
 - `stock_research/agent_runtime/outputs.py`: typed output contracts for specialist results, orchestrator decisions, alerts, file update proposals, and human review items.
 - `stock_research/agent_runtime/registry.py`: central agent registry.
 - `stock_research/agent_runtime/orchestrators/main.py`: main orchestrator agent builder.
+- `stock_research/agent_runtime/orchestrators/company_research.py`: first company-research sub-orchestrator, one-ticker lane packet builder for financials/company-news/filings/sentiment/company-search/risk-thesis lanes, fanout task builder, and aggregation helper.
 - `stock_research/agent_runtime/specialists/company_news.py`: company-news specialist agent builder.
 - `stock_research/agent_runtime/tools/repo_tools.py`: function-first repo map, memory, run markdown, run summary, quality report, evidence packet index, and stock CSV tools.
 - `stock_research/agent_runtime/tools/provider_tools.py`: dry-run-by-default SDK wrapper around manifest provider tasks.
@@ -349,6 +350,7 @@ Implemented:
   - `python -m stock_research agent-runtime list-agents`
   - `python -m stock_research agent-runtime smoke --run-id RUN_ID`
   - `python -m stock_research agent-runtime run --run-id RUN_ID`
+  - `python -m stock_research agent-runtime run --run-id RUN_ID --agent-id company_research_orchestrator --ticker AAPL`
   - `python -m stock_research agent-runtime run --run-id RUN_ID --execute --write --timeout-seconds 300`
   - `python -m stock_research agent-runtime validate-output --run-id RUN_ID`
   - `python -m stock_research agent-runtime queue-proposals --run-id RUN_ID --write --queue-review`
@@ -359,10 +361,9 @@ Implemented:
 
 Not implemented yet:
 
-- wiring fanout into scheduled sub-orchestrators,
-- dependency-group aggregation contracts,
+- wiring company-research fanout into scheduled `run-weekly` across all current/monitoring tickers,
 - full tool guardrail set,
-- additional specialists beyond company-news scaffold.
+- additional SDK specialists beyond company-news scaffold.
 - per-specialist retry policy for future fanout and deeper memory-use evaluation beyond injected/reported ids.
 
 ## Runtime Quality Gates

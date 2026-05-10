@@ -1,6 +1,7 @@
 from pathlib import Path
 import asyncio
 from contextlib import redirect_stdout
+from datetime import date
 import io
 import json
 from types import SimpleNamespace
@@ -12,6 +13,12 @@ from agents import Agent
 
 from stock_research.agent_runtime.context import build_research_run_context
 from stock_research.agent_runtime.fanout import AgentFanoutTask, fanout_result_to_dict, run_agent_fanout_sync
+from stock_research.agent_runtime.orchestrators.company_research import (
+    build_company_research_input,
+    build_company_research_fanout_tasks,
+    build_company_research_packet,
+    run_company_research_sub_orchestrator_sync,
+)
 from stock_research.agent_runtime.outputs import OrchestratorDecision
 from stock_research.agent_runtime.reports import build_orchestrator_input, evaluate_runtime_output_quality, output_to_dict
 from stock_research.agent_runtime.registry import build_agent, build_agent_tool, list_agent_specs
@@ -21,6 +28,7 @@ from stock_research.agent_runtime.tools.analysis_tools import run_analysis_tasks
 from stock_research.agent_runtime.tools.provider_tools import run_provider_tasks_for_context
 from stock_research.agent_runtime.tools.repo_tools import list_evidence_packets_data, load_memory_prompt_context_for_task
 from stock_research.cli import main
+from stock_research.evidence import Source, new_packet, write_packet
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -90,11 +98,47 @@ def write_runtime_test_repo(root: Path) -> Path:
     return manifest_path
 
 
+def write_company_research_test_artifacts(root: Path) -> None:
+    monitoring_dir = root / "stock_tracking" / "monitoring"
+    company_dir = root / "stock_tracking" / "stock_info_files" / "monitoring"
+    monitoring_dir.mkdir(parents=True, exist_ok=True)
+    company_dir.mkdir(parents=True, exist_ok=True)
+    (monitoring_dir / "monitoring.csv").write_text(
+        "ticker,name,stock_info_file\nAAPL,Apple Inc.,stock_tracking/stock_info_files/monitoring/AAPL.md\n",
+        encoding="utf-8",
+    )
+    (company_dir / "AAPL.md").write_text("# AAPL\n", encoding="utf-8")
+    run_dir = root / "agents" / "runs" / "test_weekly"
+    reports_dir = run_dir / "reports"
+    (reports_dir / "financial_data_specialist").mkdir(parents=True, exist_ok=True)
+    (reports_dir / "company_news_specialist").mkdir(parents=True, exist_ok=True)
+    (reports_dir / "financial_data_specialist" / "AAPL_financial_review.md").write_text("# Financial Review\n", encoding="utf-8")
+    (reports_dir / "company_news_specialist" / "AAPL_company_news_review.md").write_text("# Company News Review\n", encoding="utf-8")
+    evidence_dir = run_dir / "evidence_packets"
+    source = Source(
+        source_id="src",
+        provider="test",
+        source_type="internal",
+        artifact_path="agents/runs/test_weekly/raw/test.json",
+    )
+    for provider in ("financial_data_specialist", "company_news_specialist", "sec_edgar", "xai_grok"):
+        packet = new_packet(
+            provider=provider,
+            subject_type="company",
+            subject_id="AAPL",
+            time_window="test",
+            current_date=date(2026, 5, 10),
+            sources=[source],
+        )
+        write_packet(packet, evidence_dir / f"{packet.packet_id}.json")
+
+
 class AgentRuntimeTests(unittest.TestCase):
     def test_registry_lists_orchestrator_and_specialist(self):
         specs = {spec.agent_id: spec for spec in list_agent_specs()}
 
         self.assertEqual(specs["main_orchestrator"].role, "orchestrator")
+        self.assertEqual(specs["company_research_orchestrator"].role, "orchestrator")
         self.assertEqual(specs["company_news_specialist"].role, "specialist")
 
     def test_build_research_context_includes_trace_and_memory(self):
@@ -123,6 +167,7 @@ class AgentRuntimeTests(unittest.TestCase):
         self.assertIn("load_stock_tracking_csv", tool_names)
         self.assertIn("run_provider_tasks_guarded", tool_names)
         self.assertIn("run_analysis_tasks_guarded", tool_names)
+        self.assertIn("company_research_orchestrator", tool_names)
         self.assertIn("company_news_specialist", tool_names)
         self.assertNotIn("memory_apply_updates", tool_names)
         self.assertNotIn("apply_memory_updates", tool_names)
@@ -270,6 +315,98 @@ class AgentRuntimeTests(unittest.TestCase):
         tool = build_agent_tool("company_news_specialist", context)
 
         self.assertEqual(getattr(tool, "name", ""), "company_news_specialist")
+
+    def test_company_research_orchestrator_can_be_built(self):
+        context = build_research_run_context(root=REPO_ROOT, run_id="test_weekly", task="company research sub-orchestrator")
+        agent = build_agent("company_research_orchestrator", context)
+        tool_names = {getattr(tool, "name", type(tool).__name__) for tool in agent.tools}
+
+        self.assertIsInstance(agent, Agent)
+        self.assertIn("load_run_markdown", tool_names)
+        self.assertIn("run_provider_tasks_guarded", tool_names)
+        self.assertIn("run_analysis_tasks_guarded", tool_names)
+        self.assertIn("company_news_specialist", tool_names)
+        self.assertNotIn("write_company_file", tool_names)
+
+    def test_company_research_packet_groups_existing_company_artifacts(self):
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            manifest_path = write_runtime_test_repo(root)
+            write_company_research_test_artifacts(root)
+            context = build_research_run_context(
+                root=root,
+                run_id="test_weekly",
+                task="company research sub-orchestrator",
+                manifest_path=manifest_path,
+            )
+
+            packet = build_company_research_packet(context, "AAPL")
+            prompt = build_company_research_input(context, "AAPL")
+
+        lanes = {lane.lane_id: lane for lane in packet.lanes}
+        self.assertEqual(packet.stock_bucket, "monitoring")
+        self.assertEqual(packet.stock_info_file, "stock_tracking/stock_info_files/monitoring/AAPL.md")
+        self.assertEqual(lanes["financials"].status, "ready")
+        self.assertEqual(lanes["company_news"].status, "ready")
+        self.assertEqual(lanes["filings"].status, "ready")
+        self.assertEqual(lanes["sentiment"].status, "ready")
+        self.assertEqual(lanes["company_search"].status, "missing")
+        self.assertIn("Company research packet", prompt)
+
+    def test_company_research_fanout_task_uses_company_news_specialist(self):
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            manifest_path = write_runtime_test_repo(root)
+            write_company_research_test_artifacts(root)
+            context = build_research_run_context(
+                root=root,
+                run_id="test_weekly",
+                task="company research sub-orchestrator",
+                manifest_path=manifest_path,
+            )
+
+            tasks = build_company_research_fanout_tasks(context, "AAPL", timeout_seconds=12)
+
+        self.assertEqual(len(tasks), 1)
+        self.assertEqual(tasks[0].agent_id, "company_news_specialist")
+        self.assertEqual(tasks[0].timeout_seconds, 12)
+        self.assertIn("Company research packet", tasks[0].prompt)
+
+    def test_company_research_sub_orchestrator_aggregates_fanout_results(self):
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            manifest_path = write_runtime_test_repo(root)
+            write_company_research_test_artifacts(root)
+            context = build_research_run_context(
+                root=root,
+                run_id="test_weekly",
+                task="company research sub-orchestrator",
+                manifest_path=manifest_path,
+            )
+
+            async def fake_runner(agent_id, _prompt, task_context, **_kwargs):
+                return AgentRuntimeResult(
+                    agent_id=agent_id,
+                    final_output={
+                        "agent_id": agent_id,
+                        "subject_type": "company",
+                        "subject_id": "AAPL",
+                        "status": "ready",
+                        "summary": "Company news evidence is adequate for this deterministic sub-orchestrator unit test.",
+                        "memory_item_ids_used": list(task_context.memory_item_ids[:1]),
+                    },
+                    trace_id=task_context.trace_id,
+                    group_id=task_context.trace_group_id,
+                    quality_findings=[],
+                )
+
+            decision, fanout = run_company_research_sub_orchestrator_sync(context, "AAPL", runner=fake_runner)
+
+        self.assertEqual(fanout.status, "complete")
+        self.assertEqual(decision.agent_id, "company_research_orchestrator")
+        self.assertEqual(decision.status, "partial")
+        self.assertEqual(len(decision.specialist_results), 1)
+        self.assertTrue(any("company_search" in task for task in decision.next_run_tasks))
 
     def test_run_config_uses_trace_metadata_without_sensitive_data(self):
         context = build_research_run_context(root=REPO_ROOT, run_id="test_weekly", task="main orchestrator")
@@ -489,6 +626,32 @@ class AgentRuntimeTests(unittest.TestCase):
         self.assertIn('"status": "dry_run"', output)
         self.assertIn('"live_model_called": false', output)
         self.assertIn("run_summary.md", output)
+
+    def test_agent_runtime_cli_company_research_dry_run_uses_ticker_packet(self):
+        buffer = io.StringIO()
+        with redirect_stdout(buffer):
+            exit_code = main(
+                [
+                    "--root",
+                    str(REPO_ROOT),
+                    "agent-runtime",
+                    "run",
+                    "--run-id",
+                    "2026-05-09_weekly",
+                    "--agent-id",
+                    "company_research_orchestrator",
+                    "--task",
+                    "company research sub-orchestrator",
+                    "--ticker",
+                    "AAPL",
+                ]
+            )
+
+        self.assertEqual(exit_code, 0)
+        output = buffer.getvalue()
+        self.assertIn('"agent_id": "company_research_orchestrator"', output)
+        self.assertIn("Company research packet", output)
+        self.assertIn('\\"ticker\\": \\"AAPL\\"', output)
 
     def test_agent_runtime_cli_validate_output(self):
         with TemporaryDirectory() as temp_dir:

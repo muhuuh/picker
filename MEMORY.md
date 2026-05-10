@@ -226,6 +226,11 @@ Use this file for information we should not lose across sessions.
   - evidence artifact path(s): `stock_research/agent_runtime/fanout.py`, `tests/test_agent_runtime.py`, `docs/plans/openai_agents_sdk_orchestration_backlog.md`, `docs/scratchpads/openai_agents_sdk_orchestration_scratchpad.md`
   - status: active
 
+- 2026-05-10:
+  - decision/fact: The first company-research SDK sub-orchestrator is implemented. `company_research_orchestrator` is registered, exposed to the main orchestrator, can build one-ticker company research packets across financials/company-news/filings/sentiment/company-search/risk-thesis lanes, and can aggregate available fanout results while preserving missing lanes as next-run tasks.
+  - evidence artifact path(s): `stock_research/agent_runtime/orchestrators/company_research.py`, `agents/orchestrator/prompts/company_research.md`, `agents/orchestrator/specs/company_research.md`, `stock_research/agent_runtime/registry.py`, `stock_research/agent_runtime/orchestrators/main.py`, `tests/test_agent_runtime.py`, `docs/plans/openai_agents_sdk_orchestration_backlog.md`
+  - status: active
+
 - 2026-05-04:
   - decision/fact: Generated run JSON artifacts are local runtime output and should not be committed. Keep markdown run summaries/reports/finalization files as the reviewable artifacts; `.gitignore` now ignores run-root JSON, raw provider JSON, evidence packet JSON, and generated recurring-failure JSON.
   - evidence artifact path(s): `.gitignore`, `README.md`, `SETUP.md`, `docs/descriptions/run_summary_and_quality.md`

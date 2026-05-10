@@ -99,7 +99,7 @@ Detailed backlog: `docs/plans/investment_agent_backlog.md`.
   - Current progress: automatic Saturday invocation is still pending.
 - [x] Implement deterministic Codex chat intake routing for user requests.
 - [ ] Implement market research sub-orchestrator.
-- [ ] Implement company research sub-orchestrator.
+- [x] Implement company research sub-orchestrator.
 - [ ] Implement portfolio review sub-orchestrator.
 - [ ] Implement main orchestrator synthesis.
 - [x] Implement human review queue writer.
@@ -187,3 +187,4 @@ Detailed backlog: `docs/plans/investment_agent_backlog.md`.
 - 2026-05-10: Added local SDK telemetry hooks. `run_metrics.md` now records agent lifecycle, tool calls, LLM calls/usage when available, injected operational memory ids, and final-output reported memory ids.
 - 2026-05-10: Added SDK timeout/error policy and telemetry-informed memory reflection. SDK runtime failures now produce blocked reviewable artifacts, and post-run reflection reads `run_metrics.md` to surface timeout/error/missing-metrics issues.
 - 2026-05-10: Added code-level SDK fanout infrastructure for future sub-orchestrators with per-task memory, timeout, partial-failure preservation, and aggregate metrics.
+- 2026-05-10: Added first company-research SDK sub-orchestrator for one-ticker lane aggregation and company-news fanout.

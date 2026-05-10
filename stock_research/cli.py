@@ -395,6 +395,7 @@ def main(argv: list[str] | None = None) -> int:
     agent_runtime_run.add_argument("--agent-id", default="main_orchestrator")
     agent_runtime_run.add_argument("--task", default="main orchestrator")
     agent_runtime_run.add_argument("--prompt", help="Override the default orchestrator input prompt.")
+    agent_runtime_run.add_argument("--ticker", help="Ticker for one-company runtime prompts, currently used by company_research_orchestrator.")
     agent_runtime_run.add_argument("--model", help="Optional OpenAI model override.")
     agent_runtime_run.add_argument("--execute", action="store_true", help="Call OpenAI through the Agents SDK.")
     agent_runtime_run.add_argument("--write", action="store_true", help="Write agent runtime report, trace links, and metrics artifacts.")
@@ -1035,6 +1036,7 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "agent-runtime":
         from .agent_runtime.context import build_research_run_context
+        from .agent_runtime.orchestrators.company_research import build_company_research_input
         from .agent_runtime.proposal_review import build_proposal_review, proposal_review_to_dict
         from .agent_runtime.proposal_writer import apply_approved_proposal, proposal_apply_result_to_dict
         from .agent_runtime.reports import build_orchestrator_input, evaluate_runtime_output_quality, output_status, output_to_dict
@@ -1064,7 +1066,12 @@ def main(argv: list[str] | None = None) -> int:
                 task=args.task,
                 dry_run=not args.execute,
             )
-            prompt = args.prompt or build_orchestrator_input(args.run_id, context.memory_item_ids)
+            if args.prompt:
+                prompt = args.prompt
+            elif args.agent_id == "company_research_orchestrator" and args.ticker:
+                prompt = build_company_research_input(context, args.ticker)
+            else:
+                prompt = build_orchestrator_input(args.run_id, context.memory_item_ids)
             if not args.execute:
                 print(
                     json.dumps(

@@ -118,6 +118,8 @@ When SDK execution writes metrics, `run_metrics.md` includes local hook telemetr
 
 `stock_research/agent_runtime/fanout.py` provides the first code-level fanout helper for future sub-orchestrators. It runs independent SDK agent tasks concurrently with task-specific memory, per-task timeout, and partial-failure preservation, but it is not yet wired into scheduled `run-weekly`.
 
+`company_research_orchestrator` is the first SDK sub-orchestrator. It can build a one-ticker company research packet, group evidence into financials/company-news/filings/sentiment/company-search/risk-thesis lanes, run available specialist fanout, and preserve missing lanes as next-run tasks.
+
 Planning files:
 
 ```text

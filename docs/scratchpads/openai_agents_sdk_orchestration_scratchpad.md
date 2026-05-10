@@ -29,6 +29,7 @@
 - 2026-05-10: Added SDK timeout/error policy. Manual `agent-runtime run` and scheduled `run-weekly --execute-orchestrator` now accept timeout settings; runtime timeouts/errors produce blocked reviewable artifacts and metrics instead of crashing silently.
 - 2026-05-10: Memory reflection now reads SDK `run_metrics.md`, surfaces runtime timeouts/errors/missing metrics, and records injected/reported memory ids in reflection metrics.
 - 2026-05-10: Added function-first SDK fanout helper. `stock_research/agent_runtime/fanout.py` runs independent agent tasks concurrently with task-specific memory, per-task timeout, partial-failure preservation, and aggregate metrics. It is not wired into scheduled runs yet.
+- 2026-05-10: Added first company-research sub-orchestrator. It registers `company_research_orchestrator`, exposes it to the main orchestrator, builds a one-ticker company research packet with financials/company-news/filings/sentiment/company-search/risk-thesis lanes, runs company-news fanout, and aggregates missing lanes into next-run tasks.
 
 ## Official Docs Reviewed
 
@@ -135,10 +136,10 @@ run-weekly
 
 ## Next Steps
 
-- Define dependency-group and aggregation contracts for the first real sub-orchestrator.
+- Add SDK specialists for the company-research lanes that are currently deterministic packet/report lanes: financials, filings, xAI/Grok sentiment, Exa company search, risk/thesis, writer, and quality review.
 - Add provider failure, malformed specialist output, and missing-citation golden tests.
 - Add deeper memory-use evaluation beyond injected/reported ids.
-- Wire fanout into a company-research or market-research sub-orchestrator after the aggregation contract is clear.
+- Wire company-research outputs into scheduled `run-weekly` across current holdings and monitoring tickers.
 
 ## Risks / Gotchas
 
@@ -181,5 +182,6 @@ run-weekly
 - Local telemetry note: `LocalRunHooks` records `agent:*`, `llm:*`, `tool:*`, `memory_context:*`, and `memory_output:*` metrics. Metrics intentionally avoid raw prompts/tool input/output.
 - Reflection telemetry note: `memory_reflection.py` now treats SDK timeout/error/missing metrics as reflection issues and proposals, so runtime reliability problems feed the learning loop.
 - Fanout note: `AgentFanoutTask` and `run_agent_fanout_sync` exist for code-level parallel specialist execution, but scheduled `run-weekly` still calls the single main orchestrator path.
+- Company-research dry-run command: `python -m stock_research agent-runtime run --run-id 2026-05-09_weekly --agent-id company_research_orchestrator --task "company research sub-orchestrator" --ticker AAPL`.
 - Dependency install command used: `python -m pip install -e .`.
 - Install warning observed: `openai-agents` pulled `starlette 1.0.0`, which conflicts with an unrelated installed `fastapi 0.117.1` requirement in this environment. The repo does not currently use FastAPI, but revisit this if a FastAPI service is added later.

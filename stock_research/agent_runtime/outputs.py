@@ -77,3 +77,27 @@ class OrchestratorDecision:
     human_review_items: list[HumanReviewItem] = field(default_factory=list)
     next_run_tasks: list[str] = field(default_factory=list)
     memory_item_ids_used: list[str] = field(default_factory=list)
+
+
+@dataclass(frozen=True)
+class CompanyResearchLane:
+    lane_id: str
+    status: Literal["ready", "partial", "missing"]
+    summary: str
+    evidence_packet_ids: list[str] = field(default_factory=list)
+    report_paths: list[str] = field(default_factory=list)
+    planned_task_ids: list[str] = field(default_factory=list)
+    missing_items: list[str] = field(default_factory=list)
+
+
+@dataclass(frozen=True)
+class CompanyResearchPacket:
+    run_id: str
+    ticker: str
+    stock_bucket: str = ""
+    stock_info_file: str = ""
+    lanes: list[CompanyResearchLane] = field(default_factory=list)
+    evidence_packet_count: int = 0
+    planned_provider_task_ids: list[str] = field(default_factory=list)
+    planned_analysis_task_ids: list[str] = field(default_factory=list)
+    memory_item_ids: list[str] = field(default_factory=list)

@@ -5,6 +5,7 @@ from agents import Agent
 from stock_research.agent_runtime.context import ResearchRunContext, with_task_memory
 from stock_research.agent_runtime.outputs import OrchestratorDecision
 from stock_research.agent_runtime.prompts import load_prompt, with_memory
+from stock_research.agent_runtime.orchestrators.company_research import build_agent as build_company_research_agent
 from stock_research.agent_runtime.specialists.company_news import build_agent as build_company_news_agent
 from stock_research.agent_runtime.tools.analysis_tools import analysis_tools
 from stock_research.agent_runtime.tools.provider_tools import provider_tools
@@ -28,6 +29,8 @@ def build_agent(context: ResearchRunContext | None = None) -> Agent[ResearchRunC
 
     company_news_context = with_task_memory(context, "company news specialist") if context else None
     company_news_agent = build_company_news_agent(company_news_context)
+    company_research_context = with_task_memory(context, "company research sub-orchestrator") if context else None
+    company_research_agent = build_company_research_agent(company_research_context)
     return Agent[ResearchRunContext](
         name="Main Stock Research Orchestrator",
         instructions=prompt,
@@ -39,6 +42,10 @@ def build_agent(context: ResearchRunContext | None = None) -> Agent[ResearchRunC
             company_news_agent.as_tool(
                 tool_name="company_news_specialist",
                 tool_description="Review existing company-news artifacts and produce a structured specialist result.",
+            ),
+            company_research_agent.as_tool(
+                tool_name="company_research_orchestrator",
+                tool_description="Coordinate one-ticker company research across financials, news, filings, sentiment, and update proposals.",
             ),
         ],
     )

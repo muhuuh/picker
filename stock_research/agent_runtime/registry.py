@@ -6,6 +6,7 @@ from typing import Callable, Literal
 from agents import Agent
 
 from stock_research.agent_runtime.context import ResearchRunContext
+from stock_research.agent_runtime.orchestrators.company_research import build_agent as build_company_research_orchestrator
 from stock_research.agent_runtime.orchestrators.main import build_agent as build_main_orchestrator
 from stock_research.agent_runtime.specialists.company_news import build_agent as build_company_news_specialist
 
@@ -28,6 +29,12 @@ _AGENT_SPECS: dict[str, AgentSpec] = {
         role="orchestrator",
         description="Main manager agent that synthesizes deterministic artifacts and calls bounded specialist tools.",
         builder=build_main_orchestrator,
+    ),
+    "company_research_orchestrator": AgentSpec(
+        agent_id="company_research_orchestrator",
+        role="orchestrator",
+        description="Sub-orchestrator that coordinates one-ticker company research across evidence lanes and bounded specialists.",
+        builder=build_company_research_orchestrator,
     ),
     "company_news_specialist": AgentSpec(
         agent_id="company_news_specialist",

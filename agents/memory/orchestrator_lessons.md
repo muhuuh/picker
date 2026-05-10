@@ -320,3 +320,17 @@ Operational memory for workflow routing, orchestration, run ordering, and user c
 - evidence: `stock_research/agent_runtime/fanout.py`, `tests/test_agent_runtime.py`, `docs/plans/openai_agents_sdk_orchestration_backlog.md`
 - owner: main orchestrator
 - next_review: 2026-06-15
+
+- id: orch-2026-05-10-company-research-sub-orchestrator
+- date: 2026-05-10
+- type: procedural
+- scope: orchestrator
+- status: active
+- confidence: high
+- trigger/source: Implemented the first company-research SDK sub-orchestrator.
+- lesson: Use `company_research_orchestrator` for one-ticker synthesis. It starts from a deterministic company research packet with financials, company-news, filings, sentiment, company-search, and risk-thesis lanes, then uses available specialist fanout and preserves missing lanes as next-run tasks.
+- use_when: Building one-ticker company research, wiring scheduled research across monitored/current holdings, or deciding how specialist outputs should be aggregated.
+- do_not_use_when: Running broad market/theme discovery; that belongs in the future market research sub-orchestrator.
+- evidence: `stock_research/agent_runtime/orchestrators/company_research.py`, `agents/orchestrator/prompts/company_research.md`, `agents/orchestrator/specs/company_research.md`, `tests/test_agent_runtime.py`
+- owner: main orchestrator
+- next_review: 2026-06-15

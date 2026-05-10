@@ -118,18 +118,21 @@ Out of scope for the first slice:
   - Parallel by ticker when independent.
   - Parallel by specialist when inputs do not depend on each other.
   - Current implementation: `stock_research/agent_runtime/fanout.py` runs independent SDK agent tasks concurrently with task-specific memory, per-task timeout, partial failure preservation, and aggregate metrics.
-- [ ] Implement dependency groups.
+- [x] Implement dependency groups.
   - Example: provider evidence before synthesis; Exa contents before company-news ready state; financial_compare before financial synthesis.
-- [ ] Add aggregation step.
+  - Current implementation: first company-research packet groups one-ticker evidence into lanes and records missing lane prerequisites.
+- [x] Add aggregation step.
   - Merge specialist outputs into a structured orchestrator input packet.
+  - Current implementation: `build_company_research_packet(...)` aggregates evidence/report/manifest state and `aggregate_company_research(...)` merges fanout outputs into an `OrchestratorDecision`.
 - [x] Add partial-failure behavior.
   - Current fanout helper preserves complete/error/timeout item results and returns overall `partial` status when any specialist fails.
   - Still pending: writing fanout outputs into scheduled run artifacts and feeding fanout partial failures into final orchestrator aggregation.
 
 ## Priority 6: Main and Sub-Orchestrators
 
-- [ ] Build company research sub-orchestrator.
+- [x] Build company research sub-orchestrator.
   - Coordinates filings, news, financials, sentiment, risks, and update proposals for one ticker.
+  - Current implementation: `company_research_orchestrator` is registered, exposed to the main orchestrator, has prompt/spec artifacts, can build a one-ticker company research packet, can run company-news fanout, and preserves missing lanes as next-run tasks. Future work: add SDK specialists for financials, filings, sentiment, Exa company search, risk/thesis, writer, and quality review.
 - [ ] Build market research sub-orchestrator.
   - Coordinates industry/theme research, discovery, candidate validation, and strategy fit.
 - [ ] Build portfolio review sub-orchestrator.

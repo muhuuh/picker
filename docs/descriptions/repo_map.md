@@ -164,6 +164,7 @@ Use CLI commands for manual operation, scheduler entrypoints, validation, smoke 
 - SDK local telemetry lives in `stock_research/agent_runtime/tracing.py`; `run_metrics.md` records agent/tool/LLM rows plus injected and reported operational memory ids and runner-level timeout/error status.
 - Post-run reflection in `stock_research/memory_reflection.py` reads `run_metrics.md` and turns SDK runtime failures or missing metrics into reflection issues.
 - SDK fanout infrastructure lives in `stock_research/agent_runtime/fanout.py`; it is for future sub-orchestrators and is not yet wired into scheduled `run-weekly`.
+- Company-research sub-orchestrator infrastructure lives in `stock_research/agent_runtime/orchestrators/company_research.py` with prompt/spec artifacts under `agents/orchestrator/prompts/company_research.md` and `agents/orchestrator/specs/company_research.md`.
 - Live orchestration from `run-weekly` is available behind `--execute-orchestrator`; it is opt-in and freshness-gated.
 - SDK output proposals are reviewable through `agents/runs/{run_id}/orchestrator_update_proposals.md` and `agents/human_review_queue.md`; company files are not edited by this bridge.
 - Approved SDK proposals can be applied only through `agent-runtime apply-proposal`, which refuses unapproved review rows and validates the target is an existing file under `stock_tracking/stock_info_files/`.
