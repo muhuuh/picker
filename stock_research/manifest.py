@@ -433,6 +433,27 @@ def build_provider_tasks(
                 tasks,
                 seen_task_ids,
                 provider_task(
+                    task_id=f"exa_company_search_company_{slugify(ticker)}",
+                    provider="exa",
+                    tool="search",
+                    subject_type="company",
+                    subject_id=ticker,
+                    args={
+                        "mode": "company",
+                        "query": company_search_query(ticker, company),
+                        "run_id": run_id,
+                        "num_results": 5,
+                    },
+                    reason=f"Default Exa company-search context scan for {bucket} ticker {label}.",
+                    priority="high" if bucket == "current_holdings" else "medium",
+                    source_bucket=bucket,
+                    follow_up=["Use Exa contents for high-value company/source-discovery results before company-file updates."],
+                ),
+            )
+            add_task(
+                tasks,
+                seen_task_ids,
+                provider_task(
                     task_id=f"xai_x_search_company_{slugify(ticker)}",
                     provider="xai_grok",
                     tool="x_search",
@@ -582,6 +603,25 @@ def provider_tasks_for_human_request(request: dict[str, str], run_id: str) -> li
                     priority=priority,
                     source_bucket="human_input_queue",
                     follow_up=["Use Exa contents for high-value result follow-up."],
+                )
+            )
+            tasks.append(
+                provider_task(
+                    task_id=f"exa_human_{slugify(request_id)}_company_search_{slugify(ticker_upper)}",
+                    provider="exa",
+                    tool="search",
+                    subject_type="company",
+                    subject_id=ticker_upper,
+                    args={
+                        "mode": "company",
+                        "query": company_search_query(ticker_upper, ""),
+                        "run_id": run_id,
+                        "num_results": 5,
+                    },
+                    reason=f"Human input queue Exa company-search context request {request_id}.",
+                    priority=priority,
+                    source_bucket="human_input_queue",
+                    follow_up=["Use Exa contents for high-value company/source-discovery result follow-up."],
                 )
             )
             tasks.append(
@@ -749,6 +789,11 @@ def company_label(ticker: str, company: str) -> str:
 def company_news_query(ticker: str, company: str) -> str:
     label = company_label(ticker, company)
     return f"{label} latest material company news earnings guidance regulation litigation customers stock"
+
+
+def company_search_query(ticker: str, company: str) -> str:
+    label = company_label(ticker, company)
+    return f"{label} public company business model products competitors suppliers investor relations filings official sources"
 
 
 def research_priority_query(priority: dict[str, str]) -> str:

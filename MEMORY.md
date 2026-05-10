@@ -246,6 +246,11 @@ Use this file for information we should not lose across sessions.
   - evidence artifact path(s): `stock_research/agent_runtime/specialists/filing.py`, `agents/specialists/prompts/filing.md`, `agents/specialists/specs/filing.md`, `stock_research/agent_runtime/orchestrators/company_research.py`, `stock_research/agent_runtime/orchestrators/main.py`, `tests/test_agent_runtime.py`
   - status: active
 
+- 2026-05-10:
+  - decision/fact: The SDK Exa company-search specialist and deterministic Exa company-search provider planning are implemented generically for tracked tickers and human stock-research tickers. Company-research fanout task ids include the ticker only as a per-run task label, not as ticker-specific agent code.
+  - evidence artifact path(s): `stock_research/agent_runtime/specialists/company_search.py`, `agents/specialists/prompts/company_search.md`, `agents/specialists/specs/company_search.md`, `stock_research/manifest.py`, `stock_research/agent_runtime/orchestrators/company_research.py`, `stock_research/agent_runtime/orchestrators/main.py`, `tests/test_agent_runtime.py`, `tests/test_stock_research_core.py`
+  - status: active
+
 - 2026-05-04:
   - decision/fact: Generated run JSON artifacts are local runtime output and should not be committed. Keep markdown run summaries/reports/finalization files as the reviewable artifacts; `.gitignore` now ignores run-root JSON, raw provider JSON, evidence packet JSON, and generated recurring-failure JSON.
   - evidence artifact path(s): `.gitignore`, `README.md`, `SETUP.md`, `docs/descriptions/run_summary_and_quality.md`

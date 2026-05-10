@@ -33,6 +33,7 @@
 - 2026-05-10: Added SDK financial specialist. It registers `financial_specialist`, injects financial specialist memory, exposes it to main/company-research orchestrators, and runs it in company-research fanout before company-news. Targeted SDK runtime tests pass.
 - 2026-05-10: Added SDK xAI/Grok sentiment specialist. It registers `sentiment_specialist`, injects Grok/source-quality and direct-X deprecation memory, exposes it to main/company-research orchestrators, and runs in company-research fanout after company-news.
 - 2026-05-10: Added SDK SEC filing specialist. It registers `filing_specialist`, injects SEC/source-quality memory, exposes it to main/company-research orchestrators, and runs in company-research fanout between company-news and sentiment.
+- 2026-05-10: Clarified fanout task naming after user concern: `financial_aapl`/similar are per-run task ids generated from the ticker parameter, not AAPL-specific agents. Added generic `company_search_specialist` plus deterministic Exa `company` mode provider tasks for tracked tickers and human stock-research tickers.
 
 ## Official Docs Reviewed
 
@@ -139,7 +140,7 @@ run-weekly
 
 ## Next Steps
 
-- Add SDK specialists for remaining company-research lanes: Exa company search, risk/thesis, writer, and quality review.
+- Add SDK specialists for remaining company-research lanes: risk/thesis, writer, and quality review.
 - Add provider failure, malformed specialist output, and missing-citation golden tests.
 - Add deeper memory-use evaluation beyond injected/reported ids.
 - Wire company-research outputs into scheduled `run-weekly` across current holdings and monitoring tickers.
@@ -186,6 +187,7 @@ run-weekly
 - Reflection telemetry note: `memory_reflection.py` now treats SDK timeout/error/missing metrics as reflection issues and proposals, so runtime reliability problems feed the learning loop.
 - Fanout note: `AgentFanoutTask` and `run_agent_fanout_sync` exist for code-level parallel specialist execution, but scheduled `run-weekly` still calls the single main orchestrator path.
 - Company-research dry-run command: `python -m stock_research agent-runtime run --run-id 2026-05-09_weekly --agent-id company_research_orchestrator --task "company research sub-orchestrator" --ticker AAPL`.
-- Company-research fanout currently includes `financial_specialist`, `company_news_specialist`, `filing_specialist`, and `sentiment_specialist`; remaining lanes are still represented as missing/partial next-run tasks until their SDK specialists exist.
+- Company-research fanout currently includes `financial_specialist`, `company_news_specialist`, `company_search_specialist`, `filing_specialist`, and `sentiment_specialist`; remaining lanes are still represented as missing/partial next-run tasks until their SDK specialists exist.
+- Fanout task names are generated as `{lane}_{ticker.lower()}` from the requested ticker. They are run labels, not ticker-specific agent code.
 - Dependency install command used: `python -m pip install -e .`.
 - Install warning observed: `openai-agents` pulled `starlette 1.0.0`, which conflicts with an unrelated installed `fastapi 0.117.1` requirement in this environment. The repo does not currently use FastAPI, but revisit this if a FastAPI service is added later.

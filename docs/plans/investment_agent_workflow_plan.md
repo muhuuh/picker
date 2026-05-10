@@ -107,7 +107,7 @@ Detailed backlog: `docs/plans/investment_agent_backlog.md`.
 - [x] Implement final run summary.
 - [ ] Add tracing IDs and run metrics to artifacts.
 - [ ] Build OpenAI Agents SDK runtime foundation.
-  - Current progress: first manual runtime slice implemented with dependency, runtime package, context/output contracts, registry, main orchestrator, company-news, financial, filing, and sentiment specialists as tools, task-specific memory injection, repo/memory inspection tools, guarded provider/analysis SDK tools, prompt/spec files, run config, trace helpers, local SDK telemetry hooks, report/metrics artifacts, quality validation, tests, no-model-call smoke command, live manual `agent-runtime run --execute --write`, and opt-in scheduled `run-weekly --write --execute-orchestrator` with dry-run freshness gating.
+  - Current progress: first manual runtime slice implemented with dependency, runtime package, context/output contracts, registry, main orchestrator, company-news, company-search, financial, filing, and sentiment specialists as tools, task-specific memory injection, repo/memory inspection tools, guarded provider/analysis SDK tools, prompt/spec files, run config, trace helpers, local SDK telemetry hooks, report/metrics artifacts, quality validation, tests, no-model-call smoke command, live manual `agent-runtime run --execute --write`, and opt-in scheduled `run-weekly --write --execute-orchestrator` with dry-run freshness gating.
 
 ## Priority 6: Learning Loop
 
@@ -191,3 +191,4 @@ Detailed backlog: `docs/plans/investment_agent_backlog.md`.
 - 2026-05-10: Added SDK financial specialist and wired it into main/company-research orchestrator tools plus company-research fanout. Financial synthesis still depends on deterministic `financial_compare` and financial review artifacts.
 - 2026-05-10: Added SDK xAI/Grok stock sentiment specialist and wired it into main/company-research orchestrator tools plus company-research fanout. Sentiment synthesis uses Grok `x_search` artifacts as social signal only and now receives the active direct-X replacement memory.
 - 2026-05-10: Added SDK SEC filing specialist and wired it into main/company-research orchestrator tools plus company-research fanout. Filing synthesis uses existing SEC EDGAR artifacts and does not assume European filing coverage.
+- 2026-05-10: Added generic SDK Exa company-search specialist and deterministic Exa company-search provider planning for tracked tickers and human stock-research tickers. Per-ticker task ids are generated labels, not ticker-specific agents.

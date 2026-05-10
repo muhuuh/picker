@@ -140,6 +140,7 @@ class AgentRuntimeTests(unittest.TestCase):
         self.assertEqual(specs["main_orchestrator"].role, "orchestrator")
         self.assertEqual(specs["company_research_orchestrator"].role, "orchestrator")
         self.assertEqual(specs["company_news_specialist"].role, "specialist")
+        self.assertEqual(specs["company_search_specialist"].role, "specialist")
         self.assertEqual(specs["filing_specialist"].role, "specialist")
         self.assertEqual(specs["financial_specialist"].role, "specialist")
         self.assertEqual(specs["sentiment_specialist"].role, "specialist")
@@ -172,6 +173,7 @@ class AgentRuntimeTests(unittest.TestCase):
         self.assertIn("run_analysis_tasks_guarded", tool_names)
         self.assertIn("company_research_orchestrator", tool_names)
         self.assertIn("company_news_specialist", tool_names)
+        self.assertIn("company_search_specialist", tool_names)
         self.assertIn("filing_specialist", tool_names)
         self.assertIn("financial_specialist", tool_names)
         self.assertIn("sentiment_specialist", tool_names)
@@ -289,6 +291,12 @@ class AgentRuntimeTests(unittest.TestCase):
         self.assertIn("memory-2026-05-04-financial-data-specialist-review-is-implemented", context.memory_item_ids)
         self.assertIn("Financial-data specialist review is implemented", context.memory_context)
 
+    def test_company_search_context_uses_exa_memory(self):
+        context = build_research_run_context(root=REPO_ROOT, run_id="test_weekly", task="Exa company search specialist")
+
+        self.assertIn("source-2026-05-03-exa-headers-and-modes", context.memory_item_ids)
+        self.assertIn("Use Exa search modes deliberately", context.memory_context)
+
     def test_filing_context_uses_sec_memory(self):
         context = build_research_run_context(root=REPO_ROOT, run_id="test_weekly", task="SEC filing specialist")
 
@@ -347,6 +355,12 @@ class AgentRuntimeTests(unittest.TestCase):
 
         self.assertEqual(getattr(tool, "name", ""), "financial_specialist")
 
+    def test_company_search_specialist_can_be_built_as_tool(self):
+        context = build_research_run_context(root=REPO_ROOT, run_id="test_weekly", task="Exa company search specialist")
+        tool = build_agent_tool("company_search_specialist", context)
+
+        self.assertEqual(getattr(tool, "name", ""), "company_search_specialist")
+
     def test_filing_specialist_can_be_built_as_tool(self):
         context = build_research_run_context(root=REPO_ROOT, run_id="test_weekly", task="SEC filing specialist")
         tool = build_agent_tool("filing_specialist", context)
@@ -369,6 +383,7 @@ class AgentRuntimeTests(unittest.TestCase):
         self.assertIn("run_provider_tasks_guarded", tool_names)
         self.assertIn("run_analysis_tasks_guarded", tool_names)
         self.assertIn("company_news_specialist", tool_names)
+        self.assertIn("company_search_specialist", tool_names)
         self.assertIn("filing_specialist", tool_names)
         self.assertIn("financial_specialist", tool_names)
         self.assertIn("sentiment_specialist", tool_names)
@@ -413,10 +428,10 @@ class AgentRuntimeTests(unittest.TestCase):
 
             tasks = build_company_research_fanout_tasks(context, "AAPL", timeout_seconds=12)
 
-        self.assertEqual(len(tasks), 4)
+        self.assertEqual(len(tasks), 5)
         self.assertEqual(
             [task.agent_id for task in tasks],
-            ["financial_specialist", "company_news_specialist", "filing_specialist", "sentiment_specialist"],
+            ["financial_specialist", "company_news_specialist", "company_search_specialist", "filing_specialist", "sentiment_specialist"],
         )
         self.assertTrue(all(task.timeout_seconds == 12 for task in tasks))
         self.assertTrue(all("Company research packet" in task.prompt for task in tasks))
@@ -454,10 +469,10 @@ class AgentRuntimeTests(unittest.TestCase):
         self.assertEqual(fanout.status, "complete")
         self.assertEqual(decision.agent_id, "company_research_orchestrator")
         self.assertEqual(decision.status, "partial")
-        self.assertEqual(len(decision.specialist_results), 4)
+        self.assertEqual(len(decision.specialist_results), 5)
         self.assertEqual(
             [result.agent_id for result in decision.specialist_results],
-            ["financial_specialist", "company_news_specialist", "filing_specialist", "sentiment_specialist"],
+            ["financial_specialist", "company_news_specialist", "company_search_specialist", "filing_specialist", "sentiment_specialist"],
         )
         self.assertTrue(any("company_search" in task for task in decision.next_run_tasks))
 

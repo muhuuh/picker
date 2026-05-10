@@ -7,6 +7,7 @@ from stock_research.agent_runtime.outputs import OrchestratorDecision
 from stock_research.agent_runtime.prompts import load_prompt, with_memory
 from stock_research.agent_runtime.orchestrators.company_research import build_agent as build_company_research_agent
 from stock_research.agent_runtime.specialists.company_news import build_agent as build_company_news_agent
+from stock_research.agent_runtime.specialists.company_search import build_agent as build_company_search_agent
 from stock_research.agent_runtime.specialists.filing import build_agent as build_filing_agent
 from stock_research.agent_runtime.specialists.financial import build_agent as build_financial_agent
 from stock_research.agent_runtime.specialists.sentiment import build_agent as build_sentiment_agent
@@ -32,6 +33,8 @@ def build_agent(context: ResearchRunContext | None = None) -> Agent[ResearchRunC
 
     company_news_context = with_task_memory(context, "company news specialist") if context else None
     company_news_agent = build_company_news_agent(company_news_context)
+    company_search_context = with_task_memory(context, "Exa company search specialist") if context else None
+    company_search_agent = build_company_search_agent(company_search_context)
     financial_context = with_task_memory(context, "financial specialist") if context else None
     financial_agent = build_financial_agent(financial_context)
     filing_context = with_task_memory(context, "SEC filing specialist") if context else None
@@ -51,6 +54,10 @@ def build_agent(context: ResearchRunContext | None = None) -> Agent[ResearchRunC
             company_news_agent.as_tool(
                 tool_name="company_news_specialist",
                 tool_description="Review existing company-news artifacts and produce a structured specialist result.",
+            ),
+            company_search_agent.as_tool(
+                tool_name="company_search_specialist",
+                tool_description="Review existing Exa company/general search artifacts.",
             ),
             financial_agent.as_tool(
                 tool_name="financial_specialist",

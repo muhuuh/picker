@@ -165,3 +165,17 @@ Procedural memory for future specialist agents. Specialists should produce struc
 - evidence: stock_research/agent_runtime/specialists/filing.py, agents/specialists/prompts/filing.md, agents/specialists/specs/filing.md, tests/test_agent_runtime.py
 - owner: SEC filing specialist
 - next_review: 2026-06-10
+
+- id: memory-2026-05-10-sdk-company-search-specialist-is-stock-agnostic
+- date: 2026-05-10
+- type: procedural
+- scope: news
+- status: active
+- confidence: high
+- trigger/source: SDK Exa company-search specialist and manifest company-search planning implementation
+- lesson: The SDK company-search specialist is stock-agnostic. It is registered as company_search_specialist, runs from a ticker parameter, and synthesizes existing Exa company/general search artifacts. Per-run task ids like company_search_aapl are labels for one ticker run, not ticker-specific agent implementations.
+- use_when: Building company-research fanout, Exa company search prompts, tracked-ticker manifests, or human stock-research routing.
+- do_not_use_when: Treating Exa search snippets as final proof, creating one-off ticker-specific agent modules, or bypassing Exa contents follow-up for material claims.
+- evidence: stock_research/agent_runtime/specialists/company_search.py, agents/specialists/prompts/company_search.md, agents/specialists/specs/company_search.md, stock_research/manifest.py, tests/test_agent_runtime.py, tests/test_stock_research_core.py
+- owner: Exa company-search specialist
+- next_review: 2026-06-10
