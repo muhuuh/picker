@@ -190,3 +190,17 @@ After a weekly or manual run:
 - evidence: `stock_research/memory_reflection.py`, `tests/test_memory_reflection.py`, `stock_research/agent_runtime/tracing.py`, `docs/descriptions/agent_memory_workflow.md`
 - owner: memory and evaluation orchestrator
 - next_review: 2026-06-15
+
+- id: eval-2026-05-11-runtime-quality-gate-specificity
+- date: 2026-05-11
+- type: evaluation
+- scope: orchestrator
+- status: active
+- confidence: high
+- trigger/source: AMZN weekly-style run exposed two over-broad SDK quality gates.
+- lesson: Runtime quality gates should accept real repo artifact paths as valid proposal evidence references, not only model-returned source ids. Direct trade-language detection should look for actual stock action patterns such as `buy the stock`, `sell shares`, `trim position`, or `position size`, and should not flag ordinary business phrases such as `Sell on Amazon`.
+- use_when: Updating SDK output validation, reviewing why an otherwise evidence-backed run became `needs_review`, or adding new source/citation guardrails.
+- do_not_use_when: Weakening source requirements; nonexistent paths and unknown source ids should still fail validation.
+- evidence: `stock_research/agent_runtime/reports.py`, `tests/test_agent_runtime.py`, `agents/runs/2026-05-16_weekly/orchestration_report.md`
+- owner: memory and evaluation orchestrator
+- next_review: 2026-06-15

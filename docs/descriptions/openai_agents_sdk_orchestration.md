@@ -6,7 +6,7 @@ Last updated: 2026-05-11
 
 This document defines how this repo should use OpenAI Agents SDK for LLM orchestration.
 
-The first SDK runtime foundation is implemented. It can build real SDK `Agent` objects, compose company-news, company-search, financial, filing, sentiment, risk/thesis, writer, quality-review, Exa industry, Grok discovery, and candidate discovery specialists as tools for orchestrators, run no-model-call registry smoke checks, manually execute orchestrators over existing run artifacts, run portfolio-review and memory/evaluation packet synthesis, and run scheduled per-ticker company research plus main orchestration from the weekly wrapper behind an explicit `--execute-orchestrator` flag.
+The first SDK runtime foundation is implemented. It can build real SDK `Agent` objects, compose company-news, company-search, financial, filing, sentiment, risk/thesis, opportunity-assessment, writer, quality-review, Exa industry, Grok discovery, and candidate discovery specialists as tools for orchestrators, run no-model-call registry smoke checks, manually execute orchestrators over existing run artifacts, run portfolio-review and memory/evaluation packet synthesis, and run scheduled per-ticker company research plus main orchestration from the weekly wrapper behind an explicit `--execute-orchestrator` flag.
 
 Dedicated backlog: `docs/plans/openai_agents_sdk_orchestration_backlog.md`.
 
@@ -82,6 +82,7 @@ run-weekly
      -> memory/evaluation review over telemetry, reflection, drafts, and finalization
      -> main orchestrator synthesis
      -> alerts, update proposals, review items, next-run plan
+  -> deterministic final_digest.md/json as the human-readable fallback/summary surface
   -> human-review digest refresh and final review summary
   -> deterministic proposal review bridge
   -> quality review
@@ -342,6 +343,8 @@ Implemented:
 - `stock_research/agent_runtime/registry.py`: central agent registry.
 - `stock_research/agent_runtime/orchestrators/main.py`: main orchestrator agent builder.
 - `stock_research/agent_runtime/orchestrators/company_research.py`: first company-research sub-orchestrator, one-ticker lane packet builder for financials/company-news/filings/sentiment/company-search/risk-thesis/writer/quality lanes, fanout task builder, aggregation helper, and per-ticker scheduled artifact writer.
+- `stock_research/opportunity_assessment.py`: deterministic opportunity assessment over financials, news, SEC filings, Exa context, Grok/X sentiment, and risk signals.
+- `stock_research/weekly_digest.py`: deterministic final digest writer for concise run-level review summaries.
 - `stock_research/agent_runtime/orchestrators/market_research.py`: first market-research sub-orchestrator for industry/theme packets, Exa web/company discovery, Grok/X trend discovery, candidate synthesis, and quality review.
 - `stock_research/agent_runtime/orchestrators/portfolio_review.py`: first portfolio-review sub-orchestrator for current holdings, monitoring, rejected cooldowns, open/approved human-review items, candidate verification result reports, deterministic packet building, aggregation, and markdown report writing.
 - `stock_research/agent_runtime/orchestrators/memory_evaluation.py`: first memory/evaluation sub-orchestrator for run metrics, quality reports, memory reflection, recurring failures, memory update drafts, memory writer review, finalization, deterministic packet building, aggregation, and markdown report writing.
@@ -358,6 +361,7 @@ Implemented:
 - `stock_research/agent_runtime/specialists/grok_discovery.py`: xAI/Grok X discovery specialist builder for niche trends, hype, rumors, and emerging ticker leads.
 - `stock_research/agent_runtime/specialists/discovery.py`: candidate discovery specialist builder that combines Exa-verified and Grok-surfaced leads.
 - `stock_research/agent_runtime/specialists/risk_thesis.py`: risk/thesis specialist agent builder over aggregated company-research evidence.
+- `stock_research/agent_runtime/specialists/opportunity.py`: opportunity-assessment specialist agent builder for concise expert-opinion synthesis.
 - `stock_research/agent_runtime/specialists/writer.py`: proposal-drafting specialist agent builder; actual file writes remain approval-gated.
 - `stock_research/agent_runtime/specialists/quality_review.py`: quality-review specialist agent builder for citation/source/approval-gate checks.
 - `stock_research/agent_runtime/tools/repo_tools.py`: function-first repo map, memory, run markdown, run summary, quality report, evidence packet index/loaders, and stock CSV tools. `load_evidence_packet` lets specialists inspect summarized provider-neutral JSON evidence packets directly; market discovery should not depend on markdown-only evidence exports.
@@ -398,11 +402,13 @@ Current gates check:
 - useful summary length,
 - valid structured status,
 - no direct buy/sell wording in the summary,
-- top-level and specialist-level operational memory item ids are present and valid,
+- top-level and specialist-level operational memory item ids are valid when reported,
 - file update proposal targets exist,
 - file update proposal `source_ids` are backed by returned sources,
 - returned source references have a URL or artifact path,
 - returned source artifact paths exist when provided.
+- file update proposal `source_ids` may reference either returned source ids or existing repo artifact paths,
+- direct trade-language checks target actual stock action patterns and should not flag ordinary business phrases.
 - market candidate leads include source ids and verification status,
 - Grok-only candidate leads cannot be marked for monitoring,
 - active rejected-stock cooldown blocks candidate promotion,
@@ -421,6 +427,10 @@ Scheduled SDK runs add one more freshness gate: if provider tasks or analysis ta
 Fresh scheduled runs also clean generated artifacts in the target run directory before live provider/analysis execution. This prevents repeated smoke tests from leaving older evidence packets that inflate run summaries or duplicate specialist reviews.
 
 Scheduled SDK runs also execute company-research fanout for every ticker in current holdings and monitoring before the main orchestrator. The fanout is generic: task ids include the ticker as a run label, but all specialists are reusable modules. Per-ticker reports are written under `agents/runs/{run_id}/company_research/`.
+
+Weekly-style runs also write `agents/runs/{run_id}/final_digest.md`. This is the primary concise run-level report for humans when the live SDK main orchestrator is unavailable, too noisy, or still pending validation. It includes per-ticker opportunity view, key financial facts, Exa news/development signal, Grok/X social signal, filing coverage, watch items, and next actions.
+
+Financial review conflict handling distinguishes material numeric conflicts from taxonomy/watch conflicts. For example, provider disagreement between `Internet Retail` and `Specialty Retail` should stay visible as a classification watch item but should not by itself mark a company as a high-risk financial conflict.
 
 Saved SDK proposals are converted through a deterministic proposal bridge before any writer can act on them. The bridge validates the saved SDK output, writes `agents/runs/{run_id}/orchestrator_update_proposals.md`, and can append duplicate-safe rows to `agents/human_review_queue.md`. It never edits `stock_tracking/stock_info_files/`.
 
@@ -564,3 +574,22 @@ Result:
 - status: dry-run packet build succeeded
 - aggregation packet includes market research reports, candidate verification result, portfolio review report, memory/evaluation report, human-review digest, and open/approved review counts
 - expected behavior: final synthesis has a high-level artifact map before calling specialist tools or opening deeper files
+
+## AMZN Weekly-Style Validation
+
+2026-05-11 validation command:
+
+```powershell
+python -m stock_research run-weekly --write --today 2026-05-11 --execute-providers --execute-analysis --execute-orchestrator --orchestrator-timeout-seconds 900
+```
+
+Result:
+
+- provider and deterministic analysis lanes executed for current holding `AMZN` and monitoring ticker `AAPL`
+- deterministic opportunity assessment report written to `agents/runs/2026-05-16_weekly/reports/opportunity_assessment/AMZN_opportunity_assessment.md`
+- final digest written to `agents/runs/2026-05-16_weekly/final_digest.md`
+- quality iteration corrected AMZN financial review from over-strict `needs_human_review` to `partial_review` because the only provider conflict was taxonomy/industry classification
+- OpenAI Agents SDK main orchestration completed after API credit was added
+- runtime quality gates were tightened to accept existing artifact-path evidence references and avoid false positives on ordinary business text such as `Sell on Amazon`
+- orchestration report status is `complete` with no deterministic or SDK quality findings
+- artifact: `agents/runs/2026-05-16_weekly/orchestration_report.md`

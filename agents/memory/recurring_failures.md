@@ -1,7 +1,7 @@
 # Recurring Failure Report
 
-Generated: 2026-05-05
-Runs scanned: 1
+Generated: 2026-05-11
+Runs scanned: 2
 Threshold: 2 run(s)
 
 ## Patterns

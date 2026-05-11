@@ -316,6 +316,21 @@ Use this file for information we should not lose across sessions.
   - evidence artifact path(s): `docs/descriptions/human_review_operating_model.md`, `docs/descriptions/human_interaction_workflow.md`, `docs/plans/investment_agent_backlog.md`, `docs/plans/openai_agents_sdk_orchestration_backlog.md`
   - status: active
 
+- 2026-05-11:
+  - decision/fact: Weekly-style company research now has a deterministic opportunity-assessment lane and final digest. `opportunity_assessment` synthesizes financials, Exa news/company context, SEC filings, Grok/X sentiment, and risk signals into a reviewable expert-opinion report; `final_digest.md` is the concise human-facing report surface and fallback when live SDK main orchestration is unavailable.
+  - evidence artifact path(s): `stock_research/opportunity_assessment.py`, `stock_research/weekly_digest.py`, `stock_research/agent_runtime/specialists/opportunity.py`, `agents/runs/2026-05-16_weekly/reports/opportunity_assessment/AMZN_opportunity_assessment.md`, `agents/runs/2026-05-16_weekly/final_digest.md`, `agents/runs/2026-05-16_weekly/orchestration_report.md`, `docs/descriptions/openai_agents_sdk_orchestration.md`
+  - status: active
+
+- 2026-05-11:
+  - decision/fact: The OpenAI Agents SDK weekly path completed successfully after API credit was added and runtime quality gates were tightened. The validation command for AMZN/AAPL is `python -m stock_research run-weekly --write --today 2026-05-11 --execute-providers --execute-analysis --execute-orchestrator --orchestrator-timeout-seconds 900`.
+  - evidence artifact path(s): `agents/runs/2026-05-16_weekly/orchestration_report.md`, `agents/runs/2026-05-16_weekly/agent_runtime_main_orchestrator.md`, `stock_research/agent_runtime/reports.py`, `tests/test_agent_runtime.py`
+  - status: active
+
+- 2026-05-11:
+  - decision/fact: Financial review should distinguish material financial metric conflicts from taxonomy/classification disagreements. A provider disagreement such as `Internet Retail` vs `Specialty Retail` is a watch item unless it affects material numeric metrics or thesis-critical classification.
+  - evidence artifact path(s): `stock_research/financial_specialist.py`, `stock_research/financial_compare.py`, `agents/runs/2026-05-16_weekly/reports/financial_data_specialist/AMZN_financial_review.md`
+  - status: active
+
 - 2026-05-04:
   - decision/fact: Generated run JSON artifacts are local runtime output and should not be committed. Keep markdown run summaries/reports/finalization files as the reviewable artifacts; `.gitignore` now ignores run-root JSON, raw provider JSON, evidence packet JSON, and generated recurring-failure JSON.
   - evidence artifact path(s): `.gitignore`, `README.md`, `SETUP.md`, `docs/descriptions/run_summary_and_quality.md`

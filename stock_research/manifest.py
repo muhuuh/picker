@@ -213,6 +213,25 @@ def build_analysis_tasks(state: RepoState, human_requests: list[dict[str, str]],
                     expected_artifacts=["financial_specialist_evidence_packet", "financial_review_json", "financial_review_markdown"],
                 ),
             )
+            add_task(
+                tasks,
+                seen_task_ids,
+                analysis_task(
+                    task_id=f"opportunity_assessment_{slugify(ticker)}",
+                    tool="opportunity_assessment",
+                    subject_id=ticker,
+                    args={"ticker": ticker, "run_id": run_id},
+                    reason=f"Build deterministic opportunity assessment for {bucket} ticker {ticker} from all evidence lanes.",
+                    priority="high" if bucket == "current_holdings" else "medium",
+                    source_bucket=bucket,
+                    depends_on=[f"company_news_review_{slugify(ticker)}", f"financial_review_{slugify(ticker)}"],
+                    expected_artifacts=[
+                        "opportunity_assessment_evidence_packet",
+                        "opportunity_assessment_json",
+                        "opportunity_assessment_markdown",
+                    ],
+                ),
+            )
 
     for request in human_requests:
         if request.get("Type", "").strip().lower() != "stock_research":
@@ -280,6 +299,28 @@ def build_analysis_tasks(state: RepoState, human_requests: list[dict[str, str]],
                     source_bucket="human_input_queue",
                     depends_on=[compare_id],
                     expected_artifacts=["financial_specialist_evidence_packet", "financial_review_json", "financial_review_markdown"],
+                ),
+            )
+            add_task(
+                tasks,
+                seen_task_ids,
+                analysis_task(
+                    task_id=f"opportunity_assessment_human_{slugify(request_id)}_{slugify(ticker_upper)}",
+                    tool="opportunity_assessment",
+                    subject_id=ticker_upper,
+                    args={"ticker": ticker_upper, "run_id": run_id},
+                    reason=f"Build deterministic opportunity assessment for human stock research request {request_id}.",
+                    priority=priority,
+                    source_bucket="human_input_queue",
+                    depends_on=[
+                        f"company_news_review_human_{slugify(request_id)}_{slugify(ticker_upper)}",
+                        f"financial_review_human_{slugify(request_id)}_{slugify(ticker_upper)}",
+                    ],
+                    expected_artifacts=[
+                        "opportunity_assessment_evidence_packet",
+                        "opportunity_assessment_json",
+                        "opportunity_assessment_markdown",
+                    ],
                 ),
             )
 

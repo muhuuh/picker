@@ -16,6 +16,7 @@ from stock_research.agent_runtime.specialists.company_news import build_agent as
 from stock_research.agent_runtime.specialists.company_search import build_agent as build_company_search_agent
 from stock_research.agent_runtime.specialists.filing import build_agent as build_filing_agent
 from stock_research.agent_runtime.specialists.financial import build_agent as build_financial_agent
+from stock_research.agent_runtime.specialists.opportunity import build_agent as build_opportunity_assessment_agent
 from stock_research.agent_runtime.specialists.quality_review import build_agent as build_quality_review_agent
 from stock_research.agent_runtime.specialists.risk_thesis import build_agent as build_risk_thesis_agent
 from stock_research.agent_runtime.specialists.sentiment import build_agent as build_sentiment_agent
@@ -67,6 +68,11 @@ LANE_DEFINITIONS = {
         "reports": (),
         "missing": "Run risk/thesis synthesis after company evidence lanes are available.",
     },
+    "opportunity_assessment": {
+        "providers": {"opportunity_assessment_specialist"},
+        "reports": ("reports/opportunity_assessment/{ticker}_opportunity_assessment.md",),
+        "missing": "Run opportunity_assessment after financial, news, filing, sentiment, and company-search evidence is available.",
+    },
 }
 
 
@@ -92,6 +98,8 @@ def build_agent(context: ResearchRunContext | None = None) -> Agent[ResearchRunC
     writer_agent = build_writer_agent(writer_context)
     quality_context = with_task_memory(context, "quality reviewer specialist") if context else None
     quality_agent = build_quality_review_agent(quality_context)
+    opportunity_context = with_task_memory(context, "opportunity assessment specialist") if context else None
+    opportunity_agent = build_opportunity_assessment_agent(opportunity_context)
     return Agent[ResearchRunContext](
         name="Company Research Orchestrator",
         instructions=prompt,
@@ -132,6 +140,10 @@ def build_agent(context: ResearchRunContext | None = None) -> Agent[ResearchRunC
             quality_agent.as_tool(
                 tool_name="quality_reviewer_specialist",
                 tool_description="Review company-research output quality, citations, source gaps, and approval gates for this ticker.",
+            ),
+            opportunity_agent.as_tool(
+                tool_name="opportunity_assessment_specialist",
+                tool_description="Synthesize all company lanes into a concise reviewable opportunity opinion for this ticker.",
             ),
         ],
     )
@@ -211,6 +223,13 @@ def build_company_research_fanout_tasks(
             agent_id="risk_thesis_specialist",
             task="risk thesis specialist",
             prompt=build_company_research_specialist_prompt(packet, "risk_thesis"),
+            timeout_seconds=timeout_seconds,
+        ),
+        AgentFanoutTask(
+            task_id=f"opportunity_{packet.ticker.lower()}",
+            agent_id="opportunity_assessment_specialist",
+            task="opportunity assessment specialist",
+            prompt=build_company_research_specialist_prompt(packet, "opportunity_assessment"),
             timeout_seconds=timeout_seconds,
         ),
         AgentFanoutTask(
@@ -377,6 +396,9 @@ def build_company_research_specialist_prompt(packet: CompanyResearchPacket, lane
             "",
             "Use existing repo/run artifacts only unless an explicit tool permission allows otherwise.",
             "Return a structured SpecialistResult with sources, confidence, alerts, update proposals, and next actions.",
+            "For memory_item_ids_used, only copy exact ids from the `memory_item_ids` list in this packet or injected memory context. Leave it empty rather than inventing category names.",
+            "Every source reference must include a URL or an existing repo artifact path.",
+            "Do not use direct buy/sell/position-size language; route any action as a human-review next step.",
             "",
             "Company research packet:",
             "```json",
@@ -476,6 +498,8 @@ def task_belongs_to_lane(task: dict[str, Any], lane_id: str) -> bool:
         return provider == "exa" and "news" not in task_id
     if lane_id == "risk_thesis":
         return tool in {"risk_review", "thesis_review"} or "risk" in task_id or "thesis" in task_id
+    if lane_id == "opportunity_assessment":
+        return tool == "opportunity_assessment" or "opportunity" in task_id
     return False
 
 
@@ -487,6 +511,8 @@ def packet_belongs_to_lane(packet: EvidencePacket, lane_id: str) -> bool:
         return packet.provider == "exa" and "news" not in packet_id and "contents_follow_up" not in packet_id
     if lane_id == "risk_thesis":
         return bool(packet.risks or packet.contradictions or packet.recommended_updates)
+    if lane_id == "opportunity_assessment":
+        return packet.provider == "opportunity_assessment_specialist"
     return False
 
 

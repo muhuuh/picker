@@ -8,6 +8,7 @@ from .company_news_specialist import build_company_news_contents_follow_up_packe
 from .config import get_config_value
 from .financial_compare import build_financial_compare_packet
 from .financial_specialist import build_financial_specialist_packet
+from .opportunity_assessment import build_opportunity_assessment_packet
 from .providers.exa import resolve_exa_api_key
 
 
@@ -182,6 +183,15 @@ def execute_analysis_task(root: Path, task: dict[str, Any], current_date: date |
             artifact_id=str(task.get("id", "")),
         )
         return {**analysis_result(result.packet.packet_id, result.paths), "url_count": len(result.urls)}
+
+    if tool == "opportunity_assessment":
+        result = build_opportunity_assessment_packet(
+            ticker=str(args["ticker"]),
+            run_id=str(args["run_id"]),
+            root=root,
+            current_date=current_date,
+        )
+        return {**analysis_result(result.packet.packet_id, result.paths), "assessment_status": result.assessment["status"]}
 
     raise ValueError(f"Unsupported analysis task tool={tool}")
 

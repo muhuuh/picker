@@ -724,7 +724,7 @@ class AgentRuntimeTests(unittest.TestCase):
 
             tasks = build_company_research_fanout_tasks(context, "AAPL", timeout_seconds=12)
 
-        self.assertEqual(len(tasks), 8)
+        self.assertEqual(len(tasks), 9)
         self.assertEqual(
             [task.agent_id for task in tasks],
             [
@@ -734,6 +734,7 @@ class AgentRuntimeTests(unittest.TestCase):
                 "filing_specialist",
                 "sentiment_specialist",
                 "risk_thesis_specialist",
+                "opportunity_assessment_specialist",
                 "writer_specialist",
                 "quality_reviewer_specialist",
             ],
@@ -774,7 +775,7 @@ class AgentRuntimeTests(unittest.TestCase):
         self.assertEqual(fanout.status, "complete")
         self.assertEqual(decision.agent_id, "company_research_orchestrator")
         self.assertEqual(decision.status, "partial")
-        self.assertEqual(len(decision.specialist_results), 8)
+        self.assertEqual(len(decision.specialist_results), 9)
         self.assertEqual(
             [result.agent_id for result in decision.specialist_results],
             [
@@ -784,6 +785,7 @@ class AgentRuntimeTests(unittest.TestCase):
                 "filing_specialist",
                 "sentiment_specialist",
                 "risk_thesis_specialist",
+                "opportunity_assessment_specialist",
                 "writer_specialist",
                 "quality_reviewer_specialist",
             ],
@@ -1388,6 +1390,57 @@ class AgentRuntimeTests(unittest.TestCase):
         findings = evaluate_runtime_output_quality(decision, context)
 
         self.assertTrue(any("references unknown source_ids" in finding for finding in findings))
+
+    def test_output_quality_allows_non_trade_sell_word(self):
+        context = build_research_run_context(root=REPO_ROOT, run_id="test_weekly", task="main orchestrator")
+        decision = OrchestratorDecision(
+            agent_id="main_orchestrator",
+            run_id="test_weekly",
+            status="partial",
+            summary="The company-search result includes the Sell on Amazon product page, which is business context and not a trading recommendation.",
+            memory_item_ids_used=["orch-2026-05-06-openai-agents-sdk-selected"],
+        )
+
+        findings = evaluate_runtime_output_quality(decision, context)
+
+        self.assertFalse(any("direct trade language" in finding for finding in findings))
+
+    def test_output_quality_flags_direct_trade_language(self):
+        context = build_research_run_context(root=REPO_ROOT, run_id="test_weekly", task="main orchestrator")
+        decision = OrchestratorDecision(
+            agent_id="main_orchestrator",
+            run_id="test_weekly",
+            status="partial",
+            summary="This is a sufficiently long summary that says buy the stock immediately, which should be review-gated.",
+            memory_item_ids_used=["orch-2026-05-06-openai-agents-sdk-selected"],
+        )
+
+        findings = evaluate_runtime_output_quality(decision, context)
+
+        self.assertTrue(any("direct trade language" in finding for finding in findings))
+
+    def test_output_quality_accepts_existing_artifact_path_as_proposal_source(self):
+        context = build_research_run_context(root=REPO_ROOT, run_id="test_weekly", task="main orchestrator")
+        source_path = "stock_tracking/stock_info_files/monitoring/AAPL.md"
+        decision = OrchestratorDecision(
+            agent_id="main_orchestrator",
+            run_id="test_weekly",
+            status="partial",
+            summary="This is a sufficiently long summary about a partial run result with artifact path evidence.",
+            memory_item_ids_used=["orch-2026-05-06-openai-agents-sdk-selected"],
+        )
+        decision.file_update_proposals.append(
+            {
+                "target_file": "stock_tracking/stock_info_files/monitoring/AAPL.md",
+                "update_type": "news",
+                "summary": "Existing artifact path evidence.",
+                "source_ids": [source_path],
+            }
+        )
+
+        findings = evaluate_runtime_output_quality(decision, context)
+
+        self.assertFalse(any("references unknown source_ids" in finding for finding in findings))
 
     def test_output_to_dict_serializes_dataclass(self):
         decision = OrchestratorDecision(

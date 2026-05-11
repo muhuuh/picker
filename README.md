@@ -14,6 +14,7 @@ The current implementation is a deterministic Python foundation. It reads the re
 
 ## Important Files
 
+- `docs/HUMAN_USAGE_GUIDE.md`: concise human guide for using this repo through Codex chat.
 - `docs/descriptions/repo_map.md`: where to find and update each kind of information.
 - `docs/descriptions/human_interaction_workflow.md`: how user chat input becomes repo state.
 - `docs/descriptions/human_review_operating_model.md`: how digest-first asynchronous human review and future notifications should work.

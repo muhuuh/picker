@@ -18,6 +18,7 @@ from stock_research.agent_runtime.specialists.exa_industry import build_agent as
 from stock_research.agent_runtime.specialists.filing import build_agent as build_filing_specialist
 from stock_research.agent_runtime.specialists.financial import build_agent as build_financial_specialist
 from stock_research.agent_runtime.specialists.grok_discovery import build_agent as build_grok_discovery_specialist
+from stock_research.agent_runtime.specialists.opportunity import build_agent as build_opportunity_assessment_specialist
 from stock_research.agent_runtime.specialists.quality_review import build_agent as build_quality_reviewer_specialist
 from stock_research.agent_runtime.specialists.risk_thesis import build_agent as build_risk_thesis_specialist
 from stock_research.agent_runtime.specialists.sentiment import build_agent as build_sentiment_specialist
@@ -114,6 +115,12 @@ _AGENT_SPECS: dict[str, AgentSpec] = {
         role="specialist",
         description="Specialist agent that reviews company-research outputs for source, quality, and approval-gate issues.",
         builder=build_quality_reviewer_specialist,
+    ),
+    "opportunity_assessment_specialist": AgentSpec(
+        agent_id="opportunity_assessment_specialist",
+        role="specialist",
+        description="Specialist agent that synthesizes all company lanes into a concise reviewable opportunity opinion.",
+        builder=build_opportunity_assessment_specialist,
     ),
     "risk_thesis_specialist": AgentSpec(
         agent_id="risk_thesis_specialist",

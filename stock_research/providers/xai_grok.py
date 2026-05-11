@@ -129,7 +129,7 @@ def xai_response_to_packet(
     raw_path: Path,
     today: date,
 ) -> EvidencePacket:
-    text = extract_output_text(response)
+    text = clean_text(extract_output_text(response))
     citation_urls = extract_citations(response, text)
     sources = [
         Source(
@@ -291,9 +291,41 @@ def write_raw_artifact(root: Path, run_id: str, name: str, payload: dict[str, An
 
 
 def truncate(value: str, max_length: int) -> str:
+    value = clean_text(value)
     if len(value) <= max_length:
         return value
     return value[: max_length - 3].rstrip() + "..."
+
+
+def clean_text(value: str) -> str:
+    repaired = repair_latin1_mojibake(value)
+    if repaired:
+        value = repaired
+    replacements = {
+        "\u201c": '"',
+        "\u201d": '"',
+        "\u2018": "'",
+        "\u2019": "'",
+        "\u2013": "-",
+        "\u2014": "-",
+        "\u2026": "...",
+        "\u00a0": " ",
+    }
+    for bad, good in replacements.items():
+        value = value.replace(bad, good)
+    return value
+
+
+def repair_latin1_mojibake(value: str) -> str:
+    if "\u00e2" not in value and "\u00c2" not in value:
+        return value
+    try:
+        repaired = value.encode("latin-1").decode("utf-8")
+    except UnicodeError:
+        return value
+    if len(repaired.strip()) < len(value.strip()) * 0.8:
+        return value
+    return repaired
 
 
 def safe_name(value: str) -> str:

@@ -8,6 +8,8 @@ Make Codex chat the primary human interface for this stock research repo. The us
 
 Manual file edits are allowed, but the normal path should be chat first.
 
+For the concise human-facing usage guide, start with `docs/HUMAN_USAGE_GUIDE.md`.
+
 ## Core Model
 
 1. User tells Codex something in natural language.

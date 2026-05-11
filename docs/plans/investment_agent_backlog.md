@@ -86,6 +86,9 @@ This is the clear task backlog for building the stock tracking and investment re
 - [x] Document human review operating model.
   - Description: define the digest-first review inbox, async waiting behavior, portfolio-review audience, notification policy, and approval-gated follow-up rules.
   - Output: `docs/descriptions/human_review_operating_model.md`.
+- [x] Create concise human usage guide.
+  - Description: explain in practical language what the user should ask Codex, where results are written, how to review HRQ decisions, and how to start a new chat.
+  - Output: `docs/HUMAN_USAGE_GUIDE.md`.
 - [x] Implement human request classifier.
   - Description: classify user requests into stock research, industry research, theme tracking, strategy change, alert review, manual run, stock status move, or other.
 - [x] Implement request router.

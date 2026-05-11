@@ -1,10 +1,10 @@
 # Current Holdings State
 
-Last updated: 2026-04-30
+Last updated: 2026-05-11
 
 ## Current View
 
-- No holdings have been added yet.
+- AMZN has been added as the first current holding for full weekly workflow validation.
 
 ## Portfolio-Level Thesis
 
@@ -24,8 +24,8 @@ Last updated: 2026-04-30
 
 ## Planned Next Steps
 
-- Add current holdings to `current_holdings.csv`.
-- Create one detailed company file per holding under `stock_tracking/stock_info_files/current_holdings/`.
+- Run a full weekly-style AMZN research workflow with fresh provider data, company research fanout, portfolio review, memory/evaluation review, and human-review digest.
+- Inspect report quality and patch prompts/tools/specialists where the output is incomplete, noisy, stale, or not actionable.
 
 ## Open Questions
 
@@ -34,3 +34,4 @@ Last updated: 2026-04-30
 ## Change Log
 
 - 2026-04-30: Created initial state file template.
+- 2026-05-11: Added AMZN as the first current holding for full workflow validation.

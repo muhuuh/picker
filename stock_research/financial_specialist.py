@@ -12,6 +12,7 @@ from .repo import find_repo_root
 
 
 CORE_METRICS = ("company_name", "latest_price", "market_cap", "pe_ratio", "currency", "exchange", "sector", "industry")
+TAXONOMY_METRICS = {"sector", "industry"}
 HEADLINE_METRICS = (
     "company_name",
     "latest_price",
@@ -112,12 +113,14 @@ def build_financial_review(
     consensus: dict[str, dict[str, Any]],
     compare_path: Path,
 ) -> dict[str, Any]:
-    conflicts = [contradiction.current_repo_claim for contradiction in compare_packet.contradictions]
+    conflicts = build_conflict_details(consensus)
+    material_conflicts = [conflict for conflict in conflicts if conflict["material"]]
+    taxonomy_conflicts = [conflict for conflict in conflicts if not conflict["material"]]
     missing_core = [metric for metric in CORE_METRICS if metric not in consensus]
     low_confidence_core = [
         metric
         for metric in CORE_METRICS
-        if metric in consensus and consensus[metric].get("confidence") in {"low", "unknown"}
+        if metric in consensus and metric not in TAXONOMY_METRICS and consensus[metric].get("confidence") in {"low", "unknown"}
     ]
     single_provider_metrics = [
         metric
@@ -132,12 +135,12 @@ def build_financial_review(
         confidence_counts[confidence] = confidence_counts.get(confidence, 0) + 1
         status_counts[status] = status_counts.get(status, 0) + 1
 
-    if conflicts or low_confidence_core:
+    if material_conflicts or low_confidence_core:
         status = "needs_human_review"
         status_reason = "Material conflicts or low-confidence core metrics need review before file updates."
-    elif missing_core:
+    elif missing_core or taxonomy_conflicts:
         status = "partial_review"
-        status_reason = "No material conflicts found, but some core metrics are missing."
+        status_reason = "No material numeric conflicts found, but some core metrics are missing or taxonomy labels differ by provider."
     else:
         status = "ready_for_company_update"
         status_reason = "Core metrics are available and no material provider conflicts were found."
@@ -154,6 +157,8 @@ def build_financial_review(
         "single_provider_metrics": single_provider_metrics,
         "missing_core_metrics": missing_core,
         "low_confidence_core_metrics": low_confidence_core,
+        "material_conflicts": material_conflicts,
+        "taxonomy_conflicts": taxonomy_conflicts,
         "unknowns": compare_packet.unknowns,
         "conflicts": conflicts,
         "needs_human_review": status == "needs_human_review",
@@ -167,6 +172,22 @@ def recommended_company_file_action(status: str) -> str:
     if status == "partial_review":
         return "Update available metrics, but preserve missing-core-metric notes for follow-up."
     return "Do not update financial conclusions until conflicts or low-confidence core metrics are reviewed."
+
+
+def build_conflict_details(consensus: dict[str, dict[str, Any]]) -> list[dict[str, Any]]:
+    conflicts: list[dict[str, Any]] = []
+    for metric, result in consensus.items():
+        if result.get("status") != "conflict":
+            continue
+        conflicts.append(
+            {
+                "metric": metric,
+                "values": result.get("values", {}),
+                "reason": result.get("reason", "Provider values disagree."),
+                "material": metric not in TAXONOMY_METRICS,
+            }
+        )
+    return conflicts
 
 
 def review_to_packet(
@@ -209,6 +230,8 @@ def review_to_packet(
         "status_counts": review["status_counts"],
         "missing_core_metrics": review["missing_core_metrics"],
         "single_provider_metrics": review["single_provider_metrics"],
+        "material_conflicts": review["material_conflicts"],
+        "taxonomy_conflicts": review["taxonomy_conflicts"],
     }
     claims = [
         Claim(
@@ -329,6 +352,14 @@ def format_financial_review_markdown(root: Path, review: dict[str, Any]) -> str:
     lines.append(f"- missing_core_metrics: {', '.join(review['missing_core_metrics']) or 'none'}")
     lines.append(f"- low_confidence_core_metrics: {', '.join(review['low_confidence_core_metrics']) or 'none'}")
     lines.append(f"- conflicts: {len(review['conflicts'])}")
+    lines.append(f"- material_conflicts: {len(review['material_conflicts'])}")
+    lines.append(f"- taxonomy_conflicts: {len(review['taxonomy_conflicts'])}")
+    if review["conflicts"]:
+        lines.extend(["", "## Provider Conflicts", ""])
+        for conflict in review["conflicts"]:
+            materiality = "material" if conflict.get("material") else "taxonomy/watch"
+            lines.append(f"- {conflict.get('metric')}: {materiality}; {conflict.get('reason')}")
+            lines.append(f"  - values: {json.dumps(conflict.get('values', {}), sort_keys=True)}")
     lines.append(f"- recommended_company_file_action: {review['recommended_company_file_action']}")
     return "\n".join(lines).rstrip() + "\n"
 

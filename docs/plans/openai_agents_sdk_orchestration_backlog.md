@@ -134,7 +134,13 @@ Out of scope for the first slice:
 
 - [x] Build company research sub-orchestrator.
   - Coordinates filings, news, financials, sentiment, risks, and update proposals for one ticker.
-  - Current implementation: `company_research_orchestrator` is registered, exposed to the main orchestrator, has prompt/spec artifacts, can build a one-ticker company research packet, can run financial, company-news, Exa company-search, SEC filing, xAI/Grok sentiment, risk/thesis, writer, and quality-review fanout, and writes per-ticker scheduled artifacts.
+  - Current implementation: `company_research_orchestrator` is registered, exposed to the main orchestrator, has prompt/spec artifacts, can build a one-ticker company research packet, can run financial, company-news, Exa company-search, SEC filing, xAI/Grok sentiment, risk/thesis, opportunity-assessment, writer, and quality-review fanout, and writes per-ticker scheduled artifacts.
+- [x] Add opportunity-assessment specialist lane.
+  - Current implementation: deterministic `opportunity_assessment` analysis task plus SDK `opportunity_assessment_specialist` synthesize financials, Exa news/company search, SEC filings, Grok/X sentiment, and risk signals into a concise research opinion for human review.
+  - Validation: AMZN weekly-style run wrote `agents/runs/2026-05-16_weekly/reports/opportunity_assessment/AMZN_opportunity_assessment.md`.
+- [x] Add final weekly-style digest artifact.
+  - Current implementation: `stock_research/weekly_digest.py` writes `agents/runs/{run_id}/final_digest.md/json` with per-ticker opportunity view, financial facts, news/trends/sentiment, filing coverage, watch items, and next actions.
+  - Validation: AMZN weekly-style run wrote `agents/runs/2026-05-16_weekly/final_digest.md`; deterministic digest status is `ready`.
 - [x] Build market research sub-orchestrator.
   - Coordinates industry/theme research, discovery, candidate validation, and strategy fit.
   - Current progress: first SDK version registered as `market_research_orchestrator`; it builds an industry/theme packet and runs Exa industry, Grok/X discovery, candidate discovery, and quality-review fanout. Manual market research is now available through `python -m stock_research market-research run --topic TOPIC --subject-type industry|theme --write [--execute-providers] [--execute-orchestrator]`. The manual path writes a market report, candidate lead schema, and discovery quality gates. Grok/X is a required discovery lane for niche trends, hype, rumors, sentiment, and emerging ticker leads; promotion still requires Exa/filing/market-data verification.
@@ -212,12 +218,18 @@ Out of scope for the first slice:
   - Target behavior: after any manual/weekly run, refresh or summarize `agents/human_review_digest.md`, mention new high-priority items, and state allowed decisions.
   - Reason: review items should be visible at the end of the run without requiring the user to open the raw queue manually.
 - [ ] Add Saturday automation only after the SDK runtime can run safely and produce reviewable outputs.
+- [x] Investigate scheduled main SDK connection failure and prompt/context size.
+  - Resolution: after OpenAI API credit was added, scheduled `run-weekly --execute-orchestrator` reached the live model path and completed.
+  - Follow-up fix: runtime quality gates were tightened so valid report artifact paths can back proposal `source_ids`, and direct trade-language checks no longer flag ordinary business text such as `Sell on Amazon`.
+  - Validation: `python -m stock_research run-weekly --write --today 2026-05-11 --execute-providers --execute-analysis --execute-orchestrator --orchestrator-timeout-seconds 900` completed with status `complete` for AMZN/AAPL.
 
 ## Priority 9: Tests and Evaluation
 
 - [x] Add unit tests for registry, context, outputs, and initial tools.
 - [ ] Add integration tests with fake model/tool outputs.
 - [ ] Add golden tests for orchestrator decisions from known evidence packets.
+- [ ] Add golden tests for weekly final digest quality.
+  - Include AMZN-style cases: taxonomy-only financial conflict should be a watch item, not a high-risk material financial conflict; Grok/X sentiment should be labeled social signal; final digest should be concise and not trade-instructive.
 - [ ] Add failure-injection tests for provider failure, malformed specialist output, missing citations, and timeout behavior.
   - Current progress: timeout and runtime-error failure injection tests are implemented for `run_agent_sync`; provider failure, malformed specialist output, and missing-citation golden tests remain.
 - [ ] Add quality gates for no direct writes outside allowed targets.
@@ -271,7 +283,7 @@ Guarded provider/analysis tool status: `run_provider_tasks_guarded` and `run_ana
 
 Local hook/telemetry status: SDK runtime now attaches local hooks that record agent lifecycle, LLM calls, tool calls, injected operational memory ids, and final-output reported memory ids into `run_metrics.md`. This gives the future memory/evaluation sub-orchestrator a repo-local audit trail without relying only on OpenAI hosted traces.
 
-Latest validation: `python -m stock_research run-weekly --write --today 2026-05-05 --execute-providers --execute-analysis --execute-orchestrator` completed successfully after adding generated-run-artifact cleanup. The clean run produced 14 evidence packets, one company-news review, one financial review, no deterministic quality findings, and no SDK quality findings.
+Latest validation: `python -m stock_research run-weekly --write --today 2026-05-11 --execute-providers --execute-analysis --execute-orchestrator --orchestrator-timeout-seconds 900` completed successfully for AMZN/AAPL after OpenAI API credit was added and runtime quality gates were tightened. The clean run executed 19 provider tasks and 10 analysis tasks, produced 29 evidence packets, wrote final digest and opportunity assessment artifacts, completed company research for both tracked tickers, and ended with no deterministic or SDK quality findings.
 
 Proposal bridge status: `python -m stock_research agent-runtime queue-proposals --run-id 2026-05-09_weekly --write --queue-review --today 2026-05-07` wrote `orchestrator_update_proposals.md` and duplicate-safe human-review queue rows HRQ-0002 and HRQ-0003. It does not edit company files.
 

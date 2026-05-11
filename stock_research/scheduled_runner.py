@@ -38,6 +38,7 @@ from .quality_report import build_quality_report, quality_report_to_dict, write_
 from .repo import find_repo_root, load_repo_state
 from .run_finalization import RunFinalization, finalize_run, finalization_to_dict
 from .run_summary import RunSummary, build_run_summary, run_summary_to_dict, write_run_summary
+from .weekly_digest import WeeklyDigest, build_weekly_digest, weekly_digest_to_dict, write_weekly_digest
 
 
 @dataclass(frozen=True)
@@ -110,6 +111,7 @@ def run_weekly_research_workflow(
     memory_evaluation_result: dict[str, Any] = {"status": "not_run"}
     orchestrator_result: dict[str, Any] = {"status": "not_run"}
     proposal_review_result: dict[str, Any] = {"status": "not_run"}
+    weekly_digest: WeeklyDigest | None = None
 
     if write:
         run_summary = build_run_summary(repo_root, run_id, today)
@@ -233,6 +235,9 @@ def run_weekly_research_workflow(
                 }
                 proposal_review_result = {"status": "not_run", "reason": "orchestrator_error"}
 
+        weekly_digest = build_weekly_digest(repo_root, run_id)
+        artifacts.extend(write_weekly_digest(repo_root, weekly_digest))
+
     result = ScheduledRunResult(
         run_id=run_id,
         generated_at=today.isoformat(),
@@ -246,6 +251,7 @@ def run_weekly_research_workflow(
             portfolio_review_result,
             memory_evaluation_result,
             orchestrator_result,
+            weekly_digest,
         ),
         mode=run_mode(write, execute_providers, execute_analysis, execute_memory_writer, execute_orchestrator),
         steps=build_steps(
@@ -262,6 +268,7 @@ def run_weekly_research_workflow(
             portfolio_review_result=portfolio_review_result,
             memory_evaluation_result=memory_evaluation_result,
             proposal_review_result=proposal_review_result,
+            weekly_digest=weekly_digest,
         ),
         artifacts=[relative_to_root(repo_root, path).as_posix() for path in artifacts],
         next_actions=next_actions(
@@ -274,6 +281,7 @@ def run_weekly_research_workflow(
             portfolio_review_result,
             memory_evaluation_result,
             orchestrator_result,
+            weekly_digest,
         ),
     )
 
@@ -293,6 +301,7 @@ def determine_status(
     portfolio_review_result: dict[str, Any] | None = None,
     memory_evaluation_result: dict[str, Any] | None = None,
     orchestrator_result: dict[str, Any] | None = None,
+    weekly_digest: WeeklyDigest | None = None,
 ) -> str:
     if not write:
         return "dry_run"
@@ -309,6 +318,8 @@ def determine_status(
     if memory_evaluation_result and memory_evaluation_result.get("status") in {"blocked", "needs_human_review"}:
         return "needs_review"
     if orchestrator_result and orchestrator_result.get("status") in {"error", "needs_review"}:
+        return "needs_review"
+    if weekly_digest and weekly_digest.status == "needs_review":
         return "needs_review"
     return "complete"
 
@@ -345,6 +356,7 @@ def build_steps(
     portfolio_review_result: dict[str, Any],
     memory_evaluation_result: dict[str, Any],
     proposal_review_result: dict[str, Any],
+    weekly_digest: WeeklyDigest | None,
 ) -> dict[str, Any]:
     return {
         "manifest": {
@@ -364,6 +376,7 @@ def build_steps(
         "memory_evaluation": memory_evaluation_result,
         "agent_orchestrator": orchestrator_result,
         "orchestrator_proposal_review": proposal_review_result,
+        "final_digest": weekly_digest_to_dict(weekly_digest) if weekly_digest else {"status": "not_written"},
         "framework_boundary": {
             "status": "resolved",
             "framework": "OpenAI Agents SDK",
@@ -382,6 +395,7 @@ def next_actions(
     portfolio_review_result: dict[str, Any] | None = None,
     memory_evaluation_result: dict[str, Any] | None = None,
     orchestrator_result: dict[str, Any] | None = None,
+    weekly_digest: WeeklyDigest | None = None,
 ) -> list[str]:
     actions: list[str] = []
     if not write:
@@ -418,6 +432,8 @@ def next_actions(
                 "Run `--write --execute-providers --execute-analysis --execute-orchestrator` before accepting SDK file updates as fresh research."
             )
         actions.append("Review SDK orchestrator quality findings and tighten prompts/tools before accepting synthesis.")
+    if weekly_digest and weekly_digest.next_actions:
+        actions.extend(weekly_digest.next_actions)
     return unique(actions)
 
 
@@ -622,6 +638,8 @@ GENERATED_RUN_ROOT_FILES = (
     "run_metrics.md",
     "orchestration_report.json",
     "orchestration_report.md",
+    "final_digest.json",
+    "final_digest.md",
 )
 
 
@@ -671,6 +689,7 @@ def format_scheduled_run_report_markdown(result: ScheduledRunResult) -> str:
         f"- memory_finalization: {result.steps['memory_finalization'].get('status', 'not_written')}",
         f"- memory_writer_review: {result.steps['memory_writer_review'].get('mode', 'not_written')}",
         f"- company_research: {result.steps['company_research'].get('status', 'not_run')} ({len(result.steps['company_research'].get('results', []))} ticker(s))",
+        f"- final_digest: {result.steps['final_digest'].get('status', 'not_written')} ({result.steps['final_digest'].get('ticker_count', 0)} ticker(s))",
         f"- agent_orchestrator: {result.steps['agent_orchestrator'].get('status', 'not_run')}",
         f"- orchestrator_proposal_review: {result.steps['orchestrator_proposal_review'].get('status', 'not_run')}",
         "",

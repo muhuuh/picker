@@ -1,0 +1,22 @@
+# Opportunity Assessment Specialist Spec
+
+- id: opportunity_assessment_specialist
+- role: specialist
+- runtime module: `stock_research.agent_runtime.specialists.opportunity`
+- output type: `SpecialistResult`
+- primary inputs:
+  - deterministic opportunity assessment report
+  - financial review and company-news review artifacts
+  - SEC filing, Exa company/news, and xAI/Grok sentiment evidence packets
+  - risk/thesis and quality-review outputs when present
+  - operational memory context
+- write behavior: no direct company-file writes
+- callable modes:
+  - deterministic analysis task: `opportunity_assessment`
+  - company-research sub-orchestrator fanout
+  - `Agent.as_tool()` for orchestrator use
+- guardrails:
+  - no direct buy/sell/position-size instructions
+  - separate facts from social narrative/speculation
+  - cite source references with URL or repo artifact path
+  - only use exact injected operational memory ids

@@ -362,6 +362,8 @@ def comparison_to_packet(
             "confidence": result["confidence"],
             "status": result["status"],
             "providers": result["providers"],
+            "values": result.get("values", {}),
+            "reason": result.get("reason", ""),
         }
         for metric, result in comparison["consensus"].items()
         if result["status"] != "non_numeric"
@@ -379,7 +381,7 @@ def comparison_to_packet(
     ]
     contradictions = [
         Contradiction(
-            current_repo_claim=f"Provider values for {conflict['metric']} are consistent.",
+            current_repo_claim=f"Financial provider conflict for {conflict['metric']}.",
             new_evidence=json.dumps(conflict["values"], sort_keys=True),
             source_ids=source_ids_for_conflict(conflict, sources),
             suggested_action="Preserve the provider disagreement and avoid updating this metric without review.",

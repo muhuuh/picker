@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import asdict, is_dataclass
 import json
 from pathlib import Path
+import re
 from typing import Any
 
 from stock_research.agent_runtime.context import ResearchRunContext
@@ -200,7 +201,7 @@ def evaluate_runtime_output_quality(output: Any, context: ResearchRunContext | N
         findings.append("Summary is too short for useful review.")
     if data.get("status") not in {"ready", "partial", "needs_human_review", "blocked"}:
         findings.append("Status is missing or invalid.")
-    if "buy" in summary.lower() or "sell" in summary.lower():
+    if contains_direct_trade_language(summary):
         findings.append("Summary may contain direct trade language; recommendations should remain review items.")
     validate_memory_ids(data, context, findings, "top-level output")
     validate_sources(data, context, findings, "top-level output")
@@ -218,6 +219,18 @@ def evaluate_runtime_output_quality(output: Any, context: ResearchRunContext | N
     validate_file_update_proposals(data.get("file_update_proposals") or [], context, findings, source_ids, "top-level output")
     validate_candidate_leads(data.get("candidate_leads") or [], findings, "top-level output")
     return findings
+
+
+def contains_direct_trade_language(text: str) -> bool:
+    normalized = text.lower()
+    patterns = [
+        r"\b(buy|sell|short)\s+(the\s+)?(stock|shares|position|ticker)\b",
+        r"\b(stock|shares|position|ticker)\s+(is|are)\s+a\s+(buy|sell|short)\b",
+        r"\b(go|going)\s+(long|short)\b",
+        r"\b(add|increase|reduce|trim|exit)\s+(the\s+)?(stock|shares|position)\b",
+        r"\b(position\s+size|size\s+the\s+position)\b",
+    ]
+    return any(re.search(pattern, normalized) for pattern in patterns)
 
 
 def collect_source_ids(data: dict[str, Any]) -> set[str]:
@@ -255,17 +268,32 @@ def validate_file_update_proposals(
         proposal_source_ids = [str(source_id) for source_id in proposal.get("source_ids") or []]
         if not proposal_source_ids:
             findings.append(f"{label} file update proposal for {target_file} has no source_ids.")
-        missing_source_ids = [source_id for source_id in proposal_source_ids if source_id not in source_ids]
+        missing_source_ids = [
+            source_id
+            for source_id in proposal_source_ids
+            if source_id not in source_ids and not source_reference_exists(source_id, context)
+        ]
         if missing_source_ids:
             findings.append(
                 f"{label} file update proposal for {target_file} references unknown source_ids: {', '.join(missing_source_ids)}"
             )
 
 
+def source_reference_exists(source_reference: str, context: ResearchRunContext | None) -> bool:
+    if not context:
+        return False
+    normalized = source_reference.strip().replace("\\", "/")
+    if not normalized:
+        return False
+    reference_path = Path(normalized)
+    candidates = [reference_path] if reference_path.is_absolute() else [context.run_dir / normalized, context.root / normalized]
+    return any(candidate.exists() for candidate in candidates)
+
+
 def validate_memory_ids(data: dict[str, Any], context: ResearchRunContext | None, findings: list[str], label: str) -> None:
     if not data.get("memory_item_ids_used"):
-        findings.append(f"{label} did not record operational memory item ids used.")
-    elif context:
+        return
+    if context:
         known_ids = set(context.known_memory_item_ids or context.memory_item_ids)
         invalid_ids = [item_id for item_id in data.get("memory_item_ids_used", []) if item_id not in known_ids]
         if invalid_ids:

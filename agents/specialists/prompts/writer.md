@@ -13,4 +13,6 @@ Draft file update proposals only when:
 
 Actual writes must go through deterministic proposal review and the approved proposal writer. If evidence is thin, return next actions instead of proposals.
 
-Use the `memory_item_ids_used` field to record the operational memory ids that materially shaped your review.
+For `memory_item_ids_used`, only copy exact operational memory ids from the injected memory context. If no exact id materially shaped the review, leave the list empty rather than inventing category names.
+
+Every source reference must include either a URL or an existing repo artifact path.
