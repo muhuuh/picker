@@ -7,6 +7,7 @@ from typing import Any
 
 from .memory import relative_to_root
 from .repo import find_repo_root
+from .report_formatting import format_financial_value, format_plain_value
 
 
 @dataclass(frozen=True)
@@ -17,6 +18,7 @@ class WeeklyDigest:
     open_review_count: int
     tickers: list[dict[str, Any]]
     next_actions: list[str]
+    quality_findings: list[str]
 
 
 def build_weekly_digest(root: Path | None, run_id: str) -> WeeklyDigest:
@@ -29,8 +31,11 @@ def build_weekly_digest(root: Path | None, run_id: str) -> WeeklyDigest:
             tickers.append(build_ticker_digest(repo_root, run_id, data))
     open_review_count = count_open_review_items(repo_root)
     next_actions = build_next_actions(tickers, open_review_count, run_dir)
+    quality_findings = validate_weekly_digest_tickers(repo_root, tickers)
     status = "ready"
     if any(item.get("risk_level") == "high" or item.get("confidence") == "low" for item in tickers):
+        status = "needs_review"
+    if quality_findings:
         status = "needs_review"
     if not tickers:
         status = "partial"
@@ -42,6 +47,7 @@ def build_weekly_digest(root: Path | None, run_id: str) -> WeeklyDigest:
         open_review_count=open_review_count,
         tickers=tickers,
         next_actions=unique(next_actions),
+        quality_findings=quality_findings,
     )
 
 
@@ -67,8 +73,20 @@ def build_ticker_digest(root: Path, run_id: str, assessment: dict[str, Any]) -> 
             root,
             root / "agents" / "runs" / run_id / "reports" / "opportunity_assessment" / f"{ticker}_opportunity_assessment.md",
         ).as_posix(),
+        "evidence_links": build_ticker_evidence_links(root, run_id, ticker),
         "recommended_next_action": assessment.get("recommended_next_action", ""),
     }
+
+
+def build_ticker_evidence_links(root: Path, run_id: str, ticker: str) -> dict[str, str]:
+    run_dir = root / "agents" / "runs" / run_id
+    candidates = {
+        "opportunity_report": run_dir / "reports" / "opportunity_assessment" / f"{ticker}_opportunity_assessment.md",
+        "financial_review": run_dir / "reports" / "financial_data_specialist" / f"{ticker}_financial_review.md",
+        "company_news_review": run_dir / "reports" / "company_news_specialist" / f"{ticker}_company_news_review.md",
+        "company_research": run_dir / "company_research" / f"{ticker}_company_research.md",
+    }
+    return {key: relative_to_root(root, path).as_posix() for key, path in candidates.items() if path.exists()}
 
 
 def concise_financial_snapshot(value: dict[str, Any]) -> dict[str, Any]:
@@ -130,6 +148,7 @@ def weekly_digest_to_dict(digest: WeeklyDigest) -> dict[str, Any]:
         "open_review_count": digest.open_review_count,
         "tickers": digest.tickers,
         "next_actions": digest.next_actions,
+        "quality_findings": digest.quality_findings,
     }
 
 
@@ -158,6 +177,19 @@ def format_weekly_digest_markdown(digest: WeeklyDigest) -> str:
                 f"- thesis_freshness: {item['thesis_freshness']}",
                 f"- report: `{item['report_path']}`",
                 "",
+                "### Evidence Links",
+                "",
+            ]
+        )
+        evidence_links = item.get("evidence_links") or {}
+        if evidence_links:
+            for label, path in evidence_links.items():
+                lines.append(f"- {label}: `{path}`")
+        else:
+            lines.append("- No direct evidence links available.")
+        lines.extend(
+            [
+                "",
                 "### Expert Opinion",
                 "",
                 str(item["summary"]),
@@ -167,7 +199,7 @@ def format_weekly_digest_markdown(digest: WeeklyDigest) -> str:
             ]
         )
         for key, value in item["financial_snapshot"].items():
-            lines.append(f"- {key}: {format_value(value)}")
+            lines.append(f"- {key}: {format_financial_value(key, value)}")
         lines.extend(["", "### News / Trends / Sentiment", ""])
         news = item["news_snapshot"]
         social = item["social_snapshot"]
@@ -191,7 +223,53 @@ def format_weekly_digest_markdown(digest: WeeklyDigest) -> str:
         lines.extend(f"- {item}" for item in digest.next_actions)
     else:
         lines.append("- None.")
+    if digest.quality_findings:
+        lines.extend(["", "## Digest Quality Findings", ""])
+        lines.extend(f"- {item}" for item in digest.quality_findings)
     return "\n".join(lines).rstrip() + "\n"
+
+
+def validate_weekly_digest_tickers(root: Path, tickers: list[dict[str, Any]]) -> list[str]:
+    findings: list[str] = []
+    for item in tickers:
+        ticker = str(item.get("ticker", "unknown"))
+        report_path = str(item.get("report_path", ""))
+        if not report_path or not (root / report_path).exists():
+            findings.append(f"{ticker} digest is missing an existing opportunity report path.")
+        evidence_links = item.get("evidence_links") or {}
+        required_links = {"opportunity_report", "financial_review", "company_news_review"}
+        missing_links = sorted(required_links - set(evidence_links))
+        if missing_links:
+            findings.append(f"{ticker} digest is missing evidence links: {', '.join(missing_links)}.")
+        for label, path in evidence_links.items():
+            if not (root / str(path)).exists():
+                findings.append(f"{ticker} digest evidence link does not exist for {label}: {path}")
+        if item.get("financial_snapshot", {}).get("status") == "missing":
+            findings.append(f"{ticker} digest is missing financial review status.")
+        if item.get("news_snapshot", {}).get("status") == "missing":
+            findings.append(f"{ticker} digest is missing company-news review status.")
+        social = item.get("social_snapshot", {})
+        if social.get("status") == "available" and not str(social.get("sentiment", "")).endswith("_social_signal"):
+            findings.append(f"{ticker} Grok/X sentiment must be labeled as a social signal.")
+        if contains_direct_trade_language(str(item.get("summary", ""))):
+            findings.append(f"{ticker} digest summary contains direct trade language.")
+        if contains_direct_trade_language(str(item.get("recommended_next_action", ""))):
+            findings.append(f"{ticker} recommended next action contains direct trade language.")
+    return findings
+
+
+def contains_direct_trade_language(value: str) -> bool:
+    lower = value.lower()
+    patterns = [
+        r"\b(buy|sell|short)\s+(the\s+)?(stock|shares|position|ticker)\b",
+        r"\b(stock|shares|position|ticker)\s+(is|are)\s+a\s+(buy|sell|short)\b",
+        r"\b(go|going)\s+(long|short)\b",
+        r"\b(add|increase|reduce|trim|exit)\s+(the\s+)?(stock|shares|position)\b",
+        r"\b(position\s+size|size\s+the\s+position)\b",
+    ]
+    import re
+
+    return any(re.search(pattern, lower) for pattern in patterns)
 
 
 def read_json(path: Path) -> dict[str, Any]:
@@ -241,8 +319,4 @@ def unique(values: list[str]) -> list[str]:
 
 
 def format_value(value: Any) -> str:
-    if value is None:
-        return "unknown"
-    if isinstance(value, float):
-        return f"{value:.4g}"
-    return str(value)
+    return format_plain_value(value)

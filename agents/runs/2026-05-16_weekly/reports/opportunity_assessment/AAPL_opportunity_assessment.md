@@ -9,13 +9,13 @@ Thesis freshness: fresh_recent_evidence
 
 ## Expert Opinion
 
-AAPL assessment is interesting with score 85/100, medium risk, and high confidence. Main positive: Revenue TTM is available at 4.514e+11, giving a scale anchor. Main caution: Grok/X scan includes rumor or speculation language; do not treat it as verified fact.
+AAPL assessment is interesting with score 85/100, medium risk, and high confidence. Main positive: Revenue TTM is available at $451.44B, giving a scale anchor. Main caution: Grok/X scan includes rumor or speculation language; do not treat it as verified fact.
 
 This is a research synthesis for human review, not an automatic trade instruction.
 
 ## Key Positives
 
-- Revenue TTM is available at 4.514e+11, giving a scale anchor.
+- Revenue TTM is available at $451.44B, giving a scale anchor.
 - Profit margin is positive at 27.20%.
 - Recent source-backed development: Exa content excerpt from Apple stock rallies on Q2 earnings and Q3 guidance
 - Recent source-backed development: Exa content excerpt from Apple reports second quarter results - Apple
@@ -35,14 +35,14 @@ This is a research synthesis for human review, not an automatic trade instructio
 
 - status: ready_for_company_update
 - reason: Core metrics are available and no material provider conflicts were found.
-- latest_price: 293.3
-- market_cap: 4.28e+12
-- pe_ratio: 34.97
-- price_to_sales_ttm: 9.48
-- ev_to_ebitda_ttm: 26.99
-- revenue_ttm: 4.514e+11
-- profit_margin: 0.272
-- free_cash_flow_per_share_ttm: 8.781
+- latest_price: $293.32
+- market_cap: $4.28T
+- pe_ratio: 34.97x
+- price_to_sales_ttm: 9.48x
+- ev_to_ebitda_ttm: 26.99x
+- revenue_ttm: $451.44B
+- profit_margin: 27.20%
+- free_cash_flow_per_share_ttm: $8.78
 - currency: USD
 - sector: Technology
 - industry: Consumer Electronics
@@ -101,6 +101,10 @@ This is a research synthesis for human review, not an automatic trade instructio
 - financial_specialist_report
 - fmp_company_snapshot
 - run: `agents/runs/2026-05-16_weekly`
+
+## Quality Findings
+
+- None.
 
 ## Recommended Next Action
 

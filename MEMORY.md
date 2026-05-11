@@ -322,6 +322,11 @@ Use this file for information we should not lose across sessions.
   - status: active
 
 - 2026-05-11:
+  - decision/fact: Weekly final digests and opportunity assessments now have deterministic quality gates for required evidence links/source ids, readable financial formatting, Grok/X social-signal labeling, direct trade-language blocking, and taxonomy-only conflict handling. `run-weekly --write` also refreshes `agents/human_review_digest.md` and includes open-review next actions.
+  - evidence artifact path(s): `stock_research/weekly_digest.py`, `stock_research/opportunity_assessment.py`, `stock_research/report_formatting.py`, `stock_research/scheduled_runner.py`, `tests/test_weekly_digest.py`, `tests/test_opportunity_assessment.py`, `tests/test_scheduled_runner.py`, `agents/runs/2026-05-16_weekly/final_digest.md`, `agents/human_review_digest.md`
+  - status: active
+
+- 2026-05-11:
   - decision/fact: The OpenAI Agents SDK weekly path completed successfully after API credit was added and runtime quality gates were tightened. The validation command for AMZN/AAPL is `python -m stock_research run-weekly --write --today 2026-05-11 --execute-providers --execute-analysis --execute-orchestrator --orchestrator-timeout-seconds 900`.
   - evidence artifact path(s): `agents/runs/2026-05-16_weekly/orchestration_report.md`, `agents/runs/2026-05-16_weekly/agent_runtime_main_orchestrator.md`, `stock_research/agent_runtime/reports.py`, `tests/test_agent_runtime.py`
   - status: active

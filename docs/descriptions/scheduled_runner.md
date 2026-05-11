@@ -1,6 +1,6 @@
 # Scheduled Runner
 
-Last updated: 2026-05-10
+Last updated: 2026-05-11
 
 ## Purpose
 
@@ -65,6 +65,8 @@ load repo state
   -> SDK company-research fanout for current/monitoring tickers (only with --execute-orchestrator)
   -> SDK orchestrator (only with --execute-orchestrator)
   -> SDK proposal review bridge (only after successful SDK orchestrator output)
+  -> final_digest
+  -> human_review_digest
   -> orchestration_report
 ```
 
@@ -80,6 +82,8 @@ When `--write` is used:
 - `agents/runs/{run_id}/memory_writer_prompt.md`
 - `agents/runs/{run_id}/memory_writer_review.md`
 - `agents/runs/{run_id}/finalization.md`
+- `agents/runs/{run_id}/final_digest.md`
+- `agents/human_review_digest.md`
 - `agents/runs/{run_id}/company_research/{TICKER}_company_research.md` when `--execute-orchestrator` is used and tracked tickers exist
 - `agents/runs/{run_id}/company_research/{TICKER}_company_research_metrics.md` when company-research fanout writes metrics
 - `agents/runs/{run_id}/agent_runtime_main_orchestrator.md` when `--execute-orchestrator` is used
@@ -89,6 +93,8 @@ When `--write` is used:
 - `agents/runs/{run_id}/orchestration_report.md`
 
 Generated JSON files remain ignored local runtime artifacts.
+
+The final digest includes readable financial formatting, explicit per-ticker evidence links, and deterministic digest quality findings when required evidence links, financial/news statuses, social-signal labels, or trade-instruction guardrails fail. The human-review digest is refreshed so the report can point the user to current approve/reject/needs-more-research/leave-open decisions.
 
 ## Status Semantics
 

@@ -9,23 +9,22 @@ Thesis freshness: fresh_recent_evidence
 
 ## Expert Opinion
 
-AMZN assessment is interesting with score 80/100, medium risk, and medium confidence. Main positive: Revenue TTM is available at 7.428e+11, giving a scale anchor. Main caution: Providers disagree on industry taxonomy; treat this as a classification/watch item, not a numeric conflict.
+AMZN assessment is interesting with score 80/100, medium risk, and medium confidence. Main positive: Revenue TTM is available at $742.78B, giving a scale anchor. Main caution: Providers disagree on industry taxonomy; treat this as a classification/watch item, not a numeric conflict.
 
 This is a research synthesis for human review, not an automatic trade instruction.
 
 ## Key Positives
 
-- Revenue TTM is available at 7.428e+11, giving a scale anchor.
+- Revenue TTM is available at $742.78B, giving a scale anchor.
 - Profit margin is positive at 12.20%.
 - Recent source-backed development: Exa content excerpt from Amazon.com, Inc. - Amazon.com Announces First Quarter Results
-- Recent source-backed development: Exa content excerpt from Amazon.com Announces First Quarter Results
 - Recent source-backed development: Exa content excerpt from Amazon (AMZN) Q1 2026 Earnings Call Transcript | The Motley Fool
 - SEC filing lane is available for primary-source validation.
 
 ## Key Negatives / Risks
 
 - Providers disagree on industry taxonomy; treat this as a classification/watch item, not a numeric conflict.
-- Free cash flow per share TTM is negative at -0.2301.
+- Free cash flow per share TTM is negative at -$0.23.
 
 ## Watch Items
 
@@ -37,14 +36,14 @@ This is a research synthesis for human review, not an automatic trade instructio
 
 - status: partial_review
 - reason: No material numeric conflicts found, but some core metrics are missing or taxonomy labels differ by provider.
-- latest_price: 272.7
-- market_cap: 2.926e+12
-- pe_ratio: 32.18
-- price_to_sales_ttm: 3.939
-- ev_to_ebitda_ttm: 17.68
-- revenue_ttm: 7.428e+11
-- profit_margin: 0.122
-- free_cash_flow_per_share_ttm: -0.2301
+- latest_price: $272.68
+- market_cap: $2.93T
+- pe_ratio: 32.18x
+- price_to_sales_ttm: 3.94x
+- ev_to_ebitda_ttm: 17.68x
+- revenue_ttm: $742.78B
+- profit_margin: 12.20%
+- free_cash_flow_per_share_ttm: -$0.23
 - currency: USD
 - sector: Consumer Cyclical
 - industry: INTERNET RETAIL
@@ -60,7 +59,6 @@ This is a research synthesis for human review, not an automatic trade instructio
 - source_count: 8
 - contents_claim_count: 3
 - claim: Exa content excerpt from Amazon.com, Inc. - Amazon.com Announces First Quarter Results
-- claim: Exa content excerpt from Amazon.com Announces First Quarter Results
 - claim: Exa content excerpt from Amazon (AMZN) Q1 2026 Earnings Call Transcript | The Motley Fool
 
 ## Grok/X Social Signal
@@ -103,6 +101,10 @@ This is a research synthesis for human review, not an automatic trade instructio
 - financial_specialist_report
 - fmp_company_snapshot
 - run: `agents/runs/2026-05-16_weekly`
+
+## Quality Findings
+
+- None.
 
 ## Recommended Next Action
 

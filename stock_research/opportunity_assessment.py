@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 from dataclasses import dataclass
 from datetime import date
 from pathlib import Path
@@ -9,6 +10,7 @@ from typing import Any
 from .evidence import Claim, EvidencePacket, Risk, Source, default_packet_path, new_packet, read_packet, write_packet
 from .memory import relative_to_root
 from .repo import find_repo_root
+from .report_formatting import format_financial_value, format_percent as format_ratio_percent, format_plain_value
 
 
 class OpportunityAssessmentError(RuntimeError):
@@ -83,7 +85,7 @@ def build_opportunity_assessment(root: Path, run_id: str, ticker: str, packets: 
     negatives = build_negatives(financial, news, social, filings, packets)
     watch_items = build_watch_items(financial, news, social, filings, packets)
 
-    return {
+    assessment = {
         "ticker": ticker,
         "status": status,
         "opportunity_view": opportunity_view,
@@ -106,6 +108,45 @@ def build_opportunity_assessment(root: Path, run_id: str, ticker: str, packets: 
         "recommended_next_action": recommended_next_action(opportunity_view, risk_level, confidence, watch_items),
         "human_review_required": True,
     }
+    assessment["quality_findings"] = validate_opportunity_assessment(assessment)
+    return assessment
+
+
+def validate_opportunity_assessment(assessment: dict[str, Any]) -> list[str]:
+    findings: list[str] = []
+    ticker = str(assessment.get("ticker", "unknown"))
+    providers = set(assessment.get("provider_coverage") or [])
+    if "financial_data_specialist" not in providers:
+        findings.append(f"{ticker} opportunity assessment is missing financial-data specialist evidence.")
+    if "company_news_specialist" not in providers:
+        findings.append(f"{ticker} opportunity assessment is missing company-news specialist evidence.")
+    if not assessment.get("source_ids"):
+        findings.append(f"{ticker} opportunity assessment has no source ids.")
+    social = assessment.get("social_snapshot") or {}
+    if social.get("status") == "available" and not str(social.get("sentiment", "")).endswith("_social_signal"):
+        findings.append(f"{ticker} Grok/X signal must be labeled as social signal, not fact.")
+    financial = assessment.get("financial_snapshot") or {}
+    if financial.get("taxonomy_conflict_count") and not financial.get("material_conflict_count") and assessment.get("risk_level") == "high":
+        findings.append(f"{ticker} taxonomy-only conflict should not create a high-risk opportunity assessment.")
+    if contains_direct_trade_language(str(assessment.get("summary", ""))):
+        findings.append(f"{ticker} opportunity summary contains direct trade language.")
+    if contains_direct_trade_language(str(assessment.get("recommended_next_action", ""))):
+        findings.append(f"{ticker} opportunity next action contains direct trade language.")
+    return findings
+
+
+def contains_direct_trade_language(value: str) -> bool:
+    lower = value.lower()
+    patterns = [
+        r"\b(buy|sell|short)\s+(the\s+)?(stock|shares|position|ticker)\b",
+        r"\b(stock|shares|position|ticker)\s+(is|are)\s+a\s+(buy|sell|short)\b",
+        r"\b(go|going)\s+(long|short)\b",
+        r"\b(add|increase|reduce|trim|exit)\s+(the\s+)?(stock|shares|position)\b",
+        r"\b(position\s+size|size\s+the\s+position)\b",
+    ]
+    import re
+
+    return any(re.search(pattern, lower) for pattern in patterns)
 
 
 def read_run_json(root: Path, run_id: str, *parts: str) -> dict[str, Any]:
@@ -333,11 +374,12 @@ def classify_confidence(
 def build_positives(financial: dict[str, Any], news: dict[str, Any], social: dict[str, Any], filings: dict[str, Any]) -> list[str]:
     positives: list[str] = []
     if financial.get("revenue_ttm"):
-        positives.append(f"Revenue TTM is available at {format_value(financial['revenue_ttm'])}, giving a scale anchor.")
+        positives.append(
+            f"Revenue TTM is available at {format_financial_value('revenue_ttm', financial['revenue_ttm'])}, giving a scale anchor."
+        )
     if numeric(financial.get("profit_margin")) and numeric(financial.get("profit_margin")) > 0:
         positives.append(f"Profit margin is positive at {format_percent(financial['profit_margin'])}.")
-    for claim in news.get("contents_claims", [])[:3]:
-        claim_text = claim.get("claim") if isinstance(claim, dict) else ""
+    for claim_text in unique_claim_texts(news.get("contents_claims", []), limit=3):
         if claim_text:
             positives.append(f"Recent source-backed development: {claim_text}")
     if social.get("sentiment") == "positive_social_signal":
@@ -360,7 +402,10 @@ def build_negatives(
     if financial.get("taxonomy_conflict_count"):
         negatives.append("Providers disagree on industry taxonomy; treat this as a classification/watch item, not a numeric conflict.")
     if numeric(financial.get("free_cash_flow_per_share_ttm")) and numeric(financial.get("free_cash_flow_per_share_ttm")) < 0:
-        negatives.append(f"Free cash flow per share TTM is negative at {format_value(financial['free_cash_flow_per_share_ttm'])}.")
+        negatives.append(
+            "Free cash flow per share TTM is negative at "
+            f"{format_financial_value('free_cash_flow_per_share_ttm', financial['free_cash_flow_per_share_ttm'])}."
+        )
     if social.get("rumor_flag"):
         negatives.append("Grok/X scan includes rumor or speculation language; do not treat it as verified fact.")
     if filings.get("status") == "missing":
@@ -409,6 +454,33 @@ def build_summary(
         f"{ticker} assessment is {opportunity_view} with score {score}/100, {risk_level} risk, and {confidence} confidence. "
         f"Main positive: {positives[0]} Main caution: {negatives[0]}"
     )
+
+
+def unique_claim_texts(claims: list[Any], limit: int) -> list[str]:
+    result: list[str] = []
+    keys: list[str] = []
+    for claim in claims:
+        claim_text = claim.get("claim") if isinstance(claim, dict) else ""
+        if not claim_text:
+            continue
+        key = normalize_claim_key(claim_text)
+        if not key:
+            continue
+        if any(key in previous or previous in key for previous in keys):
+            continue
+        result.append(claim_text)
+        keys.append(key)
+        if len(result) >= limit:
+            break
+    return result
+
+
+def normalize_claim_key(value: str) -> str:
+    normalized = value.lower()
+    normalized = normalized.removeprefix("exa content excerpt from ")
+    normalized = re.sub(r"\b(inc|incorporated|corp|corporation|plc|ltd|limited)\b", "", normalized)
+    normalized = re.sub(r"[^a-z0-9]+", " ", normalized)
+    return " ".join(normalized.split())
 
 
 def recommended_next_action(
@@ -551,15 +623,14 @@ def format_opportunity_assessment_markdown(root: Path, run_id: str, assessment: 
     lines.extend(f"- {item}" for item in assessment["watch_items"])
     lines.extend(["", "## Financial Snapshot", ""])
     for key, value in assessment["financial_snapshot"].items():
-        lines.append(f"- {key}: {format_value(value)}")
+        lines.append(f"- {key}: {format_financial_value(key, value)}")
     lines.extend(["", "## News And Developments", ""])
     news = assessment["news_snapshot"]
     lines.append(f"- status: {news.get('status')}")
     lines.append(f"- source_count: {news.get('source_count')}")
     lines.append(f"- contents_claim_count: {news.get('contents_claim_count')}")
-    for claim in news.get("contents_claims", [])[:3]:
-        if isinstance(claim, dict):
-            lines.append(f"- claim: {claim.get('claim', '')}")
+    for claim_text in unique_claim_texts(news.get("contents_claims", []), limit=3):
+        lines.append(f"- claim: {claim_text}")
     lines.extend(["", "## Grok/X Social Signal", ""])
     social = assessment["social_snapshot"]
     lines.append(f"- status: {social.get('status')}")
@@ -580,6 +651,11 @@ def format_opportunity_assessment_markdown(root: Path, run_id: str, assessment: 
     for packet_id in assessment.get("source_ids", []):
         lines.append(f"- {packet_id}")
     lines.append(f"- run: `{relative_to_root(root, root / 'agents' / 'runs' / run_id).as_posix()}`")
+    lines.extend(["", "## Quality Findings", ""])
+    if assessment.get("quality_findings"):
+        lines.extend(f"- {item}" for item in assessment["quality_findings"])
+    else:
+        lines.append("- None.")
     lines.extend(["", "## Recommended Next Action", "", f"- {assessment['recommended_next_action']}"])
     return "\n".join(lines).rstrip() + "\n"
 
@@ -605,15 +681,9 @@ def repair_latin1_mojibake(value: str) -> str:
 
 
 def format_value(value: Any) -> str:
-    if value is None:
-        return "unknown"
-    if isinstance(value, float):
-        return f"{value:.4g}"
-    return str(value)
+    return format_plain_value(value)
 
 
 def format_percent(value: Any) -> str:
-    number = numeric(value)
-    if number is None:
-        return "unknown"
-    return f"{number * 100:.2f}%"
+    formatted = format_ratio_percent(value)
+    return "unknown" if formatted == "None" else formatted

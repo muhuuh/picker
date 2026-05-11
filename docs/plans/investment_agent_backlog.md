@@ -300,6 +300,8 @@ This is the clear task backlog for building the stock tracking and investment re
 - [ ] Add run-end review digest summary.
   - Description: every manual/weekly run should finish by refreshing or summarizing `agents/human_review_digest.md`, including new high-priority items and what the human can decide next.
   - Reason: the user should not need to remember to open review files manually.
+  - Current progress: weekly `run-weekly --write` refreshes `agents/human_review_digest.md`, includes it in the workflow step output, and adds a next action when open HRQ items need approve/reject/more-research/leave-open decisions.
+  - Still pending: add the same end-of-run digest refresh/summary behavior to manual market/company research paths.
 - [x] Build company research sub-orchestrator.
   - Description: coordinates filings, news, financials, sentiment, and risk checks for one ticker.
   - Current progress: first SDK version registered as `company_research_orchestrator`; it builds a one-ticker lane packet, uses financial, company-news, company-search, filing, sentiment, risk/thesis, writer, and quality-review fanout, writes per-ticker scheduled artifacts, and aggregates partial results into next-run tasks.
@@ -373,10 +375,13 @@ This is the clear task backlog for building the stock tracking and investment re
 
 - [ ] Run prompt/output quality iteration on realistic manual and weekly-style examples.
   - Description: inspect actual reports for usefulness, specificity, citation quality, and next-action clarity; improve prompts and schemas until output quality matches expectations.
+  - Current progress: AMZN/AAPL weekly-style output was reviewed and tightened. Final digest now has readable financial formatting, explicit evidence links, deduped opportunity news positives, no direct trade language, and no digest/opportunity quality findings.
 - [ ] Add golden/failure tests.
   - Description: cover provider failures, malformed specialist output, missing citations, stale approvals, duplicate HRQ decisions, and unsupported review statuses.
+  - Current progress: weekly digest and opportunity assessment golden tests cover evidence links, missing evidence, Grok/X social-signal labeling, direct trade language, readable financial formatting, taxonomy-only conflict handling, and missing provider/source ids.
 - [ ] Strengthen guardrails.
   - Description: enforce no writes outside allowed targets, no Grok-only promotion, no overconfident claims without sources, and no buy/sell/position-size action outside human review.
+  - Current progress: final digest and opportunity assessment validators now enforce evidence/source presence, social-signal labeling, direct trade-language blocking, and taxonomy-only conflict handling.
 - [ ] Add specialist/provider depth only where real runs show gaps.
   - Description: prioritize macro providers, European filing coverage, earnings/transcripts, and alert specialists based on quality gaps discovered in live runs.
 - [ ] Add model selection optimization.

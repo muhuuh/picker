@@ -26,6 +26,7 @@ from .agent_runtime.reports import build_orchestrator_input, output_status, outp
 from .agent_runtime.runner import AgentRuntimeResult, run_agent_sync
 from .analysis_runner import AnalysisExecutor, run_analysis_tasks
 from .manifest import build_weekly_manifest, write_manifest
+from .human_review_digest import HumanReviewDigest, build_human_review_digest, human_review_digest_to_dict
 from .memory import relative_to_root
 from .memory_llm_writer import (
     DEFAULT_MEMORY_WRITER_MODEL,
@@ -112,6 +113,7 @@ def run_weekly_research_workflow(
     orchestrator_result: dict[str, Any] = {"status": "not_run"}
     proposal_review_result: dict[str, Any] = {"status": "not_run"}
     weekly_digest: WeeklyDigest | None = None
+    human_review_digest: HumanReviewDigest | None = None
 
     if write:
         run_summary = build_run_summary(repo_root, run_id, today)
@@ -237,6 +239,8 @@ def run_weekly_research_workflow(
 
         weekly_digest = build_weekly_digest(repo_root, run_id)
         artifacts.extend(write_weekly_digest(repo_root, weekly_digest))
+        human_review_digest = build_human_review_digest(root=repo_root, current_date=today, write=True)
+        artifacts.extend(repo_root / path for path in human_review_digest.written_paths)
 
     result = ScheduledRunResult(
         run_id=run_id,
@@ -269,6 +273,7 @@ def run_weekly_research_workflow(
             memory_evaluation_result=memory_evaluation_result,
             proposal_review_result=proposal_review_result,
             weekly_digest=weekly_digest,
+            human_review_digest=human_review_digest,
         ),
         artifacts=[relative_to_root(repo_root, path).as_posix() for path in artifacts],
         next_actions=next_actions(
@@ -282,6 +287,7 @@ def run_weekly_research_workflow(
             memory_evaluation_result,
             orchestrator_result,
             weekly_digest,
+            human_review_digest,
         ),
     )
 
@@ -319,7 +325,7 @@ def determine_status(
         return "needs_review"
     if orchestrator_result and orchestrator_result.get("status") in {"error", "needs_review"}:
         return "needs_review"
-    if weekly_digest and weekly_digest.status == "needs_review":
+    if weekly_digest and (weekly_digest.status == "needs_review" or weekly_digest.quality_findings):
         return "needs_review"
     return "complete"
 
@@ -357,6 +363,7 @@ def build_steps(
     memory_evaluation_result: dict[str, Any],
     proposal_review_result: dict[str, Any],
     weekly_digest: WeeklyDigest | None,
+    human_review_digest: HumanReviewDigest | None,
 ) -> dict[str, Any]:
     return {
         "manifest": {
@@ -377,6 +384,7 @@ def build_steps(
         "agent_orchestrator": orchestrator_result,
         "orchestrator_proposal_review": proposal_review_result,
         "final_digest": weekly_digest_to_dict(weekly_digest) if weekly_digest else {"status": "not_written"},
+        "human_review_digest": human_review_digest_to_dict(human_review_digest) if human_review_digest else {"status": "not_written"},
         "framework_boundary": {
             "status": "resolved",
             "framework": "OpenAI Agents SDK",
@@ -396,6 +404,7 @@ def next_actions(
     memory_evaluation_result: dict[str, Any] | None = None,
     orchestrator_result: dict[str, Any] | None = None,
     weekly_digest: WeeklyDigest | None = None,
+    human_review_digest: HumanReviewDigest | None = None,
 ) -> list[str]:
     actions: list[str] = []
     if not write:
@@ -434,6 +443,10 @@ def next_actions(
         actions.append("Review SDK orchestrator quality findings and tighten prompts/tools before accepting synthesis.")
     if weekly_digest and weekly_digest.next_actions:
         actions.extend(weekly_digest.next_actions)
+    if human_review_digest and human_review_digest.open_item_count:
+        actions.append(
+            f"Review `agents/human_review_digest.md`: {human_review_digest.open_item_count} open item(s) need approve/reject/more-research/leave-open decisions."
+        )
     return unique(actions)
 
 
@@ -690,6 +703,7 @@ def format_scheduled_run_report_markdown(result: ScheduledRunResult) -> str:
         f"- memory_writer_review: {result.steps['memory_writer_review'].get('mode', 'not_written')}",
         f"- company_research: {result.steps['company_research'].get('status', 'not_run')} ({len(result.steps['company_research'].get('results', []))} ticker(s))",
         f"- final_digest: {result.steps['final_digest'].get('status', 'not_written')} ({result.steps['final_digest'].get('ticker_count', 0)} ticker(s))",
+        f"- human_review_digest: {result.steps['human_review_digest'].get('status', 'not_written')} ({result.steps['human_review_digest'].get('open_item_count', 0)} open item(s))",
         f"- agent_orchestrator: {result.steps['agent_orchestrator'].get('status', 'not_run')}",
         f"- orchestrator_proposal_review: {result.steps['orchestrator_proposal_review'].get('status', 'not_run')}",
         "",

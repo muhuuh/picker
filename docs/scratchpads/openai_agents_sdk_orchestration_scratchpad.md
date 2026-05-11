@@ -58,8 +58,9 @@
 - 2026-05-11: Ran a realistic weekly-style AMZN holding validation. Added AMZN to current holdings, executed providers/analysis, and wrote `agents/runs/2026-05-16_weekly/final_digest.md`.
 - 2026-05-11: Added deterministic `opportunity_assessment` analysis and SDK `opportunity_assessment_specialist`. The lane synthesizes financials, news, filings, Exa context, and Grok/X sentiment into a concise expert-opinion report for human review. It is research synthesis only, not a trade instruction.
 - 2026-05-11: Added final run digest artifacts: `final_digest.md/json`. The digest is the reliable human-facing research summary when the live SDK main orchestrator is unavailable or too noisy.
+- 2026-05-11: Tightened final digest/opportunity output quality after reviewing the real AMZN/AAPL run. Added explicit digest evidence links, digest/opportunity validators, readable financial formatting, Grok/X social-signal checks, direct trade-language blocking, taxonomy-only conflict handling, deduped opportunity news positives, weekly HRQ digest refresh, and golden tests. Refreshed `agents/runs/2026-05-16_weekly/final_digest.md`; status is `ready` with no digest quality findings.
 - 2026-05-11: AMZN quality iteration found an over-strict financial gate. An industry taxonomy disagreement (`Internet Retail` vs `Specialty Retail`) is now classified as `partial_review` / watch item, not a material financial conflict.
-- 2026-05-11: OpenAI SDK live call now reaches the API, but scheduled main orchestrator still fails quickly with `Connection error` in the full weekly path. The deterministic final digest is the accepted report surface for this AMZN validation; SDK main reliability/prompt-size investigation remains pending.
+- 2026-05-11: Earlier AMZN validation exposed a scheduled main-orchestrator `Connection error`; after API credit was added and validation gates were tightened, the full fresh AMZN/AAPL weekly path completed successfully with no SDK quality findings. Keep deterministic `final_digest.md` as the stable human-facing fallback even when live SDK synthesis succeeds.
 
 ## Official Docs Reviewed
 

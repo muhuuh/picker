@@ -428,7 +428,9 @@ Fresh scheduled runs also clean generated artifacts in the target run directory 
 
 Scheduled SDK runs also execute company-research fanout for every ticker in current holdings and monitoring before the main orchestrator. The fanout is generic: task ids include the ticker as a run label, but all specialists are reusable modules. Per-ticker reports are written under `agents/runs/{run_id}/company_research/`.
 
-Weekly-style runs also write `agents/runs/{run_id}/final_digest.md`. This is the primary concise run-level report for humans when the live SDK main orchestrator is unavailable, too noisy, or still pending validation. It includes per-ticker opportunity view, key financial facts, Exa news/development signal, Grok/X social signal, filing coverage, watch items, and next actions.
+Weekly-style runs also write `agents/runs/{run_id}/final_digest.md`. This is the primary concise run-level report for humans when the live SDK main orchestrator is unavailable, too noisy, or still pending validation. It includes per-ticker opportunity view, readable key financial facts, explicit evidence links, Exa news/development signal, Grok/X social signal, filing coverage, watch items, and next actions. Digest validation flags missing core evidence links, non-social Grok/X labels, direct trade language, and missing financial/news review status before the report can be treated as ready.
+
+Weekly-style runs refresh `agents/human_review_digest.md` before writing the orchestration report. The run next-actions should point the user to the digest when open HRQ items need approve, reject, needs-more-research, or leave-open decisions.
 
 Financial review conflict handling distinguishes material numeric conflicts from taxonomy/watch conflicts. For example, provider disagreement between `Internet Retail` and `Specialty Retail` should stay visible as a classification watch item but should not by itself mark a company as a high-risk financial conflict.
 

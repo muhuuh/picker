@@ -37,6 +37,8 @@ class ScheduledRunnerTests(unittest.TestCase):
             self.assertTrue((root / "agents/runs/2026-05-09_weekly/finalization.md").exists())
             self.assertTrue((root / "agents/runs/2026-05-09_weekly/memory_writer_review.md").exists())
             self.assertTrue((root / "agents/runs/2026-05-09_weekly/orchestration_report.md").exists())
+            self.assertTrue((root / "agents/human_review_digest.md").exists())
+            self.assertEqual(result.steps["human_review_digest"]["status"], "clear")
 
     def test_weekly_workflow_can_execute_orchestrator_with_injected_executor(self):
         with TemporaryDirectory() as temp_dir:

@@ -204,3 +204,17 @@ After a weekly or manual run:
 - evidence: `stock_research/agent_runtime/reports.py`, `tests/test_agent_runtime.py`, `agents/runs/2026-05-16_weekly/orchestration_report.md`
 - owner: memory and evaluation orchestrator
 - next_review: 2026-06-15
+
+- id: eval-2026-05-11-final-digest-quality-gates
+- date: 2026-05-11
+- type: evaluation
+- scope: orchestrator
+- status: active
+- confidence: high
+- trigger/source: AMZN/AAPL weekly-style run quality review showed the final digest needed explicit evidence links, readable financial formatting, HRQ routing, and deterministic validation.
+- lesson: Weekly final digests should expose evidence links for opportunity, financial, company-news, and company-research artifacts; financial values should be human-readable; Grok/X sentiment must be labeled as a social signal; summaries and next actions must avoid direct trade instructions; taxonomy-only provider conflicts should stay watch items instead of high-risk financial conflicts.
+- use_when: Building or reviewing final digest, opportunity assessment, run-end reporting, or golden tests for weekly-style company research.
+- do_not_use_when: Replacing deeper company-file updates or human review; the digest is a concise review surface, not the durable thesis record.
+- evidence: `stock_research/weekly_digest.py`, `stock_research/opportunity_assessment.py`, `stock_research/report_formatting.py`, `stock_research/scheduled_runner.py`, `tests/test_weekly_digest.py`, `tests/test_opportunity_assessment.py`, `agents/runs/2026-05-16_weekly/final_digest.md`
+- owner: memory and evaluation orchestrator
+- next_review: 2026-06-15

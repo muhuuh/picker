@@ -140,7 +140,8 @@ Out of scope for the first slice:
   - Validation: AMZN weekly-style run wrote `agents/runs/2026-05-16_weekly/reports/opportunity_assessment/AMZN_opportunity_assessment.md`.
 - [x] Add final weekly-style digest artifact.
   - Current implementation: `stock_research/weekly_digest.py` writes `agents/runs/{run_id}/final_digest.md/json` with per-ticker opportunity view, financial facts, news/trends/sentiment, filing coverage, watch items, and next actions.
-  - Validation: AMZN weekly-style run wrote `agents/runs/2026-05-16_weekly/final_digest.md`; deterministic digest status is `ready`.
+  - Current quality gates: digest validation requires existing opportunity, financial-review, and company-news evidence links; flags direct trade language; flags Grok/X labels that are not explicitly social signals; writes digest quality findings when gates fail.
+  - Validation: AMZN/AAPL weekly-style run wrote `agents/runs/2026-05-16_weekly/final_digest.md`; deterministic digest status is `ready` with no digest quality findings.
 - [x] Build market research sub-orchestrator.
   - Coordinates industry/theme research, discovery, candidate validation, and strategy fit.
   - Current progress: first SDK version registered as `market_research_orchestrator`; it builds an industry/theme packet and runs Exa industry, Grok/X discovery, candidate discovery, and quality-review fanout. Manual market research is now available through `python -m stock_research market-research run --topic TOPIC --subject-type industry|theme --write [--execute-providers] [--execute-orchestrator]`. The manual path writes a market report, candidate lead schema, and discovery quality gates. Grok/X is a required discovery lane for niche trends, hype, rumors, sentiment, and emerging ticker leads; promotion still requires Exa/filing/market-data verification.
@@ -168,6 +169,8 @@ Out of scope for the first slice:
 
 - [ ] Add tool guardrails for secrets, source metadata, and write scopes.
 - [ ] Add output guardrails for citation requirements and overconfident claims.
+  - Current progress: weekly final digest and opportunity assessments now have deterministic validators for required evidence links/source ids, Grok/X social-signal labeling, direct trade language, and taxonomy-only financial conflicts.
+  - Still pending: broader malformed specialist output and missing-citation failure tests across all specialist lanes.
 - [x] Add first deterministic output quality gates.
   - Implemented checks: summary/status shape, direct trade wording, valid memory item ids, existing file targets, source-backed update proposals, and existing source artifact paths.
 - [ ] Keep buy/sell/position-size recommendations as human review items.
@@ -217,6 +220,8 @@ Out of scope for the first slice:
 - [ ] Add run-end review digest summary to manual and weekly flows.
   - Target behavior: after any manual/weekly run, refresh or summarize `agents/human_review_digest.md`, mention new high-priority items, and state allowed decisions.
   - Reason: review items should be visible at the end of the run without requiring the user to open the raw queue manually.
+  - Current progress: weekly `run-weekly --write` refreshes `agents/human_review_digest.md`, includes it as a workflow step, writes it as an artifact, and adds a next action with allowed decision types when open items exist.
+  - Still pending: make every manual market/company research path refresh or summarize the digest at the end.
 - [ ] Add Saturday automation only after the SDK runtime can run safely and produce reviewable outputs.
 - [x] Investigate scheduled main SDK connection failure and prompt/context size.
   - Resolution: after OpenAI API credit was added, scheduled `run-weekly --execute-orchestrator` reached the live model path and completed.
@@ -228,8 +233,9 @@ Out of scope for the first slice:
 - [x] Add unit tests for registry, context, outputs, and initial tools.
 - [ ] Add integration tests with fake model/tool outputs.
 - [ ] Add golden tests for orchestrator decisions from known evidence packets.
-- [ ] Add golden tests for weekly final digest quality.
+- [x] Add golden tests for weekly final digest quality.
   - Include AMZN-style cases: taxonomy-only financial conflict should be a watch item, not a high-risk material financial conflict; Grok/X sentiment should be labeled social signal; final digest should be concise and not trade-instructive.
+  - Current implementation: `tests/test_weekly_digest.py` covers evidence links, social-signal labeling, direct trade language, readable financial formatting, and missing evidence links; `tests/test_opportunity_assessment.py` covers taxonomy-only conflict handling, missing source/provider gates, and direct trade language.
 - [ ] Add failure-injection tests for provider failure, malformed specialist output, missing citations, and timeout behavior.
   - Current progress: timeout and runtime-error failure injection tests are implemented for `run_agent_sync`; provider failure, malformed specialist output, and missing-citation golden tests remain.
 - [ ] Add quality gates for no direct writes outside allowed targets.

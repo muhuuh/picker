@@ -15,19 +15,26 @@ This digest is a concise review surface. It is not an automatic trading instruct
 - thesis_freshness: fresh_recent_evidence
 - report: `agents/runs/2026-05-16_weekly/reports/opportunity_assessment/AAPL_opportunity_assessment.md`
 
+### Evidence Links
+
+- opportunity_report: `agents/runs/2026-05-16_weekly/reports/opportunity_assessment/AAPL_opportunity_assessment.md`
+- financial_review: `agents/runs/2026-05-16_weekly/reports/financial_data_specialist/AAPL_financial_review.md`
+- company_news_review: `agents/runs/2026-05-16_weekly/reports/company_news_specialist/AAPL_company_news_review.md`
+- company_research: `agents/runs/2026-05-16_weekly/company_research/AAPL_company_research.md`
+
 ### Expert Opinion
 
-AAPL assessment is interesting with score 85/100, medium risk, and high confidence. Main positive: Revenue TTM is available at 4.514e+11, giving a scale anchor. Main caution: Grok/X scan includes rumor or speculation language; do not treat it as verified fact.
+AAPL assessment is interesting with score 85/100, medium risk, and high confidence. Main positive: Revenue TTM is available at $451.44B, giving a scale anchor. Main caution: Grok/X scan includes rumor or speculation language; do not treat it as verified fact.
 
 ### Financial Facts
 
 - status: ready_for_company_update
-- latest_price: 293.3
-- market_cap: 4.28e+12
-- pe_ratio: 34.97
-- price_to_sales_ttm: 9.48
-- profit_margin: 0.272
-- free_cash_flow_per_share_ttm: 8.781
+- latest_price: $293.32
+- market_cap: $4.28T
+- pe_ratio: 34.97x
+- price_to_sales_ttm: 9.48x
+- profit_margin: 27.20%
+- free_cash_flow_per_share_ttm: $8.78
 - currency: USD
 - conflict_count: 0
 
@@ -39,7 +46,7 @@ AAPL assessment is interesting with score 85/100, medium risk, and high confiden
 
 ### Positives
 
-- Revenue TTM is available at 4.514e+11, giving a scale anchor.
+- Revenue TTM is available at $451.44B, giving a scale anchor.
 - Profit margin is positive at 27.20%.
 - Recent source-backed development: Exa content excerpt from Apple stock rallies on Q2 earnings and Q3 guidance
 
@@ -65,19 +72,26 @@ AAPL assessment is interesting with score 85/100, medium risk, and high confiden
 - thesis_freshness: fresh_recent_evidence
 - report: `agents/runs/2026-05-16_weekly/reports/opportunity_assessment/AMZN_opportunity_assessment.md`
 
+### Evidence Links
+
+- opportunity_report: `agents/runs/2026-05-16_weekly/reports/opportunity_assessment/AMZN_opportunity_assessment.md`
+- financial_review: `agents/runs/2026-05-16_weekly/reports/financial_data_specialist/AMZN_financial_review.md`
+- company_news_review: `agents/runs/2026-05-16_weekly/reports/company_news_specialist/AMZN_company_news_review.md`
+- company_research: `agents/runs/2026-05-16_weekly/company_research/AMZN_company_research.md`
+
 ### Expert Opinion
 
-AMZN assessment is interesting with score 80/100, medium risk, and medium confidence. Main positive: Revenue TTM is available at 7.428e+11, giving a scale anchor. Main caution: Providers disagree on industry taxonomy; treat this as a classification/watch item, not a numeric conflict.
+AMZN assessment is interesting with score 80/100, medium risk, and medium confidence. Main positive: Revenue TTM is available at $742.78B, giving a scale anchor. Main caution: Providers disagree on industry taxonomy; treat this as a classification/watch item, not a numeric conflict.
 
 ### Financial Facts
 
 - status: partial_review
-- latest_price: 272.7
-- market_cap: 2.926e+12
-- pe_ratio: 32.18
-- price_to_sales_ttm: 3.939
-- profit_margin: 0.122
-- free_cash_flow_per_share_ttm: -0.2301
+- latest_price: $272.68
+- market_cap: $2.93T
+- pe_ratio: 32.18x
+- price_to_sales_ttm: 3.94x
+- profit_margin: 12.20%
+- free_cash_flow_per_share_ttm: -$0.23
 - currency: USD
 - conflict_count: 1
 
@@ -89,14 +103,14 @@ AMZN assessment is interesting with score 80/100, medium risk, and medium confid
 
 ### Positives
 
-- Revenue TTM is available at 7.428e+11, giving a scale anchor.
+- Revenue TTM is available at $742.78B, giving a scale anchor.
 - Profit margin is positive at 12.20%.
 - Recent source-backed development: Exa content excerpt from Amazon.com, Inc. - Amazon.com Announces First Quarter Results
 
 ### Risks / Cautions
 
 - Providers disagree on industry taxonomy; treat this as a classification/watch item, not a numeric conflict.
-- Free cash flow per share TTM is negative at -0.2301.
+- Free cash flow per share TTM is negative at -$0.23.
 
 ### Watch Items
 
