@@ -124,6 +124,12 @@ When SDK execution writes metrics, `run_metrics.md` includes local hook telemetr
 
 `portfolio_review_orchestrator` reviews current holdings, monitoring, rejected cooldowns, open/approved human-review items, and candidate verification results. It is a synthesis layer only: it does not trade, move stocks, or edit company files.
 
+Human review is digest-first. `agents/human_review_digest.md` is the primary user-facing inbox; portfolio review, memory/evaluation, candidate review, and proposal reports are deeper context. The expected user flow is to review the digest through Codex chat and give explicit HRQ decisions. Future email/app notifications should summarize the digest, not directly approve actions.
+
+`memory_evaluation_orchestrator` reviews run metrics, quality reports, memory reflection, recurring failures, memory update drafts, memory writer review, and finalization. It does not apply memory updates; approved memory writes still go through deterministic `memory apply-updates`.
+
+The main orchestrator prompt now receives an aggregation packet that maps company research, market research, portfolio review, memory/evaluation, candidate verification, human-review digest, and review-count artifacts before final synthesis.
+
 The manual market-research runner is the preferred near-term path for learning and prompt iteration:
 
 ```powershell
@@ -157,6 +163,7 @@ python -m stock_research agent-runtime run --run-id 2026-05-09_weekly
 python -m stock_research agent-runtime run --run-id 2026-05-09_weekly --agent-id company_research_orchestrator --task "company research sub-orchestrator" --ticker AAPL
 python -m stock_research agent-runtime run --run-id 2026-05-09_weekly --agent-id market_research_orchestrator --task "market research sub-orchestrator" --subject-type industry --subject-id european_grid_infrastructure --topic "European grid infrastructure"
 python -m stock_research agent-runtime run --run-id 2026-05-09_weekly --agent-id portfolio_review_orchestrator --task "portfolio review sub-orchestrator"
+python -m stock_research agent-runtime run --run-id 2026-05-09_weekly --agent-id memory_evaluation_orchestrator --task "memory evaluation sub-orchestrator"
 python -m stock_research agent-runtime validate-output --run-id 2026-05-09_weekly
 python -m stock_research agent-runtime queue-proposals --run-id 2026-05-09_weekly --write --queue-review
 python -m stock_research agent-runtime apply-proposal --run-id 2026-05-09_weekly --proposal-id ORP-0001

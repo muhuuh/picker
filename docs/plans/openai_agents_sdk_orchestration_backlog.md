@@ -149,10 +149,14 @@ Out of scope for the first slice:
 - [x] Build portfolio review sub-orchestrator.
   - Synthesizes current holdings, monitoring, rejected cooldowns, bucket-level changes, and alerts.
   - Current implementation: `portfolio_review_orchestrator` is registered, exposed to the main orchestrator, and can build/write portfolio review packets from stock buckets, human-review queue state, and candidate verification result reports without applying writes.
-- [ ] Build memory/evaluation sub-orchestrator.
+- [x] Define digest-first human review operating model.
+  - Current implementation: `docs/descriptions/human_review_operating_model.md` defines the digest as the user-facing inbox, the queue as durable state, portfolio/memory reports as drill-down context, async waiting behavior, and notification/email boundaries.
+- [x] Build memory/evaluation sub-orchestrator.
   - Reviews traces, metrics, quality reports, user corrections, and reflection proposals.
-- [ ] Build main orchestrator.
+  - Current implementation: `memory_evaluation_orchestrator` is registered, exposed to the main orchestrator, builds/writes memory evaluation packets from run metrics, quality reports, reflection, recurring failures, memory drafts, writer review, and finalization, and does not apply memory updates.
+- [x] Build main orchestrator aggregation layer.
   - Owns final synthesis, priorities, review queue items, update proposals, and next-run plan.
+  - Current implementation: main orchestrator exists and now receives a structured aggregation packet listing company, market, portfolio, memory/evaluation, candidate verification, human-review digest, and review-count artifacts before final synthesis.
 
 ## Priority 7: Guardrails and Approval Gates
 
@@ -201,7 +205,12 @@ Out of scope for the first slice:
   - Current behavior: updates queue statuses/notes, refreshes `agents/human_review_digest.md`, and intentionally does not run verification, promotion, proposal application, or stock-file writes by itself.
 - [ ] Add Codex/app notification automation for review items.
   - Target behavior: after weekly/manual research, summarize new or high-priority open review items and notify the user by Codex/app notification and/or email when there are findings to review.
+  - Rule: notification should summarize `agents/human_review_digest.md`; it should not directly approve, reject, promote, or write files.
+  - Future option: evaluate Gmail reply ingestion only after notification quality is stable and only with strict parsing, duplicate protection, and deterministic `human-review decide` writes.
   - Timing: defer until the digest is concise and stable enough to avoid noisy notifications.
+- [ ] Add run-end review digest summary to manual and weekly flows.
+  - Target behavior: after any manual/weekly run, refresh or summarize `agents/human_review_digest.md`, mention new high-priority items, and state allowed decisions.
+  - Reason: review items should be visible at the end of the run without requiring the user to open the raw queue manually.
 - [ ] Add Saturday automation only after the SDK runtime can run safely and produce reviewable outputs.
 
 ## Priority 9: Tests and Evaluation
@@ -212,6 +221,8 @@ Out of scope for the first slice:
 - [ ] Add failure-injection tests for provider failure, malformed specialist output, missing citations, and timeout behavior.
   - Current progress: timeout and runtime-error failure injection tests are implemented for `run_agent_sync`; provider failure, malformed specialist output, and missing-citation golden tests remain.
 - [ ] Add quality gates for no direct writes outside allowed targets.
+- [ ] Add human-review lifecycle tests.
+  - Target behavior: stale approvals, duplicate HRQ ids, unsupported statuses, notification-only digests, and waiting-for-human branches are handled deterministically.
 - [x] Add approval-gated company-file writer for SDK proposals.
   - Implemented: `agent-runtime apply-proposal --run-id RUN_ID --proposal-id ORP-0001 --write`.
   - Guardrails: matching HRQ row must be `approved`, target must be an existing markdown file under `stock_tracking/stock_info_files/`, and each write is scoped to one proposal id.
@@ -274,3 +285,4 @@ Proposal writer status: `python -m stock_research agent-runtime apply-proposal -
 - Agent-as-tool guardrails need careful design because direct tool guardrail options are not exposed there; wrap critical checks in function tools and runner validation.
 - Parallel execution needs explicit timeouts and partial-result handling.
 - Adding the SDK is an infra dependency change and should be done in a focused implementation slice.
+- Email/Gmail should start as notification only. Making email replies a canonical approval source requires identity checks, strict parsing, duplicate-event handling, and deterministic decision writes.

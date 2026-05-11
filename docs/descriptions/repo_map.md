@@ -19,6 +19,7 @@ This file tells Codex, the orchestrator, and future agents where to find and upd
 ## Human Interaction
 
 - `docs/descriptions/human_interaction_workflow.md`: how user chat input becomes repo state.
+- `docs/descriptions/human_review_operating_model.md`: how asynchronous human review, digest use, notifications, and approval-gated follow-up should work.
 - `docs/plans/human_research_requests.md`: human input queue.
 - `agents/human_review_queue.md`: system-generated items requiring user approval.
 - `agents/human_review_digest.md`: concise open-review digest grouped by decision type, including allowed decisions: approve, reject, needs more research, or leave open.
@@ -52,6 +53,7 @@ This file tells Codex, the orchestrator, and future agents where to find and upd
 ## Agent Architecture
 
 - `docs/descriptions/investment_agent_workflow.md`: full planned automated workflow.
+- `docs/descriptions/human_review_operating_model.md`: human-review operating model for async approvals and review notifications.
 - `docs/descriptions/agent_memory_workflow.md`: operational memory read/write workflow.
 - `docs/descriptions/llm_memory_writer.md`: bounded LLM memory writer workflow over memory update drafts.
 - `docs/descriptions/scheduled_runner.md`: deterministic weekly workflow wrapper.
@@ -147,6 +149,7 @@ Use CLI commands for manual operation, scheduler entrypoints, validation, smoke 
 - `python -m stock_research agent-runtime smoke --run-id RUN_ID`: build the SDK runtime context and main orchestrator without calling a live model.
 - `python -m stock_research agent-runtime run --run-id RUN_ID --execute --write`: run the main SDK orchestrator over existing artifacts and write runtime report/metrics artifacts without editing stock files.
 - `python -m stock_research agent-runtime run --run-id RUN_ID --agent-id portfolio_review_orchestrator --task "portfolio review sub-orchestrator"`: build the portfolio-review packet without a live model call.
+- `python -m stock_research agent-runtime run --run-id RUN_ID --agent-id memory_evaluation_orchestrator --task "memory evaluation sub-orchestrator"`: build the memory/evaluation packet without a live model call.
 - `python -m stock_research agent-runtime validate-output --run-id RUN_ID`: validate a saved SDK runtime output without calling a model.
 - `python -m stock_research agent-runtime queue-proposals --run-id RUN_ID --write --queue-review`: convert saved SDK file-update proposals into `orchestrator_update_proposals.md` and duplicate-safe human-review queue rows.
 - `python -m stock_research agent-runtime apply-proposal --run-id RUN_ID --proposal-id ORP-0001 --write`: apply one approved SDK proposal to its target company file through the deterministic approval-gated writer.
@@ -177,6 +180,9 @@ Use CLI commands for manual operation, scheduler entrypoints, validation, smoke 
 - Company-research sub-orchestrator infrastructure lives in `stock_research/agent_runtime/orchestrators/company_research.py` with prompt/spec artifacts under `agents/orchestrator/prompts/company_research.md` and `agents/orchestrator/specs/company_research.md`; current SDK fanout covers financial, company-news, company-search, filing, sentiment, risk/thesis, writer, and quality-review specialists.
 - Market-research sub-orchestrator infrastructure lives in `stock_research/agent_runtime/orchestrators/market_research.py` with prompt/spec artifacts under `agents/orchestrator/prompts/market_research.md` and `agents/orchestrator/specs/market_research.md`; current SDK fanout covers Exa industry/theme, Grok/X discovery, candidate discovery, and quality-review specialists.
 - Portfolio-review sub-orchestrator infrastructure lives in `stock_research/agent_runtime/orchestrators/portfolio_review.py` with prompt/spec artifacts under `agents/orchestrator/prompts/portfolio_review.md` and `agents/orchestrator/specs/portfolio_review.md`; current packet coverage includes current holdings, monitoring, rejected cooldowns, open/approved human-review items, and candidate verification result reports.
+- Memory/evaluation sub-orchestrator infrastructure lives in `stock_research/agent_runtime/orchestrators/memory_evaluation.py` with prompt/spec artifacts under `agents/orchestrator/prompts/memory_evaluation.md` and `agents/orchestrator/specs/memory_evaluation.md`; current packet coverage includes run metrics, quality reports, memory reflection, recurring failures, memory update drafts, memory writer review, and finalization.
+- Main orchestrator aggregation lives in `stock_research/agent_runtime/reports.py`; `build_orchestrator_input(..., context=...)` includes a structured map of company, market, portfolio, memory/evaluation, candidate verification, and human-review digest artifacts.
+- Human review should use `agents/human_review_digest.md` as the primary user-facing inbox. Portfolio review and memory/evaluation reports are deeper context for Codex, the main orchestrator, and human drill-down.
 - SDK specialist modules live under `stock_research/agent_runtime/specialists/`; current implemented specialists are `company_news_specialist`, `company_search_specialist`, `financial_specialist`, `filing_specialist`, `sentiment_specialist`, `risk_thesis_specialist`, `writer_specialist`, `quality_reviewer_specialist`, `exa_industry_specialist`, `grok_discovery_specialist`, and `discovery_specialist`.
 - Live orchestration from `run-weekly` is available behind `--execute-orchestrator`; it is opt-in, freshness-gated, and writes per-ticker company-research artifacts under `agents/runs/{run_id}/company_research/`.
 - SDK output proposals are reviewable through `agents/runs/{run_id}/orchestrator_update_proposals.md` and `agents/human_review_queue.md`; company files are not edited by this bridge.

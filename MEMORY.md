@@ -301,6 +301,21 @@ Use this file for information we should not lose across sessions.
   - evidence artifact path(s): `stock_research/agent_runtime/orchestrators/portfolio_review.py`, `agents/orchestrator/prompts/portfolio_review.md`, `agents/orchestrator/specs/portfolio_review.md`, `tests/test_agent_runtime.py`, `agents/runs/2026-05-10_manual-market-energy-storage/portfolio_review/portfolio_review.md`
   - status: active
 
+- 2026-05-11:
+  - decision/fact: The first memory/evaluation sub-orchestrator is implemented. `memory_evaluation_orchestrator` is registered in the OpenAI Agents SDK runtime, exposed to the main orchestrator, and can build/write learning-loop review packets from run telemetry, quality reports, memory reflection, recurring failures, memory update drafts, and finalization artifacts without applying memory updates.
+  - evidence artifact path(s): `stock_research/agent_runtime/orchestrators/memory_evaluation.py`, `agents/orchestrator/prompts/memory_evaluation.md`, `agents/orchestrator/specs/memory_evaluation.md`, `tests/test_agent_runtime.py`, `agents/runs/2026-05-10_manual-market-energy-storage/memory_evaluation/memory_evaluation.md`
+  - status: active
+
+- 2026-05-11:
+  - decision/fact: Main orchestrator input aggregation now includes company research reports, market research reports, portfolio review reports, memory/evaluation reports, candidate verification results, human-review digest path, and open/approved human-review counts. This gives the final synthesis a high-level map across the full workflow.
+  - evidence artifact path(s): `stock_research/agent_runtime/reports.py`, `stock_research/agent_runtime/orchestrators/main.py`, `agents/orchestrator/prompts/main.md`, `agents/orchestrator/specs/main.md`, `tests/test_agent_runtime.py`
+  - status: active
+
+- 2026-05-11:
+  - decision/fact: Human review is digest-first and asynchronous. `agents/human_review_digest.md` is the primary user-facing inbox, `agents/human_review_queue.md` is durable state, portfolio/memory/candidate reports are deeper context, and Codex chat is the canonical approval path. Email/app notifications may summarize the digest later, but email should not become an approval source until a strict ingestion workflow is built and tested.
+  - evidence artifact path(s): `docs/descriptions/human_review_operating_model.md`, `docs/descriptions/human_interaction_workflow.md`, `docs/plans/investment_agent_backlog.md`, `docs/plans/openai_agents_sdk_orchestration_backlog.md`
+  - status: active
+
 - 2026-05-04:
   - decision/fact: Generated run JSON artifacts are local runtime output and should not be committed. Keep markdown run summaries/reports/finalization files as the reviewable artifacts; `.gitignore` now ignores run-root JSON, raw provider JSON, evidence packet JSON, and generated recurring-failure JSON.
   - evidence artifact path(s): `.gitignore`, `README.md`, `SETUP.md`, `docs/descriptions/run_summary_and_quality.md`

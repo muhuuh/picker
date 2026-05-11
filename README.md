@@ -16,6 +16,7 @@ The current implementation is a deterministic Python foundation. It reads the re
 
 - `docs/descriptions/repo_map.md`: where to find and update each kind of information.
 - `docs/descriptions/human_interaction_workflow.md`: how user chat input becomes repo state.
+- `docs/descriptions/human_review_operating_model.md`: how digest-first asynchronous human review and future notifications should work.
 - `docs/plans/human_research_requests.md`: proactive user request queue.
 - `agents/human_review_queue.md`: system-generated items needing user approval.
 - `agents/memory/memory_index.md`: entry point for operational agent memory.
@@ -92,6 +93,7 @@ python -m stock_research agent-runtime smoke --run-id 2026-05-09_weekly
 python -m stock_research agent-runtime run --run-id 2026-05-09_weekly
 python -m stock_research agent-runtime run --run-id 2026-05-09_weekly --agent-id company_research_orchestrator --task "company research sub-orchestrator" --ticker AAPL
 python -m stock_research agent-runtime run --run-id 2026-05-09_weekly --agent-id portfolio_review_orchestrator --task "portfolio review sub-orchestrator"
+python -m stock_research agent-runtime run --run-id 2026-05-09_weekly --agent-id memory_evaluation_orchestrator --task "memory evaluation sub-orchestrator"
 python -m stock_research agent-runtime validate-output --run-id 2026-05-09_weekly
 python -m stock_research agent-runtime queue-proposals --run-id 2026-05-09_weekly --write --queue-review
 python -m stock_research agent-runtime apply-proposal --run-id 2026-05-09_weekly --proposal-id ORP-0001
@@ -112,6 +114,8 @@ python -m stock_research human-review decide --set HRQ-0004=approved --note "Run
 ```
 
 This creates a manual manifest with Exa context, Exa company discovery, and Grok/X discovery lanes. With `--write`, it writes a reviewable market report and ignored candidate-lead JSON. Discovery gates keep Grok-only leads as verification tasks, enforce rejected-stock cooldowns, and require source ids plus verification labels. `candidate-review` groups duplicate/share-class leads, writes a review artifact, and can append duplicate-safe human-review queue rows without adding stocks to monitoring. `human-review digest` writes a concise open-review summary to `agents/human_review_digest.md`, including the allowed human decisions: approve, reject, mark needs more research, or leave open. `human-review decide` records your approve/reject/more-research decisions in the queue and refreshes the digest; it does not run verification or edit stock files. `candidate-followup` only processes approved candidate-review rows and writes verification tasks. After the provider/analysis tasks run, `candidate-verification-result` consolidates provider coverage, specialist statuses, findings, and next actions. `candidate-promote` is the final approval-gated writer: it only adds a monitoring CSV row and company file when the HRQ row is approved, the candidate is a `monitoring_candidate`, and required verification artifacts exist.
+
+Human review is digest-first. The user normally reviews `agents/human_review_digest.md` through Codex chat; portfolio review, memory/evaluation, candidate review, and proposal reports are deeper context. Future email/app notifications should summarize the digest, not act as approvals.
 
 Run the OpenAI Agents SDK orchestrator over existing run artifacts:
 
@@ -278,6 +282,8 @@ Implemented:
 - Market-research SDK sub-orchestrator and manual runner for one industry/theme, with Exa industry/company discovery, Grok/X trend and rumor discovery, candidate discovery, quality-review specialist fanout, typed candidate leads, and discovery quality gates.
 - Candidate verification result reporting after approved follow-up provider/analysis tasks.
 - Portfolio-review SDK sub-orchestrator for holdings/monitoring/rejected buckets, human-review items, and candidate verification results.
+- Memory/evaluation SDK sub-orchestrator for run metrics, quality reports, memory reflection, recurring failures, memory update drafts, memory writer review, and finalization.
+- Main orchestrator aggregation packet that maps company, market, portfolio, memory/evaluation, candidate verification, and human-review artifacts before final synthesis.
 - guarded OpenAI Agents SDK provider/analysis function tools that plan by default and require context permission for live side effects.
 - live manual OpenAI Agents SDK orchestrator command over existing run artifacts, with local report, trace-link, and run-metrics artifacts.
 - SDK local telemetry hooks for agent lifecycle, tool calls, LLM calls/usage when available, injected operational memory ids, and final-output reported memory ids.
@@ -305,6 +311,6 @@ Implemented:
 Not implemented yet:
 
 - macro provider integrations,
-- scheduled market-research fanout and memory-evaluation sub-orchestrator,
+- scheduled market-research fanout,
 - OS/app scheduled execution,
 - immediate research runs.

@@ -1268,6 +1268,7 @@ def main(argv: list[str] | None = None) -> int:
         from .agent_runtime.context import build_research_run_context
         from .agent_runtime.orchestrators.company_research import build_company_research_input
         from .agent_runtime.orchestrators.market_research import build_market_research_input
+        from .agent_runtime.orchestrators.memory_evaluation import build_memory_evaluation_input
         from .agent_runtime.orchestrators.portfolio_review import build_portfolio_review_input
         from .agent_runtime.proposal_review import build_proposal_review, proposal_review_to_dict
         from .agent_runtime.proposal_writer import apply_approved_proposal, proposal_apply_result_to_dict
@@ -1311,8 +1312,10 @@ def main(argv: list[str] | None = None) -> int:
                 )
             elif args.agent_id == "portfolio_review_orchestrator":
                 prompt = build_portfolio_review_input(context)
+            elif args.agent_id == "memory_evaluation_orchestrator":
+                prompt = build_memory_evaluation_input(context)
             else:
-                prompt = build_orchestrator_input(args.run_id, context.memory_item_ids)
+                prompt = build_orchestrator_input(args.run_id, context.memory_item_ids, context=context)
             if not args.execute:
                 print(
                     json.dumps(

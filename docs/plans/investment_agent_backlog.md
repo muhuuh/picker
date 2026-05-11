@@ -83,6 +83,9 @@ This is the clear task backlog for building the stock tracking and investment re
   - Description: persistent recurring topics for future discovery and market research.
 - [x] Create human review queue.
   - Description: separate approval queue for system-generated decisions.
+- [x] Document human review operating model.
+  - Description: define the digest-first review inbox, async waiting behavior, portfolio-review audience, notification policy, and approval-gated follow-up rules.
+  - Output: `docs/descriptions/human_review_operating_model.md`.
 - [x] Implement human request classifier.
   - Description: classify user requests into stock research, industry research, theme tracking, strategy change, alert review, manual run, stock status move, or other.
 - [x] Implement request router.
@@ -288,7 +291,12 @@ This is the clear task backlog for building the stock tracking and investment re
   - Current behavior: updates `agents/human_review_queue.md`, appends a decision note, refreshes `agents/human_review_digest.md`, and leaves follow-up verification, proposal application, stock moves, or monitoring promotion to separate approval-gated commands.
 - [ ] Add review notification automation.
   - Description: after weekly/manual runs, have Codex/app automation summarize new or high-priority open review items and notify the user by app notification and/or email when there are interesting findings or approvals needed.
+  - Rule: notifications summarize `agents/human_review_digest.md`; they are not approvals.
+  - Future option: evaluate strict Gmail reply ingestion only after digest quality is stable, with duplicate detection, identity checks, and deterministic decision writing.
   - Timing: implement after the manual review digest is reliable and after the scheduled/manual run flow is stable enough to avoid noisy alerts.
+- [ ] Add run-end review digest summary.
+  - Description: every manual/weekly run should finish by refreshing or summarizing `agents/human_review_digest.md`, including new high-priority items and what the human can decide next.
+  - Reason: the user should not need to remember to open review files manually.
 - [x] Build company research sub-orchestrator.
   - Description: coordinates filings, news, financials, sentiment, and risk checks for one ticker.
   - Current progress: first SDK version registered as `company_research_orchestrator`; it builds a one-ticker lane packet, uses financial, company-news, company-search, filing, sentiment, risk/thesis, writer, and quality-review fanout, writes per-ticker scheduled artifacts, and aggregates partial results into next-run tasks.
@@ -307,10 +315,12 @@ This is the clear task backlog for building the stock tracking and investment re
 - [x] Build portfolio review sub-orchestrator.
   - Description: assesses impact across current holdings, monitoring, and rejected buckets.
   - Current progress: first SDK version registered as `portfolio_review_orchestrator`; it summarizes holdings, monitoring, rejected cooldowns, open/approved human-review items, and candidate verification results without trading, moving stocks, or editing files.
-- [ ] Build memory and evaluation sub-orchestrator.
+- [x] Build memory and evaluation sub-orchestrator.
   - Description: extracts lessons from traces, run summaries, quality reports, provider failures, and user corrections.
-- [ ] Build main orchestrator.
+  - Current progress: first SDK version registered as `memory_evaluation_orchestrator`; it reviews run metrics, quality reports, reflection, recurring failures, memory drafts, writer review, and finalization without applying memory writes.
+- [x] Build main orchestrator aggregation layer.
   - Description: synthesizes all evidence, chooses updates, creates alerts, incorporates human input queue items, and prepares next actions.
+  - Current progress: main orchestrator exists and now receives an aggregation packet covering company, market, portfolio, memory/evaluation, candidate verification, and human-review artifacts. Live prompt/output quality still needs iterative validation.
 - [x] Inject operational memory into specialist prompts.
   - Description: orchestrator should call `python -m stock_research memory context --task TASK` or the equivalent Python function and pass the relevant lessons into each specialist prompt before execution.
 - [x] Build human review queue.
@@ -355,6 +365,23 @@ This is the clear task backlog for building the stock tracking and investment re
   - Description: `run-weekly --write` calls memory finalization after provider tasks, analysis tasks, run summary, and quality report generation.
 - [x] Wire bounded memory writer review into scheduled/orchestrated runs.
   - Description: `run-weekly --write` calls bounded memory writer review after finalization and can optionally execute the OpenAI-backed writer.
+
+## Priority 8: Quality, Evaluation, and Automation Hardening
+
+- [ ] Run prompt/output quality iteration on realistic manual and weekly-style examples.
+  - Description: inspect actual reports for usefulness, specificity, citation quality, and next-action clarity; improve prompts and schemas until output quality matches expectations.
+- [ ] Add golden/failure tests.
+  - Description: cover provider failures, malformed specialist output, missing citations, stale approvals, duplicate HRQ decisions, and unsupported review statuses.
+- [ ] Strengthen guardrails.
+  - Description: enforce no writes outside allowed targets, no Grok-only promotion, no overconfident claims without sources, and no buy/sell/position-size action outside human review.
+- [ ] Add specialist/provider depth only where real runs show gaps.
+  - Description: prioritize macro providers, European filing coverage, earnings/transcripts, and alert specialists based on quality gaps discovered in live runs.
+- [ ] Add model selection optimization.
+  - Description: later route cheaper/faster models to low-risk scans and stronger models to high-impact synthesis, holdings, candidate discovery, and complex sentiment.
+- [ ] Add scheduling and notification automation.
+  - Description: after manual quality is stable, use Codex/app automation or external scheduler for Saturday runs and review notifications.
+- [ ] Wire scheduled market-research fanout later.
+  - Description: keep market research manual-first until prompts, candidate quality, and review workflow are stable.
 
 ## Open Decisions
 

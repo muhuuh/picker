@@ -51,6 +51,8 @@ Current routing behavior:
 - manual run: creates a manual run manifest,
 - stock status move: creates a human review item instead of moving the stock automatically.
 
+Human review details are defined in `docs/descriptions/human_review_operating_model.md`.
+
 ## Two Separate Queues
 
 ### Human Input Queue
@@ -76,9 +78,17 @@ Review surface: `agents/human_review_digest.md`
 
 Use `python -m stock_research human-review digest --write` after manual or weekly runs to summarize open review items by decision type and priority. The digest is the preferred user-facing view; the queue remains the durable source of truth. The digest should always state the allowed human decisions concisely: approve, reject, mark needs more research, or leave open.
 
+The user should normally review the digest first, not every sub-report. Deeper reports such as `portfolio_review.md`, `candidate_review.md`, `candidate_verification_result.md`, `orchestrator_update_proposals.md`, and `memory_evaluation.md` are context links for Codex, the orchestrator, and human drill-down.
+
+`portfolio_review_orchestrator` is a synthesis layer for holdings/monitoring/rejected state and open decisions. Its report is read by the main orchestrator and by Codex when preparing a summary. The human reads it only when the digest points to a portfolio-level decision or the user asks for deeper context.
+
 Decision writer: `python -m stock_research human-review decide --set HRQ-0004=approved --note "Run verification." --write`
 
 Use the decision writer after the user tells Codex which HRQ ids to approve, reject, leave open, supersede, or mark as needing more research. This command only updates `agents/human_review_queue.md` and refreshes `agents/human_review_digest.md`; separate approval-gated commands still perform follow-up verification, company-file updates, stock moves, or monitoring promotion.
+
+Asynchronous rule: a run should not stop all work because one branch needs user review. It should write the HRQ row, refresh the digest, continue independent safe work, and mark only the gated branch as waiting for human input.
+
+Notification rule: for now, Codex chat plus repo artifacts are the canonical approval path. Later notification automation may send the digest by app notification or email, but email should initially be notification-only. Do not treat an email as an approval source unless a strict future email-ingestion workflow is implemented and tested.
 
 For discovery candidates, the normal approved path is:
 

@@ -180,3 +180,48 @@ class PortfolioReviewPacket:
     candidate_verification_results: list[str] = field(default_factory=list)
     latest_run_artifacts: list[str] = field(default_factory=list)
     memory_item_ids: list[str] = field(default_factory=list)
+
+
+@dataclass(frozen=True)
+class MemoryEvaluationArtifact:
+    artifact_type: str
+    path: str
+    status: str
+    summary: str = ""
+
+
+@dataclass(frozen=True)
+class MemoryEvaluationPacket:
+    run_id: str
+    status: DecisionStatus
+    reflection_issue_count: int = 0
+    recurring_pattern_count: int = 0
+    memory_update_proposal_count: int = 0
+    memory_update_draft_count: int = 0
+    ready_memory_update_draft_count: int = 0
+    sdk_metric_rows: int = 0
+    sdk_timeout_count: int = 0
+    sdk_error_count: int = 0
+    injected_memory_ids: list[str] = field(default_factory=list)
+    reported_memory_ids: list[str] = field(default_factory=list)
+    artifacts: list[MemoryEvaluationArtifact] = field(default_factory=list)
+    issues: list[str] = field(default_factory=list)
+    next_actions: list[str] = field(default_factory=list)
+    memory_item_ids: list[str] = field(default_factory=list)
+
+
+@dataclass(frozen=True)
+class MainOrchestratorInputPacket:
+    run_id: str
+    provider_mode: str = ""
+    analysis_mode: str = ""
+    run_artifacts: list[str] = field(default_factory=list)
+    company_research_reports: list[str] = field(default_factory=list)
+    market_research_reports: list[str] = field(default_factory=list)
+    portfolio_review_reports: list[str] = field(default_factory=list)
+    memory_evaluation_reports: list[str] = field(default_factory=list)
+    candidate_verification_results: list[str] = field(default_factory=list)
+    human_review_digest: str = ""
+    open_human_review_count: int = 0
+    approved_human_review_count: int = 0
+    memory_item_ids: list[str] = field(default_factory=list)

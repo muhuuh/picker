@@ -51,6 +51,9 @@
 - 2026-05-11: Approved HRQ-0007 / ADSE for verification-only workflow validation. `candidate-followup` wrote the verification manifest/plan; provider execution completed 7 of 8 lanes, with FMP blocked by subscription/402; analysis execution completed 4 of 4 tasks; `candidate-promote` correctly blocked because HRQ-0007 is `verify_before_monitoring`, not `monitoring_candidate`.
 - 2026-05-11: Added `candidate-verification-result` after the live ADSE check showed verification outcomes were too scattered. The consolidated report now records missing provider evidence, specialist statuses, findings, and next actions in `market_research/candidate_verification_result.md`.
 - 2026-05-11: Added first portfolio review sub-orchestrator. `portfolio_review_orchestrator` is registered, exposed to the main orchestrator, builds a deterministic packet over current holdings/monitoring/rejected/open HRQ/approved HRQ/candidate verification results, and writes `portfolio_review.md` without trading, moving stocks, or editing company files.
+- 2026-05-11: Added first memory/evaluation sub-orchestrator. `memory_evaluation_orchestrator` is registered, exposed to the main orchestrator, builds a deterministic packet over run metrics, quality report, memory reflection, recurring failures, memory update drafts, memory writer review, and finalization, and writes `memory_evaluation.md` without applying memory updates.
+- 2026-05-11: Broadened main orchestrator aggregation. `build_orchestrator_input(..., context=...)` now embeds a main aggregation packet covering company research, market research, portfolio review, memory/evaluation, candidate verification results, HRQ digest, and open/approved HRQ counts.
+- 2026-05-11: Researched human-in-the-loop best practice and documented the digest-first human review operating model. Decision: `agents/human_review_digest.md` is the user inbox; `agents/human_review_queue.md` is durable state; portfolio/memory/candidate/proposal reports are deeper context. Runs should continue safe independent work while approval-gated branches wait. Email/app notification is a later layer over the digest; email replies should not be treated as approvals until a strict ingestion workflow exists.
 
 ## Official Docs Reviewed
 
@@ -164,8 +167,10 @@ run-weekly
 - Execute an approved candidate verification run after the user approves one HRQ row, then inspect whether the generated provider/analysis evidence is enough for promotion.
 - Run `candidate-promote` after a verified `monitoring_candidate` row is approved, then inspect the created monitoring row/company file quality on a real candidate.
 - Use the open human-review digest as the source surface for future notification automation, so reminders are concise and actionable rather than a raw table dump.
-- Build memory/evaluation sub-orchestrator.
-- Decide whether portfolio review should be added to manual run finalization before or after memory/evaluation sub-orchestration.
+- Add run-end review digest summaries for manual/weekly flows so every completed run tells the user what needs review without requiring manual file opening.
+- Later add Codex/app or email digest notifications; keep email notification-only until strict reply ingestion is designed and tested.
+- Run realistic manual and weekly-style examples through final main aggregation and improve prompts where output is too generic.
+- Add missing specialist/provider depth only when real runs show a specific quality gap.
 - Wire market-research fanout into scheduled `run-weekly` only after validating the manual market-research quality.
 - Add Saturday automation only after the scheduled SDK path is validated with a realistic multi-ticker universe.
 
@@ -222,6 +227,7 @@ run-weekly
 - Human-review digest command: `python -m stock_research human-review digest --write`.
 - Human-review decision command: `python -m stock_research human-review decide --set HRQ-0004=approved --note "Run verification." --write`.
 - Portfolio review dry-run command: `python -m stock_research agent-runtime run --run-id RUN_ID --agent-id portfolio_review_orchestrator --task "portfolio review sub-orchestrator"`.
+- Memory evaluation dry-run command: `python -m stock_research agent-runtime run --run-id RUN_ID --agent-id memory_evaluation_orchestrator --task "memory evaluation sub-orchestrator"`.
 - Current digest artifact: `agents/human_review_digest.md`.
 - Manual discovery gates: no Grok-only monitoring promotion, source ids required, verification status required, active rejected cooldown blocks promotion, rumor-flagged leads stay verification-limited.
 - SDK evidence tool: `load_evidence_packet` lets specialists load summarized provider-neutral JSON packets by id/path. Use it for market-research specialists; do not rely on markdown-only evidence artifacts.

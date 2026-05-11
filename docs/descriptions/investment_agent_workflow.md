@@ -22,6 +22,7 @@ Human interaction goal:
 - Codex chat is the primary user interface.
 - User ideas, requests, and strategy thoughts should be translated into durable repo state.
 - Human input requests and system-generated approval items must stay in separate queues.
+- Human review should be asynchronous and digest-first: runs continue safe independent work, gated actions wait in `agents/human_review_queue.md`, and the user normally reviews `agents/human_review_digest.md` through Codex chat.
 
 ## Design Principles
 
@@ -143,6 +144,17 @@ There are two separate human-facing queues:
   - Things the system wants the user to approve.
   - Examples: stock status moves, cooldown overrides, strategy changes, buy/sell/position-size recommendations.
 
+Human review operating model:
+
+- Primary user-facing inbox: `agents/human_review_digest.md`.
+- Durable source of truth: `agents/human_review_queue.md`.
+- Deeper context: portfolio review, candidate review, candidate verification, update proposal, and memory/evaluation reports under `agents/runs/{run_id}/`.
+- Allowed user decisions: approve, reject, needs more research, leave open, or supersede.
+- Runs should not wait for the user to be online. They should continue independent safe work and leave only approval-gated branches waiting.
+- Near-term notification plan: Codex/manual run summaries should show open digest items. Later, app/email notifications may send the digest, but email is notification-only until a strict ingestion workflow exists.
+
+Detailed policy: `docs/descriptions/human_review_operating_model.md`.
+
 Request routing:
 
 - Specific stock research goes to `stock_tracking/monitoring/` by default unless the user says it is held or rejected.
@@ -227,8 +239,8 @@ Current implementation status:
 - Implemented providers: SEC EDGAR submissions and optional companyfacts evidence packet writer, yfinance market-data snapshots, FMP market-data/fundamentals snapshots, Polygon/Massive U.S. ticker/OHLC snapshots, Alpha Vantage quote/overview snapshots, Exa search/contents evidence packet writers, and xAI Grok x_search evidence packet writers.
 - Implemented: weekly manifests now include deterministic provider tasks and post-provider `analysis_tasks` for financial comparison plus financial-data specialist review. `provider-tasks` and `analysis-tasks` can dry-run or explicitly execute those manifest tasks.
 - Implemented: deterministic weekly workflow wrapper through `python -m stock_research run-weekly`.
-- Implemented: OpenAI Agents SDK runtime foundation, company-research sub-orchestrator, market-research sub-orchestrator, portfolio-review sub-orchestrator, and a manual market-research runner for industry/theme discovery with Exa, Grok/X, candidate lead extraction, and discovery quality gates.
-- Pending: macro providers, memory-evaluation sub-orchestrator, OS/app scheduled execution, and deeper live prompt iteration across real manual examples.
+- Implemented: OpenAI Agents SDK runtime foundation, company-research sub-orchestrator, market-research sub-orchestrator, portfolio-review sub-orchestrator, memory/evaluation sub-orchestrator, main aggregation packet, and a manual market-research runner for industry/theme discovery with Exa, Grok/X, candidate lead extraction, and discovery quality gates.
+- Pending: macro providers, OS/app scheduled execution, and deeper live prompt iteration across real manual examples.
 
 ### Layer 2: Specialist research agents
 
@@ -290,7 +302,7 @@ Use sub-orchestrators where there is enough complexity to coordinate several spe
 - Market research orchestrator: coordinates industry, macro, theme, and discovery research.
 - Company research orchestrator: coordinates filings, financials, news, sentiment, and company-file update proposals for one ticker.
 - Portfolio review orchestrator: coordinates impact across current holdings, monitoring, rejected buckets, open/approved human-review items, and candidate verification result reports. Current implementation is a synthesis/review layer only and does not trade, move stocks, or edit company files.
-- Memory and evaluation orchestrator: reviews traces/run logs, extracts lessons, updates agent memory.
+- Memory and evaluation orchestrator: reviews traces/run logs, quality reports, memory reflection, recurring failures, drafts, and finalization; it proposes next actions but does not directly apply memory updates.
 
 ### Layer 4: Main orchestrator
 
@@ -305,6 +317,8 @@ The main orchestrator receives structured packets from deterministic steps and s
 - what next scheduled run should focus on.
 
 The orchestrator should call specialists as tools for bounded tasks. Use handoffs only when a specialist should own the next interaction directly.
+
+Current implementation note: the main orchestrator now receives an aggregation packet listing company research, market research, portfolio review, memory/evaluation, candidate verification, human-review digest, and review-count artifacts before final synthesis.
 
 ### Layer 5: Writers and quality control
 
@@ -354,7 +368,8 @@ flowchart TD
     I --> J["Quality reviewer"]
     J --> K["Persist final files and run summary"]
     K --> L["Finalize run learning artifacts"]
-    H4 --> U2["User Sunday review / Codex chat"]
+    H4 --> HRD["Human review digest"]
+    HRD --> U2["User review via Codex chat"]
 ```
 
 ## Parallelization Plan

@@ -18,6 +18,7 @@ Detailed backlog: `docs/plans/investment_agent_backlog.md`.
 - [x] Define proposed memory and run-artifact model.
 - [x] Record user decisions on scope, alert goals, providers, cadence, and rejected-stock cooldown.
 - [x] Add human-to-system intake model with separate input and review queues.
+- [x] Add digest-first human review operating model for asynchronous approval.
 - [ ] User validates final architecture after these decisions.
 - [x] Decide first implementation slice.
 
@@ -104,8 +105,12 @@ Detailed backlog: `docs/plans/investment_agent_backlog.md`.
 - [x] Implement company research sub-orchestrator.
 - [x] Implement portfolio review sub-orchestrator.
   - Current progress: first SDK version exists as `portfolio_review_orchestrator`; it reviews current holdings, monitoring, rejected cooldowns, open/approved HRQ items, and candidate verification results without applying writes.
-- [ ] Implement main orchestrator synthesis.
-  - Current progress: first SDK main orchestrator exists and runs in scheduled/manual flows; full market/portfolio/memory sub-orchestrator aggregation is still pending.
+- [x] Document human review operating model.
+  - Current progress: `docs/descriptions/human_review_operating_model.md` defines `agents/human_review_digest.md` as the primary user inbox, `agents/human_review_queue.md` as durable state, deeper reports as drill-down context, async waiting behavior, and notification/email boundaries.
+- [x] Implement memory/evaluation sub-orchestrator.
+  - Current progress: first SDK version exists as `memory_evaluation_orchestrator`; it reviews telemetry, quality reports, memory reflection, recurring failures, memory update drafts, writer review, and finalization without applying memory writes.
+- [x] Implement main orchestrator synthesis.
+  - Current progress: first SDK main orchestrator exists and runs in scheduled/manual flows; final input aggregation now includes company, market, portfolio, memory/evaluation, candidate verification, and human-review surfaces. Live prompt quality iteration remains pending.
 - [x] Implement human review queue writer.
 - [x] Implement manual run manifest path for immediate user-requested research.
 - [x] Implement final run summary.
@@ -138,7 +143,7 @@ Detailed backlog: `docs/plans/investment_agent_backlog.md`.
 ## Key Decisions Pending
 
 - Data provider stack and budget.
-- Human approval gates.
+- Human approval gates beyond the current digest-first queue/decision-writer model.
 - Whether recommendations should be explicit or framed as research alerts.
 - First stock universe to test.
 - Priority European markets.
@@ -204,3 +209,6 @@ Detailed backlog: `docs/plans/investment_agent_backlog.md`.
 - 2026-05-11: Added deterministic human-review decision updater. `human-review decide --set HRQ-0004=approved --write` records explicit user decisions, appends decision notes, and refreshes the digest without running side-effect actions by itself.
 - 2026-05-11: Approved HRQ-0007 for verification-only workflow validation. Provider/analysis verification ran for ADSE; promotion correctly remained blocked because this was not a `monitoring_candidate`. Added `candidate-verification-result` to consolidate missing provider evidence, specialist statuses, findings, and next actions.
 - 2026-05-11: Implemented the first portfolio review sub-orchestrator. It is registered in the SDK runtime, exposed to the main orchestrator, and writes review packets/reports covering bucket state, open/approved HRQ items, candidate verification results, and next run tasks.
+- 2026-05-11: Implemented the first memory/evaluation sub-orchestrator. It is registered in the SDK runtime, exposed to the main orchestrator, and writes learning-loop packets/reports from run metrics, quality reports, memory reflection, recurring failures, memory update drafts, memory writer review, and finalization.
+- 2026-05-11: Broadened main orchestrator aggregation. Final synthesis prompts now receive a structured map of company research, market research, portfolio review, memory/evaluation, candidate verification, human-review digest, and review counts.
+- 2026-05-11: Added human review operating model. The user-facing review inbox is `agents/human_review_digest.md`; reports such as portfolio review are deeper context. Runs should continue safe independent work asynchronously and leave only approval-gated branches waiting. Notification/email automation is planned later over the digest, with email initially notification-only.

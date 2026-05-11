@@ -474,3 +474,45 @@ Operational memory for workflow routing, orchestration, run ordering, and user c
 - evidence: `stock_research/agent_runtime/orchestrators/portfolio_review.py`, `agents/orchestrator/prompts/portfolio_review.md`, `agents/orchestrator/specs/portfolio_review.md`, `agents/runs/2026-05-10_manual-market-energy-storage/portfolio_review/portfolio_review.md`
 - owner: portfolio review orchestrator
 - next_review: 2026-06-15
+
+- id: orch-2026-05-11-memory-evaluation-orchestrator
+- date: 2026-05-11
+- type: procedural
+- scope: orchestrator
+- status: active
+- confidence: high
+- trigger/source: Implemented the memory/evaluation sub-orchestrator after the core company, market, portfolio, and candidate review loops were in place.
+- lesson: Use `memory_evaluation_orchestrator` to review telemetry, quality reports, memory reflection, recurring failures, memory update drafts, and finalization artifacts. It may propose next actions, but it must not directly apply memory updates; approved memory writes still go through deterministic `memory apply-updates`.
+- use_when: Ending manual/weekly runs, checking learning-loop health, deciding whether run lessons need memory updates, or feeding final main orchestrator synthesis.
+- do_not_use_when: Applying memory updates or storing ordinary company investment facts.
+- evidence: `stock_research/agent_runtime/orchestrators/memory_evaluation.py`, `agents/orchestrator/prompts/memory_evaluation.md`, `agents/orchestrator/specs/memory_evaluation.md`, `agents/runs/2026-05-10_manual-market-energy-storage/memory_evaluation/memory_evaluation.md`
+- owner: memory evaluation orchestrator
+- next_review: 2026-06-15
+
+- id: orch-2026-05-11-main-aggregation-packet
+- date: 2026-05-11
+- type: procedural
+- scope: orchestrator
+- status: active
+- confidence: high
+- trigger/source: Broadened main orchestrator input after company, market, portfolio, and memory/evaluation sub-orchestrators existed.
+- lesson: Main orchestrator prompts should start from a structured aggregation packet that maps company research reports, market research reports, portfolio review reports, memory/evaluation reports, candidate verification results, the human-review digest, and open/approved HRQ counts before opening deeper artifacts.
+- use_when: Running final synthesis, debugging why a run missed an artifact, or adding new sub-orchestrator output surfaces.
+- do_not_use_when: Replacing detailed artifact inspection; the packet is a map, not the full evidence.
+- evidence: `stock_research/agent_runtime/reports.py`, `agents/orchestrator/prompts/main.md`, `agents/orchestrator/specs/main.md`, `tests/test_agent_runtime.py`
+- owner: main orchestrator
+- next_review: 2026-06-15
+
+- id: orch-2026-05-11-digest-first-human-review
+- date: 2026-05-11
+- type: procedural
+- scope: orchestrator
+- status: active
+- confidence: high
+- trigger/source: User asked who reads portfolio-review reports and how asynchronous human review should work.
+- lesson: Treat `agents/human_review_digest.md` as the primary user-facing review inbox and `agents/human_review_queue.md` as durable state. Portfolio, memory/evaluation, candidate, and proposal reports are deeper context for Codex, the main orchestrator, and human drill-down. Runs should continue safe independent work and leave only approval-gated branches waiting for human input. Email/app notification may summarize the digest later, but email is not an approval source until a strict ingestion workflow exists.
+- use_when: Ending manual/weekly runs, explaining portfolio review output, building notification automation, or adding approval-gated workflow branches.
+- do_not_use_when: Bypassing deterministic review decisions, applying writes from open HRQ rows, or treating notification delivery as approval.
+- evidence: `docs/descriptions/human_review_operating_model.md`, `docs/descriptions/human_interaction_workflow.md`, `MEMORY.md`
+- owner: main orchestrator
+- next_review: 2026-06-15

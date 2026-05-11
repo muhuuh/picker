@@ -6,6 +6,9 @@ from pathlib import Path
 from typing import Any
 
 from stock_research.agent_runtime.context import ResearchRunContext
+from stock_research.agent_runtime.outputs import MainOrchestratorInputPacket
+from stock_research.memory import relative_to_root
+from stock_research.repo import load_first_table
 
 
 def output_to_dict(output: Any) -> dict[str, Any]:
@@ -28,6 +31,7 @@ def build_orchestrator_input(
     memory_item_ids: tuple[str, ...] = (),
     provider_mode: str = "",
     analysis_mode: str = "",
+    context: ResearchRunContext | None = None,
 ) -> str:
     memory_lines = []
     if memory_item_ids:
@@ -47,18 +51,30 @@ def build_orchestrator_input(
             "Do not claim the current run executed fresh provider or analysis work when those modes are dry_run.",
             "If fresh evidence is required for a proposed company-file update, mark the output partial or needs_human_review and add a next_run_task to execute the missing deterministic step.",
         ]
+    packet_lines: list[str] = []
+    if context:
+        packet = build_main_orchestrator_input_packet(context, provider_mode=provider_mode, analysis_mode=analysis_mode)
+        packet_lines = [
+            "",
+            "Main aggregation packet:",
+            "```json",
+            json.dumps(asdict(packet), indent=2, sort_keys=True),
+            "```",
+        ]
     return "\n".join(
         [
             f"Review stock research run `{run_id}`.",
             "",
             "Use the available repo/run inspection tools before deciding.",
-            "Start by loading the repo map, listing markdown artifacts, and listing evidence packets. Then inspect at least:",
+            "Start by loading the repo map, listing markdown artifacts, and listing evidence packets. Then inspect the aggregate packet and at least:",
             "- run_summary.md",
             "- quality_report.md",
             "- finalization.md",
             "- company_research/*.md when present",
-            "- reports/company_news_specialist/AAPL_company_news_review.md when present",
-            "- reports/financial_data_specialist/AAPL_financial_review.md when present",
+            "- market_research/*.md when present",
+            "- portfolio_review/*.md when present",
+            "- memory_evaluation/*.md when present",
+            "- candidate verification result reports when present",
             "",
             "Also load the monitoring stock tracking CSV before proposing target files.",
             "Use the exact `stock_info_file` path from the CSV for company-file update proposals.",
@@ -67,11 +83,66 @@ def build_orchestrator_input(
             "If deterministic-first workflow and registry composition shaped the decision, include their memory ids.",
             *execution_lines,
             *memory_lines,
+            *packet_lines,
             "",
             "Return a structured OrchestratorDecision.",
             "Do not invent missing facts. If the evidence is too thin, set status to partial or needs_human_review.",
         ]
     )
+
+
+def build_main_orchestrator_input_packet(
+    context: ResearchRunContext,
+    provider_mode: str = "",
+    analysis_mode: str = "",
+) -> MainOrchestratorInputPacket:
+    return MainOrchestratorInputPacket(
+        run_id=context.run_id,
+        provider_mode=provider_mode,
+        analysis_mode=analysis_mode,
+        run_artifacts=existing_relative_paths(
+            context,
+            [
+                context.run_dir / "run_summary.md",
+                context.run_dir / "quality_report.md",
+                context.run_dir / "finalization.md",
+                context.run_dir / "orchestration_report.md",
+                context.run_dir / "agent_runtime_main_orchestrator.md",
+                context.run_dir / "trace_links.md",
+                context.run_dir / "run_metrics.md",
+            ],
+        ),
+        company_research_reports=relative_glob(context, "company_research/*.md"),
+        market_research_reports=relative_glob(context, "market_research/*.md"),
+        portfolio_review_reports=relative_glob(context, "portfolio_review/*.md"),
+        memory_evaluation_reports=relative_glob(context, "memory_evaluation/*.md"),
+        candidate_verification_results=relative_glob(context, "market_research/candidate_verification_result.md"),
+        human_review_digest=relative_path_if_exists(context, context.root / "agents" / "human_review_digest.md"),
+        open_human_review_count=count_human_review_rows(context, {"open", "needs_more_research"}),
+        approved_human_review_count=count_human_review_rows(context, {"approved"}),
+        memory_item_ids=list(context.memory_item_ids),
+    )
+
+
+def relative_glob(context: ResearchRunContext, pattern: str) -> list[str]:
+    return [
+        relative_to_root(context.root, path).as_posix()
+        for path in sorted(context.run_dir.glob(pattern))
+        if path.is_file()
+    ]
+
+
+def existing_relative_paths(context: ResearchRunContext, paths: list[Path]) -> list[str]:
+    return [relative_to_root(context.root, path).as_posix() for path in paths if path.exists()]
+
+
+def relative_path_if_exists(context: ResearchRunContext, path: Path) -> str:
+    return relative_to_root(context.root, path).as_posix() if path.exists() else ""
+
+
+def count_human_review_rows(context: ResearchRunContext, statuses: set[str]) -> int:
+    rows = load_first_table(context.root / "agents" / "human_review_queue.md")
+    return sum(1 for row in rows if str(row.get("Status", "")).lower() in statuses)
 
 
 def write_agent_runtime_report(context: ResearchRunContext, agent_id: str, output: Any) -> tuple[Path, Path]:

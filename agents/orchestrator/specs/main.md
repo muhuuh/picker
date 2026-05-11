@@ -10,5 +10,26 @@
   - `run_analysis_tasks_guarded`
 - specialist tools:
   - `company_news_specialist`
+  - `company_search_specialist`
+  - `financial_specialist`
+  - `filing_specialist`
+  - `sentiment_specialist`
+  - `risk_thesis_specialist`
+  - `writer_specialist`
+  - `quality_reviewer_specialist`
+  - `exa_industry_specialist`
+  - `grok_discovery_specialist`
+  - `discovery_specialist`
+  - `company_research_orchestrator`
+  - `market_research_orchestrator`
+  - `portfolio_review_orchestrator`
+  - `memory_evaluation_orchestrator`
+- aggregate inputs:
+  - company research reports
+  - market research reports
+  - portfolio review reports
+  - memory evaluation reports
+  - candidate verification results
+  - human review digest
 - write behavior: proposal-first
 - memory: inject task-relevant operational memory before execution

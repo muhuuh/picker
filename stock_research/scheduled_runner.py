@@ -13,6 +13,14 @@ from .agent_runtime.orchestrators.company_research import (
     run_company_research_sub_orchestrator_sync,
     write_company_research_report,
 )
+from .agent_runtime.orchestrators.memory_evaluation import (
+    aggregate_memory_evaluation,
+    write_memory_evaluation_report,
+)
+from .agent_runtime.orchestrators.portfolio_review import (
+    aggregate_portfolio_review,
+    write_portfolio_review_report,
+)
 from .agent_runtime.proposal_review import build_proposal_review, proposal_review_to_dict
 from .agent_runtime.reports import build_orchestrator_input, output_status, output_to_dict
 from .agent_runtime.runner import AgentRuntimeResult, run_agent_sync
@@ -98,6 +106,8 @@ def run_weekly_research_workflow(
     finalization: RunFinalization | None = None
     memory_writer_review: MemoryWriterReview | None = None
     company_research_result: dict[str, Any] = {"status": "not_run"}
+    portfolio_review_result: dict[str, Any] = {"status": "not_run"}
+    memory_evaluation_result: dict[str, Any] = {"status": "not_run"}
     orchestrator_result: dict[str, Any] = {"status": "not_run"}
     proposal_review_result: dict[str, Any] = {"status": "not_run"}
 
@@ -144,6 +154,31 @@ def run_weekly_research_workflow(
             artifacts.extend(company_research_paths)
 
         if execute_orchestrator:
+            portfolio_context = build_research_run_context(
+                root=repo_root,
+                run_id=run_id,
+                task="portfolio review sub-orchestrator",
+                manifest_path=manifest_path,
+                dry_run=True,
+            )
+            portfolio_decision = aggregate_portfolio_review(portfolio_context)
+            portfolio_paths = write_portfolio_review_report(portfolio_context, portfolio_decision)
+            portfolio_review_result = output_to_dict(portfolio_decision)
+            artifacts.extend(portfolio_paths)
+
+            memory_context = build_research_run_context(
+                root=repo_root,
+                run_id=run_id,
+                task="memory evaluation sub-orchestrator",
+                manifest_path=manifest_path,
+                dry_run=True,
+            )
+            memory_decision = aggregate_memory_evaluation(memory_context)
+            memory_paths = write_memory_evaluation_report(memory_context, memory_decision)
+            memory_evaluation_result = output_to_dict(memory_decision)
+            artifacts.extend(memory_paths)
+
+        if execute_orchestrator:
             context = build_research_run_context(
                 root=repo_root,
                 run_id=run_id,
@@ -158,6 +193,7 @@ def run_weekly_research_workflow(
                 context.memory_item_ids,
                 provider_mode=str(provider_result.get("mode", "")),
                 analysis_mode=str(analysis_result.get("mode", "")),
+                context=context,
             )
             try:
                 if orchestrator_executor:
@@ -207,6 +243,8 @@ def run_weekly_research_workflow(
             quality_report,
             finalization,
             company_research_result,
+            portfolio_review_result,
+            memory_evaluation_result,
             orchestrator_result,
         ),
         mode=run_mode(write, execute_providers, execute_analysis, execute_memory_writer, execute_orchestrator),
@@ -221,6 +259,8 @@ def run_weekly_research_workflow(
             memory_writer_review=memory_writer_review,
             orchestrator_result=orchestrator_result,
             company_research_result=company_research_result,
+            portfolio_review_result=portfolio_review_result,
+            memory_evaluation_result=memory_evaluation_result,
             proposal_review_result=proposal_review_result,
         ),
         artifacts=[relative_to_root(repo_root, path).as_posix() for path in artifacts],
@@ -231,6 +271,8 @@ def run_weekly_research_workflow(
             quality_report,
             finalization,
             company_research_result,
+            portfolio_review_result,
+            memory_evaluation_result,
             orchestrator_result,
         ),
     )
@@ -248,6 +290,8 @@ def determine_status(
     quality_report,
     finalization: RunFinalization | None,
     company_research_result: dict[str, Any] | None = None,
+    portfolio_review_result: dict[str, Any] | None = None,
+    memory_evaluation_result: dict[str, Any] | None = None,
     orchestrator_result: dict[str, Any] | None = None,
 ) -> str:
     if not write:
@@ -259,6 +303,10 @@ def determine_status(
     if finalization and finalization.status != "complete":
         return finalization.status
     if company_research_result and company_research_result.get("status") in {"error", "needs_review"}:
+        return "needs_review"
+    if portfolio_review_result and portfolio_review_result.get("status") in {"blocked", "needs_human_review"}:
+        return "needs_review"
+    if memory_evaluation_result and memory_evaluation_result.get("status") in {"blocked", "needs_human_review"}:
         return "needs_review"
     if orchestrator_result and orchestrator_result.get("status") in {"error", "needs_review"}:
         return "needs_review"
@@ -294,6 +342,8 @@ def build_steps(
     memory_writer_review: MemoryWriterReview | None,
     orchestrator_result: dict[str, Any],
     company_research_result: dict[str, Any],
+    portfolio_review_result: dict[str, Any],
+    memory_evaluation_result: dict[str, Any],
     proposal_review_result: dict[str, Any],
 ) -> dict[str, Any]:
     return {
@@ -310,6 +360,8 @@ def build_steps(
         "memory_finalization": finalization_to_dict(finalization) if finalization else {"status": "not_written"},
         "memory_writer_review": memory_writer_review_to_dict(memory_writer_review) if memory_writer_review else {"status": "not_written"},
         "company_research": company_research_result,
+        "portfolio_review": portfolio_review_result,
+        "memory_evaluation": memory_evaluation_result,
         "agent_orchestrator": orchestrator_result,
         "orchestrator_proposal_review": proposal_review_result,
         "framework_boundary": {
@@ -327,6 +379,8 @@ def next_actions(
     quality_report,
     finalization: RunFinalization | None,
     company_research_result: dict[str, Any] | None = None,
+    portfolio_review_result: dict[str, Any] | None = None,
+    memory_evaluation_result: dict[str, Any] | None = None,
     orchestrator_result: dict[str, Any] | None = None,
 ) -> list[str]:
     actions: list[str] = []
@@ -348,6 +402,10 @@ def next_actions(
         actions.append("Review per-ticker company research artifacts before accepting scheduled synthesis.")
     if company_research_result and company_research_result.get("status") == "error":
         actions.append("Review scheduled company-research errors before treating synthesis as complete.")
+    if portfolio_review_result and portfolio_review_result.get("status") in {"partial", "needs_human_review", "blocked"}:
+        actions.append("Review portfolio review output before accepting final synthesis.")
+    if memory_evaluation_result and memory_evaluation_result.get("status") in {"partial", "needs_human_review", "blocked"}:
+        actions.append("Review memory/evaluation output before accepting the learning loop as complete.")
     if not write:
         actions.append("Use `--write --execute-orchestrator` after deterministic artifacts are ready to run SDK synthesis.")
     elif not orchestrator_result or orchestrator_result.get("status") == "not_run":

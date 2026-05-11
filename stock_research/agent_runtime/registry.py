@@ -9,6 +9,7 @@ from stock_research.agent_runtime.context import ResearchRunContext
 from stock_research.agent_runtime.orchestrators.company_research import build_agent as build_company_research_orchestrator
 from stock_research.agent_runtime.orchestrators.main import build_agent as build_main_orchestrator
 from stock_research.agent_runtime.orchestrators.market_research import build_agent as build_market_research_orchestrator
+from stock_research.agent_runtime.orchestrators.memory_evaluation import build_agent as build_memory_evaluation_orchestrator
 from stock_research.agent_runtime.orchestrators.portfolio_review import build_agent as build_portfolio_review_orchestrator
 from stock_research.agent_runtime.specialists.company_news import build_agent as build_company_news_specialist
 from stock_research.agent_runtime.specialists.company_search import build_agent as build_company_search_specialist
@@ -59,6 +60,12 @@ _AGENT_SPECS: dict[str, AgentSpec] = {
         role="orchestrator",
         description="Sub-orchestrator that reviews holdings, monitoring names, rejected cooldowns, open approvals, and next actions.",
         builder=build_portfolio_review_orchestrator,
+    ),
+    "memory_evaluation_orchestrator": AgentSpec(
+        agent_id="memory_evaluation_orchestrator",
+        role="orchestrator",
+        description="Sub-orchestrator that reviews run telemetry, memory reflection, memory drafts, and learning-loop health.",
+        builder=build_memory_evaluation_orchestrator,
     ),
     "company_news_specialist": AgentSpec(
         agent_id="company_news_specialist",

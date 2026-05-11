@@ -26,6 +26,12 @@ from stock_research.agent_runtime.orchestrators.market_research import (
     build_market_research_packet,
     run_market_research_sub_orchestrator_sync,
 )
+from stock_research.agent_runtime.orchestrators.memory_evaluation import (
+    aggregate_memory_evaluation,
+    build_memory_evaluation_input,
+    build_memory_evaluation_packet,
+    write_memory_evaluation_report,
+)
 from stock_research.agent_runtime.orchestrators.portfolio_review import (
     aggregate_portfolio_review,
     build_portfolio_review_input,
@@ -33,7 +39,12 @@ from stock_research.agent_runtime.orchestrators.portfolio_review import (
     write_portfolio_review_report,
 )
 from stock_research.agent_runtime.outputs import OrchestratorDecision
-from stock_research.agent_runtime.reports import build_orchestrator_input, evaluate_runtime_output_quality, output_to_dict
+from stock_research.agent_runtime.reports import (
+    build_main_orchestrator_input_packet,
+    build_orchestrator_input,
+    evaluate_runtime_output_quality,
+    output_to_dict,
+)
 from stock_research.agent_runtime.registry import build_agent, build_agent_tool, list_agent_specs
 from stock_research.agent_runtime.runner import AgentRuntimeResult, build_run_config, reported_memory_item_ids, run_agent_sync
 from stock_research.agent_runtime.tracing import LocalRunHooks, LocalRunMetric, LocalRunTelemetry, write_run_metrics
@@ -269,6 +280,62 @@ def write_portfolio_review_test_artifacts(root: Path) -> None:
     (market_dir / "candidate_verification_result.md").write_text("# Candidate Verification Result\n", encoding="utf-8")
 
 
+def write_memory_evaluation_test_artifacts(root: Path) -> None:
+    run_dir = root / "agents" / "runs" / "test_weekly"
+    run_dir.mkdir(parents=True, exist_ok=True)
+    (run_dir / "run_summary.md").write_text("# Run Summary\n", encoding="utf-8")
+    (run_dir / "quality_report.md").write_text("# Quality Report\n", encoding="utf-8")
+    (run_dir / "run_metrics.md").write_text(
+        "\n".join(
+            [
+                "# Run Metrics",
+                "",
+                "| metric | status | started_at | ended_at | memory_item_ids | detail |",
+                "| --- | --- | --- | --- | --- | --- |",
+                "| memory_context:main_orchestrator | injected | 2026-05-10T00:00:00+00:00 | 2026-05-10T00:00:00+00:00 | orch-test | memory injected |",
+                "| memory_output:main_orchestrator | reported | 2026-05-10T00:00:00+00:00 | 2026-05-10T00:00:00+00:00 | orch-test | memory reported |",
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    (run_dir / "memory_reflection.json").write_text(
+        json.dumps(
+            {
+                "run_id": "test_weekly",
+                "issues": [],
+                "memory_update_proposals": [],
+                "metrics": {"sdk_metric_rows": 2},
+            }
+        ),
+        encoding="utf-8",
+    )
+    (run_dir / "memory_reflection.md").write_text("# Memory Reflection\n", encoding="utf-8")
+    (run_dir / "memory_update_drafts.json").write_text(
+        json.dumps(
+            {
+                "run_id": "test_weekly",
+                "items": [
+                    {
+                        "proposal_id": "proposal-1",
+                        "status": "ready",
+                        "target_file": "evaluation_metrics.md",
+                        "reason": "test",
+                    }
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+    (run_dir / "memory_update_drafts.md").write_text("# Memory Drafts\n", encoding="utf-8")
+    (run_dir / "finalization.json").write_text(json.dumps({"status": "needs_review"}), encoding="utf-8")
+    (run_dir / "finalization.md").write_text("# Finalization\n", encoding="utf-8")
+    memory_dir = root / "agents" / "memory"
+    memory_dir.mkdir(parents=True, exist_ok=True)
+    (memory_dir / "recurring_failures.json").write_text(json.dumps({"patterns": [], "memory_update_proposals": []}), encoding="utf-8")
+    (memory_dir / "recurring_failures.md").write_text("# Recurring Failures\n", encoding="utf-8")
+
+
 class AgentRuntimeTests(unittest.TestCase):
     def test_registry_lists_orchestrator_and_specialist(self):
         specs = {spec.agent_id: spec for spec in list_agent_specs()}
@@ -276,6 +343,7 @@ class AgentRuntimeTests(unittest.TestCase):
         self.assertEqual(specs["main_orchestrator"].role, "orchestrator")
         self.assertEqual(specs["company_research_orchestrator"].role, "orchestrator")
         self.assertEqual(specs["market_research_orchestrator"].role, "orchestrator")
+        self.assertEqual(specs["memory_evaluation_orchestrator"].role, "orchestrator")
         self.assertEqual(specs["portfolio_review_orchestrator"].role, "orchestrator")
         self.assertEqual(specs["company_news_specialist"].role, "specialist")
         self.assertEqual(specs["company_search_specialist"].role, "specialist")
@@ -319,6 +387,7 @@ class AgentRuntimeTests(unittest.TestCase):
         self.assertIn("company_research_orchestrator", tool_names)
         self.assertIn("market_research_orchestrator", tool_names)
         self.assertIn("portfolio_review_orchestrator", tool_names)
+        self.assertIn("memory_evaluation_orchestrator", tool_names)
         self.assertIn("company_news_specialist", tool_names)
         self.assertIn("company_search_specialist", tool_names)
         self.assertIn("discovery_specialist", tool_names)
@@ -604,6 +673,18 @@ class AgentRuntimeTests(unittest.TestCase):
         self.assertIn("quality_reviewer_specialist", tool_names)
         self.assertNotIn("write_company_file", tool_names)
 
+    def test_memory_evaluation_orchestrator_can_be_built(self):
+        context = build_research_run_context(root=REPO_ROOT, run_id="test_weekly", task="memory evaluation sub-orchestrator")
+        agent = build_agent("memory_evaluation_orchestrator", context)
+        tool_names = {getattr(tool, "name", type(tool).__name__) for tool in agent.tools}
+
+        self.assertIsInstance(agent, Agent)
+        self.assertIn("load_run_markdown", tool_names)
+        self.assertIn("load_operational_memory", tool_names)
+        self.assertIn("quality_reviewer_specialist", tool_names)
+        self.assertNotIn("memory_apply_updates", tool_names)
+        self.assertNotIn("write_company_file", tool_names)
+
     def test_company_research_packet_groups_existing_company_artifacts(self):
         with TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
@@ -802,6 +883,28 @@ class AgentRuntimeTests(unittest.TestCase):
         self.assertEqual(decision.status, "partial")
         self.assertTrue(json_exists)
         self.assertIn("Review open HRQ items", report)
+
+    def test_memory_evaluation_packet_summarizes_learning_loop(self):
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            write_runtime_test_repo(root)
+            write_memory_evaluation_test_artifacts(root)
+            context = build_research_run_context(root=root, run_id="test_weekly", task="memory evaluation sub-orchestrator")
+
+            packet = build_memory_evaluation_packet(context)
+            prompt = build_memory_evaluation_input(context)
+            decision = aggregate_memory_evaluation(context)
+            json_path, md_path = write_memory_evaluation_report(context, decision)
+            report = md_path.read_text(encoding="utf-8")
+            json_exists = json_path.exists()
+
+        self.assertEqual(packet.ready_memory_update_draft_count, 1)
+        self.assertEqual(packet.sdk_metric_rows, 2)
+        self.assertEqual(packet.status, "needs_human_review")
+        self.assertIn("Memory evaluation packet", prompt)
+        self.assertEqual(decision.agent_id, "memory_evaluation_orchestrator")
+        self.assertTrue(json_exists)
+        self.assertIn("ready memory update drafts", report)
 
     def test_run_config_uses_trace_metadata_without_sensitive_data(self):
         context = build_research_run_context(root=REPO_ROOT, run_id="test_weekly", task="main orchestrator")
@@ -1071,6 +1174,29 @@ class AgentRuntimeTests(unittest.TestCase):
         self.assertIn('"agent_id": "portfolio_review_orchestrator"', output)
         self.assertIn("Portfolio review packet", output)
 
+    def test_agent_runtime_cli_memory_evaluation_dry_run_uses_packet(self):
+        buffer = io.StringIO()
+        with redirect_stdout(buffer):
+            exit_code = main(
+                [
+                    "--root",
+                    str(REPO_ROOT),
+                    "agent-runtime",
+                    "run",
+                    "--run-id",
+                    "2026-05-10_manual-market-energy-storage",
+                    "--agent-id",
+                    "memory_evaluation_orchestrator",
+                    "--task",
+                    "memory evaluation sub-orchestrator",
+                ]
+            )
+
+        self.assertEqual(exit_code, 0)
+        output = buffer.getvalue()
+        self.assertIn('"agent_id": "memory_evaluation_orchestrator"', output)
+        self.assertIn("Memory evaluation packet", output)
+
     def test_agent_runtime_cli_validate_output(self):
         with TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
@@ -1164,7 +1290,35 @@ class AgentRuntimeTests(unittest.TestCase):
         self.assertIn("run_summary.md", prompt)
         self.assertIn("quality_report.md", prompt)
         self.assertIn("listing evidence packets", prompt)
-        self.assertIn("reports/company_news_specialist", prompt)
+        self.assertIn("company_research/*.md", prompt)
+        self.assertIn("memory_evaluation/*.md", prompt)
+
+    def test_main_orchestrator_input_packet_aggregates_sub_orchestrator_reports(self):
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            write_runtime_test_repo(root)
+            write_portfolio_review_test_artifacts(root)
+            write_memory_evaluation_test_artifacts(root)
+            run_dir = root / "agents" / "runs" / "test_weekly"
+            (run_dir / "company_research").mkdir(parents=True, exist_ok=True)
+            (run_dir / "company_research" / "AAPL_company_research.md").write_text("# Company Research\n", encoding="utf-8")
+            (run_dir / "market_research" / "theme_market_research.md").write_text("# Market Research\n", encoding="utf-8")
+            (run_dir / "portfolio_review").mkdir(parents=True, exist_ok=True)
+            (run_dir / "portfolio_review" / "portfolio_review.md").write_text("# Portfolio Review\n", encoding="utf-8")
+            (run_dir / "memory_evaluation").mkdir(parents=True, exist_ok=True)
+            (run_dir / "memory_evaluation" / "memory_evaluation.md").write_text("# Memory Evaluation\n", encoding="utf-8")
+            (root / "agents" / "human_review_digest.md").write_text("# Digest\n", encoding="utf-8")
+            context = build_research_run_context(root=root, run_id="test_weekly", task="main orchestrator")
+
+            packet = build_main_orchestrator_input_packet(context, provider_mode="execute", analysis_mode="execute")
+            prompt = build_orchestrator_input("test_weekly", context.memory_item_ids, context=context)
+
+        self.assertIn("agents/runs/test_weekly/company_research/AAPL_company_research.md", packet.company_research_reports)
+        self.assertIn("agents/runs/test_weekly/market_research/candidate_verification_result.md", packet.candidate_verification_results)
+        self.assertIn("agents/runs/test_weekly/portfolio_review/portfolio_review.md", packet.portfolio_review_reports)
+        self.assertIn("agents/runs/test_weekly/memory_evaluation/memory_evaluation.md", packet.memory_evaluation_reports)
+        self.assertEqual(packet.open_human_review_count, 1)
+        self.assertIn("Main aggregation packet", prompt)
 
     def test_output_quality_flags_short_summary(self):
         decision = OrchestratorDecision(

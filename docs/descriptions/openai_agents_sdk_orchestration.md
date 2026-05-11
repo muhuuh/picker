@@ -6,7 +6,7 @@ Last updated: 2026-05-11
 
 This document defines how this repo should use OpenAI Agents SDK for LLM orchestration.
 
-The first SDK runtime foundation is implemented. It can build real SDK `Agent` objects, compose company-news, company-search, financial, filing, sentiment, risk/thesis, writer, quality-review, Exa industry, Grok discovery, and candidate discovery specialists as tools for orchestrators, run no-model-call registry smoke checks, manually execute orchestrators over existing run artifacts, run portfolio-review packet synthesis, and run scheduled per-ticker company research plus main orchestration from the weekly wrapper behind an explicit `--execute-orchestrator` flag.
+The first SDK runtime foundation is implemented. It can build real SDK `Agent` objects, compose company-news, company-search, financial, filing, sentiment, risk/thesis, writer, quality-review, Exa industry, Grok discovery, and candidate discovery specialists as tools for orchestrators, run no-model-call registry smoke checks, manually execute orchestrators over existing run artifacts, run portfolio-review and memory/evaluation packet synthesis, and run scheduled per-ticker company research plus main orchestration from the weekly wrapper behind an explicit `--execute-orchestrator` flag.
 
 Dedicated backlog: `docs/plans/openai_agents_sdk_orchestration_backlog.md`.
 
@@ -79,13 +79,17 @@ run-weekly
   -> OpenAI Agents SDK runtime
      -> code-level per-ticker company-research specialist fanout
      -> portfolio review over buckets, review queue, and verification results
+     -> memory/evaluation review over telemetry, reflection, drafts, and finalization
      -> main orchestrator synthesis
      -> alerts, update proposals, review items, next-run plan
+  -> human-review digest refresh and final review summary
   -> deterministic proposal review bridge
   -> quality review
   -> final run artifacts
   -> memory reflection
 ```
+
+Human review policy: `agents/human_review_digest.md` is the primary user-facing inbox. `portfolio_review_orchestrator` and `memory_evaluation_orchestrator` write deeper context reports for Codex, the main orchestrator, and human drill-down. Runs should continue all independent safe work and leave only approval-gated branches waiting for the user. Notification/email automation is a later layer over the digest; email should not become a decision source until a strict, tested ingestion workflow exists.
 
 ## Planned Code Layout
 
@@ -307,6 +311,8 @@ Do not log raw tool inputs, raw tool outputs, prompts, or secrets in local metri
 
 Post-run memory reflection reads `run_metrics.md`. SDK timeouts, SDK runtime errors, missing metrics for saved SDK output, and missing reported memory ids become deterministic reflection issues and memory update proposal candidates.
 
+Human review observability should be added before scheduled automation is considered complete: run-end artifacts should record whether new HRQ rows were created, whether the digest was refreshed, and which gated branches are waiting for human input.
+
 ## First Implementation Slice
 
 The first SDK slice should be small and verifiable:
@@ -338,6 +344,8 @@ Implemented:
 - `stock_research/agent_runtime/orchestrators/company_research.py`: first company-research sub-orchestrator, one-ticker lane packet builder for financials/company-news/filings/sentiment/company-search/risk-thesis/writer/quality lanes, fanout task builder, aggregation helper, and per-ticker scheduled artifact writer.
 - `stock_research/agent_runtime/orchestrators/market_research.py`: first market-research sub-orchestrator for industry/theme packets, Exa web/company discovery, Grok/X trend discovery, candidate synthesis, and quality review.
 - `stock_research/agent_runtime/orchestrators/portfolio_review.py`: first portfolio-review sub-orchestrator for current holdings, monitoring, rejected cooldowns, open/approved human-review items, candidate verification result reports, deterministic packet building, aggregation, and markdown report writing.
+- `stock_research/agent_runtime/orchestrators/memory_evaluation.py`: first memory/evaluation sub-orchestrator for run metrics, quality reports, memory reflection, recurring failures, memory update drafts, memory writer review, finalization, deterministic packet building, aggregation, and markdown report writing.
+- `stock_research/agent_runtime/reports.py`: main orchestrator aggregation packet builder covering company, market, portfolio, memory/evaluation, candidate verification, human-review digest, and review-count artifacts before final synthesis.
 - `stock_research/market_research_runner.py`: manual market-research runner for user-triggered industry/theme discovery. It builds a manual manifest, can execute provider tasks, can run the SDK market fanout, extracts candidate leads into a typed schema, applies discovery quality gates, and writes a reviewable market report.
 - `stock_research/candidate_review.py`: deterministic bridge from manual market-research candidate leads to reviewable candidate groups and duplicate-safe human-review queue rows. It groups duplicate listings/share classes and does not add stocks to monitoring.
 - `stock_research/candidate_verification_result.py`: deterministic candidate verification result reporter that consolidates approved follow-up provider coverage, specialist statuses, findings, and next actions before promotion decisions.
@@ -379,7 +387,6 @@ Implemented:
 Not implemented yet:
 
 - full tool guardrail set,
-- memory/evaluation sub-orchestrator.
 - per-specialist retry policy for future fanout and deeper memory-use evaluation beyond injected/reported ids.
 
 ## Runtime Quality Gates
@@ -403,6 +410,9 @@ Current gates check:
 - discovery-to-monitoring promotion requires an approved `monitoring_candidate` review row plus required verification reports.
 - candidate verification results surface missing provider evidence and specialist `needs_human_review` statuses before promotion.
 - portfolio review reports open approvals, approved follow-ups, rejected cooldown state, and candidate verification results without applying writes.
+- memory/evaluation review reports missing telemetry/reflection/finalization artifacts and ready memory drafts without applying memory updates.
+- main orchestrator input aggregation lists the sub-orchestrator and review artifacts the model should inspect before final synthesis.
+- human-review output should make the next user decision explicit and should route the human to the digest first, not to every deeper report.
 
 These gates are intentionally stricter than "did the model return JSON". Future gates should add confidence calibration, contradiction handling, stale-source checks, and human-review routing checks.
 
@@ -526,3 +536,31 @@ Result:
 - status: dry-run packet build succeeded
 - packet coverage: monitoring row AAPL, 8 open review items, 1 approved verification item, candidate verification result report, and no rejected cooldown rows
 - deterministic report artifact: `agents/runs/2026-05-10_manual-market-energy-storage/portfolio_review/portfolio_review.md`
+
+## Memory Evaluation Result
+
+2026-05-11 validation command:
+
+```powershell
+python -m stock_research agent-runtime run --run-id 2026-05-10_manual-market-energy-storage --agent-id memory_evaluation_orchestrator --task "memory evaluation sub-orchestrator"
+```
+
+Result:
+
+- status: dry-run packet build succeeded
+- packet finding: the manual energy-storage run is missing run summary, quality report, memory reflection, finalization, and SDK telemetry; this correctly produces a `needs_human_review` learning-loop status when the report is written
+- deterministic report artifact: `agents/runs/2026-05-10_manual-market-energy-storage/memory_evaluation/memory_evaluation.md`
+
+## Main Aggregation Result
+
+2026-05-11 validation command:
+
+```powershell
+python -m stock_research agent-runtime run --run-id 2026-05-10_manual-market-energy-storage --task "main orchestrator"
+```
+
+Result:
+
+- status: dry-run packet build succeeded
+- aggregation packet includes market research reports, candidate verification result, portfolio review report, memory/evaluation report, human-review digest, and open/approved review counts
+- expected behavior: final synthesis has a high-level artifact map before calling specialist tools or opening deeper files

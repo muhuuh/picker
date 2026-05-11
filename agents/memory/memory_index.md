@@ -1,6 +1,6 @@
 # Agent Memory Index
 
-Last updated: 2026-05-04
+Last updated: 2026-05-11
 
 ## Purpose
 
@@ -14,6 +14,8 @@ This is the entry point for operational agent memory. Future Codex chats, orches
 | Any provider, source, citation, or evidence task | `source_quality.md` |
 | Any specialist-agent design or implementation task | `specialist_playbooks.md` |
 | Any quality review, run summary, or learning-loop task | `evaluation_metrics.md`, `source_quality.md` |
+| Any memory/evaluation sub-orchestrator task | `evaluation_metrics.md`, `orchestrator_lessons.md`, `source_quality.md` |
+| Any human-review, approval, notification, or portfolio-review task | `orchestrator_lessons.md`, `specialist_playbooks.md` |
 | Any change that reverses old behavior | `deprecated_memory.md` |
 | Any file-writing specialist task | `specialist_playbooks.md`, relevant repo docs |
 
