@@ -1,6 +1,6 @@
 # Investment Agent Backlog
 
-Last updated: 2026-05-10
+Last updated: 2026-05-11
 
 ## Purpose
 
@@ -277,6 +277,18 @@ This is the clear task backlog for building the stock tracking and investment re
   - Output: `stock_research/agent_runtime/`, `docs/descriptions/openai_agents_sdk_orchestration.md`, tests, `python -m stock_research agent-runtime smoke`, and `python -m stock_research agent-runtime run --run-id RUN_ID --execute --write`.
 - [ ] Build OS/app scheduled execution.
   - Description: run the deterministic weekly runner automatically on Saturday and support manual trigger flows.
+- [x] Build open human-review digest.
+  - Description: create a concise report/command that summarizes only open `agents/human_review_queue.md` items, grouped by decision type and priority, with each item showing the HRQ id, ticker/company, recommended user action, confidence/verification status, and link to the deeper evidence artifact.
+  - Purpose: the user should not need to manually scan the full markdown table to find what needs attention.
+  - Current command: `python -m stock_research human-review digest --write`.
+  - Current output: `agents/human_review_digest.md`.
+- [x] Build deterministic human-review decision updater.
+  - Description: record explicit user decisions on HRQ rows without triggering side effects directly.
+  - Current command: `python -m stock_research human-review decide --set HRQ-0004=approved --note "Run verification." --write`.
+  - Current behavior: updates `agents/human_review_queue.md`, appends a decision note, refreshes `agents/human_review_digest.md`, and leaves follow-up verification, proposal application, stock moves, or monitoring promotion to separate approval-gated commands.
+- [ ] Add review notification automation.
+  - Description: after weekly/manual runs, have Codex/app automation summarize new or high-priority open review items and notify the user by app notification and/or email when there are interesting findings or approvals needed.
+  - Timing: implement after the manual review digest is reliable and after the scheduled/manual run flow is stable enough to avoid noisy alerts.
 - [x] Build company research sub-orchestrator.
   - Description: coordinates filings, news, financials, sentiment, and risk checks for one ticker.
   - Current progress: first SDK version registered as `company_research_orchestrator`; it builds a one-ticker lane packet, uses financial, company-news, company-search, filing, sentiment, risk/thesis, writer, and quality-review fanout, writes per-ticker scheduled artifacts, and aggregates partial results into next-run tasks.
@@ -289,19 +301,21 @@ This is the clear task backlog for building the stock tracking and investment re
   - Phase 2 - Normalize: resolve company name, ticker, exchange, country, duplicate listings, and share-class variants.
   - Phase 3 - Gate: apply source-id, Grok-only, rumor, verification, strategy-fit, and rejected-cooldown rules.
   - Phase 4 - Human review: queue decisions for follow-up verification, cooldown override, ignore, or possible monitoring.
-  - Phase 5 - Verify: run company research, financial checks, filings, news, sentiment, risks, and thesis impact for approved candidates.
+  - Phase 5 - Verify: after explicit user approval is recorded with `human-review decide`, run company research, financial checks, filings, news, sentiment, risks, and thesis impact for approved candidates.
   - Phase 6 - Promote: after approval and sufficient verification, add to monitoring, create the company file, and schedule future tracking.
-  - Current progress: phases 1, 3, and 4 exist for manual market research; phase 2 is partial through candidate grouping; phase 5 can now create verification manifests from approved candidate-review rows; phase 6 now has an approval-gated promotion writer for approved and verified `monitoring_candidate` rows.
-- [ ] Build portfolio review sub-orchestrator.
+  - Current progress: phases 1, 3, and 4 exist for manual market research; phase 2 is partial through candidate grouping; phase 5 can now create verification manifests from approved candidate-review rows and consolidate provider/specialist verification into `candidate_verification_result.md`; phase 6 now has an approval-gated promotion writer for approved and verified `monitoring_candidate` rows.
+- [x] Build portfolio review sub-orchestrator.
   - Description: assesses impact across current holdings, monitoring, and rejected buckets.
+  - Current progress: first SDK version registered as `portfolio_review_orchestrator`; it summarizes holdings, monitoring, rejected cooldowns, open/approved human-review items, and candidate verification results without trading, moving stocks, or editing files.
 - [ ] Build memory and evaluation sub-orchestrator.
   - Description: extracts lessons from traces, run summaries, quality reports, provider failures, and user corrections.
 - [ ] Build main orchestrator.
   - Description: synthesizes all evidence, chooses updates, creates alerts, incorporates human input queue items, and prepares next actions.
 - [x] Inject operational memory into specialist prompts.
   - Description: orchestrator should call `python -m stock_research memory context --task TASK` or the equivalent Python function and pass the relevant lessons into each specialist prompt before execution.
-- [ ] Build human review queue.
+- [x] Build human review queue.
   - Description: collects moves, strategy changes, and high-impact recommendations for user approval.
+  - Current progress: durable queue, digest, and deterministic decision updater are implemented; follow-up actions remain separate approval-gated commands.
 
 ## Priority 7: Learning Loop
 

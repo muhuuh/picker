@@ -1,6 +1,6 @@
 # Setup
 
-Last updated: 2026-05-10
+Last updated: 2026-05-11
 
 ## Requirements
 
@@ -122,6 +122,8 @@ When SDK execution writes metrics, `run_metrics.md` includes local hook telemetr
 
 `market_research_orchestrator` is the first discovery sub-orchestrator. It can build an industry/theme market research packet, group evidence into Exa industry, Exa company discovery, Grok/X discovery, and candidate-synthesis lanes, and run Exa industry, Grok discovery, candidate discovery, and quality-review specialist fanout. Grok/X is required for niche trends, hype, rumors, and emerging ticker leads, but those leads must be verified elsewhere before promotion.
 
+`portfolio_review_orchestrator` reviews current holdings, monitoring, rejected cooldowns, open/approved human-review items, and candidate verification results. It is a synthesis layer only: it does not trade, move stocks, or edit company files.
+
 The manual market-research runner is the preferred near-term path for learning and prompt iteration:
 
 ```powershell
@@ -130,10 +132,13 @@ python -m stock_research market-research run --topic "robotics suppliers in Euro
 python -m stock_research market-research run --topic "robotics suppliers in Europe" --subject-type industry --write --execute-providers --execute-orchestrator
 python -m stock_research market-research candidate-review --run-id RUN_ID --write --queue-review
 python -m stock_research market-research candidate-followup --run-id RUN_ID --review-id HRQ-0004 --write
+python -m stock_research market-research candidate-verification-result --run-id RUN_ID --review-id HRQ-0004 --write
 python -m stock_research market-research candidate-promote --run-id RUN_ID --review-id HRQ-0004 --write
+python -m stock_research human-review digest --write
+python -m stock_research human-review decide --set HRQ-0004=approved --note "Run verification." --write
 ```
 
-It plans Exa context, Exa company-discovery, and Grok/X discovery lanes. With `--write`, it writes a markdown market report and ignored candidate-lead JSON under `agents/runs/RUN_ID/market_research/`. Candidate quality gates prevent Grok-only promotion, enforce rejected-stock cooldowns, and require source ids plus verification labels. The candidate-review command groups duplicate/share-class leads and optionally queues approval items in `agents/human_review_queue.md`; it does not add stocks to monitoring. The candidate-followup command reads only approved candidate-review rows and writes provider/analysis verification tasks for the existing runners. The candidate-promote command is approval-gated and verification-gated; it writes monitoring state only for an approved `monitoring_candidate` with required verification reports.
+It plans Exa context, Exa company-discovery, and Grok/X discovery lanes. With `--write`, it writes a markdown market report and ignored candidate-lead JSON under `agents/runs/RUN_ID/market_research/`. Candidate quality gates prevent Grok-only promotion, enforce rejected-stock cooldowns, and require source ids plus verification labels. The candidate-review command groups duplicate/share-class leads and optionally queues approval items in `agents/human_review_queue.md`; it does not add stocks to monitoring. The human-review digest command writes a concise pending-review summary to `agents/human_review_digest.md`, including the allowed decisions: approve, reject, mark needs more research, or leave open. The human-review decide command records your queue decision and refreshes the digest; it does not run verification or edit stock files by itself. The candidate-followup command reads only approved candidate-review rows and writes provider/analysis verification tasks for the existing runners. The candidate-verification-result command consolidates provider coverage, specialist statuses, findings, and next actions after those tasks run. The candidate-promote command is approval-gated and verification-gated; it writes monitoring state only for an approved `monitoring_candidate` with required verification reports.
 
 Planning files:
 
@@ -151,6 +156,7 @@ python -m stock_research agent-runtime smoke --run-id 2026-05-09_weekly
 python -m stock_research agent-runtime run --run-id 2026-05-09_weekly
 python -m stock_research agent-runtime run --run-id 2026-05-09_weekly --agent-id company_research_orchestrator --task "company research sub-orchestrator" --ticker AAPL
 python -m stock_research agent-runtime run --run-id 2026-05-09_weekly --agent-id market_research_orchestrator --task "market research sub-orchestrator" --subject-type industry --subject-id european_grid_infrastructure --topic "European grid infrastructure"
+python -m stock_research agent-runtime run --run-id 2026-05-09_weekly --agent-id portfolio_review_orchestrator --task "portfolio review sub-orchestrator"
 python -m stock_research agent-runtime validate-output --run-id 2026-05-09_weekly
 python -m stock_research agent-runtime queue-proposals --run-id 2026-05-09_weekly --write --queue-review
 python -m stock_research agent-runtime apply-proposal --run-id 2026-05-09_weekly --proposal-id ORP-0001

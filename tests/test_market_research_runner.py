@@ -20,6 +20,7 @@ from stock_research.market_research_runner import (
 from stock_research.candidate_review import build_candidate_review, group_candidate_leads
 from stock_research.candidate_followup import build_candidate_verification_followup
 from stock_research.candidate_promotion import build_candidate_monitoring_promotion
+from stock_research.candidate_verification_result import build_candidate_verification_result
 from stock_research.agent_runtime.outputs import CandidateLead
 
 
@@ -402,6 +403,75 @@ class MarketResearchRunnerTests(unittest.TestCase):
         self.assertEqual(payload["review_ids"], ["HRQ-0004"])
         self.assertTrue(any(path.endswith("candidate_verification_manifest.json") for path in payload["written_paths"]))
 
+    def test_candidate_verification_result_summarizes_missing_provider_and_review_status(self):
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            write_minimal_repo(root)
+            run_id = "2026-05-10_manual-market"
+            write_candidate_review_artifacts(root, run_id, status="approved")
+            build_candidate_verification_followup(
+                root=root,
+                run_id=run_id,
+                review_id="HRQ-0004",
+                current_date=date(2026, 5, 10),
+                write=True,
+            )
+            write_candidate_verification_artifacts(root, run_id, "ROBO", include_fmp_packet=False, financial_status="needs_human_review")
+
+            result = build_candidate_verification_result(
+                root=root,
+                run_id=run_id,
+                review_id="HRQ-0004",
+                current_date=date(2026, 5, 10),
+                write=True,
+            )
+            report_path = root / "agents" / "runs" / run_id / "market_research" / "candidate_verification_result.md"
+            report = report_path.read_text(encoding="utf-8")
+
+        self.assertEqual(result.status, "needs_human_review")
+        self.assertTrue(any("Missing provider evidence" in finding for finding in result.findings))
+        self.assertIn("fmp", result.items[0].findings[0])
+        self.assertIn("needs_human_review", report)
+        self.assertIn("candidate_fmp_robo_hrq_0004", report)
+        self.assertIn("candidate_verification_result.md", result.written_paths[1])
+
+    def test_market_research_candidate_verification_result_cli(self):
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            write_minimal_repo(root)
+            run_id = "2026-05-10_manual-market"
+            write_candidate_review_artifacts(root, run_id, status="approved")
+            build_candidate_verification_followup(
+                root=root,
+                run_id=run_id,
+                review_id="HRQ-0004",
+                current_date=date(2026, 5, 10),
+                write=True,
+            )
+            write_candidate_verification_artifacts(root, run_id, "ROBO", include_fmp_packet=True, financial_status="ready_for_company_update")
+            buffer = io.StringIO()
+            with redirect_stdout(buffer):
+                exit_code = main(
+                    [
+                        "--root",
+                        str(root),
+                        "market-research",
+                        "candidate-verification-result",
+                        "--run-id",
+                        run_id,
+                        "--review-id",
+                        "HRQ-0004",
+                        "--write",
+                        "--today",
+                        "2026-05-10",
+                    ]
+                )
+            payload = json.loads(buffer.getvalue())
+
+        self.assertEqual(exit_code, 0)
+        self.assertEqual(payload["status"], "ready_for_promotion_review")
+        self.assertTrue(any(path.endswith("candidate_verification_result.md") for path in payload["written_paths"]))
+
     def test_candidate_promotion_blocks_without_approval(self):
         with TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
@@ -600,25 +670,42 @@ def write_candidate_review_artifacts(root: Path, run_id: str, status: str) -> No
     )
 
 
-def write_candidate_verification_artifacts(root: Path, run_id: str, ticker: str) -> None:
+def write_candidate_verification_artifacts(
+    root: Path,
+    run_id: str,
+    ticker: str,
+    include_fmp_packet: bool = True,
+    financial_status: str = "ready_for_company_update",
+) -> None:
     market_dir = root / "agents" / "runs" / run_id / "market_research"
     market_dir.mkdir(parents=True, exist_ok=True)
     (market_dir / "candidate_verification_manifest.json").write_text(
         json.dumps(
             {
-                "provider_tasks": [{"id": "candidate_yfinance_robo_hrq_0004", "subject_id": ticker}],
-                "analysis_tasks": [{"id": "candidate_financial_review_robo_hrq_0004", "subject_id": ticker}],
+                "provider_tasks": [
+                    {"id": "candidate_yfinance_robo_hrq_0004", "provider": "yfinance", "subject_id": ticker},
+                    {"id": "candidate_fmp_robo_hrq_0004", "provider": "fmp", "subject_id": ticker},
+                ],
+                "analysis_tasks": [
+                    {"id": "candidate_company_news_review_robo_hrq_0004", "tool": "company_news_review", "subject_id": ticker},
+                    {"id": "candidate_financial_review_robo_hrq_0004", "tool": "financial_review", "subject_id": ticker},
+                ],
             }
         )
         + "\n",
         encoding="utf-8",
     )
+    evidence_dir = root / "agents" / "runs" / run_id / "evidence_packets"
+    evidence_dir.mkdir(parents=True, exist_ok=True)
+    write_packet(new_packet("yfinance", "company", ticker, current_date=date(2026, 5, 10)), evidence_dir / f"2026-05-10_yfinance_company_{ticker.lower()}.json")
+    if include_fmp_packet:
+        write_packet(new_packet("fmp", "company", ticker, current_date=date(2026, 5, 10)), evidence_dir / f"2026-05-10_fmp_company_{ticker.lower()}.json")
     news_dir = root / "agents" / "runs" / run_id / "reports" / "company_news_specialist"
     financial_dir = root / "agents" / "runs" / run_id / "reports" / "financial_data_specialist"
     news_dir.mkdir(parents=True, exist_ok=True)
     financial_dir.mkdir(parents=True, exist_ok=True)
-    (news_dir / f"{ticker}_company_news_review.md").write_text("# News review\n", encoding="utf-8")
-    (financial_dir / f"{ticker}_financial_review.md").write_text("# Financial review\n", encoding="utf-8")
+    (news_dir / f"{ticker}_company_news_review.md").write_text("# News review\n\nStatus: ready_for_company_update\n", encoding="utf-8")
+    (financial_dir / f"{ticker}_financial_review.md").write_text(f"# Financial review\n\nStatus: {financial_status}\n", encoding="utf-8")
 
 
 if __name__ == "__main__":

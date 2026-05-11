@@ -45,6 +45,12 @@
 - 2026-05-11: Clarified discovery lifecycle after user question. Backlog now separates discover, normalize, gate, human review, verify, and promote. Candidate review is lead triage; company research is the deeper verification phase for a specific ticker/company.
 - 2026-05-11: Added approved-candidate verification follow-up bridge. `market-research candidate-followup --run-id RUN_ID --review-id HRQ-0004 --write` only processes approved candidate-review rows and writes a candidate verification manifest/plan using existing provider and analysis task shapes. Live energy-storage check correctly returned `no_approved_items` because HRQ-0004..HRQ-0009 are still open.
 - 2026-05-11: Added approval-gated candidate promotion writer. `market-research candidate-promote --run-id RUN_ID --review-id HRQ-0004 --write` only writes monitoring CSV/company-file state for approved and verified `monitoring_candidate` rows; live energy-storage check correctly blocked because HRQ-0004 is open, Grok-only/verification-only, and missing verification artifacts.
+- 2026-05-11: User asked to make the human-review loop more ergonomic. Added backlog items for an open HRQ digest grouped by decision type/priority and a later Codex/app notification or email automation when new/high-priority review items exist.
+- 2026-05-11: Implemented open HRQ digest. `python -m stock_research human-review digest --write` writes `agents/human_review_digest.md`; live queue output grouped 9 open items into company-file updates, Grok/X candidate verification, candidate verification, and strategy/workflow.
+- 2026-05-11: Implemented deterministic HRQ decision updater. `python -m stock_research human-review decide --set HRQ-0004=approved --note "Run verification." --write` records explicit user decisions, appends decision notes, refreshes the digest, and intentionally leaves verification/promotion/file writes to separate approval-gated commands.
+- 2026-05-11: Approved HRQ-0007 / ADSE for verification-only workflow validation. `candidate-followup` wrote the verification manifest/plan; provider execution completed 7 of 8 lanes, with FMP blocked by subscription/402; analysis execution completed 4 of 4 tasks; `candidate-promote` correctly blocked because HRQ-0007 is `verify_before_monitoring`, not `monitoring_candidate`.
+- 2026-05-11: Added `candidate-verification-result` after the live ADSE check showed verification outcomes were too scattered. The consolidated report now records missing provider evidence, specialist statuses, findings, and next actions in `market_research/candidate_verification_result.md`.
+- 2026-05-11: Added first portfolio review sub-orchestrator. `portfolio_review_orchestrator` is registered, exposed to the main orchestrator, builds a deterministic packet over current holdings/monitoring/rejected/open HRQ/approved HRQ/candidate verification results, and writes `portfolio_review.md` without trading, moving stocks, or editing company files.
 
 ## Official Docs Reviewed
 
@@ -157,7 +163,9 @@ run-weekly
 - Improve candidate extraction beyond ticker regex if live provider output uses company names without tickers.
 - Execute an approved candidate verification run after the user approves one HRQ row, then inspect whether the generated provider/analysis evidence is enough for promotion.
 - Run `candidate-promote` after a verified `monitoring_candidate` row is approved, then inspect the created monitoring row/company file quality on a real candidate.
-- Build portfolio review and memory/evaluation sub-orchestrators.
+- Use the open human-review digest as the source surface for future notification automation, so reminders are concise and actionable rather than a raw table dump.
+- Build memory/evaluation sub-orchestrator.
+- Decide whether portfolio review should be added to manual run finalization before or after memory/evaluation sub-orchestration.
 - Wire market-research fanout into scheduled `run-weekly` only after validating the manual market-research quality.
 - Add Saturday automation only after the scheduled SDK path is validated with a realistic multi-ticker universe.
 
@@ -209,7 +217,12 @@ run-weekly
 - Manual market-research live SDK command: `python -m stock_research market-research run --topic "robotics suppliers in Europe" --subject-type industry --write --execute-providers --execute-orchestrator`.
 - Candidate-review bridge command: `python -m stock_research market-research candidate-review --run-id RUN_ID --write --queue-review`.
 - Candidate-followup bridge command: `python -m stock_research market-research candidate-followup --run-id RUN_ID --review-id HRQ-0004 --write`.
+- Candidate verification result command: `python -m stock_research market-research candidate-verification-result --run-id RUN_ID --review-id HRQ-0004 --write`.
 - Candidate promotion command: `python -m stock_research market-research candidate-promote --run-id RUN_ID --review-id HRQ-0004 --write`.
+- Human-review digest command: `python -m stock_research human-review digest --write`.
+- Human-review decision command: `python -m stock_research human-review decide --set HRQ-0004=approved --note "Run verification." --write`.
+- Portfolio review dry-run command: `python -m stock_research agent-runtime run --run-id RUN_ID --agent-id portfolio_review_orchestrator --task "portfolio review sub-orchestrator"`.
+- Current digest artifact: `agents/human_review_digest.md`.
 - Manual discovery gates: no Grok-only monitoring promotion, source ids required, verification status required, active rejected cooldown blocks promotion, rumor-flagged leads stay verification-limited.
 - SDK evidence tool: `load_evidence_packet` lets specialists load summarized provider-neutral JSON packets by id/path. Use it for market-research specialists; do not rely on markdown-only evidence artifacts.
 - Live validation artifacts:

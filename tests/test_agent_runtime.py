@@ -26,6 +26,12 @@ from stock_research.agent_runtime.orchestrators.market_research import (
     build_market_research_packet,
     run_market_research_sub_orchestrator_sync,
 )
+from stock_research.agent_runtime.orchestrators.portfolio_review import (
+    aggregate_portfolio_review,
+    build_portfolio_review_input,
+    build_portfolio_review_packet,
+    write_portfolio_review_report,
+)
 from stock_research.agent_runtime.outputs import OrchestratorDecision
 from stock_research.agent_runtime.reports import build_orchestrator_input, evaluate_runtime_output_quality, output_to_dict
 from stock_research.agent_runtime.registry import build_agent, build_agent_tool, list_agent_specs
@@ -221,6 +227,48 @@ def write_market_research_test_artifacts(root: Path) -> Path:
     return manifest_path
 
 
+def write_portfolio_review_test_artifacts(root: Path) -> None:
+    holdings_dir = root / "stock_tracking" / "current_holdings"
+    monitoring_dir = root / "stock_tracking" / "monitoring"
+    rejected_dir = root / "stock_tracking" / "rejected"
+    company_dir = root / "stock_tracking" / "stock_info_files" / "monitoring"
+    holdings_dir.mkdir(parents=True, exist_ok=True)
+    monitoring_dir.mkdir(parents=True, exist_ok=True)
+    rejected_dir.mkdir(parents=True, exist_ok=True)
+    company_dir.mkdir(parents=True, exist_ok=True)
+    (holdings_dir / "current_holdings.csv").write_text(
+        "ticker,company_name,stock_info_file,date_last_updated\n",
+        encoding="utf-8",
+    )
+    (monitoring_dir / "monitoring.csv").write_text(
+        "ticker,company_name,stock_info_file,date_last_updated\nAAPL,Apple Inc.,stock_tracking/stock_info_files/monitoring/AAPL.md,\nMSFT,Microsoft,stock_tracking/stock_info_files/monitoring/MSFT.md,2026-05-10\n",
+        encoding="utf-8",
+    )
+    (company_dir / "MSFT.md").write_text("# MSFT\n", encoding="utf-8")
+    (rejected_dir / "rejected.csv").write_text(
+        "ticker,company_name,next_eligible_review_date,date_last_updated\nOLD,Old Co,2026-06-01,2026-05-10\n",
+        encoding="utf-8",
+    )
+    (root / "agents").mkdir(parents=True, exist_ok=True)
+    (root / "agents" / "human_review_queue.md").write_text(
+        "\n".join(
+            [
+                "# Human Review Queue",
+                "",
+                "| ID | Date Added | Item | Decision Needed | Priority | Status | Related Files | Evidence / Run Link | Notes |",
+                "| --- | --- | --- | --- | --- | --- | --- | --- | --- |",
+                "| HRQ-1000 | 2026-05-11 | Review AAPL company file update. | Approve/reject/more research. | medium | open | stock_tracking/stock_info_files/monitoring/AAPL.md | agents/runs/test_weekly/orchestrator_update_proposals.md#ORP-1 |  |",
+                "| HRQ-1001 | 2026-05-11 | Approved candidate verification. | Run follow-up. | medium | approved | agents/runs/test_weekly/market_research | agents/runs/test_weekly/market_research/candidate_review.md#CRG-1 |  |",
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    market_dir = root / "agents" / "runs" / "test_weekly" / "market_research"
+    market_dir.mkdir(parents=True, exist_ok=True)
+    (market_dir / "candidate_verification_result.md").write_text("# Candidate Verification Result\n", encoding="utf-8")
+
+
 class AgentRuntimeTests(unittest.TestCase):
     def test_registry_lists_orchestrator_and_specialist(self):
         specs = {spec.agent_id: spec for spec in list_agent_specs()}
@@ -228,6 +276,7 @@ class AgentRuntimeTests(unittest.TestCase):
         self.assertEqual(specs["main_orchestrator"].role, "orchestrator")
         self.assertEqual(specs["company_research_orchestrator"].role, "orchestrator")
         self.assertEqual(specs["market_research_orchestrator"].role, "orchestrator")
+        self.assertEqual(specs["portfolio_review_orchestrator"].role, "orchestrator")
         self.assertEqual(specs["company_news_specialist"].role, "specialist")
         self.assertEqual(specs["company_search_specialist"].role, "specialist")
         self.assertEqual(specs["discovery_specialist"].role, "specialist")
@@ -269,6 +318,7 @@ class AgentRuntimeTests(unittest.TestCase):
         self.assertIn("run_analysis_tasks_guarded", tool_names)
         self.assertIn("company_research_orchestrator", tool_names)
         self.assertIn("market_research_orchestrator", tool_names)
+        self.assertIn("portfolio_review_orchestrator", tool_names)
         self.assertIn("company_news_specialist", tool_names)
         self.assertIn("company_search_specialist", tool_names)
         self.assertIn("discovery_specialist", tool_names)
@@ -543,6 +593,17 @@ class AgentRuntimeTests(unittest.TestCase):
         self.assertIn("quality_reviewer_specialist", tool_names)
         self.assertNotIn("write_company_file", tool_names)
 
+    def test_portfolio_review_orchestrator_can_be_built(self):
+        context = build_research_run_context(root=REPO_ROOT, run_id="test_weekly", task="portfolio review sub-orchestrator")
+        agent = build_agent("portfolio_review_orchestrator", context)
+        tool_names = {getattr(tool, "name", type(tool).__name__) for tool in agent.tools}
+
+        self.assertIsInstance(agent, Agent)
+        self.assertIn("load_run_markdown", tool_names)
+        self.assertIn("load_stock_tracking_csv", tool_names)
+        self.assertIn("quality_reviewer_specialist", tool_names)
+        self.assertNotIn("write_company_file", tool_names)
+
     def test_company_research_packet_groups_existing_company_artifacts(self):
         with TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
@@ -714,6 +775,33 @@ class AgentRuntimeTests(unittest.TestCase):
         self.assertEqual(decision.agent_id, "market_research_orchestrator")
         self.assertEqual(len(decision.specialist_results), 4)
         self.assertIn("Grok/X discovery is required", decision.summary)
+
+    def test_portfolio_review_packet_summarizes_buckets_and_open_reviews(self):
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            write_runtime_test_repo(root)
+            write_portfolio_review_test_artifacts(root)
+            context = build_research_run_context(root=root, run_id="test_weekly", task="portfolio review sub-orchestrator")
+
+            packet = build_portfolio_review_packet(context)
+            prompt = build_portfolio_review_input(context)
+            decision = aggregate_portfolio_review(context)
+            json_path, md_path = write_portfolio_review_report(context, decision)
+            report = md_path.read_text(encoding="utf-8")
+            json_exists = json_path.exists()
+
+        buckets = {bucket.bucket: bucket for bucket in packet.buckets}
+        self.assertEqual(buckets["monitoring"].row_count, 2)
+        self.assertIn("AAPL", buckets["monitoring"].stale_tickers)
+        self.assertIn("AAPL", buckets["monitoring"].missing_company_files)
+        self.assertEqual(packet.open_human_review_count, 1)
+        self.assertEqual(packet.approved_human_review_count, 1)
+        self.assertEqual(packet.rejected_cooldown_count, 1)
+        self.assertIn("Portfolio review packet", prompt)
+        self.assertEqual(decision.agent_id, "portfolio_review_orchestrator")
+        self.assertEqual(decision.status, "partial")
+        self.assertTrue(json_exists)
+        self.assertIn("Review open HRQ items", report)
 
     def test_run_config_uses_trace_metadata_without_sensitive_data(self):
         context = build_research_run_context(root=REPO_ROOT, run_id="test_weekly", task="main orchestrator")
@@ -959,6 +1047,29 @@ class AgentRuntimeTests(unittest.TestCase):
         self.assertIn('"agent_id": "company_research_orchestrator"', output)
         self.assertIn("Company research packet", output)
         self.assertIn('\\"ticker\\": \\"AAPL\\"', output)
+
+    def test_agent_runtime_cli_portfolio_review_dry_run_uses_packet(self):
+        buffer = io.StringIO()
+        with redirect_stdout(buffer):
+            exit_code = main(
+                [
+                    "--root",
+                    str(REPO_ROOT),
+                    "agent-runtime",
+                    "run",
+                    "--run-id",
+                    "2026-05-10_manual-market-energy-storage",
+                    "--agent-id",
+                    "portfolio_review_orchestrator",
+                    "--task",
+                    "portfolio review sub-orchestrator",
+                ]
+            )
+
+        self.assertEqual(exit_code, 0)
+        output = buffer.getvalue()
+        self.assertIn('"agent_id": "portfolio_review_orchestrator"', output)
+        self.assertIn("Portfolio review packet", output)
 
     def test_agent_runtime_cli_validate_output(self):
         with TemporaryDirectory() as temp_dir:

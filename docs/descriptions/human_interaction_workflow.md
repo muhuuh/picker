@@ -1,6 +1,6 @@
 # Human Interaction Workflow
 
-Last updated: 2026-05-03
+Last updated: 2026-05-11
 
 ## Goal
 
@@ -71,6 +71,25 @@ Examples:
 Location: `agents/human_review_queue.md`
 
 Purpose: decisions or recommendations the system wants the user to approve.
+
+Review surface: `agents/human_review_digest.md`
+
+Use `python -m stock_research human-review digest --write` after manual or weekly runs to summarize open review items by decision type and priority. The digest is the preferred user-facing view; the queue remains the durable source of truth. The digest should always state the allowed human decisions concisely: approve, reject, mark needs more research, or leave open.
+
+Decision writer: `python -m stock_research human-review decide --set HRQ-0004=approved --note "Run verification." --write`
+
+Use the decision writer after the user tells Codex which HRQ ids to approve, reject, leave open, supersede, or mark as needing more research. This command only updates `agents/human_review_queue.md` and refreshes `agents/human_review_digest.md`; separate approval-gated commands still perform follow-up verification, company-file updates, stock moves, or monitoring promotion.
+
+For discovery candidates, the normal approved path is:
+
+```powershell
+python -m stock_research market-research candidate-followup --run-id RUN_ID --review-id HRQ-0004 --write
+python -m stock_research provider-tasks --manifest agents\runs\RUN_ID\market_research\candidate_verification_manifest.json --execute
+python -m stock_research analysis-tasks --manifest agents\runs\RUN_ID\market_research\candidate_verification_manifest.json --execute
+python -m stock_research market-research candidate-verification-result --run-id RUN_ID --review-id HRQ-0004 --write
+```
+
+Promotion to monitoring is separate and remains blocked unless the HRQ row is approved, the candidate-review decision is `monitoring_candidate`, and required verification artifacts exist.
 
 Examples:
 
@@ -146,12 +165,14 @@ User examples:
 
 - "Show me what needs my decision this week."
 - "What changed for our current holdings?"
+- "Approve HRQ-0004 for verification and reject HRQ-0005."
 
 Expected Codex actions:
 
 - Read `agents/human_review_queue.md`.
 - Read latest `agents/runs/*/run_summary.md` and category state files when available.
 - Summarize decisions needed, supporting evidence, and suggested next action.
+- If the user gives explicit HRQ decisions, update the queue with `human-review decide --write` and then run only the relevant approved follow-up command.
 
 ### Manual Run Request
 

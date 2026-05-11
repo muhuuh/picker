@@ -281,6 +281,26 @@ Use this file for information we should not lose across sessions.
   - evidence artifact path(s): `stock_research/candidate_promotion.py`, `stock_research/cli.py`, `tests/test_market_research_runner.py`, `docs/plans/openai_agents_sdk_orchestration_backlog.md`
   - status: active
 
+- 2026-05-11:
+  - decision/fact: Open human-review items can now be summarized through a deterministic digest. `python -m stock_research human-review digest --write` writes `agents/human_review_digest.md`, grouping open review items by decision type and priority with suggested user actions.
+  - evidence artifact path(s): `stock_research/human_review_digest.py`, `stock_research/cli.py`, `tests/test_human_review_digest.py`, `agents/human_review_digest.md`
+  - status: active
+
+- 2026-05-11:
+  - decision/fact: Explicit user decisions on human-review queue rows can now be recorded deterministically. `python -m stock_research human-review decide --set HRQ-0004=approved --note "Run verification." --write` updates queue status/notes and refreshes the digest, but does not run follow-up verification, promotion, or file writes by itself.
+  - evidence artifact path(s): `stock_research/human_review_decisions.py`, `stock_research/cli.py`, `tests/test_human_review_decisions.py`, `agents/human_review_queue.md`, `agents/human_review_digest.md`
+  - status: active
+
+- 2026-05-11:
+  - decision/fact: Candidate verification now has a consolidated result report. After approved candidate follow-up provider/analysis tasks run, use `python -m stock_research market-research candidate-verification-result --run-id RUN_ID --review-id HRQ-0004 --write` to summarize provider coverage, specialist statuses, findings, and next actions before any monitoring promotion.
+  - evidence artifact path(s): `stock_research/candidate_verification_result.py`, `tests/test_market_research_runner.py`, `agents/runs/2026-05-10_manual-market-energy-storage/market_research/candidate_verification_result.md`
+  - status: active
+
+- 2026-05-11:
+  - decision/fact: The first portfolio review sub-orchestrator is implemented. `portfolio_review_orchestrator` is registered in the OpenAI Agents SDK runtime, exposed to the main orchestrator, and can build/write bucket-level review packets from holdings, monitoring, rejected cooldowns, open/approved human-review items, and candidate verification results without trading or editing stock files.
+  - evidence artifact path(s): `stock_research/agent_runtime/orchestrators/portfolio_review.py`, `agents/orchestrator/prompts/portfolio_review.md`, `agents/orchestrator/specs/portfolio_review.md`, `tests/test_agent_runtime.py`, `agents/runs/2026-05-10_manual-market-energy-storage/portfolio_review/portfolio_review.md`
+  - status: active
+
 - 2026-05-04:
   - decision/fact: Generated run JSON artifacts are local runtime output and should not be committed. Keep markdown run summaries/reports/finalization files as the reviewable artifacts; `.gitignore` now ignores run-root JSON, raw provider JSON, evidence packet JSON, and generated recurring-failure JSON.
   - evidence artifact path(s): `.gitignore`, `README.md`, `SETUP.md`, `docs/descriptions/run_summary_and_quality.md`

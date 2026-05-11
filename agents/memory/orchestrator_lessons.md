@@ -1,6 +1,6 @@
 # Orchestrator Lessons
 
-Last updated: 2026-05-10
+Last updated: 2026-05-11
 
 Operational memory for workflow routing, orchestration, run ordering, and user corrections.
 
@@ -417,4 +417,60 @@ Operational memory for workflow routing, orchestration, run ordering, and user c
 - do_not_use_when: The user only approved follow-up verification, the candidate is Grok-only/rumor-only, verification artifacts are missing, or a stock status move requires separate user approval.
 - evidence: `stock_research/candidate_promotion.py`, `tests/test_market_research_runner.py`, `docs/plans/openai_agents_sdk_orchestration_backlog.md`
 - owner: market research orchestrator
+- next_review: 2026-06-15
+
+- id: orch-2026-05-11-human-review-digest
+- date: 2026-05-11
+- type: procedural
+- scope: orchestrator
+- status: active
+- confidence: high
+- trigger/source: Implemented deterministic digest for open human-review queue items.
+- lesson: Use `python -m stock_research human-review digest --write` after manual or scheduled research runs to write `agents/human_review_digest.md`. The digest is the user-facing review surface for open HRQ items and should be used before notification automation instead of sending the raw queue table.
+- use_when: Ending a manual/weekly run, preparing user review, checking what approvals are pending, or building future Codex/email/app notifications.
+- do_not_use_when: Applying approvals or changing queue statuses; the digest is read-only summarization and not an approval writer.
+- evidence: `stock_research/human_review_digest.py`, `tests/test_human_review_digest.py`, `agents/human_review_digest.md`
+- owner: main orchestrator
+- next_review: 2026-06-15
+
+- id: orch-2026-05-11-human-review-decision-updater
+- date: 2026-05-11
+- type: procedural
+- scope: orchestrator
+- status: active
+- confidence: high
+- trigger/source: Implemented deterministic HRQ decision updater after the user asked how discovery approvals become actionable workflow steps.
+- lesson: Use `python -m stock_research human-review decide --set HRQ-0004=approved --note "Run verification." --write` to record explicit user decisions in `agents/human_review_queue.md` and refresh `agents/human_review_digest.md`. This only changes review status/notes; follow-up verification, proposal application, promotion, or stock-file writes must run through their separate approval-gated commands.
+- use_when: The user tells Codex to approve, reject, supersede, leave open, or request more research for one or more HRQ ids.
+- do_not_use_when: The user has not given an explicit HRQ decision, or when trying to bypass follow-up verification/promotion/writer gates.
+- evidence: `stock_research/human_review_decisions.py`, `tests/test_human_review_decisions.py`, `docs/descriptions/human_interaction_workflow.md`
+- owner: main orchestrator
+- next_review: 2026-06-15
+
+- id: orch-2026-05-11-candidate-verification-result
+- date: 2026-05-11
+- type: procedural
+- scope: orchestrator
+- status: active
+- confidence: high
+- trigger/source: Approved HRQ-0007 for verification and found provider/specialist outcomes were too scattered without a consolidated report.
+- lesson: After approved candidate-followup provider and analysis tasks run, write a consolidated candidate verification result before promotion decisions. The report should summarize provider coverage, specialist statuses, missing evidence, human-review findings, and next actions in one artifact.
+- use_when: Completing a discovery candidate verification run, deciding whether promotion is blocked, or preparing portfolio/main orchestrator inputs.
+- do_not_use_when: The user has not approved candidate follow-up, or when trying to bypass the separate `candidate-promote` approval gate.
+- evidence: `stock_research/candidate_verification_result.py`, `agents/runs/2026-05-10_manual-market-energy-storage/market_research/candidate_verification_result.md`, `tests/test_market_research_runner.py`
+- owner: market research orchestrator
+- next_review: 2026-06-15
+
+- id: orch-2026-05-11-portfolio-review-orchestrator
+- date: 2026-05-11
+- type: procedural
+- scope: orchestrator
+- status: active
+- confidence: high
+- trigger/source: Implemented first portfolio review sub-orchestrator after candidate verification showed the need to aggregate open approvals and bucket-level state.
+- lesson: Use `portfolio_review_orchestrator` to summarize current holdings, monitoring, rejected cooldowns, open/approved human-review items, and candidate verification result reports. It is a synthesis/review layer only; it must not trade, move stocks, or edit company files.
+- use_when: Ending manual/weekly runs, preparing the user review surface, or feeding main orchestrator synthesis with portfolio-level context.
+- do_not_use_when: Applying approved company-file proposals or promoting discovery candidates; those use separate deterministic approval-gated writers.
+- evidence: `stock_research/agent_runtime/orchestrators/portfolio_review.py`, `agents/orchestrator/prompts/portfolio_review.md`, `agents/orchestrator/specs/portfolio_review.md`, `agents/runs/2026-05-10_manual-market-energy-storage/portfolio_review/portfolio_review.md`
+- owner: portfolio review orchestrator
 - next_review: 2026-06-15

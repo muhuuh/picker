@@ -1,6 +1,6 @@
 # OpenAI Agents SDK Orchestration Backlog
 
-Last updated: 2026-05-10
+Last updated: 2026-05-11
 
 ## Goal and Scope
 
@@ -145,9 +145,10 @@ Out of scope for the first slice:
   - Human review: queue verification, ignore, cooldown override, or possible-monitoring decisions.
   - Verify: run company-research fanout for approved candidates before any monitoring promotion.
   - Promote: after approval and verification, add the candidate to monitoring, create a company file, and schedule future tracking.
-  - Current status: manual discover/gate/review exists; normalization is partial through candidate grouping; approved-candidate verification manifest creation exists through `market-research candidate-followup`; approval-gated promotion exists through `market-research candidate-promote` and blocks unless the HRQ row is approved, the decision is `monitoring_candidate`, and required verification reports exist.
-- [ ] Build portfolio review sub-orchestrator.
+  - Current status: manual discover/gate/review exists; normalization is partial through candidate grouping; approved-candidate verification manifest creation exists through `market-research candidate-followup`; consolidated verification result reporting exists through `market-research candidate-verification-result`; approval-gated promotion exists through `market-research candidate-promote` and blocks unless the HRQ row is approved, the decision is `monitoring_candidate`, and required verification reports exist.
+- [x] Build portfolio review sub-orchestrator.
   - Synthesizes current holdings, monitoring, rejected cooldowns, bucket-level changes, and alerts.
+  - Current implementation: `portfolio_review_orchestrator` is registered, exposed to the main orchestrator, and can build/write portfolio review packets from stock buckets, human-review queue state, and candidate verification result reports without applying writes.
 - [ ] Build memory/evaluation sub-orchestrator.
   - Reviews traces, metrics, quality reports, user corrections, and reflection proposals.
 - [ ] Build main orchestrator.
@@ -183,9 +184,24 @@ Out of scope for the first slice:
 - [x] Add approved-candidate verification follow-up bridge.
   - Current command: `python -m stock_research market-research candidate-followup --run-id RUN_ID --review-id HRQ-0004 --write`.
   - Current behavior: reads approved candidate-review HRQ rows, writes `candidate_verification_manifest.json` and `candidate_verification_plan.md`, and uses existing provider/analysis task shapes so the current runners can execute verification. It does not add stocks to monitoring.
+- [x] Add consolidated candidate verification result report.
+  - Current command: `python -m stock_research market-research candidate-verification-result --run-id RUN_ID --review-id HRQ-0004 --write`.
+  - Current behavior: reads approved candidate-review rows, verification manifests, provider packets, and specialist reports; writes `candidate_verification_result.md/json`; and marks missing provider evidence or specialist `needs_human_review` statuses before any promotion attempt.
 - [x] Add approval-gated candidate promotion writer.
   - Current command: `python -m stock_research market-research candidate-promote --run-id RUN_ID --review-id HRQ-0004 --write`.
   - Current behavior: validates the HRQ row is approved, the candidate-review group is a `monitoring_candidate`, a single ticker is selected, rejected/duplicate status is clear, and required verification artifacts exist before adding a monitoring CSV row and company file.
+- [x] Add open human-review digest for manual runs.
+  - Target behavior: summarize open HRQ items by decision type and priority, including HRQ id, candidate/ticker when available, current verification status, recommended next action, and evidence link.
+  - Reason: the user should get a concise review surface instead of reading the full human review queue table after every run.
+  - Current command: `python -m stock_research human-review digest --write`.
+  - Current output: `agents/human_review_digest.md`.
+- [x] Add deterministic human-review decision updater.
+  - Target behavior: let Codex translate explicit user decisions into durable HRQ status updates before approved follow-up or writer commands run.
+  - Current command: `python -m stock_research human-review decide --set HRQ-0004=approved --note "Run verification." --write`.
+  - Current behavior: updates queue statuses/notes, refreshes `agents/human_review_digest.md`, and intentionally does not run verification, promotion, proposal application, or stock-file writes by itself.
+- [ ] Add Codex/app notification automation for review items.
+  - Target behavior: after weekly/manual research, summarize new or high-priority open review items and notify the user by Codex/app notification and/or email when there are findings to review.
+  - Timing: defer until the digest is concise and stable enough to avoid noisy notifications.
 - [ ] Add Saturday automation only after the SDK runtime can run safely and produce reviewable outputs.
 
 ## Priority 9: Tests and Evaluation

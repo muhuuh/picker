@@ -1,6 +1,6 @@
 # Repo Map
 
-Last updated: 2026-05-10
+Last updated: 2026-05-11
 
 ## Purpose
 
@@ -21,6 +21,7 @@ This file tells Codex, the orchestrator, and future agents where to find and upd
 - `docs/descriptions/human_interaction_workflow.md`: how user chat input becomes repo state.
 - `docs/plans/human_research_requests.md`: human input queue.
 - `agents/human_review_queue.md`: system-generated items requiring user approval.
+- `agents/human_review_digest.md`: concise open-review digest grouped by decision type, including allowed decisions: approve, reject, needs more research, or leave open.
 
 ## Strategy
 
@@ -145,13 +146,17 @@ Use CLI commands for manual operation, scheduler entrypoints, validation, smoke 
 - `python -m stock_research agent-runtime list-agents`: list registered OpenAI Agents SDK orchestrators and specialists.
 - `python -m stock_research agent-runtime smoke --run-id RUN_ID`: build the SDK runtime context and main orchestrator without calling a live model.
 - `python -m stock_research agent-runtime run --run-id RUN_ID --execute --write`: run the main SDK orchestrator over existing artifacts and write runtime report/metrics artifacts without editing stock files.
+- `python -m stock_research agent-runtime run --run-id RUN_ID --agent-id portfolio_review_orchestrator --task "portfolio review sub-orchestrator"`: build the portfolio-review packet without a live model call.
 - `python -m stock_research agent-runtime validate-output --run-id RUN_ID`: validate a saved SDK runtime output without calling a model.
 - `python -m stock_research agent-runtime queue-proposals --run-id RUN_ID --write --queue-review`: convert saved SDK file-update proposals into `orchestrator_update_proposals.md` and duplicate-safe human-review queue rows.
 - `python -m stock_research agent-runtime apply-proposal --run-id RUN_ID --proposal-id ORP-0001 --write`: apply one approved SDK proposal to its target company file through the deterministic approval-gated writer.
 - `python -m stock_research market-research run --topic "robotics suppliers in Europe" --subject-type industry --write`: run a manual industry/theme research loop. It creates a manual manifest with Exa context, Exa company discovery, and Grok/X discovery lanes, writes a markdown market report, writes ignored candidate-lead JSON, and applies discovery quality gates.
 - `python -m stock_research market-research candidate-review --run-id RUN_ID --write --queue-review`: group manual market-research candidate leads, write `candidate_review.md`, and append duplicate-safe human-review queue rows. This does not add stocks to monitoring.
 - `python -m stock_research market-research candidate-followup --run-id RUN_ID --review-id HRQ-0004 --write`: turn approved candidate-review rows into `candidate_verification_manifest.json` and `candidate_verification_plan.md` for the existing provider/analysis runners. This does not add stocks to monitoring.
+- `python -m stock_research market-research candidate-verification-result --run-id RUN_ID --review-id HRQ-0004 --write`: summarize candidate verification provider coverage, specialist statuses, findings, and next actions after follow-up provider/analysis tasks run.
 - `python -m stock_research market-research candidate-promote --run-id RUN_ID --review-id HRQ-0004 --write`: add one approved and verified `monitoring_candidate` to `stock_tracking/monitoring/monitoring.csv` and create its company file. This blocks unless approval and verification artifacts exist.
+- `python -m stock_research human-review digest --write`: summarize open human-review queue items by decision type and priority, writing `agents/human_review_digest.md`.
+- `python -m stock_research human-review decide --set HRQ-0004=approved --note "Run verification." --write`: record explicit user decisions on human-review queue rows and refresh the digest. This does not run follow-up actions or edit stock/company files by itself.
 - `tests/`: unit tests for current deterministic core.
 
 ## OpenAI Agents SDK Runtime Planning
@@ -171,6 +176,7 @@ Use CLI commands for manual operation, scheduler entrypoints, validation, smoke 
 - SDK fanout infrastructure lives in `stock_research/agent_runtime/fanout.py`; scheduled `run-weekly --write --execute-orchestrator` now uses it for per-ticker company research across current-holding and monitoring tickers.
 - Company-research sub-orchestrator infrastructure lives in `stock_research/agent_runtime/orchestrators/company_research.py` with prompt/spec artifacts under `agents/orchestrator/prompts/company_research.md` and `agents/orchestrator/specs/company_research.md`; current SDK fanout covers financial, company-news, company-search, filing, sentiment, risk/thesis, writer, and quality-review specialists.
 - Market-research sub-orchestrator infrastructure lives in `stock_research/agent_runtime/orchestrators/market_research.py` with prompt/spec artifacts under `agents/orchestrator/prompts/market_research.md` and `agents/orchestrator/specs/market_research.md`; current SDK fanout covers Exa industry/theme, Grok/X discovery, candidate discovery, and quality-review specialists.
+- Portfolio-review sub-orchestrator infrastructure lives in `stock_research/agent_runtime/orchestrators/portfolio_review.py` with prompt/spec artifacts under `agents/orchestrator/prompts/portfolio_review.md` and `agents/orchestrator/specs/portfolio_review.md`; current packet coverage includes current holdings, monitoring, rejected cooldowns, open/approved human-review items, and candidate verification result reports.
 - SDK specialist modules live under `stock_research/agent_runtime/specialists/`; current implemented specialists are `company_news_specialist`, `company_search_specialist`, `financial_specialist`, `filing_specialist`, `sentiment_specialist`, `risk_thesis_specialist`, `writer_specialist`, `quality_reviewer_specialist`, `exa_industry_specialist`, `grok_discovery_specialist`, and `discovery_specialist`.
 - Live orchestration from `run-weekly` is available behind `--execute-orchestrator`; it is opt-in, freshness-gated, and writes per-ticker company-research artifacts under `agents/runs/{run_id}/company_research/`.
 - SDK output proposals are reviewable through `agents/runs/{run_id}/orchestrator_update_proposals.md` and `agents/human_review_queue.md`; company files are not edited by this bridge.

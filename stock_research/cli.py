@@ -209,6 +209,31 @@ def main(argv: list[str] | None = None) -> int:
     route_parser.add_argument("--status", default="queued_for_weekly_run")
     route_parser.add_argument("--today", help="Override current date as YYYY-MM-DD.")
 
+    human_review_parser = subparsers.add_parser("human-review", help="Inspect human review queue items.")
+    human_review_subparsers = human_review_parser.add_subparsers(dest="human_review_command", required=True)
+    human_review_digest = human_review_subparsers.add_parser("digest", help="Summarize open human-review queue items.")
+    human_review_digest.add_argument("--write", action="store_true", help="Write agents/human_review_digest.md.")
+    human_review_digest.add_argument("--format", choices=["markdown", "json"], default="markdown")
+    human_review_digest.add_argument(
+        "--status",
+        action="append",
+        default=[],
+        help="Status to include. Repeatable. Defaults to open and needs_more_research.",
+    )
+    human_review_digest.add_argument("--today", help="Override current date as YYYY-MM-DD.")
+    human_review_decide = human_review_subparsers.add_parser("decide", help="Record user decisions on human-review queue items.")
+    human_review_decide.add_argument(
+        "--set",
+        dest="decisions",
+        action="append",
+        required=True,
+        help="Decision as HRQ-0007=approved. Repeatable.",
+    )
+    human_review_decide.add_argument("--note", default="", help="Optional note appended to each changed row.")
+    human_review_decide.add_argument("--actor", default="user", help="Decision actor for the row note. Defaults to user.")
+    human_review_decide.add_argument("--write", action="store_true", help="Update agents/human_review_queue.md and refresh the digest.")
+    human_review_decide.add_argument("--today", help="Override current date as YYYY-MM-DD.")
+
     evidence_parser = subparsers.add_parser("evidence", help="Create or validate evidence packets.")
     evidence_subparsers = evidence_parser.add_subparsers(dest="evidence_command", required=True)
 
@@ -450,6 +475,14 @@ def main(argv: list[str] | None = None) -> int:
     market_research_candidate_followup.add_argument("--review-id", help="Optional specific HRQ row to process. The row must be approved.")
     market_research_candidate_followup.add_argument("--write", action="store_true", help="Write candidate_verification_manifest.json and candidate_verification_plan.md.")
     market_research_candidate_followup.add_argument("--today", help="Override current date as YYYY-MM-DD.")
+    market_research_candidate_verification_result = market_research_subparsers.add_parser(
+        "candidate-verification-result",
+        help="Summarize approved candidate verification execution results and readiness.",
+    )
+    market_research_candidate_verification_result.add_argument("--run-id", required=True)
+    market_research_candidate_verification_result.add_argument("--review-id", help="Optional specific HRQ row to summarize. The row must be approved.")
+    market_research_candidate_verification_result.add_argument("--write", action="store_true", help="Write candidate_verification_result.md/json.")
+    market_research_candidate_verification_result.add_argument("--today", help="Override current date as YYYY-MM-DD.")
     market_research_candidate_promote = market_research_subparsers.add_parser(
         "candidate-promote",
         help="Promote one approved and verified discovery candidate to monitoring. Approval-gated and verification-gated.",
@@ -673,6 +706,51 @@ def main(argv: list[str] | None = None) -> int:
         result = route_request(state.root, args.request, args.priority, args.status, request_date)
         print(json.dumps(result.__dict__, indent=2, sort_keys=True))
         return 0
+
+    if args.command == "human-review":
+        from .human_review_digest import (
+            build_human_review_digest,
+            format_human_review_digest,
+            human_review_digest_to_dict,
+        )
+        from .human_review_decisions import (
+            apply_human_review_decisions,
+            human_review_decision_result_to_dict,
+            parse_cli_decision,
+        )
+
+        if args.human_review_command == "digest":
+            request_date = parse_cli_date(args.today)
+            try:
+                digest = build_human_review_digest(
+                    root=state.root,
+                    statuses=set(args.status) if args.status else None,
+                    current_date=request_date,
+                    write=args.write,
+                )
+            except Exception as exc:
+                print(f"ERROR: {exc}")
+                return 1
+            if args.format == "json":
+                print(json.dumps(human_review_digest_to_dict(digest), indent=2, sort_keys=True))
+            else:
+                print(format_human_review_digest(digest))
+            return 0
+        if args.human_review_command == "decide":
+            request_date = parse_cli_date(args.today)
+            try:
+                decisions = [parse_cli_decision(value, note=args.note, actor=args.actor) for value in args.decisions]
+                result = apply_human_review_decisions(
+                    root=state.root,
+                    decisions=decisions,
+                    current_date=request_date,
+                    write=args.write,
+                )
+            except Exception as exc:
+                print(f"ERROR: {exc}")
+                return 1
+            print(json.dumps(human_review_decision_result_to_dict(result), indent=2, sort_keys=True))
+            return 0 if result.status in {"ready_to_apply", "applied", "no_decisions"} else 2
 
     if args.command == "evidence":
         if args.evidence_command == "new":
@@ -1112,6 +1190,26 @@ def main(argv: list[str] | None = None) -> int:
                 return 1
             print(json.dumps(candidate_followup_to_dict(result), indent=2, sort_keys=True))
             return 0 if result.status in {"ready_for_verification", "no_approved_items"} else 2
+        if args.market_research_command == "candidate-verification-result":
+            from .candidate_verification_result import (
+                build_candidate_verification_result,
+                candidate_verification_result_to_dict,
+            )
+
+            request_date = parse_cli_date(args.today)
+            try:
+                result = build_candidate_verification_result(
+                    root=state.root,
+                    run_id=args.run_id,
+                    review_id=args.review_id or "",
+                    current_date=request_date,
+                    write=args.write,
+                )
+            except Exception as exc:
+                print(f"ERROR: {exc}")
+                return 1
+            print(json.dumps(candidate_verification_result_to_dict(result), indent=2, sort_keys=True))
+            return 0 if result.status in {"verified_for_follow_up", "ready_for_promotion_review", "needs_human_review", "no_approved_items"} else 2
         if args.market_research_command == "candidate-promote":
             from .candidate_promotion import build_candidate_monitoring_promotion, candidate_promotion_to_dict
 
@@ -1170,6 +1268,7 @@ def main(argv: list[str] | None = None) -> int:
         from .agent_runtime.context import build_research_run_context
         from .agent_runtime.orchestrators.company_research import build_company_research_input
         from .agent_runtime.orchestrators.market_research import build_market_research_input
+        from .agent_runtime.orchestrators.portfolio_review import build_portfolio_review_input
         from .agent_runtime.proposal_review import build_proposal_review, proposal_review_to_dict
         from .agent_runtime.proposal_writer import apply_approved_proposal, proposal_apply_result_to_dict
         from .agent_runtime.reports import build_orchestrator_input, evaluate_runtime_output_quality, output_status, output_to_dict
@@ -1210,6 +1309,8 @@ def main(argv: list[str] | None = None) -> int:
                     args.subject_type,
                     args.topic or "",
                 )
+            elif args.agent_id == "portfolio_review_orchestrator":
+                prompt = build_portfolio_review_input(context)
             else:
                 prompt = build_orchestrator_input(args.run_id, context.memory_item_ids)
             if not args.execute:

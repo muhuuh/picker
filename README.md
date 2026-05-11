@@ -91,6 +91,7 @@ python -m stock_research agent-runtime list-agents
 python -m stock_research agent-runtime smoke --run-id 2026-05-09_weekly
 python -m stock_research agent-runtime run --run-id 2026-05-09_weekly
 python -m stock_research agent-runtime run --run-id 2026-05-09_weekly --agent-id company_research_orchestrator --task "company research sub-orchestrator" --ticker AAPL
+python -m stock_research agent-runtime run --run-id 2026-05-09_weekly --agent-id portfolio_review_orchestrator --task "portfolio review sub-orchestrator"
 python -m stock_research agent-runtime validate-output --run-id 2026-05-09_weekly
 python -m stock_research agent-runtime queue-proposals --run-id 2026-05-09_weekly --write --queue-review
 python -m stock_research agent-runtime apply-proposal --run-id 2026-05-09_weekly --proposal-id ORP-0001
@@ -104,10 +105,13 @@ python -m stock_research market-research run --topic "robotics suppliers in Euro
 python -m stock_research market-research run --topic "robotics suppliers in Europe" --subject-type industry --write --execute-providers --execute-orchestrator
 python -m stock_research market-research candidate-review --run-id RUN_ID --write --queue-review
 python -m stock_research market-research candidate-followup --run-id RUN_ID --review-id HRQ-0004 --write
+python -m stock_research market-research candidate-verification-result --run-id RUN_ID --review-id HRQ-0004 --write
 python -m stock_research market-research candidate-promote --run-id RUN_ID --review-id HRQ-0004 --write
+python -m stock_research human-review digest --write
+python -m stock_research human-review decide --set HRQ-0004=approved --note "Run verification." --write
 ```
 
-This creates a manual manifest with Exa context, Exa company discovery, and Grok/X discovery lanes. With `--write`, it writes a reviewable market report and ignored candidate-lead JSON. Discovery gates keep Grok-only leads as verification tasks, enforce rejected-stock cooldowns, and require source ids plus verification labels. `candidate-review` groups duplicate/share-class leads, writes a review artifact, and can append duplicate-safe human-review queue rows without adding stocks to monitoring. `candidate-followup` only processes approved candidate-review rows and writes verification tasks. `candidate-promote` is the final approval-gated writer: it only adds a monitoring CSV row and company file when the HRQ row is approved, the candidate is a `monitoring_candidate`, and required verification artifacts exist.
+This creates a manual manifest with Exa context, Exa company discovery, and Grok/X discovery lanes. With `--write`, it writes a reviewable market report and ignored candidate-lead JSON. Discovery gates keep Grok-only leads as verification tasks, enforce rejected-stock cooldowns, and require source ids plus verification labels. `candidate-review` groups duplicate/share-class leads, writes a review artifact, and can append duplicate-safe human-review queue rows without adding stocks to monitoring. `human-review digest` writes a concise open-review summary to `agents/human_review_digest.md`, including the allowed human decisions: approve, reject, mark needs more research, or leave open. `human-review decide` records your approve/reject/more-research decisions in the queue and refreshes the digest; it does not run verification or edit stock files. `candidate-followup` only processes approved candidate-review rows and writes verification tasks. After the provider/analysis tasks run, `candidate-verification-result` consolidates provider coverage, specialist statuses, findings, and next actions. `candidate-promote` is the final approval-gated writer: it only adds a monitoring CSV row and company file when the HRQ row is approved, the candidate is a `monitoring_candidate`, and required verification artifacts exist.
 
 Run the OpenAI Agents SDK orchestrator over existing run artifacts:
 
@@ -272,6 +276,8 @@ Implemented:
 - OpenAI Agents SDK runtime foundation: importable runtime package, main orchestrator builder, company-research sub-orchestrator, company-news specialist builder, company-search specialist builder, financial specialist builder, filing specialist builder, sentiment specialist builder, risk/thesis specialist builder, writer specialist builder, quality-review specialist builder, central registry, specialist-as-tool composition, typed context/output contracts, task-relevant memory injection, repo/memory inspection tools, prompt/spec files, and no-model-call smoke command.
 - Company-research SDK sub-orchestrator for one ticker, with evidence lanes for financials, company news, filings, sentiment, company search, risk/thesis impact, writer proposals, and quality review, plus financial, company-news, company-search, filing, sentiment, risk/thesis, writer, and quality-review specialist fanout.
 - Market-research SDK sub-orchestrator and manual runner for one industry/theme, with Exa industry/company discovery, Grok/X trend and rumor discovery, candidate discovery, quality-review specialist fanout, typed candidate leads, and discovery quality gates.
+- Candidate verification result reporting after approved follow-up provider/analysis tasks.
+- Portfolio-review SDK sub-orchestrator for holdings/monitoring/rejected buckets, human-review items, and candidate verification results.
 - guarded OpenAI Agents SDK provider/analysis function tools that plan by default and require context permission for live side effects.
 - live manual OpenAI Agents SDK orchestrator command over existing run artifacts, with local report, trace-link, and run-metrics artifacts.
 - SDK local telemetry hooks for agent lifecycle, tool calls, LLM calls/usage when available, injected operational memory ids, and final-output reported memory ids.
@@ -299,6 +305,6 @@ Implemented:
 Not implemented yet:
 
 - macro provider integrations,
-- scheduled market-research fanout, portfolio review, and memory-evaluation sub-orchestrators,
+- scheduled market-research fanout and memory-evaluation sub-orchestrator,
 - OS/app scheduled execution,
 - immediate research runs.

@@ -157,3 +157,26 @@ class MarketResearchPacket:
     evidence_packet_count: int = 0
     planned_provider_task_ids: list[str] = field(default_factory=list)
     memory_item_ids: list[str] = field(default_factory=list)
+
+
+@dataclass(frozen=True)
+class PortfolioBucketReview:
+    bucket: str
+    row_count: int
+    tickers: list[str] = field(default_factory=list)
+    stale_tickers: list[str] = field(default_factory=list)
+    missing_company_files: list[str] = field(default_factory=list)
+    open_review_ids: list[str] = field(default_factory=list)
+    notes: list[str] = field(default_factory=list)
+
+
+@dataclass(frozen=True)
+class PortfolioReviewPacket:
+    run_id: str
+    buckets: list[PortfolioBucketReview] = field(default_factory=list)
+    open_human_review_count: int = 0
+    approved_human_review_count: int = 0
+    rejected_cooldown_count: int = 0
+    candidate_verification_results: list[str] = field(default_factory=list)
+    latest_run_artifacts: list[str] = field(default_factory=list)
+    memory_item_ids: list[str] = field(default_factory=list)

@@ -7,6 +7,7 @@ from stock_research.agent_runtime.outputs import OrchestratorDecision
 from stock_research.agent_runtime.prompts import load_prompt, with_memory
 from stock_research.agent_runtime.orchestrators.company_research import build_agent as build_company_research_agent
 from stock_research.agent_runtime.orchestrators.market_research import build_agent as build_market_research_agent
+from stock_research.agent_runtime.orchestrators.portfolio_review import build_agent as build_portfolio_review_agent
 from stock_research.agent_runtime.specialists.company_news import build_agent as build_company_news_agent
 from stock_research.agent_runtime.specialists.company_search import build_agent as build_company_search_agent
 from stock_research.agent_runtime.specialists.discovery import build_agent as build_discovery_agent
@@ -64,6 +65,8 @@ def build_agent(context: ResearchRunContext | None = None) -> Agent[ResearchRunC
     company_research_agent = build_company_research_agent(company_research_context)
     market_research_context = with_task_memory(context, "market research sub-orchestrator") if context else None
     market_research_agent = build_market_research_agent(market_research_context)
+    portfolio_review_context = with_task_memory(context, "portfolio review sub-orchestrator") if context else None
+    portfolio_review_agent = build_portfolio_review_agent(portfolio_review_context)
     return Agent[ResearchRunContext](
         name="Main Stock Research Orchestrator",
         instructions=prompt,
@@ -123,6 +126,10 @@ def build_agent(context: ResearchRunContext | None = None) -> Agent[ResearchRunC
             market_research_agent.as_tool(
                 tool_name="market_research_orchestrator",
                 tool_description="Coordinate industry/theme research, Grok/X trend discovery, and candidate discovery.",
+            ),
+            portfolio_review_agent.as_tool(
+                tool_name="portfolio_review_orchestrator",
+                tool_description="Review holdings, monitoring names, rejected cooldowns, open approvals, and next actions.",
             ),
         ],
     )

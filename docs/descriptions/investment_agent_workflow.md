@@ -1,6 +1,6 @@
 # Investment Agent Workflow Architecture
 
-Last updated: 2026-05-06
+Last updated: 2026-05-11
 
 ## Goal
 
@@ -227,8 +227,8 @@ Current implementation status:
 - Implemented providers: SEC EDGAR submissions and optional companyfacts evidence packet writer, yfinance market-data snapshots, FMP market-data/fundamentals snapshots, Polygon/Massive U.S. ticker/OHLC snapshots, Alpha Vantage quote/overview snapshots, Exa search/contents evidence packet writers, and xAI Grok x_search evidence packet writers.
 - Implemented: weekly manifests now include deterministic provider tasks and post-provider `analysis_tasks` for financial comparison plus financial-data specialist review. `provider-tasks` and `analysis-tasks` can dry-run or explicitly execute those manifest tasks.
 - Implemented: deterministic weekly workflow wrapper through `python -m stock_research run-weekly`.
-- Implemented: OpenAI Agents SDK runtime foundation, company-research sub-orchestrator, market-research sub-orchestrator, and a manual market-research runner for industry/theme discovery with Exa, Grok/X, candidate lead extraction, and discovery quality gates.
-- Pending: macro providers, portfolio/memory-evaluation sub-orchestrators, OS/app scheduled execution, and deeper live prompt iteration across real manual examples.
+- Implemented: OpenAI Agents SDK runtime foundation, company-research sub-orchestrator, market-research sub-orchestrator, portfolio-review sub-orchestrator, and a manual market-research runner for industry/theme discovery with Exa, Grok/X, candidate lead extraction, and discovery quality gates.
+- Pending: macro providers, memory-evaluation sub-orchestrator, OS/app scheduled execution, and deeper live prompt iteration across real manual examples.
 
 ### Layer 2: Specialist research agents
 
@@ -264,11 +264,15 @@ Manual market-research loop:
 ```powershell
 python -m stock_research market-research run --topic "robotics suppliers in Europe" --subject-type industry --write --execute-providers
 python -m stock_research market-research candidate-review --run-id RUN_ID --write --queue-review
+python -m stock_research human-review decide --set HRQ-0004=approved --note "Run verification." --write
 python -m stock_research market-research candidate-followup --run-id RUN_ID --review-id HRQ-0004 --write
+python -m stock_research provider-tasks --manifest agents\runs\RUN_ID\market_research\candidate_verification_manifest.json --execute
+python -m stock_research analysis-tasks --manifest agents\runs\RUN_ID\market_research\candidate_verification_manifest.json --execute
+python -m stock_research market-research candidate-verification-result --run-id RUN_ID --review-id HRQ-0004 --write
 python -m stock_research market-research candidate-promote --run-id RUN_ID --review-id HRQ-0004 --write
 ```
 
-This path is the preferred near-term workflow while prompts and specialists are still being improved. It builds a manual manifest with Exa context, Exa company discovery, and Grok/X discovery lanes; writes a market report under `agents/runs/{run_id}/market_research/`; extracts typed candidate leads; and applies deterministic quality gates so Grok-only leads remain verification tasks, rumors are labeled, and rejected-stock cooldowns are respected. The candidate-review bridge then groups duplicate listings/share classes and queues human decisions for verification or possible monitoring without moving stocks automatically. The candidate-followup bridge consumes only approved review rows and writes verification tasks for provider and analysis runners. The candidate-promote writer is the final approval gate and only writes monitoring state when the candidate-review row is approved, the group decision is `monitoring_candidate`, and required verification reports exist.
+This path is the preferred near-term workflow while prompts and specialists are still being improved. It builds a manual manifest with Exa context, Exa company discovery, and Grok/X discovery lanes; writes a market report under `agents/runs/{run_id}/market_research/`; extracts typed candidate leads; and applies deterministic quality gates so Grok-only leads remain verification tasks, rumors are labeled, and rejected-stock cooldowns are respected. The candidate-review bridge then groups duplicate listings/share classes and queues human decisions for verification or possible monitoring without moving stocks automatically. The human-review digest summarizes open items and explicitly lists the allowed decisions: approve, reject, mark needs more research, or leave open. The human-review decision writer records explicit user approvals/rejections and refreshes the digest, but does not run follow-up actions by itself. The candidate-followup bridge consumes only approved review rows and writes verification tasks for provider and analysis runners. After those tasks run, the candidate-verification-result report consolidates provider coverage, specialist statuses, findings, and next actions into one artifact. The candidate-promote writer is the final approval gate and only writes monitoring state when the candidate-review row is approved, the group decision is `monitoring_candidate`, and required verification reports exist.
 
 Discovery candidates move through six phases:
 
@@ -276,7 +280,7 @@ Discovery candidates move through six phases:
 2. Normalize: resolve company names, tickers, exchanges, countries, duplicate listings, and share classes.
 3. Gate: enforce source ids, Grok-only verification limits, rumor labels, strategy fit, and rejected-stock cooldown.
 4. Human review: queue decisions for follow-up verification, ignore, cooldown override, or possible monitoring.
-5. Verify: run company research, financial checks, filings, news, sentiment, risks, and thesis impact for approved candidates. Current implementation can create the verification manifest for approved candidate-review rows.
+5. Verify: run company research, financial checks, filings, news, sentiment, risks, and thesis impact for approved candidates. Current implementation can create the verification manifest for approved candidate-review rows and consolidate completed verification into `candidate_verification_result.md`.
 6. Promote: after approval and sufficient verification, add the candidate to monitoring, create the company file, and schedule future tracking. Current implementation has an approval-gated writer for `monitoring_candidate` rows and blocks open, verification-only, rejected-cooldown, duplicate, or unverified candidates.
 
 ### Layer 3: Sub-orchestrators
@@ -285,7 +289,7 @@ Use sub-orchestrators where there is enough complexity to coordinate several spe
 
 - Market research orchestrator: coordinates industry, macro, theme, and discovery research.
 - Company research orchestrator: coordinates filings, financials, news, sentiment, and company-file update proposals for one ticker.
-- Portfolio review orchestrator: coordinates impact across current holdings, monitoring, and rejected buckets.
+- Portfolio review orchestrator: coordinates impact across current holdings, monitoring, rejected buckets, open/approved human-review items, and candidate verification result reports. Current implementation is a synthesis/review layer only and does not trade, move stocks, or edit company files.
 - Memory and evaluation orchestrator: reviews traces/run logs, extracts lessons, updates agent memory.
 
 ### Layer 4: Main orchestrator

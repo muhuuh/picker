@@ -1,6 +1,6 @@
 # Investment Agent Workflow Plan
 
-Last updated: 2026-05-06
+Last updated: 2026-05-11
 
 ## Goal and Scope
 
@@ -102,7 +102,8 @@ Detailed backlog: `docs/plans/investment_agent_backlog.md`.
 - [x] Implement market research sub-orchestrator.
   - Current progress: first SDK market-research sub-orchestrator exists for one industry/theme and includes Exa industry/company discovery, Grok/X discovery, candidate synthesis, and quality-review fanout. Manual candidate-review bridge now groups discovered leads and queues verification/monitoring decisions without moving stocks automatically. Scheduled market fanout is still pending.
 - [x] Implement company research sub-orchestrator.
-- [ ] Implement portfolio review sub-orchestrator.
+- [x] Implement portfolio review sub-orchestrator.
+  - Current progress: first SDK version exists as `portfolio_review_orchestrator`; it reviews current holdings, monitoring, rejected cooldowns, open/approved HRQ items, and candidate verification results without applying writes.
 - [ ] Implement main orchestrator synthesis.
   - Current progress: first SDK main orchestrator exists and runs in scheduled/manual flows; full market/portfolio/memory sub-orchestrator aggregation is still pending.
 - [x] Implement human review queue writer.
@@ -199,3 +200,7 @@ Detailed backlog: `docs/plans/investment_agent_backlog.md`.
 - 2026-05-10: Wired scheduled `run-weekly --write --execute-orchestrator` to run per-ticker company-research fanout for all current-holding and monitoring tickers before the main orchestrator, writing per-ticker company-research markdown and metrics artifacts.
 - 2026-05-10: Added first market-research SDK sub-orchestrator plus Exa industry, Grok/X discovery, and candidate discovery specialists. Discovery explicitly uses Grok/X for niche trends, hype, rumors, sentiment, and emerging ticker leads, while requiring Exa/filing/market-data verification before promotion.
 - 2026-05-11: Completed the first manual discovery-to-monitoring lifecycle with `candidate-review`, `candidate-followup`, and approval-gated `candidate-promote`. Promotion now blocks unless a candidate is an approved and verified `monitoring_candidate` with required verification reports.
+- 2026-05-11: Added open human-review digest. `human-review digest --write` writes `agents/human_review_digest.md` so the user can review pending approvals without scanning the raw queue table.
+- 2026-05-11: Added deterministic human-review decision updater. `human-review decide --set HRQ-0004=approved --write` records explicit user decisions, appends decision notes, and refreshes the digest without running side-effect actions by itself.
+- 2026-05-11: Approved HRQ-0007 for verification-only workflow validation. Provider/analysis verification ran for ADSE; promotion correctly remained blocked because this was not a `monitoring_candidate`. Added `candidate-verification-result` to consolidate missing provider evidence, specialist statuses, findings, and next actions.
+- 2026-05-11: Implemented the first portfolio review sub-orchestrator. It is registered in the SDK runtime, exposed to the main orchestrator, and writes review packets/reports covering bucket state, open/approved HRQ items, candidate verification results, and next run tasks.
