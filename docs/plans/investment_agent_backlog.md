@@ -282,7 +282,16 @@ This is the clear task backlog for building the stock tracking and investment re
   - Current progress: first SDK version registered as `company_research_orchestrator`; it builds a one-ticker lane packet, uses financial, company-news, company-search, filing, sentiment, risk/thesis, writer, and quality-review fanout, writes per-ticker scheduled artifacts, and aggregates partial results into next-run tasks.
 - [x] Build market research sub-orchestrator.
   - Description: coordinates industry, macro, theme, and candidate discovery.
-  - Current progress: first SDK market-research sub-orchestrator is implemented with Exa industry, Grok/X discovery, candidate discovery, and quality-review fanout. A clean manual run path now exists through `python -m stock_research market-research run --topic TOPIC --subject-type industry|theme --write [--execute-providers] [--execute-orchestrator]`, which writes a market report plus candidate lead artifacts and applies discovery quality gates. Scheduled run-weekly integration is intentionally deferred until manual iteration quality is good.
+  - Current progress: first SDK market-research sub-orchestrator is implemented with Exa industry, Grok/X discovery, candidate discovery, and quality-review fanout. A clean manual run path now exists through `python -m stock_research market-research run --topic TOPIC --subject-type industry|theme --write [--execute-providers] [--execute-orchestrator]`, which writes a market report plus candidate lead artifacts and applies discovery quality gates. `market-research candidate-review --run-id RUN_ID --write --queue-review` now groups duplicate/share-class leads and creates human-review decisions for verification or possible monitoring without moving stocks automatically. Scheduled run-weekly integration is intentionally deferred until manual iteration quality is good.
+- [ ] Complete the market discovery lifecycle.
+  - Description: split discovery into explicit phases so leads do not get confused with verified monitoring candidates.
+  - Phase 1 - Discover: Exa and Grok/X surface industries, themes, companies, tickers, hype, rumors, and community sentiment.
+  - Phase 2 - Normalize: resolve company name, ticker, exchange, country, duplicate listings, and share-class variants.
+  - Phase 3 - Gate: apply source-id, Grok-only, rumor, verification, strategy-fit, and rejected-cooldown rules.
+  - Phase 4 - Human review: queue decisions for follow-up verification, cooldown override, ignore, or possible monitoring.
+  - Phase 5 - Verify: run company research, financial checks, filings, news, sentiment, risks, and thesis impact for approved candidates.
+  - Phase 6 - Promote: after approval and sufficient verification, add to monitoring, create the company file, and schedule future tracking.
+  - Current progress: phases 1, 3, and 4 exist for manual market research; phase 2 is partial through candidate grouping; phase 5 can now create verification manifests from approved candidate-review rows; phase 6 now has an approval-gated promotion writer for approved and verified `monitoring_candidate` rows.
 - [ ] Build portfolio review sub-orchestrator.
   - Description: assesses impact across current holdings, monitoring, and rejected buckets.
 - [ ] Build memory and evaluation sub-orchestrator.

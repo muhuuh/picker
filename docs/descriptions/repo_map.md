@@ -149,6 +149,9 @@ Use CLI commands for manual operation, scheduler entrypoints, validation, smoke 
 - `python -m stock_research agent-runtime queue-proposals --run-id RUN_ID --write --queue-review`: convert saved SDK file-update proposals into `orchestrator_update_proposals.md` and duplicate-safe human-review queue rows.
 - `python -m stock_research agent-runtime apply-proposal --run-id RUN_ID --proposal-id ORP-0001 --write`: apply one approved SDK proposal to its target company file through the deterministic approval-gated writer.
 - `python -m stock_research market-research run --topic "robotics suppliers in Europe" --subject-type industry --write`: run a manual industry/theme research loop. It creates a manual manifest with Exa context, Exa company discovery, and Grok/X discovery lanes, writes a markdown market report, writes ignored candidate-lead JSON, and applies discovery quality gates.
+- `python -m stock_research market-research candidate-review --run-id RUN_ID --write --queue-review`: group manual market-research candidate leads, write `candidate_review.md`, and append duplicate-safe human-review queue rows. This does not add stocks to monitoring.
+- `python -m stock_research market-research candidate-followup --run-id RUN_ID --review-id HRQ-0004 --write`: turn approved candidate-review rows into `candidate_verification_manifest.json` and `candidate_verification_plan.md` for the existing provider/analysis runners. This does not add stocks to monitoring.
+- `python -m stock_research market-research candidate-promote --run-id RUN_ID --review-id HRQ-0004 --write`: add one approved and verified `monitoring_candidate` to `stock_tracking/monitoring/monitoring.csv` and create its company file. This blocks unless approval and verification artifacts exist.
 - `tests/`: unit tests for current deterministic core.
 
 ## OpenAI Agents SDK Runtime Planning

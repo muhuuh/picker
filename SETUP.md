@@ -128,9 +128,12 @@ The manual market-research runner is the preferred near-term path for learning a
 python -m stock_research market-research run --topic "robotics suppliers in Europe" --subject-type industry
 python -m stock_research market-research run --topic "robotics suppliers in Europe" --subject-type industry --write --execute-providers
 python -m stock_research market-research run --topic "robotics suppliers in Europe" --subject-type industry --write --execute-providers --execute-orchestrator
+python -m stock_research market-research candidate-review --run-id RUN_ID --write --queue-review
+python -m stock_research market-research candidate-followup --run-id RUN_ID --review-id HRQ-0004 --write
+python -m stock_research market-research candidate-promote --run-id RUN_ID --review-id HRQ-0004 --write
 ```
 
-It plans Exa context, Exa company-discovery, and Grok/X discovery lanes. With `--write`, it writes a markdown market report and ignored candidate-lead JSON under `agents/runs/RUN_ID/market_research/`. Candidate quality gates prevent Grok-only promotion, enforce rejected-stock cooldowns, and require source ids plus verification labels.
+It plans Exa context, Exa company-discovery, and Grok/X discovery lanes. With `--write`, it writes a markdown market report and ignored candidate-lead JSON under `agents/runs/RUN_ID/market_research/`. Candidate quality gates prevent Grok-only promotion, enforce rejected-stock cooldowns, and require source ids plus verification labels. The candidate-review command groups duplicate/share-class leads and optionally queues approval items in `agents/human_review_queue.md`; it does not add stocks to monitoring. The candidate-followup command reads only approved candidate-review rows and writes provider/analysis verification tasks for the existing runners. The candidate-promote command is approval-gated and verification-gated; it writes monitoring state only for an approved `monitoring_candidate` with required verification reports.
 
 Planning files:
 

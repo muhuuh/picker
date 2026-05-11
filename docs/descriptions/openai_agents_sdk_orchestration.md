@@ -337,6 +337,7 @@ Implemented:
 - `stock_research/agent_runtime/orchestrators/company_research.py`: first company-research sub-orchestrator, one-ticker lane packet builder for financials/company-news/filings/sentiment/company-search/risk-thesis/writer/quality lanes, fanout task builder, aggregation helper, and per-ticker scheduled artifact writer.
 - `stock_research/agent_runtime/orchestrators/market_research.py`: first market-research sub-orchestrator for industry/theme packets, Exa web/company discovery, Grok/X trend discovery, candidate synthesis, and quality review.
 - `stock_research/market_research_runner.py`: manual market-research runner for user-triggered industry/theme discovery. It builds a manual manifest, can execute provider tasks, can run the SDK market fanout, extracts candidate leads into a typed schema, applies discovery quality gates, and writes a reviewable market report.
+- `stock_research/candidate_review.py`: deterministic bridge from manual market-research candidate leads to reviewable candidate groups and duplicate-safe human-review queue rows. It groups duplicate listings/share classes and does not add stocks to monitoring.
 - `stock_research/agent_runtime/specialists/company_news.py`: company-news specialist agent builder.
 - `stock_research/agent_runtime/specialists/company_search.py`: Exa company-search specialist agent builder over existing Exa company/general search artifacts.
 - `stock_research/agent_runtime/specialists/financial.py`: financial specialist agent builder over deterministic financial comparison/review artifacts.
@@ -395,7 +396,8 @@ Current gates check:
 - market candidate leads include source ids and verification status,
 - Grok-only candidate leads cannot be marked for monitoring,
 - active rejected-stock cooldown blocks candidate promotion,
-- rumor-flagged leads remain verification-limited.
+- rumor-flagged leads remain verification-limited,
+- discovery-to-monitoring promotion requires an approved `monitoring_candidate` review row plus required verification reports.
 
 These gates are intentionally stricter than "did the model return JSON". Future gates should add confidence calibration, contradiction handling, stale-source checks, and human-review routing checks.
 

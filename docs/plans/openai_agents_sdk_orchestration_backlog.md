@@ -138,6 +138,14 @@ Out of scope for the first slice:
 - [x] Build market research sub-orchestrator.
   - Coordinates industry/theme research, discovery, candidate validation, and strategy fit.
   - Current progress: first SDK version registered as `market_research_orchestrator`; it builds an industry/theme packet and runs Exa industry, Grok/X discovery, candidate discovery, and quality-review fanout. Manual market research is now available through `python -m stock_research market-research run --topic TOPIC --subject-type industry|theme --write [--execute-providers] [--execute-orchestrator]`. The manual path writes a market report, candidate lead schema, and discovery quality gates. Grok/X is a required discovery lane for niche trends, hype, rumors, sentiment, and emerging ticker leads; promotion still requires Exa/filing/market-data verification.
+- [x] Complete the first manual discovery-to-monitoring lifecycle.
+  - Discover: Exa and Grok/X surface companies, tickers, narratives, hype, rumors, and sentiment.
+  - Normalize: resolve company names, tickers, exchanges, countries, duplicate listings, and share classes.
+  - Gate: enforce source ids, Grok-only verification limits, rumor labels, strategy fit, and rejected-stock cooldown.
+  - Human review: queue verification, ignore, cooldown override, or possible-monitoring decisions.
+  - Verify: run company-research fanout for approved candidates before any monitoring promotion.
+  - Promote: after approval and verification, add the candidate to monitoring, create a company file, and schedule future tracking.
+  - Current status: manual discover/gate/review exists; normalization is partial through candidate grouping; approved-candidate verification manifest creation exists through `market-research candidate-followup`; approval-gated promotion exists through `market-research candidate-promote` and blocks unless the HRQ row is approved, the decision is `monitoring_candidate`, and required verification reports exist.
 - [ ] Build portfolio review sub-orchestrator.
   - Synthesizes current holdings, monitoring, rejected cooldowns, bucket-level changes, and alerts.
 - [ ] Build memory/evaluation sub-orchestrator.
@@ -169,6 +177,15 @@ Out of scope for the first slice:
   - Current command: `python -m stock_research market-research run --topic "robotics suppliers in Europe" --subject-type industry --write [--execute-providers] [--execute-orchestrator]`.
   - Current behavior: creates a manual manifest with Exa context, Exa company discovery, and Grok/X discovery lanes; writes a report with candidate leads, verified/unverified status, hype/rumor labels, cooldown checks, and next research tasks.
   - Live validation: `robotics suppliers in Europe` and `grid scale energy storage` provider runs completed. The energy-storage SDK market fanout completed after adding direct JSON evidence packet loading for specialists.
+- [x] Add manual candidate-review bridge for discovery candidates.
+  - Current command: `python -m stock_research market-research candidate-review --run-id RUN_ID --write --queue-review`.
+  - Current behavior: reads manual market-research candidate-lead JSON, groups duplicate/share-class leads, writes `market_research/candidate_review.md`, and appends duplicate-safe human-review queue rows for verification, cooldown override, or possible monitoring decisions. It does not add stocks to monitoring.
+- [x] Add approved-candidate verification follow-up bridge.
+  - Current command: `python -m stock_research market-research candidate-followup --run-id RUN_ID --review-id HRQ-0004 --write`.
+  - Current behavior: reads approved candidate-review HRQ rows, writes `candidate_verification_manifest.json` and `candidate_verification_plan.md`, and uses existing provider/analysis task shapes so the current runners can execute verification. It does not add stocks to monitoring.
+- [x] Add approval-gated candidate promotion writer.
+  - Current command: `python -m stock_research market-research candidate-promote --run-id RUN_ID --review-id HRQ-0004 --write`.
+  - Current behavior: validates the HRQ row is approved, the candidate-review group is a `monitoring_candidate`, a single ticker is selected, rejected/duplicate status is clear, and required verification artifacts exist before adding a monitoring CSV row and company file.
 - [ ] Add Saturday automation only after the SDK runtime can run safely and produce reviewable outputs.
 
 ## Priority 9: Tests and Evaluation

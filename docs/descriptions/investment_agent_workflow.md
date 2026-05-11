@@ -263,9 +263,21 @@ Manual market-research loop:
 
 ```powershell
 python -m stock_research market-research run --topic "robotics suppliers in Europe" --subject-type industry --write --execute-providers
+python -m stock_research market-research candidate-review --run-id RUN_ID --write --queue-review
+python -m stock_research market-research candidate-followup --run-id RUN_ID --review-id HRQ-0004 --write
+python -m stock_research market-research candidate-promote --run-id RUN_ID --review-id HRQ-0004 --write
 ```
 
-This path is the preferred near-term workflow while prompts and specialists are still being improved. It builds a manual manifest with Exa context, Exa company discovery, and Grok/X discovery lanes; writes a market report under `agents/runs/{run_id}/market_research/`; extracts typed candidate leads; and applies deterministic quality gates so Grok-only leads remain verification tasks, rumors are labeled, and rejected-stock cooldowns are respected.
+This path is the preferred near-term workflow while prompts and specialists are still being improved. It builds a manual manifest with Exa context, Exa company discovery, and Grok/X discovery lanes; writes a market report under `agents/runs/{run_id}/market_research/`; extracts typed candidate leads; and applies deterministic quality gates so Grok-only leads remain verification tasks, rumors are labeled, and rejected-stock cooldowns are respected. The candidate-review bridge then groups duplicate listings/share classes and queues human decisions for verification or possible monitoring without moving stocks automatically. The candidate-followup bridge consumes only approved review rows and writes verification tasks for provider and analysis runners. The candidate-promote writer is the final approval gate and only writes monitoring state when the candidate-review row is approved, the group decision is `monitoring_candidate`, and required verification reports exist.
+
+Discovery candidates move through six phases:
+
+1. Discover: Exa and Grok/X surface companies, tickers, narratives, hype, rumors, and sentiment.
+2. Normalize: resolve company names, tickers, exchanges, countries, duplicate listings, and share classes.
+3. Gate: enforce source ids, Grok-only verification limits, rumor labels, strategy fit, and rejected-stock cooldown.
+4. Human review: queue decisions for follow-up verification, ignore, cooldown override, or possible monitoring.
+5. Verify: run company research, financial checks, filings, news, sentiment, risks, and thesis impact for approved candidates. Current implementation can create the verification manifest for approved candidate-review rows.
+6. Promote: after approval and sufficient verification, add the candidate to monitoring, create the company file, and schedule future tracking. Current implementation has an approval-gated writer for `monitoring_candidate` rows and blocks open, verification-only, rejected-cooldown, duplicate, or unverified candidates.
 
 ### Layer 3: Sub-orchestrators
 

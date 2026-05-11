@@ -41,6 +41,10 @@
 - 2026-05-10: Added clean manual market-research runner. `python -m stock_research market-research run --topic TOPIC --subject-type industry|theme --write [--execute-providers] [--execute-orchestrator]` builds a manual manifest, plans/runs Exa context + Exa company discovery + Grok/X discovery, extracts typed candidate leads, writes a market report, and applies discovery gates for Grok-only leads, rejected cooldowns, source ids, verification labels, and rumor flags.
 - 2026-05-10: Live manual provider examples ran for `robotics suppliers in Europe` and `grid scale energy storage`. First robotics run exposed noisy ticker extraction (countries/acronyms); tightened extraction and reran successfully. Energy-storage provider run produced plausible Exa-only and Grok-only candidates.
 - 2026-05-10: Live SDK market fanout on `grid scale energy storage` initially exposed a markdown-only artifact gap for JSON evidence packets. Added `load_evidence_packet` repo tool, fixed evidence packet listing subject fields, updated specialist prompts, and reran successfully with status `complete` and no quality findings.
+- 2026-05-10: Added manual candidate-review bridge. `market-research candidate-review --run-id RUN_ID --write --queue-review` groups duplicate/share-class candidate leads, writes `market_research/candidate_review.md`, and queues duplicate-safe human-review rows for verification/monitoring decisions without adding stocks to monitoring. Live energy-storage run created CRG-0001..CRG-0006 and HRQ-0004..HRQ-0009.
+- 2026-05-11: Clarified discovery lifecycle after user question. Backlog now separates discover, normalize, gate, human review, verify, and promote. Candidate review is lead triage; company research is the deeper verification phase for a specific ticker/company.
+- 2026-05-11: Added approved-candidate verification follow-up bridge. `market-research candidate-followup --run-id RUN_ID --review-id HRQ-0004 --write` only processes approved candidate-review rows and writes a candidate verification manifest/plan using existing provider and analysis task shapes. Live energy-storage check correctly returned `no_approved_items` because HRQ-0004..HRQ-0009 are still open.
+- 2026-05-11: Added approval-gated candidate promotion writer. `market-research candidate-promote --run-id RUN_ID --review-id HRQ-0004 --write` only writes monitoring CSV/company-file state for approved and verified `monitoring_candidate` rows; live energy-storage check correctly blocked because HRQ-0004 is open, Grok-only/verification-only, and missing verification artifacts.
 
 ## Official Docs Reviewed
 
@@ -150,7 +154,9 @@ run-weekly
 - Add provider failure, malformed specialist output, and missing-citation golden tests.
 - Add deeper memory-use evaluation beyond injected/reported ids.
 - Run 2-3 real manual market-research examples with live providers and inspect whether Exa/Grok prompts surface useful candidate leads.
-- Improve candidate extraction beyond ticker regex if live provider output uses company names without tickers, and add grouping for duplicate listings/share classes such as `EXA`, `EXA.PA`, and `EXALF`.
+- Improve candidate extraction beyond ticker regex if live provider output uses company names without tickers.
+- Execute an approved candidate verification run after the user approves one HRQ row, then inspect whether the generated provider/analysis evidence is enough for promotion.
+- Run `candidate-promote` after a verified `monitoring_candidate` row is approved, then inspect the created monitoring row/company file quality on a real candidate.
 - Build portfolio review and memory/evaluation sub-orchestrators.
 - Wire market-research fanout into scheduled `run-weekly` only after validating the manual market-research quality.
 - Add Saturday automation only after the scheduled SDK path is validated with a realistic multi-ticker universe.
@@ -201,6 +207,9 @@ run-weekly
 - Fanout task names are generated as `{lane}_{ticker.lower()}` from the requested ticker. They are run labels, not ticker-specific agent code.
 - Manual market-research command: `python -m stock_research market-research run --topic "robotics suppliers in Europe" --subject-type industry --write --execute-providers`.
 - Manual market-research live SDK command: `python -m stock_research market-research run --topic "robotics suppliers in Europe" --subject-type industry --write --execute-providers --execute-orchestrator`.
+- Candidate-review bridge command: `python -m stock_research market-research candidate-review --run-id RUN_ID --write --queue-review`.
+- Candidate-followup bridge command: `python -m stock_research market-research candidate-followup --run-id RUN_ID --review-id HRQ-0004 --write`.
+- Candidate promotion command: `python -m stock_research market-research candidate-promote --run-id RUN_ID --review-id HRQ-0004 --write`.
 - Manual discovery gates: no Grok-only monitoring promotion, source ids required, verification status required, active rejected cooldown blocks promotion, rumor-flagged leads stay verification-limited.
 - SDK evidence tool: `load_evidence_packet` lets specialists load summarized provider-neutral JSON packets by id/path. Use it for market-research specialists; do not rely on markdown-only evidence artifacts.
 - Live validation artifacts:

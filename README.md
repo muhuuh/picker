@@ -102,9 +102,12 @@ Run a manual market/industry/theme research loop while we are still iterating ma
 python -m stock_research market-research run --topic "robotics suppliers in Europe" --subject-type industry
 python -m stock_research market-research run --topic "robotics suppliers in Europe" --subject-type industry --write --execute-providers
 python -m stock_research market-research run --topic "robotics suppliers in Europe" --subject-type industry --write --execute-providers --execute-orchestrator
+python -m stock_research market-research candidate-review --run-id RUN_ID --write --queue-review
+python -m stock_research market-research candidate-followup --run-id RUN_ID --review-id HRQ-0004 --write
+python -m stock_research market-research candidate-promote --run-id RUN_ID --review-id HRQ-0004 --write
 ```
 
-This creates a manual manifest with Exa context, Exa company discovery, and Grok/X discovery lanes. With `--write`, it writes a reviewable market report and ignored candidate-lead JSON. Discovery gates keep Grok-only leads as verification tasks, enforce rejected-stock cooldowns, and require source ids plus verification labels.
+This creates a manual manifest with Exa context, Exa company discovery, and Grok/X discovery lanes. With `--write`, it writes a reviewable market report and ignored candidate-lead JSON. Discovery gates keep Grok-only leads as verification tasks, enforce rejected-stock cooldowns, and require source ids plus verification labels. `candidate-review` groups duplicate/share-class leads, writes a review artifact, and can append duplicate-safe human-review queue rows without adding stocks to monitoring. `candidate-followup` only processes approved candidate-review rows and writes verification tasks. `candidate-promote` is the final approval-gated writer: it only adds a monitoring CSV row and company file when the HRQ row is approved, the candidate is a `monitoring_candidate`, and required verification artifacts exist.
 
 Run the OpenAI Agents SDK orchestrator over existing run artifacts:
 

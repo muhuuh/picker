@@ -433,6 +433,32 @@ def main(argv: list[str] | None = None) -> int:
     market_research_run.add_argument("--timeout-seconds", type=float, default=300.0)
     market_research_run.add_argument("--days", type=int, default=21, help="Grok/X lookback window in days.")
     market_research_run.add_argument("--today", help="Override current date as YYYY-MM-DD.")
+    market_research_candidate_review = market_research_subparsers.add_parser(
+        "candidate-review",
+        help="Group manual market-research candidate leads and optionally queue human review decisions.",
+    )
+    market_research_candidate_review.add_argument("--run-id", required=True)
+    market_research_candidate_review.add_argument("--subject-id", help="Candidate lead subject id. Defaults to all candidate lead files in the run.")
+    market_research_candidate_review.add_argument("--write", action="store_true", help="Write candidate_review.md under the run's market_research folder.")
+    market_research_candidate_review.add_argument("--queue-review", action="store_true", help="Append duplicate-safe candidate decisions to agents/human_review_queue.md.")
+    market_research_candidate_review.add_argument("--today", help="Override current date as YYYY-MM-DD.")
+    market_research_candidate_followup = market_research_subparsers.add_parser(
+        "candidate-followup",
+        help="Turn approved candidate-review rows into a verification manifest. Does not add stocks to monitoring.",
+    )
+    market_research_candidate_followup.add_argument("--run-id", required=True)
+    market_research_candidate_followup.add_argument("--review-id", help="Optional specific HRQ row to process. The row must be approved.")
+    market_research_candidate_followup.add_argument("--write", action="store_true", help="Write candidate_verification_manifest.json and candidate_verification_plan.md.")
+    market_research_candidate_followup.add_argument("--today", help="Override current date as YYYY-MM-DD.")
+    market_research_candidate_promote = market_research_subparsers.add_parser(
+        "candidate-promote",
+        help="Promote one approved and verified discovery candidate to monitoring. Approval-gated and verification-gated.",
+    )
+    market_research_candidate_promote.add_argument("--run-id", required=True)
+    market_research_candidate_promote.add_argument("--review-id", required=True, help="Approved HRQ row for a monitoring_candidate decision.")
+    market_research_candidate_promote.add_argument("--ticker", help="Ticker to promote when a candidate group has multiple listings/share classes.")
+    market_research_candidate_promote.add_argument("--write", action="store_true", help="Write the monitoring CSV row and company file. Omit for dry-run validation.")
+    market_research_candidate_promote.add_argument("--today", help="Override current date as YYYY-MM-DD.")
 
     run_weekly_parser = subparsers.add_parser("run-weekly", help="Run the deterministic weekly workflow up to the agent-framework decision boundary.")
     run_weekly_parser.add_argument("--write", action="store_true", help="Persist manifest, reports, finalization, memory-writer review, and orchestration report.")
@@ -1051,6 +1077,59 @@ def main(argv: list[str] | None = None) -> int:
                 return 1
             print(json.dumps(manual_market_result_to_dict(result), indent=2, sort_keys=True))
             return 0 if result.status in {"complete", "partial", "dry_run"} else 2
+        if args.market_research_command == "candidate-review":
+            from .candidate_review import build_candidate_review, candidate_review_to_dict
+
+            request_date = parse_cli_date(args.today)
+            try:
+                result = build_candidate_review(
+                    root=state.root,
+                    run_id=args.run_id,
+                    subject_id=args.subject_id or "",
+                    current_date=request_date,
+                    write=args.write,
+                    queue_review=args.queue_review,
+                )
+            except Exception as exc:
+                print(f"ERROR: {exc}")
+                return 1
+            print(json.dumps(candidate_review_to_dict(result), indent=2, sort_keys=True))
+            return 0 if result.status in {"ready_for_human_review", "no_review_items", "no_candidates"} else 2
+        if args.market_research_command == "candidate-followup":
+            from .candidate_followup import build_candidate_verification_followup, candidate_followup_to_dict
+
+            request_date = parse_cli_date(args.today)
+            try:
+                result = build_candidate_verification_followup(
+                    root=state.root,
+                    run_id=args.run_id,
+                    review_id=args.review_id or "",
+                    current_date=request_date,
+                    write=args.write,
+                )
+            except Exception as exc:
+                print(f"ERROR: {exc}")
+                return 1
+            print(json.dumps(candidate_followup_to_dict(result), indent=2, sort_keys=True))
+            return 0 if result.status in {"ready_for_verification", "no_approved_items"} else 2
+        if args.market_research_command == "candidate-promote":
+            from .candidate_promotion import build_candidate_monitoring_promotion, candidate_promotion_to_dict
+
+            request_date = parse_cli_date(args.today)
+            try:
+                result = build_candidate_monitoring_promotion(
+                    root=state.root,
+                    run_id=args.run_id,
+                    review_id=args.review_id,
+                    ticker=args.ticker or "",
+                    current_date=request_date,
+                    write=args.write,
+                )
+            except Exception as exc:
+                print(f"ERROR: {exc}")
+                return 1
+            print(json.dumps(candidate_promotion_to_dict(result), indent=2, sort_keys=True))
+            return 0 if result.status in {"ready_to_promote", "promoted", "already_promoted"} else 2
 
     if args.command == "run-weekly":
         request_date = parse_cli_date(args.today)

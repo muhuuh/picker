@@ -100,7 +100,7 @@ Detailed backlog: `docs/plans/investment_agent_backlog.md`.
   - Current progress: automatic Saturday invocation is still pending.
 - [x] Implement deterministic Codex chat intake routing for user requests.
 - [x] Implement market research sub-orchestrator.
-  - Current progress: first SDK market-research sub-orchestrator exists for one industry/theme and includes Exa industry/company discovery, Grok/X discovery, candidate synthesis, and quality-review fanout. Scheduled market fanout is still pending.
+  - Current progress: first SDK market-research sub-orchestrator exists for one industry/theme and includes Exa industry/company discovery, Grok/X discovery, candidate synthesis, and quality-review fanout. Manual candidate-review bridge now groups discovered leads and queues verification/monitoring decisions without moving stocks automatically. Scheduled market fanout is still pending.
 - [x] Implement company research sub-orchestrator.
 - [ ] Implement portfolio review sub-orchestrator.
 - [ ] Implement main orchestrator synthesis.
@@ -198,3 +198,4 @@ Detailed backlog: `docs/plans/investment_agent_backlog.md`.
 - 2026-05-10: Added generic SDK risk/thesis, writer, and quality-review specialists and wired them into main/company-research orchestrator tools plus company-research fanout.
 - 2026-05-10: Wired scheduled `run-weekly --write --execute-orchestrator` to run per-ticker company-research fanout for all current-holding and monitoring tickers before the main orchestrator, writing per-ticker company-research markdown and metrics artifacts.
 - 2026-05-10: Added first market-research SDK sub-orchestrator plus Exa industry, Grok/X discovery, and candidate discovery specialists. Discovery explicitly uses Grok/X for niche trends, hype, rumors, sentiment, and emerging ticker leads, while requiring Exa/filing/market-data verification before promotion.
+- 2026-05-11: Completed the first manual discovery-to-monitoring lifecycle with `candidate-review`, `candidate-followup`, and approval-gated `candidate-promote`. Promotion now blocks unless a candidate is an approved and verified `monitoring_candidate` with required verification reports.

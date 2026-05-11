@@ -266,6 +266,21 @@ Use this file for information we should not lose across sessions.
   - evidence artifact path(s): `stock_research/market_research_runner.py`, `stock_research/cli.py`, `stock_research/agent_runtime/outputs.py`, `tests/test_market_research_runner.py`, `README.md`, `SETUP.md`
   - status: active
 
+- 2026-05-10:
+  - decision/fact: Manual market-research candidate leads now flow through a deterministic human-review bridge. `python -m stock_research market-research candidate-review --run-id RUN_ID --write --queue-review` groups duplicate/share-class leads, writes `candidate_review.md`, and appends duplicate-safe review rows for verification or possible monitoring decisions. It does not add stocks to monitoring.
+  - evidence artifact path(s): `stock_research/candidate_review.py`, `stock_research/cli.py`, `tests/test_market_research_runner.py`, `agents/runs/2026-05-10_manual-market-energy-storage/market_research/candidate_review.md`, `agents/human_review_queue.md`
+  - status: active
+
+- 2026-05-11:
+  - decision/fact: Approved candidate-review rows can now be converted into verification manifests. `python -m stock_research market-research candidate-followup --run-id RUN_ID --review-id HRQ-0004 --write` writes provider/analysis verification tasks for existing runners and does not add stocks to monitoring.
+  - evidence artifact path(s): `stock_research/candidate_followup.py`, `stock_research/cli.py`, `tests/test_market_research_runner.py`, `docs/plans/openai_agents_sdk_orchestration_backlog.md`
+  - status: active
+
+- 2026-05-11:
+  - decision/fact: Discovery candidates can only be promoted to monitoring through an approval-gated and verification-gated writer. `python -m stock_research market-research candidate-promote --run-id RUN_ID --review-id HRQ-0004 --write` requires an approved `monitoring_candidate` HRQ row and required verification reports before writing the monitoring CSV row and company file.
+  - evidence artifact path(s): `stock_research/candidate_promotion.py`, `stock_research/cli.py`, `tests/test_market_research_runner.py`, `docs/plans/openai_agents_sdk_orchestration_backlog.md`
+  - status: active
+
 - 2026-05-04:
   - decision/fact: Generated run JSON artifacts are local runtime output and should not be committed. Keep markdown run summaries/reports/finalization files as the reviewable artifacts; `.gitignore` now ignores run-root JSON, raw provider JSON, evidence packet JSON, and generated recurring-failure JSON.
   - evidence artifact path(s): `.gitignore`, `README.md`, `SETUP.md`, `docs/descriptions/run_summary_and_quality.md`

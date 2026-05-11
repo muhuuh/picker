@@ -17,6 +17,9 @@ from stock_research.market_research_runner import (
     extract_candidate_leads,
     run_manual_market_research,
 )
+from stock_research.candidate_review import build_candidate_review, group_candidate_leads
+from stock_research.candidate_followup import build_candidate_verification_followup
+from stock_research.candidate_promotion import build_candidate_monitoring_promotion
 from stock_research.agent_runtime.outputs import CandidateLead
 
 
@@ -178,6 +181,331 @@ class MarketResearchRunnerTests(unittest.TestCase):
         self.assertEqual(payload["provider_result"]["planned_count"], 3)
         self.assertFalse(payload["live_model_called"])
 
+    def test_candidate_review_groups_duplicate_share_classes_by_company_name(self):
+        groups = group_candidate_leads(
+            [
+                CandidateLead(
+                    ticker="EXA",
+                    company_name="Exail Technologies",
+                    source_channels=["exa"],
+                    source_ids=["exa-1"],
+                    verification_status="exa_only",
+                    next_action="verify",
+                ),
+                CandidateLead(
+                    ticker="EXA.PA",
+                    company_name="Exail Technologies",
+                    source_channels=["exa"],
+                    source_ids=["exa-2"],
+                    verification_status="exa_only",
+                    next_action="verify",
+                ),
+                CandidateLead(
+                    ticker="EXALF",
+                    company_name="Exail Technologies",
+                    source_channels=["grok"],
+                    source_ids=["grok-1"],
+                    verification_status="grok_only",
+                    next_action="verify",
+                    hype_level="high",
+                ),
+            ]
+        )
+
+        self.assertEqual(len(groups), 1)
+        self.assertEqual(groups[0].canonical_name, "Exail Technologies")
+        self.assertEqual(groups[0].tickers, ["EXA", "EXA.PA", "EXALF"])
+        self.assertEqual(groups[0].verification_status, "verified")
+        self.assertEqual(groups[0].decision_kind, "monitoring_candidate")
+
+    def test_candidate_review_writes_report_and_duplicate_safe_review_queue(self):
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            write_minimal_repo(root)
+            run_id = "2026-05-10_manual-market"
+            market_dir = root / "agents" / "runs" / run_id / "market_research"
+            market_dir.mkdir(parents=True, exist_ok=True)
+            (market_dir / "robotics_candidate_leads.json").write_text(
+                json.dumps(
+                    [
+                        {
+                            "ticker": "ROBO",
+                            "company_name": "Robo Holdings",
+                            "source_channels": ["exa", "grok"],
+                            "source_ids": ["exa-1", "grok-1"],
+                            "verification_status": "verified",
+                            "hype_level": "high",
+                            "next_action": "human_review",
+                            "rejected_cooldown_status": "not_rejected",
+                            "why_surfaced": "Exa and Grok both surfaced this robotics supplier.",
+                        },
+                        {
+                            "ticker": "HYPE",
+                            "source_channels": ["grok"],
+                            "source_ids": ["grok-2"],
+                            "verification_status": "grok_only",
+                            "hype_level": "high",
+                            "next_action": "verify",
+                            "rumor_flag": True,
+                            "rejected_cooldown_status": "not_rejected",
+                            "why_surfaced": "Grok/X chatter surfaced a rumor-like lead.",
+                        },
+                    ],
+                    indent=2,
+                ),
+                encoding="utf-8",
+            )
+
+            first = build_candidate_review(
+                root=root,
+                run_id=run_id,
+                current_date=date(2026, 5, 10),
+                write=True,
+                queue_review=True,
+            )
+            second = build_candidate_review(
+                root=root,
+                run_id=run_id,
+                current_date=date(2026, 5, 10),
+                write=True,
+                queue_review=True,
+            )
+            queue = (root / "agents" / "human_review_queue.md").read_text(encoding="utf-8")
+            report = (market_dir / "candidate_review.md").read_text(encoding="utf-8")
+
+        self.assertEqual(first.status, "ready_for_human_review")
+        self.assertEqual(second.status, "ready_for_human_review")
+        self.assertEqual(queue.count("candidate_review.md#CRG-0001"), 1)
+        self.assertEqual(queue.count("candidate_review.md#CRG-0002"), 1)
+        self.assertIn("| CRG-0001 | Robo Holdings | ROBO | exa, grok | verified", report)
+        self.assertIn("verify_grok_lead", report)
+
+    def test_market_research_candidate_review_cli(self):
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            write_minimal_repo(root)
+            run_id = "2026-05-10_manual-market"
+            market_dir = root / "agents" / "runs" / run_id / "market_research"
+            market_dir.mkdir(parents=True, exist_ok=True)
+            (market_dir / "grid_candidate_leads.json").write_text(
+                json.dumps(
+                    [
+                        {
+                            "ticker": "ADSE",
+                            "company_name": "ADS-TEC Energy",
+                            "source_channels": ["exa"],
+                            "source_ids": ["exa-1"],
+                            "verification_status": "exa_only",
+                            "next_action": "verify",
+                            "rejected_cooldown_status": "not_rejected",
+                        }
+                    ]
+                ),
+                encoding="utf-8",
+            )
+            buffer = io.StringIO()
+            with redirect_stdout(buffer):
+                exit_code = main(
+                    [
+                        "--root",
+                        str(root),
+                        "market-research",
+                        "candidate-review",
+                        "--run-id",
+                        run_id,
+                        "--write",
+                        "--queue-review",
+                        "--today",
+                        "2026-05-10",
+                    ]
+                )
+            payload = json.loads(buffer.getvalue())
+
+        self.assertEqual(exit_code, 0)
+        self.assertEqual(payload["status"], "ready_for_human_review")
+        self.assertEqual(payload["groups"][0]["canonical_name"], "ADS-TEC Energy")
+        self.assertTrue(any(path.endswith("candidate_review.md") for path in payload["written_paths"]))
+
+    def test_candidate_followup_requires_approved_review_row(self):
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            write_minimal_repo(root)
+            run_id = "2026-05-10_manual-market"
+            write_candidate_review_artifacts(root, run_id, status="open")
+
+            result = build_candidate_verification_followup(
+                root=root,
+                run_id=run_id,
+                review_id="HRQ-0004",
+                current_date=date(2026, 5, 10),
+                write=True,
+            )
+
+        self.assertEqual(result.status, "blocked")
+        self.assertIn("not 'approved'", result.findings[0])
+        self.assertEqual(result.provider_task_count, 0)
+
+    def test_candidate_followup_writes_verification_manifest_for_approved_candidate(self):
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            write_minimal_repo(root)
+            run_id = "2026-05-10_manual-market"
+            write_candidate_review_artifacts(root, run_id, status="approved")
+
+            result = build_candidate_verification_followup(
+                root=root,
+                run_id=run_id,
+                review_id="HRQ-0004",
+                current_date=date(2026, 5, 10),
+                write=True,
+            )
+            manifest_path = root / "agents" / "runs" / run_id / "market_research" / "candidate_verification_manifest.json"
+            report_path = root / "agents" / "runs" / run_id / "market_research" / "candidate_verification_plan.md"
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            report = report_path.read_text(encoding="utf-8")
+
+        self.assertEqual(result.status, "ready_for_verification")
+        self.assertEqual(result.provider_task_count, 8)
+        self.assertEqual(result.analysis_task_count, 4)
+        self.assertEqual(manifest["run_type"], "candidate_verification")
+        self.assertIn("candidate_exa_news_robo_hrq_0004", {task["id"] for task in manifest["provider_tasks"]})
+        self.assertIn("candidate_financial_review_robo_hrq_0004", {task["id"] for task in manifest["analysis_tasks"]})
+        self.assertIn("It does not add stocks to monitoring", report)
+
+    def test_market_research_candidate_followup_cli(self):
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            write_minimal_repo(root)
+            run_id = "2026-05-10_manual-market"
+            write_candidate_review_artifacts(root, run_id, status="approved")
+            buffer = io.StringIO()
+            with redirect_stdout(buffer):
+                exit_code = main(
+                    [
+                        "--root",
+                        str(root),
+                        "market-research",
+                        "candidate-followup",
+                        "--run-id",
+                        run_id,
+                        "--review-id",
+                        "HRQ-0004",
+                        "--write",
+                        "--today",
+                        "2026-05-10",
+                    ]
+                )
+            payload = json.loads(buffer.getvalue())
+
+        self.assertEqual(exit_code, 0)
+        self.assertEqual(payload["status"], "ready_for_verification")
+        self.assertEqual(payload["review_ids"], ["HRQ-0004"])
+        self.assertTrue(any(path.endswith("candidate_verification_manifest.json") for path in payload["written_paths"]))
+
+    def test_candidate_promotion_blocks_without_approval(self):
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            write_minimal_repo(root)
+            run_id = "2026-05-10_manual-market"
+            write_candidate_review_artifacts(root, run_id, status="open")
+            write_candidate_verification_artifacts(root, run_id, "ROBO")
+
+            result = build_candidate_monitoring_promotion(
+                root=root,
+                run_id=run_id,
+                review_id="HRQ-0004",
+                current_date=date(2026, 5, 10),
+                write=True,
+            )
+
+        self.assertEqual(result.status, "blocked")
+        self.assertTrue(any("not 'approved'" in finding for finding in result.findings))
+
+    def test_candidate_promotion_blocks_without_verification_artifacts(self):
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            write_minimal_repo(root)
+            run_id = "2026-05-10_manual-market"
+            write_candidate_review_artifacts(root, run_id, status="approved")
+
+            result = build_candidate_monitoring_promotion(
+                root=root,
+                run_id=run_id,
+                review_id="HRQ-0004",
+                current_date=date(2026, 5, 10),
+                write=False,
+            )
+
+        self.assertEqual(result.status, "blocked")
+        self.assertTrue(any("Missing verification manifest" in finding for finding in result.findings))
+
+    def test_candidate_promotion_writes_monitoring_row_and_company_file(self):
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            write_minimal_repo(root)
+            run_id = "2026-05-10_manual-market"
+            write_candidate_review_artifacts(root, run_id, status="approved")
+            write_candidate_verification_artifacts(root, run_id, "ROBO")
+
+            result = build_candidate_monitoring_promotion(
+                root=root,
+                run_id=run_id,
+                review_id="HRQ-0004",
+                current_date=date(2026, 5, 10),
+                write=True,
+            )
+            repeat_result = build_candidate_monitoring_promotion(
+                root=root,
+                run_id=run_id,
+                review_id="HRQ-0004",
+                current_date=date(2026, 5, 10),
+                write=True,
+            )
+            monitoring = (root / "stock_tracking" / "monitoring" / "monitoring.csv").read_text(encoding="utf-8")
+            company_file = root / "stock_tracking" / "stock_info_files" / "monitoring" / "ROBO.md"
+            report = root / "agents" / "runs" / run_id / "market_research" / "candidate_promotion_report.md"
+            company_file_exists = company_file.exists()
+            company_file_text = company_file.read_text(encoding="utf-8")
+            report_exists = report.exists()
+
+        self.assertEqual(result.status, "promoted")
+        self.assertEqual(repeat_result.status, "already_promoted")
+        self.assertIn("ROBO,Robo Holdings", monitoring)
+        self.assertEqual(sum(1 for line in monitoring.splitlines() if line.startswith("ROBO,")), 1)
+        self.assertTrue(company_file_exists)
+        self.assertIn("not an investment recommendation", company_file_text)
+        self.assertTrue(report_exists)
+
+    def test_market_research_candidate_promote_cli(self):
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            write_minimal_repo(root)
+            run_id = "2026-05-10_manual-market"
+            write_candidate_review_artifacts(root, run_id, status="approved")
+            write_candidate_verification_artifacts(root, run_id, "ROBO")
+            buffer = io.StringIO()
+            with redirect_stdout(buffer):
+                exit_code = main(
+                    [
+                        "--root",
+                        str(root),
+                        "market-research",
+                        "candidate-promote",
+                        "--run-id",
+                        run_id,
+                        "--review-id",
+                        "HRQ-0004",
+                        "--write",
+                        "--today",
+                        "2026-05-10",
+                    ]
+                )
+            payload = json.loads(buffer.getvalue())
+
+        self.assertEqual(exit_code, 0)
+        self.assertEqual(payload["status"], "promoted")
+        self.assertEqual(payload["item"]["ticker"], "ROBO")
+
 
 def packet(provider: str, subject_id: str, claim: str, evidence: str, source_id: str):
     source = Source(
@@ -228,6 +556,69 @@ def write_rejected_csv(root: Path, ticker: str, next_eligible: str) -> None:
         f"{ticker},{ticker} Inc.,{next_eligible}\n",
         encoding="utf-8",
     )
+
+
+def write_candidate_review_artifacts(root: Path, run_id: str, status: str) -> None:
+    market_dir = root / "agents" / "runs" / run_id / "market_research"
+    market_dir.mkdir(parents=True, exist_ok=True)
+    (market_dir / "candidate_review.md").write_text(
+        "\n".join(
+            [
+                f"# Candidate Review: {run_id}",
+                "",
+                "## Candidate Groups",
+                "",
+                "| Group ID | Candidate | Tickers | Channels | Verification | Hype | Cooldown | Decision Kind | Priority | Why surfaced |",
+                "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |",
+                "| CRG-0001 | Robo Holdings | ROBO | exa, grok | verified | high | not_rejected | monitoring_candidate | high | Exa and Grok surfaced the candidate. |",
+                "",
+                "## Human Review Bridge",
+                "",
+                "| Review Item ID | Candidate | Decision Kind | Priority | Question | Reason |",
+                "| --- | --- | --- | --- | --- | --- |",
+                "| CRG-0001 | Robo Holdings (ROBO) | monitoring_candidate | high | Approve adding this candidate to monitoring, or request more research first. | Candidate surfaced from exa, grok. |",
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    (root / "agents").mkdir(parents=True, exist_ok=True)
+    (root / "agents" / "human_review_queue.md").write_text(
+        "\n".join(
+            [
+                "# Human Review Queue",
+                "",
+                "## Review Items",
+                "",
+                "| ID | Date Added | Item | Decision Needed | Priority | Status | Related Files | Evidence / Run Link | Notes |",
+                "| --- | --- | --- | --- | --- | --- | --- | --- | --- |",
+                f"| HRQ-0004 | 2026-05-10 | Review verified discovery candidate Robo Holdings (ROBO) for possible monitoring. | Approve adding this candidate to monitoring, or request more research first. | high | {status} | agents/runs/{run_id}/market_research | agents/runs/{run_id}/market_research/candidate_review.md#CRG-0001 | Candidate surfaced from exa/grok. |",
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+
+def write_candidate_verification_artifacts(root: Path, run_id: str, ticker: str) -> None:
+    market_dir = root / "agents" / "runs" / run_id / "market_research"
+    market_dir.mkdir(parents=True, exist_ok=True)
+    (market_dir / "candidate_verification_manifest.json").write_text(
+        json.dumps(
+            {
+                "provider_tasks": [{"id": "candidate_yfinance_robo_hrq_0004", "subject_id": ticker}],
+                "analysis_tasks": [{"id": "candidate_financial_review_robo_hrq_0004", "subject_id": ticker}],
+            }
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    news_dir = root / "agents" / "runs" / run_id / "reports" / "company_news_specialist"
+    financial_dir = root / "agents" / "runs" / run_id / "reports" / "financial_data_specialist"
+    news_dir.mkdir(parents=True, exist_ok=True)
+    financial_dir.mkdir(parents=True, exist_ok=True)
+    (news_dir / f"{ticker}_company_news_review.md").write_text("# News review\n", encoding="utf-8")
+    (financial_dir / f"{ticker}_financial_review.md").write_text("# Financial review\n", encoding="utf-8")
 
 
 if __name__ == "__main__":

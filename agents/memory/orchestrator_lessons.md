@@ -376,3 +376,45 @@ Operational memory for workflow routing, orchestration, run ordering, and user c
 - evidence: `stock_research/market_research_runner.py`, `stock_research/agent_runtime/tools/repo_tools.py`, `stock_research/cli.py`, `tests/test_market_research_runner.py`, `tests/test_agent_runtime.py`, `docs/descriptions/openai_agents_sdk_orchestration.md`
 - owner: market research orchestrator
 - next_review: 2026-06-15
+
+- id: orch-2026-05-10-candidate-review-bridge
+- date: 2026-05-10
+- type: procedural
+- scope: orchestrator
+- status: active
+- confidence: high
+- trigger/source: Implemented the manual market-research candidate-review bridge and validated it on the energy-storage manual run.
+- lesson: Use `python -m stock_research market-research candidate-review --run-id RUN_ID --write --queue-review` after manual discovery runs to group duplicate/share-class candidate leads and create duplicate-safe human-review rows. The bridge may propose verification or monitoring decisions, but it must not add stocks to monitoring automatically.
+- use_when: Turning market-discovery candidates into reviewable decisions, preventing Grok-only promotion, grouping duplicate listings/share classes, or preparing human approval before monitoring additions.
+- do_not_use_when: Applying approved monitoring additions or creating company stock files; that still needs a separate approval-gated writer.
+- evidence: `stock_research/candidate_review.py`, `tests/test_market_research_runner.py`, `agents/runs/2026-05-10_manual-market-energy-storage/market_research/candidate_review.md`, `agents/human_review_queue.md`
+- owner: market research orchestrator
+- next_review: 2026-06-15
+
+- id: orch-2026-05-11-approved-candidate-verification
+- date: 2026-05-11
+- type: procedural
+- scope: orchestrator
+- status: active
+- confidence: high
+- trigger/source: Implemented approved candidate-review follow-up into verification manifest creation.
+- lesson: Use `python -m stock_research market-research candidate-followup --run-id RUN_ID --review-id HRQ-0004 --write` only after a candidate-review HRQ row is approved. It creates provider and analysis verification tasks for existing runners; it does not add stocks to monitoring.
+- use_when: A discovery candidate review row is approved for verification, or Codex needs to prepare company research evidence before any monitoring promotion.
+- do_not_use_when: Candidate review rows are still open/rejected, or when trying to promote a stock to monitoring without verified evidence and separate approval.
+- evidence: `stock_research/candidate_followup.py`, `tests/test_market_research_runner.py`, `docs/plans/openai_agents_sdk_orchestration_backlog.md`
+- owner: market research orchestrator
+- next_review: 2026-06-15
+
+- id: orch-2026-05-11-candidate-promotion-gate
+- date: 2026-05-11
+- type: procedural
+- scope: orchestrator
+- status: active
+- confidence: high
+- trigger/source: Implemented approval-gated candidate promotion writer for the manual discovery lifecycle.
+- lesson: Use `python -m stock_research market-research candidate-promote --run-id RUN_ID --review-id HRQ-0004 --write` only for approved and verified `monitoring_candidate` rows. It must block open/rejected HRQ rows, verification-only Grok/Exa leads, missing verification reports, rejected-cooldown rows, duplicate monitored/held tickers, and ambiguous multi-listing groups.
+- use_when: Promoting a discovery candidate into monitoring after human approval and verification, or deciding whether a candidate can get a monitoring CSV row and company file.
+- do_not_use_when: The user only approved follow-up verification, the candidate is Grok-only/rumor-only, verification artifacts are missing, or a stock status move requires separate user approval.
+- evidence: `stock_research/candidate_promotion.py`, `tests/test_market_research_runner.py`, `docs/plans/openai_agents_sdk_orchestration_backlog.md`
+- owner: market research orchestrator
+- next_review: 2026-06-15
