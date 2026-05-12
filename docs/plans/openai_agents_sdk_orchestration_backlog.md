@@ -1,6 +1,6 @@
 # OpenAI Agents SDK Orchestration Backlog
 
-Last updated: 2026-05-11
+Last updated: 2026-05-12
 
 ## Goal and Scope
 
@@ -171,6 +171,8 @@ Out of scope for the first slice:
 - [ ] Add output guardrails for citation requirements and overconfident claims.
   - Current progress: weekly final digest and opportunity assessments now have deterministic validators for required evidence links/source ids, Grok/X social-signal labeling, direct trade language, and taxonomy-only financial conflicts.
   - Still pending: broader malformed specialist output and missing-citation failure tests across all specialist lanes.
+  - Product-quality gap from AMZN review: structural gates passed while the report was still not useful. Add usefulness gates for investor-facing reports: no status-label-only sentiment, no source-count-only news sections, no generic source titles as developments, no internal workflow chores as human watch items, and no final digest without concrete X/community narratives and bullish/bearish arguments.
+  - 2026-05-12 repair pass: opportunity/final digest synthesis now preserves raw Grok/X narratives, bull/bear claims, accounts/posts, hype/noise, investor implications, and concrete news developments. This is a repair baseline, not the final target; the required bar is materially above the user's old standalone Grok PDF reports.
 - [x] Add first deterministic output quality gates.
   - Implemented checks: summary/status shape, direct trade wording, valid memory item ids, existing file targets, source-backed update proposals, and existing source artifact paths.
 - [ ] Keep buy/sell/position-size recommendations as human review items.
@@ -236,6 +238,11 @@ Out of scope for the first slice:
 - [x] Add golden tests for weekly final digest quality.
   - Include AMZN-style cases: taxonomy-only financial conflict should be a watch item, not a high-risk material financial conflict; Grok/X sentiment should be labeled social signal; final digest should be concise and not trade-instructive.
   - Current implementation: `tests/test_weekly_digest.py` covers evidence links, social-signal labeling, direct trade language, readable financial formatting, and missing evidence links; `tests/test_opportunity_assessment.py` covers taxonomy-only conflict handling, missing source/provider gates, and direct trade language.
+- [ ] Add investor-usefulness golden tests for digest/opportunity reports.
+  - Target behavior: reports must surface what changed, why it matters, X/community sentiment with cited account/post themes, recurring bullish/bearish claims, latest developments as actual claims, verified vs social/speculative separation, and concrete next research checks.
+  - Failure examples: `mixed_social_signal` without narrative, `ready_for_company_update` without developments, `Exa content excerpt from...` as a positive, taxonomy-label chores in human-facing risks, and vague `run follow-up if material` watch items.
+  - Current progress: first regression test now fails status-only Grok/X output; opportunity/final digest synthesis now preserves raw Grok/X narratives, bull/bear claims, accounts/posts, hype/noise, and concrete news developments.
+  - Still pending: stronger golden tests using richer fixture reports modeled after the user-provided Grok PDFs, but with a higher bar: non-obvious/contrarian insight, expert/community split, trend evolution, company/industry context, valuation/analyst snapshot, and summary table. Also add broader usefulness gates for market-research and discovery reports.
 - [ ] Add failure-injection tests for provider failure, malformed specialist output, missing citations, and timeout behavior.
   - Current progress: timeout and runtime-error failure injection tests are implemented for `run_agent_sync`; provider failure, malformed specialist output, and missing-citation golden tests remain.
 - [ ] Add quality gates for no direct writes outside allowed targets.

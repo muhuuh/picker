@@ -218,3 +218,17 @@ After a weekly or manual run:
 - evidence: `stock_research/weekly_digest.py`, `stock_research/opportunity_assessment.py`, `stock_research/report_formatting.py`, `stock_research/scheduled_runner.py`, `tests/test_weekly_digest.py`, `tests/test_opportunity_assessment.py`, `agents/runs/2026-05-16_weekly/final_digest.md`
 - owner: memory and evaluation orchestrator
 - next_review: 2026-06-15
+
+- id: eval-2026-05-12-investor-usefulness-gate
+- date: 2026-05-12
+- type: evaluation
+- scope: orchestrator
+- status: active
+- confidence: high
+- trigger/source: User reviewed AMZN final digest/opportunity report and found it structurally valid but not actionable or insight-rich.
+- lesson: Investor-facing reports must not collapse provider artifacts into status labels, source counts, or internal workflow chores. Final digest and opportunity reports must surface concrete news claims, Grok/X community pulse, recurring bull and bear narratives, notable accounts/posts, hype/noise, verified-vs-social/speculative separation, and a clear research decision. `quality_findings: []` is not enough unless usefulness gates are also covered.
+- use_when: Reviewing final digests, opportunity assessments, sentiment specialists, market discovery reports, prompt quality, or golden tests.
+- do_not_use_when: Raw provider smoke tests or low-level schema validation where investor readability is not the output goal.
+- evidence: `docs/scratchpads/openai_agents_sdk_orchestration_scratchpad.md`, `docs/plans/investment_agent_backlog.md`, `docs/plans/openai_agents_sdk_orchestration_backlog.md`, `stock_research/opportunity_assessment.py`, `stock_research/weekly_digest.py`, `agents/specialists/prompts/sentiment.md`, `agents/runs/2026-05-16_weekly/final_digest.md`
+- owner: memory and evaluation orchestrator
+- next_review: 2026-06-15

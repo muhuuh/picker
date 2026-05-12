@@ -192,21 +192,37 @@ def xai_response_to_packet(
 def stock_sentiment_prompt(ticker: str, company_name: str = "") -> str:
     label = f"{ticker.upper()} {company_name}".strip()
     return (
-        f"Search X for recent discussion about {label}. "
-        "Summarize community sentiment, recurring bullish and bearish claims, notable news people are reacting to, "
-        "credible accounts or posts worth reviewing, hype/noise level, rumors or unverified claims, "
-        "and concrete implications for an investor. Separate verified facts, social sentiment, and speculation. "
-        "Include citations to X posts where possible."
+        f"Search X deeply for recent investor discussion about {label}. "
+        "Act as a chronically-online technology/stock analyst. The goal is not a sentiment label; it is to surface "
+        "actionable, non-obvious investor insight from X. Use citations to specific X posts/accounts where possible. "
+        "Write with these exact sections: "
+        "1) Executive X pulse - 3-5 sentences on what the X community currently believes and why it matters. "
+        "2) Verified facts people are reacting to - separate facts that should be cross-checked with filings/news. "
+        "3) Recurring bullish arguments - concrete claims, catalysts, product/tech/industry narratives, and who is saying them. "
+        "4) Recurring bearish or skeptical arguments - concrete risks, counters, valuation concerns, execution worries, and who is saying them. "
+        "5) Notable accounts/posts worth reviewing - handles, why they matter, and citation links. "
+        "6) Hype/noise/spam level - assess whether discussion is informed, technical, promotional, or bot-heavy. "
+        "7) Rumors or unverified claims - label speculation clearly and state how to verify it. "
+        "8) Investor implications - specific research checks and what would strengthen or weaken the thesis. "
+        "Do not give buy/sell instructions. Separate verified facts, social narrative, and speculation."
     )
 
 
 def industry_sentiment_prompt(topic: str) -> str:
     return (
-        f"Search X for recent discussion about {topic}. "
-        "Summarize industry sentiment, emerging narratives, new public companies/tickers people are discussing, "
-        "niche or under-followed companies, rumors or unverified claims, bullish and bearish arguments, "
-        "likely hype cycles, credible accounts/posts worth reviewing, and concrete follow-up research tasks. "
-        "Separate verified facts, social sentiment, and speculation. Include citations to X posts where possible."
+        f"Search X deeply for recent investor and expert discussion about {topic}. "
+        "Act as a chronically-online market scout looking for trends, hidden champions, raw diamonds, emerging tickers, "
+        "and niche companies before they become obvious. Use citations to specific X posts/accounts where possible. "
+        "Write with these exact sections: "
+        "1) Industry X pulse - what people currently believe, what changed recently, and why it matters. "
+        "2) Key technologies and demand drivers - concrete technologies, customers, policy/macro tailwinds, and bottlenecks. "
+        "3) Companies being discussed - incumbents, newcomers, hidden champions, and public tickers when available. "
+        "4) Recurring bullish narratives - catalysts and who is pushing them. "
+        "5) Recurring bearish/skeptical narratives - risks, fraud/noise signals, valuation concerns, and who is pushing them. "
+        "6) Hype/noise/rumors map - what looks credible, promotional, or unverified. "
+        "7) Candidate follow-up list - tickers/companies, why surfaced, verification needed, and priority. "
+        "8) Investor implications - what to research next and what evidence would confirm or kill the theme. "
+        "Separate verified facts, social narrative, and speculation."
     )
 
 

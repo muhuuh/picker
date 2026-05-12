@@ -46,9 +46,16 @@ def base_assessment() -> dict:
             "taxonomy_conflict_count": 0,
             "material_conflict_count": 0,
         },
+        "news_snapshot": {
+            "status": "ready_for_company_update",
+            "material_developments": [{"claim": "AWS demand accelerated and operating margins expanded."}],
+        },
         "social_snapshot": {
             "status": "available",
             "sentiment": "positive_social_signal",
+            "x_pulse": "X investors are constructive because AWS acceleration supports the AI thesis.",
+            "bullish_claims": ["AWS and AI partnerships are the dominant bull narrative."],
+            "bearish_claims": ["Valuation is the dominant pushback."],
         },
     }
 

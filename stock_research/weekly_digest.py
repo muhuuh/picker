@@ -108,6 +108,7 @@ def concise_news_snapshot(value: dict[str, Any]) -> dict[str, Any]:
         "status": value.get("status", "missing"),
         "source_count": value.get("source_count", 0),
         "contents_claim_count": value.get("contents_claim_count", 0),
+        "material_developments": list(value.get("material_developments") or [])[:4],
         "remaining_content_follow_up_count": value.get("remaining_content_follow_up_count", 0),
     }
 
@@ -118,6 +119,13 @@ def concise_social_snapshot(value: dict[str, Any]) -> dict[str, Any]:
         "sentiment": value.get("sentiment", "missing"),
         "citation_count": value.get("citation_count", 0),
         "rumor_flag": value.get("rumor_flag", False),
+        "x_pulse": value.get("x_pulse", ""),
+        "bullish_claims": list(value.get("bullish_claims") or [])[:3],
+        "bearish_claims": list(value.get("bearish_claims") or [])[:3],
+        "news_reactions": list(value.get("news_reactions") or [])[:3],
+        "notable_accounts": list(value.get("notable_accounts") or [])[:5],
+        "hype_noise": value.get("hype_noise", ""),
+        "investor_implications": list(value.get("investor_implications") or [])[:3],
     }
 
 
@@ -204,19 +212,32 @@ def format_weekly_digest_markdown(digest: WeeklyDigest) -> str:
         news = item["news_snapshot"]
         social = item["social_snapshot"]
         filing = item["filing_snapshot"]
-        lines.append(
-            f"- news: {news['status']} ({news['source_count']} source(s), {news['contents_claim_count']} contents claim(s))"
-        )
-        lines.append(
-            f"- Grok/X social signal: {social['sentiment']} ({social['citation_count']} citation(s), rumor_flag={social['rumor_flag']})"
-        )
-        lines.append(f"- filings: {filing['status']} ({filing['packet_count']} packet(s))")
+        if news.get("material_developments"):
+            lines.append("- Source-backed developments:")
+            for development in news["material_developments"][:3]:
+                claim_text = development.get("claim") if isinstance(development, dict) else str(development)
+                lines.append(f"  - {claim_text}")
+        else:
+            lines.append("- Source-backed developments: none extracted.")
+        lines.append(f"- Grok/X pulse: {social.get('x_pulse') or social['sentiment']}")
+        if social.get("bullish_claims"):
+            lines.append("- X bull case:")
+            lines.extend(f"  - {value}" for value in social["bullish_claims"][:2])
+        if social.get("bearish_claims"):
+            lines.append("- X bear/skeptic case:")
+            lines.extend(f"  - {value}" for value in social["bearish_claims"][:2])
+        if social.get("notable_accounts"):
+            lines.append(f"- Accounts/posts to review: {', '.join(social['notable_accounts'][:5])}")
+        if social.get("hype_noise"):
+            lines.append(f"- Hype/noise: {social['hype_noise']}")
+        lines.append(f"- Filing coverage: {filing['status']} ({filing['packet_count']} packet(s))")
         lines.extend(["", "### Positives", ""])
         lines.extend(f"- {value}" for value in item["top_positives"])
         lines.extend(["", "### Risks / Cautions", ""])
         lines.extend(f"- {value}" for value in item["top_negatives"])
-        lines.extend(["", "### Watch Items", ""])
-        lines.extend(f"- {value}" for value in item["watch_items"])
+        lines.extend(["", "### Next Research Checks", ""])
+        user_checks = [value for value in item["watch_items"] if not str(value).startswith("Extract remaining high-value Exa")]
+        lines.extend(f"- {value}" for value in (user_checks or ["No high-priority human research check surfaced in this digest."]))
         lines.extend(["", "### Recommended Next Action", "", f"- {item['recommended_next_action']}", ""])
     lines.extend(["## Run-Level Next Actions", ""])
     if digest.next_actions:
@@ -251,6 +272,12 @@ def validate_weekly_digest_tickers(root: Path, tickers: list[dict[str, Any]]) ->
         social = item.get("social_snapshot", {})
         if social.get("status") == "available" and not str(social.get("sentiment", "")).endswith("_social_signal"):
             findings.append(f"{ticker} Grok/X sentiment must be labeled as a social signal.")
+        if social.get("status") == "available" and not social.get("x_pulse"):
+            findings.append(f"{ticker} digest is missing an actionable Grok/X pulse narrative.")
+        if social.get("status") == "available" and not (social.get("bullish_claims") or social.get("bearish_claims")):
+            findings.append(f"{ticker} digest is missing concrete Grok/X bullish or bearish claims.")
+        if item.get("news_snapshot", {}).get("status") != "missing" and not item.get("news_snapshot", {}).get("material_developments"):
+            findings.append(f"{ticker} digest is missing concrete source-backed news developments.")
         if contains_direct_trade_language(str(item.get("summary", ""))):
             findings.append(f"{ticker} digest summary contains direct trade language.")
         if contains_direct_trade_language(str(item.get("recommended_next_action", ""))):
@@ -265,7 +292,7 @@ def contains_direct_trade_language(value: str) -> bool:
         r"\b(stock|shares|position|ticker)\s+(is|are)\s+a\s+(buy|sell|short)\b",
         r"\b(go|going)\s+(long|short)\b",
         r"\b(add|increase|reduce|trim|exit)\s+(the\s+)?(stock|shares|position)\b",
-        r"\b(position\s+size|size\s+the\s+position)\b",
+        r"\b(position\s+size|position\s+sizing|size\s+the\s+position)\b",
     ]
     import re
 

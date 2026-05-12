@@ -20,7 +20,8 @@ class WeeklyDigestTests(unittest.TestCase):
             self.assertEqual(digest.quality_findings, [])
             self.assertIn("### Evidence Links", markdown)
             self.assertIn("financial_review", markdown)
-            self.assertIn("Grok/X social signal", markdown)
+            self.assertIn("Grok/X pulse", markdown)
+            self.assertIn("X bull case", markdown)
             self.assertIn("- market_cap: $1.00M", markdown)
             self.assertIn("- profit_margin: 10.00%", markdown)
             self.assertIn("- pe_ratio: 30.00x", markdown)
@@ -60,6 +61,18 @@ class WeeklyDigestTests(unittest.TestCase):
             self.assertEqual(digest.status, "needs_review")
             self.assertTrue(any("direct trade language" in finding for finding in digest.quality_findings))
 
+    def test_weekly_digest_flags_status_only_social_output(self):
+        with TemporaryDirectory() as temp_dir:
+            root = seed_digest_repo(Path(temp_dir))
+            write_opportunity_input(root, "AAPL", include_social_narrative=False)
+            write_required_reports(root, "AAPL")
+
+            digest = build_weekly_digest(root, "2026-05-16_weekly")
+
+            self.assertEqual(digest.status, "needs_review")
+            self.assertTrue(any("Grok/X pulse" in finding for finding in digest.quality_findings))
+            self.assertTrue(any("bullish or bearish claims" in finding for finding in digest.quality_findings))
+
 
 def seed_digest_repo(root: Path) -> Path:
     (root / "AGENTS.md").write_text("# AGENTS\n", encoding="utf-8")
@@ -75,6 +88,7 @@ def write_opportunity_input(
     *,
     social_sentiment: str = "positive_social_signal",
     summary: str | None = None,
+    include_social_narrative: bool = True,
 ) -> None:
     run_dir = root / "agents/runs/2026-05-16_weekly/raw/opportunity_assessment"
     run_dir.mkdir(parents=True, exist_ok=True)
@@ -101,11 +115,29 @@ def write_opportunity_input(
             "currency": "USD",
             "conflict_count": 1,
         },
-        "news_snapshot": {"status": "ready_for_company_update", "source_count": 3, "contents_claim_count": 3},
-        "social_snapshot": {"status": "available", "sentiment": social_sentiment, "citation_count": 2, "rumor_flag": False},
+        "news_snapshot": {
+            "status": "ready_for_company_update",
+            "source_count": 3,
+            "contents_claim_count": 3,
+            "material_developments": [{"claim": "AWS demand accelerated and operating margins expanded.", "source_ids": ["exa_result_1"]}],
+        },
+        "social_snapshot": {
+            "status": "available",
+            "sentiment": social_sentiment,
+            "citation_count": 2,
+            "rumor_flag": False,
+        },
         "filing_snapshot": {"status": "available", "packet_count": 1, "unknown_count": 0},
         "recommended_next_action": "Use this as a reviewable holding update and inspect watch items before changing the thesis.",
     }
+    if include_social_narrative:
+        payload["social_snapshot"].update(
+            {
+                "x_pulse": "X discussion is constructive because investors focus on AWS acceleration and margin expansion.",
+                "bullish_claims": ["AWS and AI demand are the main upside narrative."],
+                "bearish_claims": ["Valuation remains the main pushback."],
+            }
+        )
     (run_dir / f"{ticker}_opportunity_assessment.json").write_text(json.dumps(payload), encoding="utf-8")
 
 

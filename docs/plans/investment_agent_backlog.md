@@ -1,6 +1,6 @@
 # Investment Agent Backlog
 
-Last updated: 2026-05-11
+Last updated: 2026-05-12
 
 ## Purpose
 
@@ -375,13 +375,20 @@ This is the clear task backlog for building the stock tracking and investment re
 
 - [ ] Run prompt/output quality iteration on realistic manual and weekly-style examples.
   - Description: inspect actual reports for usefulness, specificity, citation quality, and next-action clarity; improve prompts and schemas until output quality matches expectations.
-  - Current progress: AMZN/AAPL weekly-style output was reviewed and tightened. Final digest now has readable financial formatting, explicit evidence links, deduped opportunity news positives, no direct trade language, and no digest/opportunity quality findings.
+  - Current progress: AMZN/AAPL weekly-style output was reviewed and tightened for structure, but user review on 2026-05-12 found the content still failed the product goal. Status labels and internal workflow notes are not acceptable output quality. The next iteration must surface actionable X/community narratives, expert/account viewpoints, bullish/bearish arguments, latest developments, verified vs speculative claims, and clear research decisions.
+  - 2026-05-12 repair pass: Grok prompts now request deeper account-aware X research; opportunity/final digest synthesis now surfaces X pulse, bull/bear narratives, accounts/posts, hype/noise, investor implications, concrete news developments, and usefulness gates instead of collapsing to status labels. Existing AMZN/AAPL artifacts were regenerated.
+  - Remaining quality target: this is a first repair pass, not the ceiling. The target is materially stronger than the user's old standalone Grok PDFs by combining Grok/X, Exa, filings, financials, memory, and specialist synthesis.
+  - New acceptance bar: final reports must be at least 3x more useful than a quick standalone Grok/X query, because the repo has Grok plus Exa, filings, financial providers, memory, and specialist orchestration.
+  - Next report-shape gap: add a richer investor insight report with company/industry context, thesis change, X narrative evolution, expert/community split, contrarian/non-obvious insights, valuation snapshot, analyst target/forward PE where available, peer/competition notes, and a summary table.
 - [ ] Add golden/failure tests.
   - Description: cover provider failures, malformed specialist output, missing citations, stale approvals, duplicate HRQ decisions, and unsupported review statuses.
   - Current progress: weekly digest and opportunity assessment golden tests cover evidence links, missing evidence, Grok/X social-signal labeling, direct trade language, readable financial formatting, taxonomy-only conflict handling, and missing provider/source ids.
+  - 2026-05-12 progress: added investor-usefulness regression coverage for status-only Grok/X output.
+  - Gap: add investor-usefulness golden tests modeled on the user-provided Grok PDFs, but with a higher bar: fail when reports contain only status labels, source counts, vague watch items, generic evidence titles without actual claims, or no non-obvious/contrarian insight.
 - [ ] Strengthen guardrails.
   - Description: enforce no writes outside allowed targets, no Grok-only promotion, no overconfident claims without sources, and no buy/sell/position-size action outside human review.
   - Current progress: final digest and opportunity assessment validators now enforce evidence/source presence, social-signal labeling, direct trade-language blocking, and taxonomy-only conflict handling.
+  - Gap: guardrails must also flag non-actionable synthesis, e.g. `Grok/X social signal: mixed_social_signal` without a narrative summary, no bullish/bearish claim extraction, and watch items that describe internal workflow chores instead of user-facing research decisions.
 - [ ] Add specialist/provider depth only where real runs show gaps.
   - Description: prioritize macro providers, European filing coverage, earnings/transcripts, and alert specialists based on quality gaps discovered in live runs.
 - [ ] Add model selection optimization.

@@ -84,6 +84,7 @@ def build_opportunity_assessment(root: Path, run_id: str, ticker: str, packets: 
     positives = build_positives(financial, news, social, filings)
     negatives = build_negatives(financial, news, social, filings, packets)
     watch_items = build_watch_items(financial, news, social, filings, packets)
+    data_quality_notes = build_data_quality_notes(financial, news)
 
     assessment = {
         "ticker": ticker,
@@ -93,7 +94,7 @@ def build_opportunity_assessment(root: Path, run_id: str, ticker: str, packets: 
         "risk_level": risk_level,
         "confidence": confidence,
         "thesis_freshness": thesis_freshness,
-        "summary": build_summary(ticker, opportunity_view, score, risk_level, confidence, positives, negatives),
+        "summary": build_summary(ticker, opportunity_view, score, risk_level, confidence, positives, negatives, social),
         "financial_snapshot": financial,
         "news_snapshot": news,
         "social_snapshot": social,
@@ -101,11 +102,12 @@ def build_opportunity_assessment(root: Path, run_id: str, ticker: str, packets: 
         "positives": positives,
         "negatives": negatives,
         "watch_items": watch_items,
+        "data_quality_notes": data_quality_notes,
         "score_factors": score_factors,
         "source_ids": source_ids,
         "provider_coverage": sorted(providers),
         "packet_count": len(packets),
-        "recommended_next_action": recommended_next_action(opportunity_view, risk_level, confidence, watch_items),
+        "recommended_next_action": recommended_next_action(opportunity_view, risk_level, confidence, financial, news, social, watch_items),
         "human_review_required": True,
     }
     assessment["quality_findings"] = validate_opportunity_assessment(assessment)
@@ -125,6 +127,13 @@ def validate_opportunity_assessment(assessment: dict[str, Any]) -> list[str]:
     social = assessment.get("social_snapshot") or {}
     if social.get("status") == "available" and not str(social.get("sentiment", "")).endswith("_social_signal"):
         findings.append(f"{ticker} Grok/X signal must be labeled as social signal, not fact.")
+    if social.get("status") == "available" and not social.get("x_pulse"):
+        findings.append(f"{ticker} opportunity assessment is missing an actionable Grok/X pulse narrative.")
+    if social.get("status") == "available" and not (social.get("bullish_claims") or social.get("bearish_claims")):
+        findings.append(f"{ticker} opportunity assessment is missing concrete Grok/X bullish or bearish claims.")
+    news = assessment.get("news_snapshot") or {}
+    if news.get("status") != "missing" and not news.get("material_developments"):
+        findings.append(f"{ticker} opportunity assessment is missing concrete source-backed news developments.")
     financial = assessment.get("financial_snapshot") or {}
     if financial.get("taxonomy_conflict_count") and not financial.get("material_conflict_count") and assessment.get("risk_level") == "high":
         findings.append(f"{ticker} taxonomy-only conflict should not create a high-risk opportunity assessment.")
@@ -142,7 +151,7 @@ def contains_direct_trade_language(value: str) -> bool:
         r"\b(stock|shares|position|ticker)\s+(is|are)\s+a\s+(buy|sell|short)\b",
         r"\b(go|going)\s+(long|short)\b",
         r"\b(add|increase|reduce|trim|exit)\s+(the\s+)?(stock|shares|position)\b",
-        r"\b(position\s+size|size\s+the\s+position)\b",
+        r"\b(position\s+size|position\s+sizing|size\s+the\s+position)\b",
     ]
     import re
 
@@ -194,6 +203,7 @@ def metric_value(metrics: dict[str, Any], name: str) -> Any:
 
 
 def summarize_news(review: dict[str, Any]) -> dict[str, Any]:
+    material_developments = build_material_developments(review)
     return {
         "status": review.get("status", "missing"),
         "reason": review.get("status_reason", ""),
@@ -201,19 +211,102 @@ def summarize_news(review: dict[str, Any]) -> dict[str, Any]:
         "contents_claim_count": int(review.get("contents_claim_count") or 0),
         "top_sources": list(review.get("top_sources") or [])[:5],
         "contents_claims": list(review.get("contents_claims") or [])[:5],
+        "material_developments": material_developments[:6],
         "remaining_content_follow_up_count": len(review.get("remaining_content_follow_up_urls") or []),
+        "remaining_content_follow_up_urls": list(review.get("remaining_content_follow_up_urls") or [])[:5],
         "unknown_count": len(review.get("unknowns") or []),
         "contradiction_count": len(review.get("contradictions") or []),
     }
 
 
+def build_material_developments(review: dict[str, Any]) -> list[dict[str, Any]]:
+    developments: list[dict[str, Any]] = []
+    seen: set[str] = set()
+    for claim in review.get("contents_claims", []) or []:
+        if not isinstance(claim, dict):
+            continue
+        evidence = str(claim.get("evidence", ""))
+        source_ids = list(claim.get("source_ids") or [])
+        for item in extract_development_items(evidence):
+            key = normalize_claim_key(item)
+            if not key or key in seen:
+                continue
+            seen.add(key)
+            developments.append({"claim": item, "source_ids": source_ids, "confidence": claim.get("confidence", "medium")})
+            if len(developments) >= 8:
+                return developments
+    for claim in review.get("material_claims", []) or []:
+        if not isinstance(claim, dict):
+            continue
+        evidence = str(claim.get("evidence", ""))
+        source_ids = list(claim.get("source_ids") or [])
+        for item in extract_development_items(evidence):
+            key = normalize_claim_key(item)
+            if not key or key in seen:
+                continue
+            seen.add(key)
+            developments.append({"claim": item, "source_ids": source_ids, "confidence": claim.get("confidence", "medium")})
+            if len(developments) >= 8:
+                return developments
+    return developments
+
+
+def extract_development_items(evidence: str) -> list[str]:
+    text = compact_text(evidence, 2500).replace("[...]", "\n")
+    candidates: list[str] = []
+    for line in text.splitlines():
+        line = clean_report_text(line.strip(" -\t"))
+        if not line:
+            continue
+        if not looks_investor_relevant(line):
+            continue
+        candidates.append(line)
+    if candidates:
+        return candidates[:6]
+    sentences = re.split(r"(?<=[.!?])\s+", clean_report_text(text))
+    return [sentence for sentence in sentences if looks_investor_relevant(sentence)][:6]
+
+
+def looks_investor_relevant(value: str) -> bool:
+    lower = value.lower()
+    if len(value) < 35:
+        return False
+    keywords = (
+        "revenue",
+        "sales",
+        "aws",
+        "margin",
+        "operating income",
+        "income",
+        "eps",
+        "guidance",
+        "growth",
+        "capex",
+        "capital expenditure",
+        "backlog",
+        "ai",
+        "anthropic",
+        "openai",
+        "advertising",
+        "transportation",
+        "cost",
+        "cash flow",
+        "supply",
+        "partnership",
+        "customer",
+        "launched",
+        "contract",
+    )
+    return any(keyword in lower for keyword in keywords)
+
+
 def summarize_social(packets: list[EvidencePacket]) -> dict[str, Any]:
     social_packets = [packet for packet in packets if packet.provider == "xai_grok"]
-    claims = [claim.evidence for packet in social_packets for claim in packet.claims]
+    raw_texts = [text for packet in social_packets if (text := read_xai_raw_output(packet.raw_artifact_path))]
+    claims = raw_texts or [claim.evidence for packet in social_packets for claim in packet.claims]
     sources = [source for packet in social_packets for source in packet.sources]
     text = "\n".join(claims)
     lower = text.lower()
-    rumor_flag = any(word in lower for word in ("rumor", "unverified", "speculation", "speculative"))
     hype_terms = sum(lower.count(word) for word in ("hype", "viral", "enthusiasm", "bullish", "momentum"))
     risk_terms = sum(lower.count(word) for word in ("bearish", "concern", "risk", "worry", "slowdown"))
     if not social_packets:
@@ -224,6 +317,14 @@ def summarize_social(packets: list[EvidencePacket]) -> dict[str, Any]:
         sentiment = "negative_social_signal"
     else:
         sentiment = "mixed_social_signal"
+    sections = parse_grok_sections(text)
+    rumors = section_items(sections, ["rumors or unverified claims"], limit=4)
+    rumor_flag = bool(rumors) or (
+        any(word in lower for word in ("rumor", "speculation", "speculative"))
+        and "no major unverified rumors" not in lower
+        and "no major rumors" not in lower
+    )
+    notable_accounts = extract_notable_accounts(text)
     return {
         "status": "available" if social_packets else "missing",
         "packet_count": len(social_packets),
@@ -232,8 +333,57 @@ def summarize_social(packets: list[EvidencePacket]) -> dict[str, Any]:
         "rumor_flag": rumor_flag,
         "hype_signal_count": hype_terms,
         "risk_signal_count": risk_terms,
-        "summary_excerpt": compact_text(text, 700),
+        "x_pulse": first_non_empty_section(
+            sections,
+            [
+                "executive x pulse",
+                "community sentiment on x (as of mid-may 2026)",
+                "recent x discussion on $amzn (early-to-mid may 2026) shows moderately bullish community sentiment",
+                "social sentiment",
+            ],
+            fallback=first_paragraph(text),
+        ),
+        "verified_facts": section_items(sections, ["verified facts", "verified facts (from earnings/news reactions)"], limit=5),
+        "bullish_claims": section_items(sections, ["recurring bullish claims", "bull case narratives"], limit=5),
+        "bearish_claims": section_items(sections, ["recurring bearish/neutral claims", "recurring bearish claims", "recurring bearish or skeptical arguments", "bear/skeptic narratives"], limit=5),
+        "news_reactions": section_items(sections, ["notable news people are reacting to"], limit=5),
+        "notable_accounts": notable_accounts[:6],
+        "hype_noise": first_non_empty_section(sections, ["hype / noise level", "hype/noise level", "hype/noise/spam level"], fallback=""),
+        "rumors": rumors,
+        "investor_implications": section_items(
+            sections,
+            [
+                "concrete implications for an investor",
+                "concrete implications for an investor (separate verified facts vs. sentiment vs. speculation)",
+                "investor implications",
+                "bottom-line investor takeaway",
+            ],
+            limit=5,
+            fallback_paragraph=True,
+        ),
+        "summary_excerpt": compact_text(text, 1200),
     }
+
+
+def read_xai_raw_output(path_value: str) -> str:
+    if not path_value:
+        return ""
+    path = Path(path_value)
+    if not path.exists():
+        return ""
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return ""
+    response = data.get("response", {}) if isinstance(data, dict) else {}
+    parts: list[str] = []
+    for item in response.get("output", []) if isinstance(response, dict) else []:
+        if item.get("type") != "message":
+            continue
+        for content in item.get("content", []) or []:
+            if content.get("type") == "output_text":
+                parts.append(str(content.get("text", "")))
+    return "\n\n".join(part for part in parts if part)
 
 
 def summarize_filings(packets: list[EvidencePacket]) -> dict[str, Any]:
@@ -333,7 +483,7 @@ def classify_risk(
 ) -> str:
     if financial.get("material_conflict_count") or news.get("contradiction_count"):
         return "high"
-    if score < 45 or social.get("rumor_flag") or filings.get("status") == "missing" or financial.get("taxonomy_conflict_count"):
+    if score < 45 or social.get("rumor_flag") or filings.get("status") == "missing":
         return "medium"
     return "low"
 
@@ -373,17 +523,18 @@ def classify_confidence(
 
 def build_positives(financial: dict[str, Any], news: dict[str, Any], social: dict[str, Any], filings: dict[str, Any]) -> list[str]:
     positives: list[str] = []
-    if financial.get("revenue_ttm"):
-        positives.append(
-            f"Revenue TTM is available at {format_financial_value('revenue_ttm', financial['revenue_ttm'])}, giving a scale anchor."
-        )
-    if numeric(financial.get("profit_margin")) and numeric(financial.get("profit_margin")) > 0:
-        positives.append(f"Profit margin is positive at {format_percent(financial['profit_margin'])}.")
-    for claim_text in unique_claim_texts(news.get("contents_claims", []), limit=3):
+    for development in news.get("material_developments", [])[:3]:
+        claim_text = development.get("claim") if isinstance(development, dict) else ""
         if claim_text:
-            positives.append(f"Recent source-backed development: {claim_text}")
+            positives.append(claim_text)
+    for claim_text in social.get("bullish_claims", [])[:2]:
+        positives.append(f"X bull narrative: {claim_text}")
+    if financial.get("revenue_ttm") and numeric(financial.get("profit_margin")) and numeric(financial.get("profit_margin")) > 0:
+        positives.append(
+            f"Scale/profitability anchor: revenue TTM {format_financial_value('revenue_ttm', financial['revenue_ttm'])}, profit margin {format_percent(financial['profit_margin'])}."
+        )
     if social.get("sentiment") == "positive_social_signal":
-        positives.append("Grok/X scan found a positive social signal, treated as narrative evidence only.")
+        positives.append("Grok/X scan found a positive social narrative, treated as sentiment evidence until verified.")
     if filings.get("status") == "available":
         positives.append("SEC filing lane is available for primary-source validation.")
     return positives[:6] or ["No strong positive signal was detected from the current evidence set."]
@@ -399,8 +550,8 @@ def build_negatives(
     negatives: list[str] = []
     if financial.get("status") == "needs_human_review":
         negatives.append(f"Financial review needs human review: {financial.get('reason') or 'unresolved financial gate'}.")
-    if financial.get("taxonomy_conflict_count"):
-        negatives.append("Providers disagree on industry taxonomy; treat this as a classification/watch item, not a numeric conflict.")
+    for claim_text in social.get("bearish_claims", [])[:3]:
+        negatives.append(f"X bear/skeptic narrative: {claim_text}")
     if numeric(financial.get("free_cash_flow_per_share_ttm")) and numeric(financial.get("free_cash_flow_per_share_ttm")) < 0:
         negatives.append(
             "Free cash flow per share TTM is negative at "
@@ -426,19 +577,34 @@ def build_watch_items(
     items: list[str] = []
     if financial.get("material_conflict_count"):
         items.append("Resolve material financial provider conflict before updating company-file conclusions.")
-    if financial.get("taxonomy_conflict_count"):
-        items.append("Pick the preferred industry taxonomy label for the company file.")
-    if financial.get("single_provider_metric_count"):
-        items.append("Treat single-provider financial metrics as lower-confidence until cross-checked.")
+    for implication in social.get("investor_implications", [])[:3]:
+        items.append(implication)
+    for rumor in social.get("rumors", [])[:2]:
+        items.append(f"Verify X rumor/speculation: {rumor}")
     if news.get("remaining_content_follow_up_count"):
-        items.append("Run Exa contents follow-up for remaining high-value news URLs if they look material.")
+        urls = news.get("remaining_content_follow_up_urls", [])
+        if urls:
+            items.append(f"Extract remaining high-value Exa articles in next run, especially {urls[0]}.")
+        else:
+            items.append("Extract remaining high-value Exa articles in the next run.")
     if social.get("status") == "missing":
         items.append("Run Grok/X sentiment if social narrative matters for the next decision.")
     if filings.get("status") == "missing":
         items.append("Run or inspect SEC filing coverage for primary-source validation.")
     if not any(packet.provider == "exa" for packet in packets):
         items.append("Run Exa company/news search before treating the report as complete.")
-    return items[:7] or ["No immediate blocking follow-up identified."]
+    return items[:7] or ["No immediate blocking follow-up identified beyond routine thesis monitoring."]
+
+
+def build_data_quality_notes(financial: dict[str, Any], news: dict[str, Any]) -> list[str]:
+    notes: list[str] = []
+    if financial.get("taxonomy_conflict_count"):
+        notes.append("Provider industry labels differ; keep this as internal classification hygiene, not an investment risk.")
+    if financial.get("single_provider_metric_count"):
+        notes.append("Some financial metrics are single-provider; use them as directional until cross-provider coverage improves.")
+    if news.get("remaining_content_follow_up_count"):
+        notes.append("Some Exa URLs remain unextracted; schedule contents follow-up as an internal run-quality task.")
+    return notes
 
 
 def build_summary(
@@ -449,10 +615,15 @@ def build_summary(
     confidence: str,
     positives: list[str],
     negatives: list[str],
+    social: dict[str, Any],
 ) -> str:
+    pulse = social.get("x_pulse", "")
+    pulse_sentence = f" X pulse: {compact_text(strip_citations_and_markdown(pulse), 220)}" if pulse else ""
+    positive = compact_text(strip_citations_and_markdown(positives[0]), 180)
+    negative = compact_text(strip_citations_and_markdown(negatives[0]), 180)
     return (
-        f"{ticker} assessment is {opportunity_view} with score {score}/100, {risk_level} risk, and {confidence} confidence. "
-        f"Main positive: {positives[0]} Main caution: {negatives[0]}"
+        f"{ticker} is {opportunity_view} ({score}/100, {risk_level} risk, {confidence} confidence) because {positive} "
+        f"Main caveat: {negative}{pulse_sentence}"
     )
 
 
@@ -487,14 +658,26 @@ def recommended_next_action(
     opportunity_view: str,
     risk_level: str,
     confidence: str,
+    financial: dict[str, Any],
+    news: dict[str, Any],
+    social: dict[str, Any],
     watch_items: list[str],
 ) -> str:
     if risk_level == "high" or confidence == "low":
         return "Review blocking evidence gaps before updating the company thesis."
+    if social.get("bearish_claims") and social.get("bullish_claims"):
+        bull = compact_text(strip_citations_and_markdown(str(social["bullish_claims"][0])), 130)
+        bear = compact_text(strip_citations_and_markdown(str(social["bearish_claims"][0])), 130)
+        return (
+            "Next research decision: test whether the social bull case is fundamental or mostly momentum. "
+            f"Verify the bull claim ({bull}) against filings/earnings and compare it with the main pushback ({bear})."
+        )
+    if news.get("material_developments"):
+        return "Update the company thesis around the strongest source-backed development and verify whether it changes growth, margin, or valuation assumptions."
     if opportunity_view in {"interesting", "constructive_but_watch"}:
-        return "Use this as a reviewable holding update and inspect watch items before changing the thesis."
+        return "Keep on the active review list and use the listed evidence checks to decide whether the thesis improved, weakened, or stayed unchanged."
     if watch_items:
-        return "Keep monitoring and resolve the listed watch items before making a stronger judgment."
+        return "Resolve the listed research checks before making a stronger thesis judgment."
     return "No action beyond routine monitoring."
 
 
@@ -619,26 +802,55 @@ def format_opportunity_assessment_markdown(root: Path, run_id: str, assessment: 
     lines.extend(f"- {item}" for item in assessment["positives"])
     lines.extend(["", "## Key Negatives / Risks", ""])
     lines.extend(f"- {item}" for item in assessment["negatives"])
-    lines.extend(["", "## Watch Items", ""])
+    lines.extend(["", "## Next Research Checks", ""])
     lines.extend(f"- {item}" for item in assessment["watch_items"])
     lines.extend(["", "## Financial Snapshot", ""])
     for key, value in assessment["financial_snapshot"].items():
         lines.append(f"- {key}: {format_financial_value(key, value)}")
     lines.extend(["", "## News And Developments", ""])
     news = assessment["news_snapshot"]
-    lines.append(f"- status: {news.get('status')}")
-    lines.append(f"- source_count: {news.get('source_count')}")
-    lines.append(f"- contents_claim_count: {news.get('contents_claim_count')}")
-    for claim_text in unique_claim_texts(news.get("contents_claims", []), limit=3):
-        lines.append(f"- claim: {claim_text}")
-    lines.extend(["", "## Grok/X Social Signal", ""])
+    developments = news.get("material_developments") or []
+    if developments:
+        for development in developments[:6]:
+            claim_text = development.get("claim") if isinstance(development, dict) else str(development)
+            source_ids = ", ".join(development.get("source_ids") or []) if isinstance(development, dict) else ""
+            suffix = f" [{source_ids}]" if source_ids else ""
+            lines.append(f"- {claim_text}{suffix}")
+    else:
+        lines.append("- No concrete source-backed development was extracted.")
+    if news.get("remaining_content_follow_up_urls"):
+        lines.append(
+            "- Internal follow-up: remaining Exa URLs should be extracted in a later run, especially "
+            f"{news['remaining_content_follow_up_urls'][0]}."
+        )
+    lines.extend(["", "## Grok/X Community And Sentiment", ""])
     social = assessment["social_snapshot"]
-    lines.append(f"- status: {social.get('status')}")
-    lines.append(f"- sentiment: {social.get('sentiment')}")
-    lines.append(f"- citation_count: {social.get('citation_count')}")
-    lines.append(f"- rumor_flag: {social.get('rumor_flag')}")
-    if social.get("summary_excerpt"):
-        lines.append(f"- excerpt: {social['summary_excerpt']}")
+    lines.append(
+        "- Evidence type: social/community signal from Grok/X; cite-backed but not treated as verified company fact "
+        f"({social.get('citation_count')} citation(s), rumor_flag={social.get('rumor_flag')})."
+    )
+    if social.get("x_pulse"):
+        lines.extend(["", "### X Pulse", "", social["x_pulse"]])
+    if social.get("bullish_claims"):
+        lines.extend(["", "### Recurring Bullish Claims", ""])
+        lines.extend(f"- {item}" for item in social["bullish_claims"][:5])
+    if social.get("bearish_claims"):
+        lines.extend(["", "### Recurring Bearish / Skeptical Claims", ""])
+        lines.extend(f"- {item}" for item in social["bearish_claims"][:5])
+    if social.get("news_reactions"):
+        lines.extend(["", "### News People Are Reacting To", ""])
+        lines.extend(f"- {item}" for item in social["news_reactions"][:5])
+    if social.get("notable_accounts"):
+        lines.extend(["", "### Accounts / Posts Worth Reviewing", ""])
+        lines.extend(f"- {item}" for item in social["notable_accounts"][:6])
+    if social.get("hype_noise"):
+        lines.extend(["", "### Hype / Noise", "", social["hype_noise"]])
+    if social.get("rumors"):
+        lines.extend(["", "### Rumors Or Unverified Claims", ""])
+        lines.extend(f"- {item}" for item in social["rumors"][:4])
+    if social.get("investor_implications"):
+        lines.extend(["", "### Investor Implications From X", ""])
+        lines.extend(f"- {item}" for item in social["investor_implications"][:5])
     lines.extend(["", "## Filing Signal", ""])
     filing = assessment["filing_snapshot"]
     lines.append(f"- status: {filing.get('status')}")
@@ -647,6 +859,9 @@ def format_opportunity_assessment_markdown(root: Path, run_id: str, assessment: 
         lines.append(f"- item: {item}")
     lines.extend(["", "## Score Factors", ""])
     lines.extend(f"- {item}" for item in assessment["score_factors"])
+    if assessment.get("data_quality_notes"):
+        lines.extend(["", "## Internal Data Quality Notes", ""])
+        lines.extend(f"- {item}" for item in assessment["data_quality_notes"])
     lines.extend(["", "## Sources", ""])
     for packet_id in assessment.get("source_ids", []):
         lines.append(f"- {packet_id}")
@@ -663,9 +878,151 @@ def format_opportunity_assessment_markdown(root: Path, run_id: str, assessment: 
 def compact_text(value: str, max_length: int) -> str:
     compact = " ".join(line.strip() for line in value.splitlines() if line.strip())
     compact = repair_latin1_mojibake(compact)
+    compact = clean_report_text(compact)
     if len(compact) <= max_length:
         return compact
-    return compact[: max_length - 3].rstrip() + "..."
+    truncated = compact[: max_length - 3].rstrip()
+    if " " in truncated:
+        truncated = truncated.rsplit(" ", 1)[0].rstrip()
+    return truncated + "..."
+
+
+def clean_report_text(value: str) -> str:
+    replacements = {
+        "\u201c": '"',
+        "\u201d": '"',
+        "\u2018": "'",
+        "\u2019": "'",
+        "\u2013": " - ",
+        "\u2014": " - ",
+        "\u2026": "...",
+        "\u00a0": " ",
+    }
+    for bad, good in replacements.items():
+        value = value.replace(bad, good)
+    value = re.sub(r"\*\*(.*?)\*\*", r"\1", value)
+    value = re.sub(r"\*(.*?)\*", r"\1", value)
+    return " ".join(value.split())
+
+
+def strip_citations_and_markdown(value: str) -> str:
+    value = re.sub(r"\[\[\d+\]\]\([^)]+\)", "", value)
+    value = re.sub(r"\[[^\]]+\]\([^)]+\)", "", value)
+    value = re.sub(r"\*\*(.*?)\*\*", r"\1", value)
+    value = re.sub(r"\*(.*?)\*", r"\1", value)
+    return clean_report_text(value)
+
+
+def parse_grok_sections(text: str) -> dict[str, str]:
+    sections: dict[str, list[str]] = {}
+    current = "overview"
+    sections[current] = []
+    for raw_line in text.splitlines():
+        line = raw_line.strip()
+        if not line:
+            continue
+        heading, remainder = grok_heading(line)
+        if heading:
+            current = heading
+            sections.setdefault(current, [])
+            if remainder:
+                sections[current].append(remainder)
+            continue
+        sections.setdefault(current, []).append(line)
+    return {key: "\n".join(values).strip() for key, values in sections.items()}
+
+
+def grok_heading(line: str) -> tuple[str, str]:
+    value = line.strip().strip(":")
+    if value.startswith("###"):
+        value = value.lstrip("#").strip().strip(":")
+        return normalize_heading(value), ""
+    if value.startswith("**") and ("**" in value[2:]):
+        end = value.find("**", 2)
+        heading = value[2:end].strip().strip(":")
+        if 2 <= len(heading.split()) <= 12:
+            return normalize_heading(heading), value[end + 2 :].strip(" :")
+    return "", ""
+
+
+def normalize_heading(value: str) -> str:
+    return re.sub(r"\s+", " ", value.strip().lower())
+
+
+def first_non_empty_section(sections: dict[str, str], names: list[str], fallback: str = "") -> str:
+    normalized = {normalize_heading(key): value for key, value in sections.items()}
+    for name in names:
+        value = normalized.get(normalize_heading(name), "")
+        if value:
+            return compact_text(value, 650)
+    if "overview" in normalized and normalized["overview"]:
+        return compact_text(normalized["overview"], 650)
+    return compact_text(fallback, 650) if fallback else ""
+
+
+def section_items(
+    sections: dict[str, str],
+    names: list[str],
+    limit: int,
+    fallback_paragraph: bool = False,
+) -> list[str]:
+    normalized = {normalize_heading(key): value for key, value in sections.items()}
+    for name in names:
+        value = normalized.get(normalize_heading(name), "")
+        if not value:
+            continue
+        items = filter_investor_items(bullet_or_sentence_items(value, limit=limit + 2), limit=limit)
+        if items:
+            return items
+        if fallback_paragraph:
+            return [compact_text(value, 450)]
+    return []
+
+
+def bullet_or_sentence_items(value: str, limit: int) -> list[str]:
+    items: list[str] = []
+    for raw_line in value.splitlines():
+        line = raw_line.strip()
+        if not line:
+            continue
+        line = re.sub(r"^[-*]\s+", "", line)
+        line = clean_report_text(line)
+        if line:
+            items.append(line)
+        if len(items) >= limit:
+            return items
+    if items:
+        return items[:limit]
+    sentences = re.split(r"(?<=[.!?])\s+", clean_report_text(value))
+    return [sentence for sentence in sentences if len(sentence) > 25][:limit]
+
+
+def filter_investor_items(items: list[str], limit: int) -> list[str]:
+    result: list[str] = []
+    for item in items:
+        if contains_direct_trade_language(item):
+            continue
+        result.append(item)
+        if len(result) >= limit:
+            break
+    return result
+
+
+def first_paragraph(text: str) -> str:
+    for block in text.split("\n\n"):
+        cleaned = clean_report_text(block.strip())
+        if cleaned and not cleaned.startswith("###"):
+            return cleaned
+    return ""
+
+
+def extract_notable_accounts(text: str) -> list[str]:
+    accounts: list[str] = []
+    for match in re.finditer(r"@[\w_]{2,20}", text):
+        account = match.group(0)
+        if account not in accounts:
+            accounts.append(account)
+    return accounts[:10]
 
 
 def repair_latin1_mojibake(value: str) -> str:

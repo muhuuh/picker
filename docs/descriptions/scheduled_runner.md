@@ -94,7 +94,7 @@ When `--write` is used:
 
 Generated JSON files remain ignored local runtime artifacts.
 
-The final digest includes readable financial formatting, explicit per-ticker evidence links, and deterministic digest quality findings when required evidence links, financial/news statuses, social-signal labels, or trade-instruction guardrails fail. The human-review digest is refreshed so the report can point the user to current approve/reject/needs-more-research/leave-open decisions.
+The final digest includes readable financial formatting, explicit per-ticker evidence links, concrete news developments, Grok/X pulse, recurring bull/bear narratives, accounts/posts to review, hype/noise, and deterministic digest quality findings when required evidence links, financial/news statuses, social-signal labels, status-only social output, missing social narratives, or trade-instruction guardrails fail. The human-review digest is refreshed so the report can point the user to current approve/reject/needs-more-research/leave-open decisions.
 
 ## Status Semantics
 
