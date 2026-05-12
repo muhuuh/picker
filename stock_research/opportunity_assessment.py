@@ -431,9 +431,10 @@ def summarize_social(packets: list[EvidencePacket]) -> dict[str, Any]:
             fallback=first_paragraph(text),
         ),
         "verified_facts": section_items(sections, ["verified facts", "verified facts (from earnings/news reactions)"], limit=5),
-        "bullish_claims": section_items(sections, ["recurring bullish claims", "bull case narratives"], limit=5),
-        "bearish_claims": section_items(sections, ["recurring bearish/neutral claims", "recurring bearish claims", "recurring bearish or skeptical arguments", "bear/skeptic narratives"], limit=5),
+        "bullish_claims": section_items(sections, ["recurring bullish arguments", "recurring bullish claims", "bull case narratives"], limit=5),
+        "bearish_claims": section_items(sections, ["recurring bearish or skeptical arguments", "recurring bearish/neutral claims", "recurring bearish claims", "bear/skeptic narratives"], limit=5),
         "news_reactions": section_items(sections, ["notable news people are reacting to"], limit=5),
+        "non_obvious_angles": section_items(sections, ["non-obvious or under-discussed angles", "non-obvious insights", "non-obvious / under-discussed insights"], limit=5),
         "notable_accounts": notable_accounts[:6],
         "hype_noise": first_non_empty_section(sections, ["hype / noise level", "hype/noise level", "hype/noise/spam level"], fallback=""),
         "rumors": rumors,
@@ -443,6 +444,7 @@ def summarize_social(packets: list[EvidencePacket]) -> dict[str, Any]:
                 "concrete implications for an investor",
                 "concrete implications for an investor (separate verified facts vs. sentiment vs. speculation)",
                 "investor implications",
+                "investor implications and scorecard",
                 "bottom-line investor takeaway",
             ],
             limit=5,
@@ -833,6 +835,8 @@ def build_trend_evolution(news: dict[str, Any], social: dict[str, Any]) -> list[
 
 def build_non_obvious_insights(financial: dict[str, Any], news: dict[str, Any], social: dict[str, Any]) -> list[str]:
     candidates: list[str] = []
+    for angle in social.get("non_obvious_angles", [])[:4]:
+        candidates.append(f"X under-discussed angle: {strip_citations_and_markdown(str(angle))}")
     for claim in news.get("contents_claims", []) + news.get("material_claims", []):
         evidence = str(claim.get("evidence", "")) if isinstance(claim, dict) else ""
         for line in extract_development_items(evidence):
@@ -850,7 +854,7 @@ def build_non_obvious_insights(financial: dict[str, Any], news: dict[str, Any], 
 
 def build_peer_competition_context(root: Path, run_id: str, ticker: str, company_context: dict[str, Any]) -> dict[str, Any]:
     exa_context = read_exa_company_context(root, run_id, ticker)
-    competitors = exa_context.get("competitors") or []
+    competitors = exa_context.get("competitors") or fallback_peer_candidates(ticker, company_context)
     return {
         "competitors": competitors[:12],
         "positioning_note": build_positioning_note(company_context, competitors),
@@ -863,6 +867,23 @@ def build_positioning_note(company_context: dict[str, Any], competitors: list[st
     if competitors:
         return f"Positioning should be assessed against {', '.join(competitors[:5])} in {industry}; current evidence is not yet a full peer valuation comparison."
     return f"Peer list was not reliably extracted; compare valuation and growth against the closest public peers in {industry} before making a stronger conclusion."
+
+
+def fallback_peer_candidates(ticker: str, company_context: dict[str, Any]) -> list[str]:
+    text = " ".join(
+        str(company_context.get(key, ""))
+        for key in ("sector", "industry", "description", "business_model_notes")
+    ).lower()
+    ticker_upper = ticker.upper()
+    if ticker_upper == "AMZN" or any(word in text for word in ("internet retail", "broadline retail", "marketplace", "aws", "cloud")):
+        return ["Walmart", "Alibaba Group", "Microsoft", "Google", "Meta", "Target", "Costco", "eBay", "Oracle"]
+    if ticker_upper == "AAPL" or any(word in text for word in ("consumer electronics", "iphone", "hardware")):
+        return ["Microsoft", "Google", "Samsung", "Meta", "Sony", "Dell", "HP", "Lenovo"]
+    if any(word in text for word in ("semiconductor", "chip", "accelerator")):
+        return ["NVIDIA", "AMD", "Broadcom", "Intel", "Marvell", "Qualcomm", "TSMC", "ASML"]
+    if any(word in text for word in ("software", "cloud", "saas")):
+        return ["Microsoft", "Oracle", "Salesforce", "Adobe", "ServiceNow", "Snowflake"]
+    return []
 
 
 def build_summary_table(
@@ -1621,7 +1642,9 @@ def grok_heading(line: str) -> tuple[str, str]:
 
 
 def normalize_heading(value: str) -> str:
-    return re.sub(r"\s+", " ", value.strip().lower())
+    normalized = re.sub(r"\s+", " ", value.strip().lower())
+    normalized = re.sub(r"^\(?\d+\)?[.)]\s*", "", normalized)
+    return normalized
 
 
 def first_non_empty_section(sections: dict[str, str], names: list[str], fallback: str = "") -> str:
@@ -1660,6 +1683,14 @@ def bullet_or_sentence_items(value: str, limit: int) -> list[str]:
         line = raw_line.strip()
         if not line:
             continue
+        table_item = table_row_to_investor_item(line)
+        if table_item:
+            items.append(table_item)
+            if len(items) >= limit:
+                return items
+            continue
+        if line.startswith("|"):
+            continue
         line = re.sub(r"^[-*]\s+", "", line)
         line = clean_report_text(line)
         if line:
@@ -1670,6 +1701,25 @@ def bullet_or_sentence_items(value: str, limit: int) -> list[str]:
         return items[:limit]
     sentences = re.split(r"(?<=[.!?])\s+", clean_report_text(value))
     return [sentence for sentence in sentences if len(sentence) > 25][:limit]
+
+
+def table_row_to_investor_item(line: str) -> str:
+    if not line.startswith("|"):
+        return ""
+    if set(line.replace("|", "").strip()) <= {"-", ":"}:
+        return ""
+    cells = [clean_report_text(cell) for cell in line.strip("|").split("|")]
+    cells = [cell for cell in cells if cell]
+    if not cells or cells[0].lower() in {"signal", "candidate/theme", "dimension"}:
+        return ""
+    if len(cells) >= 5:
+        return compact_text(
+            f"{cells[0]}: evidence {cells[1]} with confidence {cells[2]}; confirm via {cells[3]}; invalidate if {cells[4]}.",
+            420,
+        )
+    if len(cells) >= 3:
+        return compact_text(f"{cells[0]}: {cells[1]} Next check: {cells[-1]}.", 360)
+    return ""
 
 
 def filter_investor_items(items: list[str], limit: int) -> list[str]:

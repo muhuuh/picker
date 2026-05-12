@@ -1,8 +1,8 @@
 # Orchestration Report: 2026-05-16_weekly
 
-Generated: 2026-05-11
-Status: complete
-Mode: providers_execute, analysis_execute, memory_writer_deterministic, orchestrator_execute
+Generated: 2026-05-12
+Status: needs_review
+Mode: providers_execute, analysis_execute, memory_writer_deterministic, orchestrator_not_run
 
 ## Step Summary
 
@@ -12,10 +12,11 @@ Mode: providers_execute, analysis_execute, memory_writer_deterministic, orchestr
 - quality_report: 0 finding(s)
 - memory_finalization: complete
 - memory_writer_review: deterministic_review
-- company_research: complete (2 ticker(s))
-- final_digest: ready (2 ticker(s))
-- agent_orchestrator: complete
-- orchestrator_proposal_review: no_proposals
+- company_research: not_run (0 ticker(s))
+- final_digest: needs_review (2 ticker(s))
+- human_review_digest: needs_user_review (8 open item(s))
+- agent_orchestrator: not_run
+- orchestrator_proposal_review: not_run
 
 ## SDK Quality Findings
 
@@ -36,27 +37,13 @@ Mode: providers_execute, analysis_execute, memory_writer_deterministic, orchestr
 - `agents/runs/2026-05-16_weekly/memory_writer_review.md`
 - `agents/runs/2026-05-16_weekly/memory_update_drafts.json`
 - `agents/runs/2026-05-16_weekly/memory_update_drafts.md`
-- `agents/runs/2026-05-16_weekly/company_research/AMZN_company_research.json`
-- `agents/runs/2026-05-16_weekly/company_research/AMZN_company_research.md`
-- `agents/runs/2026-05-16_weekly/company_research/AMZN_company_research_metrics.md`
-- `agents/runs/2026-05-16_weekly/company_research/AAPL_company_research.json`
-- `agents/runs/2026-05-16_weekly/company_research/AAPL_company_research.md`
-- `agents/runs/2026-05-16_weekly/company_research/AAPL_company_research_metrics.md`
-- `agents/runs/2026-05-16_weekly/portfolio_review/portfolio_review.json`
-- `agents/runs/2026-05-16_weekly/portfolio_review/portfolio_review.md`
-- `agents/runs/2026-05-16_weekly/memory_evaluation/memory_evaluation.json`
-- `agents/runs/2026-05-16_weekly/memory_evaluation/memory_evaluation.md`
-- `agents/runs/2026-05-16_weekly/agent_runtime_main_orchestrator.json`
-- `agents/runs/2026-05-16_weekly/agent_runtime_main_orchestrator.md`
-- `agents/runs/2026-05-16_weekly/trace_links.md`
-- `agents/runs/2026-05-16_weekly/run_metrics.md`
-- `agents/runs/2026-05-16_weekly/orchestrator_update_proposals.md`
-- `agents/human_review_queue.md`
 - `agents/runs/2026-05-16_weekly/final_digest.json`
 - `agents/runs/2026-05-16_weekly/final_digest.md`
+- `agents/human_review_digest.md`
 
 ## Next Actions
 
 - No deterministic learning-loop issues found.
-- Review portfolio review output before accepting final synthesis.
+- Use `--execute-orchestrator` to run OpenAI Agents SDK synthesis over the written artifacts.
 - Review `agents/human_review_digest.md` for pending approval/reject/more-research decisions.
+- Review `agents/human_review_digest.md`: 8 open item(s) need approve/reject/more-research/leave-open decisions.

@@ -8,11 +8,11 @@ Reason: No material numeric conflicts found, but some core metrics are missing o
 | Metric | Value | Confidence | Providers |
 | --- | --- | --- | --- |
 | company_name | Amazon.com, Inc. | high | alpha_vantage, fmp, polygon |
-| latest_price | 272.7 | high | alpha_vantage, fmp, polygon, yfinance |
-| market_cap | 2.926e+12 | high | alpha_vantage, fmp, polygon, yfinance |
-| pe_ratio | 32.18 | high | alpha_vantage, fmp, yfinance |
-| price_to_sales_ttm | 3.939 | medium | fmp |
-| ev_to_ebitda_ttm | 17.68 | medium | fmp |
+| latest_price | 269 | high | alpha_vantage, fmp, polygon, yfinance |
+| market_cap | 2.894e+12 | high | alpha_vantage, fmp, polygon, yfinance |
+| pe_ratio | 31.83 | high | alpha_vantage, fmp, yfinance |
+| price_to_sales_ttm | 3.896 | medium | fmp |
+| ev_to_ebitda_ttm | 17.49 | medium | fmp |
 | revenue_ttm | 7.428e+11 | medium | alpha_vantage |
 | profit_margin | 0.122 | medium | alpha_vantage |
 | eps | 8.37 | medium | alpha_vantage |
@@ -26,7 +26,7 @@ Reason: No material numeric conflicts found, but some core metrics are missing o
 
 ## Review Notes
 
-- financial_compare packet: `agents/runs/2026-05-16_weekly/evidence_packets/2026-05-11_financial_compare_company_amzn.json`
+- financial_compare packet: `agents/runs/2026-05-16_weekly/evidence_packets/2026-05-12_financial_compare_company_amzn.json`
 - confidence_counts: {"high": 8, "medium": 17}
 - status_counts: {"conflict": 1, "consistent": 24}
 - single_provider_metrics: debt_to_equity_ttm, eps, ev_to_ebitda_ttm, fifty_two_week_high, fifty_two_week_low, free_cash_flow_per_share_ttm, peg_ratio, previous_high, previous_low, previous_open, previous_volume, previous_vwap, price_to_book_ratio, price_to_sales_ttm, profit_margin, revenue_ttm

@@ -1,6 +1,6 @@
 # Source Quality Memory
 
-Last updated: 2026-05-04
+Last updated: 2026-05-12
 
 Operational memory about provider reliability, source behavior, and known gotchas.
 
@@ -41,10 +41,10 @@ Operational memory about provider reliability, source behavior, and known gotcha
 - status: active
 - confidence: high
 - trigger/source: User correction and xAI/Grok implementation.
-- lesson: Grok `x_search` is for X sentiment, narratives, recent discussion, and discovery signals. Treat outputs as social signal, not verified fact. Verify material factual claims with Exa, SEC, yfinance, FMP, Polygon/Massive, Alpha Vantage, or primary sources before updating conclusions.
+- lesson: Grok `x_search` is for X sentiment, narratives, recent discussion, and discovery signals. Treat outputs as social signal, not verified fact. Verify material factual claims with Exa, SEC, yfinance, FMP, Polygon/Massive, Alpha Vantage, or primary sources before updating conclusions. For investor-facing reports, use the full raw Grok artifact when available because evidence packet claim text may be truncated before later high-value sections such as candidate follow-up and scorecards.
 - use_when: Sentiment specialists, market discovery, and tracked-stock social-alert tasks.
 - do_not_use_when: Filing, valuation, accounting, or verified factual updates.
-- evidence: `docs/descriptions/xai_grok_provider.md`, `stock_research/providers/xai_grok.py`, `agents/runs/2026-05-09_weekly/evidence_packets/2026-05-03_xai_grok_company_amd.json`
+- evidence: `docs/descriptions/xai_grok_provider.md`, `stock_research/providers/xai_grok.py`, `stock_research/market_research_runner.py`, `agents/runs/2026-05-09_weekly/evidence_packets/2026-05-03_xai_grok_company_amd.json`, `agents/runs/2026-05-12_manual-market-ai-semiconductor-supply-chain/raw/xai_grok/manual_xai_x_search_ai_semiconductor_supply_chain_advanced_packaging.json`
 - owner: xAI Grok sentiment specialists
 - next_review: 2026-08-01
 

@@ -193,18 +193,25 @@ def stock_sentiment_prompt(ticker: str, company_name: str = "") -> str:
     label = f"{ticker.upper()} {company_name}".strip()
     return (
         f"Search X deeply for recent investor discussion about {label}. "
-        "Act as a chronically-online technology/stock analyst. The goal is not a sentiment label; it is to surface "
-        "actionable, non-obvious investor insight from X. Use citations to specific X posts/accounts where possible. "
+        "Act as a chronically-online technology/stock analyst with an investor's filter for signal over noise. "
+        "The goal is not a sentiment label; it is to surface actionable, non-obvious investor insight from X that a human "
+        "would not get from a generic news summary. Use citations to specific X posts/accounts wherever possible. "
+        "Be concrete: mention handles, who seems credible vs promotional, what claim is spreading, what changed recently, "
+        "whether the narrative is early or crowded, and what would verify or falsify it. "
+        "Minimum information density: at least 5 concrete account/post references when available, at least 3 bullish claims, "
+        "at least 3 bearish/skeptical claims, at least 3 non-obvious or under-discussed angles, and at least 3 research checks. "
         "Write with these exact sections: "
-        "1) Executive X pulse - 3-5 sentences on what the X community currently believes and why it matters. "
-        "2) Verified facts people are reacting to - separate facts that should be cross-checked with filings/news. "
-        "3) Recurring bullish arguments - concrete claims, catalysts, product/tech/industry narratives, and who is saying them. "
-        "4) Recurring bearish or skeptical arguments - concrete risks, counters, valuation concerns, execution worries, and who is saying them. "
-        "5) Notable accounts/posts worth reviewing - handles, why they matter, and citation links. "
-        "6) Hype/noise/spam level - assess whether discussion is informed, technical, promotional, or bot-heavy. "
-        "7) Rumors or unverified claims - label speculation clearly and state how to verify it. "
-        "8) Investor implications - specific research checks and what would strengthen or weaken the thesis. "
-        "Do not give buy/sell instructions. Separate verified facts, social narrative, and speculation."
+        "1) Executive X pulse - 4-6 sentences on what the X community currently believes, what changed in the last 14 days, and why it matters. "
+        "2) Trend evolution - how the narrative changed vs prior weeks/months; identify acceleration, cooling, divergence, or new debate. "
+        "3) Verified facts people are reacting to - separate facts that should be cross-checked with filings/news. "
+        "4) Recurring bullish arguments - concrete claims, catalysts, product/tech/industry narratives, and who is saying them. "
+        "5) Recurring bearish or skeptical arguments - concrete risks, counters, valuation concerns, execution worries, and who is saying them. "
+        "6) Non-obvious or under-discussed angles - second-order implications, customer/supplier/competitor read-throughs, hidden risks, or asymmetric upside. "
+        "7) Notable accounts/posts worth reviewing - handles, why they matter, whether they look expert/informed/promotional, and citation links. "
+        "8) Hype/noise/spam level - assess whether discussion is informed, technical, promotional, bot-heavy, or crowded. "
+        "9) Rumors or unverified claims - label speculation clearly and state how to verify it. "
+        "10) Investor implications and scorecard - specific research checks plus a compact table with Signal, Evidence, Confidence, What would confirm, What would invalidate. "
+        "Do not give buy/sell instructions. Separate verified facts, social narrative, and speculation. Avoid generic phrasing; every bullet should teach a concrete investor insight."
     )
 
 
@@ -213,25 +220,36 @@ def industry_sentiment_prompt(topic: str) -> str:
         f"Search X deeply for recent investor and expert discussion about {topic}. "
         "Act as a chronically-online market scout looking for trends, hidden champions, raw diamonds, emerging tickers, "
         "and niche companies before they become obvious. Use citations to specific X posts/accounts where possible. "
+        "Be concrete: mention handles, why the account/post matters, what is expert signal vs promotional noise, what changed recently, "
+        "which companies are being pulled into the narrative, and which claims need external verification. "
+        "Minimum information density: at least 5 account/post references when available, at least 5 surfaced companies/tickers/private names, "
+        "at least 3 demand/technology drivers, at least 3 risks or skeptical arguments, and at least 3 non-obvious angles. "
         "Write with these exact sections: "
-        "1) Industry X pulse - what people currently believe, what changed recently, and why it matters. "
-        "2) Key technologies and demand drivers - concrete technologies, customers, policy/macro tailwinds, and bottlenecks. "
-        "3) Companies being discussed - incumbents, newcomers, hidden champions, and public tickers when available. "
-        "4) Recurring bullish narratives - catalysts and who is pushing them. "
-        "5) Recurring bearish/skeptical narratives - risks, fraud/noise signals, valuation concerns, and who is pushing them. "
-        "6) Hype/noise/rumors map - what looks credible, promotional, or unverified. "
-        "7) Candidate follow-up list - tickers/companies, why surfaced, verification needed, and priority. "
-        "8) Investor implications - what to research next and what evidence would confirm or kill the theme. "
-        "Separate verified facts, social narrative, and speculation."
+        "1) Industry X pulse - what people currently believe, what changed recently, whether the narrative is early or crowded, and why it matters. "
+        "2) Trend evolution - how the narrative changed vs prior weeks/months; identify acceleration, cooling, divergence, or new debate. "
+        "3) Key technologies and demand drivers - concrete technologies, customers, policy/macro tailwinds, bottlenecks, and read-throughs. "
+        "4) Companies being discussed - incumbents, newcomers, hidden champions, private companies, and public tickers when available. "
+        "5) Recurring bullish narratives - catalysts and who is pushing them. "
+        "6) Recurring bearish/skeptical narratives - risks, fraud/noise signals, valuation concerns, execution problems, and who is pushing them. "
+        "7) Non-obvious or contrarian angles - second-order beneficiaries, suppliers, bottlenecks, unloved names, or reasons the popular trade could be wrong. "
+        "8) Hype/noise/rumors map - what looks credible, promotional, bot-like, or unverified. "
+        "9) Candidate follow-up list - tickers/companies, why surfaced, source type, verification needed, and priority. "
+        "10) Investor implications and scorecard - what to research next plus a compact table with Candidate/Theme, Why interesting, Verification status, Main risk, Next action. "
+        "Separate verified facts, social narrative, and speculation. Avoid generic phrasing; every bullet should teach a concrete investor insight."
     )
 
 
 def latest_news_prompt(topic: str) -> str:
     return (
         f"Search X for the latest material news and market-moving developments about {topic}. "
-        "Identify what changed, who is discussing it, niche companies or tickers being surfaced, which claims need verification, "
-        "what looks like rumor or hype, and what an investor should investigate next. "
-        "Separate verified facts, social sentiment, and speculation. Include citations to X posts where possible."
+        "Act as a chronically-online investor research scout. Identify what changed, who is discussing it, niche companies or tickers "
+        "being surfaced, which claims need verification, what looks like rumor or hype, and what an investor should investigate next. "
+        "Minimum information density: at least 5 account/post references when available, at least 5 concrete developments or claims, "
+        "at least 3 non-obvious implications, at least 3 surfaced companies/tickers/private names, and at least 3 verification tasks. "
+        "Write with these exact sections: "
+        "1) Executive X pulse; 2) What changed recently; 3) Expert/community split; 4) Companies/tickers surfaced; "
+        "5) Non-obvious implications; 6) Hype/noise/rumors; 7) Verification tasks; 8) Investor scorecard. "
+        "Separate verified facts, social sentiment, and speculation. Include citations to X posts where possible. Avoid generic phrasing."
     )
 
 
@@ -353,11 +371,20 @@ def short_digest(value: str) -> str:
 
 
 def artifact_suffix(artifact_id: str, fallback: str) -> str:
-    return safe_name(artifact_id or fallback)
+    return compact_artifact_suffix(safe_name(artifact_id or fallback))
+
+
+def compact_artifact_suffix(value: str, max_length: int = 72) -> str:
+    if len(value) <= max_length:
+        return value
+    digest = short_digest(value)
+    prefix = value[: max_length - len(digest) - 1].rstrip("_")
+    return f"{prefix}_{digest}"
 
 
 def with_packet_suffix(packet: EvidencePacket, suffix: str) -> EvidencePacket:
-    return replace(packet, packet_id=f"{packet.packet_id}_{safe_name(suffix)}")
+    packet_id = compact_artifact_suffix(f"{packet.packet_id}_{safe_name(suffix)}", max_length=110)
+    return replace(packet, packet_id=packet_id)
 
 
 def default_xai_run_id(current_date: date | None = None) -> str:

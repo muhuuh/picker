@@ -3,7 +3,7 @@ from __future__ import annotations
 import csv
 import json
 import re
-from dataclasses import asdict, dataclass, field
+from dataclasses import asdict, dataclass, field, replace
 from datetime import date
 from pathlib import Path
 from typing import Any
@@ -15,6 +15,7 @@ from stock_research.agent_runtime.orchestrators.market_research import (
 )
 from stock_research.agent_runtime.outputs import CandidateLead, OrchestratorDecision
 from stock_research.agent_runtime.reports import output_to_dict
+from stock_research.candidate_review import CandidateReviewGroup, group_candidate_leads
 from stock_research.evidence import Claim, EvidencePacket
 from stock_research.manifest import (
     discovery_query,
@@ -351,10 +352,11 @@ def merge_candidate_from_claim(lead: CandidateLead, packet: EvidencePacket, clai
     if channel and channel not in lead.source_channels:
         lead.source_channels.append(channel)
     lead.source_ids.extend(claim.source_ids or [packet.packet_id])
-    lead.why_surfaced = combine_candidate_reason(lead.why_surfaced, candidate_reason_from_claim(lead.ticker, claim))
+    candidate_reason = candidate_reason_from_claim(lead.ticker, claim)
+    lead.why_surfaced = combine_candidate_reason(lead.why_surfaced, candidate_reason)
     if not lead.company_name:
         lead.company_name = company_name_from_claim(claim.claim)
-    text = f"{claim.claim} {claim.evidence}".lower()
+    text = (candidate_reason or claim.claim).lower()
     lead.rumor_flag = lead.rumor_flag or any(word in text for word in RUMOR_WORDS)
     lead.hype_level = combine_hype_level(lead.hype_level, hype_level_for_text(text))
     lead.sentiment = combine_sentiment(lead.sentiment, sentiment_for_text(text))
@@ -399,10 +401,10 @@ def company_name_from_claim(claim: str) -> str:
 
 
 def candidate_reason_from_claim(ticker: str, claim: Claim) -> str:
-    evidence = clean_research_text(claim.evidence)
-    if claim.claim.startswith("Relevant Exa result:") and evidence:
-        return f"{claim.claim}: {first_sentence(evidence)}"
-    ticker_context = ticker_context_from_text(ticker, evidence)
+    cleaned_evidence = clean_research_text(claim.evidence)
+    if claim.claim.startswith("Relevant Exa result:") and cleaned_evidence:
+        return f"{claim.claim}: {first_sentence(cleaned_evidence)}"
+    ticker_context = ticker_context_from_text(ticker, claim.evidence)
     if ticker_context:
         return ticker_context
     return claim.claim
@@ -426,7 +428,7 @@ def ticker_context_from_text(ticker: str, text: str) -> str:
     if not ticker or not text:
         return ""
     patterns = [rf"\${re.escape(ticker)}\b", rf"\b{re.escape(ticker)}\b"]
-    chunks = re.split(r"(?:\n\s*[-*]\s+|\n\n+|(?<=[.!?])\s+)", text)
+    chunks = re.split(r"(?:\n\s*[-*]\s+|\n\n+|;\s+|(?<=[.!?])\s+)", text)
     for chunk in chunks:
         if any(re.search(pattern, chunk, flags=re.IGNORECASE) for pattern in patterns):
             return truncate(clean_research_text(chunk), 260)
@@ -459,6 +461,8 @@ def verification_status_for(channels: list[str]) -> str:
 def next_action_for(lead: CandidateLead) -> str:
     if lead.rejected_cooldown_status == "cooldown_active":
         return "ignore"
+    if lead.rumor_flag:
+        return "verify"
     if lead.verification_status == "grok_only":
         return "verify"
     if lead.verification_status in {"verified", "partially_verified"}:
@@ -478,7 +482,7 @@ def evaluate_candidate_leads_quality(candidate_leads: list[CandidateLead]) -> li
             findings.append(f"{label}: Grok-only lead cannot be promoted to monitoring.")
         if lead.next_action in PROMOTING_ACTIONS and "cooldown_active" in lead.rejected_cooldown_status:
             findings.append(f"{label}: rejected-stock cooldown blocks promotion.")
-        if lead.rumor_flag and lead.verification_status not in {"grok_only", "unverified", "partially_verified"}:
+        if lead.rumor_flag and lead.next_action != "verify":
             findings.append(f"{label}: rumor-like lead must remain explicitly verification-limited.")
     return findings
 
@@ -604,9 +608,14 @@ def build_market_investor_insight_report(
         "industry_context": market_context_items(exa_claims, limit=5),
         "x_pulse": x_pulse_items(grok_claims, limit=6),
         "trend_evolution": trend_items(exa_claims, grok_claims, limit=6),
-        "candidate_pipeline": build_candidate_pipeline(top_candidates),
+        "bullish_narratives": grok_section_items(grok_claims, ["Recurring bullish narratives"], limit=5),
+        "skeptical_narratives": grok_section_items(grok_claims, ["Recurring bearish/skeptical narratives", "Recurring bearish or skeptical narratives"], limit=5),
+        "grok_candidate_follow_up": grok_section_items(grok_claims, ["Candidate follow-up list", "Companies being discussed"], limit=8),
+        "grok_scorecard": grok_scorecard_table(grok_claims),
+        "candidate_pipeline": build_candidate_pipeline(candidate_leads),
         "non_obvious_angles": non_obvious_market_angles(exa_claims, grok_claims, candidate_leads, limit=6),
-        "decision_table": build_market_decision_table(top_candidates),
+        "hype_noise": grok_section_items(grok_claims, ["Hype/noise/rumors map", "Hype/noise/spam level", "Rumors or unverified claims"], limit=5),
+        "decision_table": build_market_decision_table(candidate_leads),
         "next_questions": market_next_questions(topic, top_candidates, grok_only_count),
         "coverage": {
             "subject_type": subject_type,
@@ -634,10 +643,22 @@ def format_market_investor_insight_markdown(report: dict[str, Any]) -> list[str]
     append_report_bullets(lines, report.get("x_pulse"), "No Grok/X community pulse extracted yet.")
     lines.extend(["", "### Trend Evolution And Demand Signals", ""])
     append_report_bullets(lines, report.get("trend_evolution"), "No trend evolution signals extracted yet.")
+    lines.extend(["", "### Bullish Narratives From X", ""])
+    append_report_bullets(lines, report.get("bullish_narratives"), "No bullish Grok/X narratives extracted yet.")
+    lines.extend(["", "### Skeptical Narratives From X", ""])
+    append_report_bullets(lines, report.get("skeptical_narratives"), "No skeptical Grok/X narratives extracted yet.")
+    lines.extend(["", "### Grok Candidate Follow-up", ""])
+    append_report_bullets(lines, report.get("grok_candidate_follow_up"), "No Grok candidate follow-up list extracted yet.")
+    scorecard = report.get("grok_scorecard") or []
+    if scorecard:
+        lines.extend(["", "### Grok Investor Scorecard", ""])
+        lines.extend(scorecard)
     lines.extend(["", "### Candidate Pipeline", ""])
     lines.extend(report.get("candidate_pipeline") or ["No candidate pipeline extracted yet."])
     lines.extend(["", "### Non-obvious / Contrarian Angles To Verify", ""])
     append_report_bullets(lines, report.get("non_obvious_angles"), "No non-obvious angles extracted yet.")
+    lines.extend(["", "### Hype / Noise / Rumors", ""])
+    append_report_bullets(lines, report.get("hype_noise"), "No hype/noise map extracted yet.")
     lines.extend(["", "### Decision Table", ""])
     lines.extend(report.get("decision_table") or ["No decision table available yet."])
     lines.extend(["", "### Next Research Questions", ""])
@@ -654,7 +675,8 @@ def build_market_executive_read(
     grok_only_count: int,
 ) -> str:
     context = first_research_bullet(exa_claims) or "source-backed industry context is still thin"
-    x_pulse = first_research_bullet(grok_claims) or "X/community pulse is still thin"
+    x_pulse_candidates = x_pulse_items(grok_claims, limit=1)
+    x_pulse = strip_source_label(x_pulse_candidates[0]) if x_pulse_candidates else "X/community pulse is still thin"
     candidate_names = ", ".join(display_candidate(lead) for lead in candidate_leads[:5]) or "no candidate yet"
     return (
         f"{topic}: {context} X/community angle: {x_pulse} "
@@ -667,8 +689,29 @@ def research_claims(evidence_packets: list[EvidencePacket], *, provider: str) ->
     claims: list[Claim] = []
     for packet in evidence_packets:
         if packet.provider == provider:
-            claims.extend(packet.claims)
+            packet_claims = list(packet.claims)
+            if provider == "xai_grok" and packet_claims:
+                full_text = load_full_grok_text(packet)
+                if full_text:
+                    packet_claims[0] = replace(packet_claims[0], evidence=full_text)
+            claims.extend(packet_claims)
     return claims
+
+
+def load_full_grok_text(packet: EvidencePacket) -> str:
+    if not packet.raw_artifact_path:
+        return ""
+    path = Path(packet.raw_artifact_path)
+    if not path.exists():
+        return ""
+    try:
+        from stock_research.providers.xai_grok import extract_output_text
+
+        data = json.loads(path.read_text(encoding="utf-8"))
+        response = data.get("response", data)
+        return extract_output_text(response)
+    except Exception:
+        return ""
 
 
 def market_context_items(exa_claims: list[Claim], *, limit: int) -> list[str]:
@@ -688,8 +731,8 @@ def market_context_items(exa_claims: list[Claim], *, limit: int) -> list[str]:
 def x_pulse_items(grok_claims: list[Claim], *, limit: int) -> list[str]:
     items: list[str] = []
     for claim in grok_claims:
-        items.extend(extract_section_bullets(claim.evidence, "Social Sentiment", limit=3))
-        items.extend(extract_section_bullets(claim.evidence, "Speculation, Rumors & Hype", limit=3))
+        items.extend(extract_section_points(claim.evidence, ["Industry X pulse", "Executive X pulse", "Executive X pulse"], limit=3))
+        items.extend(extract_section_points(claim.evidence, ["Social Sentiment", "Expert/community split"], limit=3))
         if not items:
             items.append(first_sentence(claim.evidence))
     return [source_labeled_text(item, source_ids_from_claims(grok_claims)) for item in dedupe_strings(items)[:limit] if item]
@@ -698,7 +741,8 @@ def x_pulse_items(grok_claims: list[Claim], *, limit: int) -> list[str]:
 def trend_items(exa_claims: list[Claim], grok_claims: list[Claim], *, limit: int) -> list[str]:
     items: list[str] = []
     for claim in grok_claims:
-        items.extend(extract_section_bullets(claim.evidence, "Verified Facts", limit=5))
+        items.extend(extract_section_points(claim.evidence, ["Trend evolution", "What changed recently"], limit=3))
+        items.extend(extract_section_points(claim.evidence, ["Key technologies and demand drivers", "Verified Facts", "Verified facts people are reacting to"], limit=3))
     for claim in exa_claims:
         if claim.claim.startswith("Exa "):
             continue
@@ -713,20 +757,21 @@ def trend_items(exa_claims: list[Claim], grok_claims: list[Claim], *, limit: int
 def build_candidate_pipeline(candidate_leads: list[CandidateLead]) -> list[str]:
     if not candidate_leads:
         return ["No candidates extracted yet."]
+    groups = rank_candidate_groups(candidate_leads)[:8]
     rows = [
         "| Candidate | Signal | Verification | Why it matters | Human decision |",
         "| --- | --- | --- | --- | --- |",
     ]
-    for lead in candidate_leads:
+    for group in groups:
         rows.append(
             "| "
             + " | ".join(
                 [
-                    sanitize_table_cell(display_candidate(lead)),
-                    sanitize_table_cell(candidate_signal_label(lead)),
-                    lead.verification_status,
-                    sanitize_table_cell(truncate(clean_research_text(lead.why_surfaced), 220)),
-                    human_decision_label(lead),
+                    sanitize_table_cell(display_candidate_group(group)),
+                    sanitize_table_cell(candidate_group_signal_label(group)),
+                    group.verification_status,
+                    sanitize_table_cell(truncate(clean_research_text(group.why_surfaced), 220)),
+                    human_decision_label_for_group(group),
                 ]
             )
             + " |"
@@ -743,8 +788,8 @@ def non_obvious_market_angles(
 ) -> list[str]:
     items: list[str] = []
     for claim in grok_claims:
-        items.extend(extract_section_bullets(claim.evidence, "Speculation, Rumors & Hype", limit=4))
-        items.extend(extract_section_bullets(claim.evidence, "Niche Companies & Tickers Surfaced", limit=4))
+        items.extend(extract_section_points(claim.evidence, ["Non-obvious or contrarian angles", "Non-obvious or under-discussed angles"], limit=4))
+        items.extend(extract_section_points(claim.evidence, ["Candidate follow-up list", "Companies being discussed", "Companies/tickers surfaced"], limit=4))
     for claim in exa_claims:
         if claim.claim.startswith("Exa "):
             continue
@@ -841,6 +886,22 @@ def append_report_bullets(lines: list[str], values: Any, empty: str) -> None:
     lines.extend(f"- {item}" for item in items)
 
 
+def grok_section_items(grok_claims: list[Claim], section_titles: list[str], *, limit: int) -> list[str]:
+    items: list[str] = []
+    for claim in grok_claims:
+        items.extend(extract_section_points(claim.evidence, section_titles, limit=limit))
+    return [source_labeled_text(item, source_ids_from_claims(grok_claims)) for item in dedupe_strings(items)[:limit] if item]
+
+
+def grok_scorecard_table(grok_claims: list[Claim]) -> list[str]:
+    for claim in grok_claims:
+        body = extract_section_body(claim.evidence, ["Investor implications and scorecard", "Investor scorecard"])
+        rows = [line.rstrip() for line in body.splitlines() if line.strip().startswith("|")]
+        if len(rows) >= 2:
+            return rows
+    return []
+
+
 def first_research_bullet(claims: list[Claim]) -> str:
     for claim in claims:
         if claim.claim.startswith("Exa "):
@@ -858,11 +919,70 @@ def first_research_bullet(claims: list[Claim]) -> str:
 
 
 def extract_section_bullets(text: str, section_title: str, *, limit: int) -> list[str]:
-    pattern = rf"#+\s*{re.escape(section_title)}\s*(.*?)(?:\n#+\s+|\Z)"
-    match = re.search(pattern, text, flags=re.IGNORECASE | re.DOTALL)
-    if not match:
+    return extract_section_points(text, [section_title], limit=limit, bullets_only=True)
+
+
+def extract_section_points(text: str, section_titles: list[str], *, limit: int, bullets_only: bool = False) -> list[str]:
+    body = extract_section_body(text, section_titles)
+    if not body:
         return []
-    return extract_any_bullets(match.group(1), limit=limit)
+    bullets = extract_any_bullets(body, limit=limit)
+    if bullets or bullets_only:
+        return bullets[:limit]
+    paragraphs = [clean_research_text(part) for part in re.split(r"\n\s*\n+", body) if clean_research_text(part)]
+    if paragraphs:
+        return [truncate(paragraph, 320) for paragraph in paragraphs[:limit]]
+    return [first_sentence(body)] if first_sentence(body) else []
+
+
+def extract_section_body(text: str, section_titles: list[str]) -> str:
+    wanted = [normalize_research_heading(title) for title in section_titles]
+    sections = split_research_sections(text)
+    for title in wanted:
+        for heading, body in sections:
+            normalized = normalize_research_heading(heading)
+            if normalized == title or normalized.startswith(title) or title in normalized:
+                return body.strip()
+    return ""
+
+
+def split_research_sections(text: str) -> list[tuple[str, str]]:
+    sections: list[tuple[str, list[str]]] = []
+    current_heading = ""
+    current_lines: list[str] = []
+    for line in text.splitlines():
+        heading = parse_research_heading(line)
+        if heading:
+            if current_heading or current_lines:
+                sections.append((current_heading, current_lines))
+            current_heading = heading
+            current_lines = []
+            continue
+        current_lines.append(line)
+    if current_heading or current_lines:
+        sections.append((current_heading, current_lines))
+    return [(heading, "\n".join(lines).strip()) for heading, lines in sections if heading]
+
+
+def parse_research_heading(line: str) -> str:
+    stripped = line.strip()
+    if not stripped:
+        return ""
+    stripped = stripped.strip("*").strip()
+    stripped = stripped.lstrip("#").strip()
+    match = re.match(r"^\d+[\).]\s*(.+?)\s*$", stripped)
+    if match:
+        return match.group(1).strip(" *:")
+    if stripped.endswith(":") and len(stripped.split()) <= 7:
+        return stripped.strip(":")
+    return ""
+
+
+def normalize_research_heading(value: str) -> str:
+    value = value.strip().strip("*").lstrip("#").strip().lower()
+    value = re.sub(r"^\d+[\).]\s*", "", value)
+    value = re.sub(r"[^a-z0-9]+", " ", value)
+    return re.sub(r"\s+", " ", value).strip()
 
 
 def extract_any_bullets(text: str, *, limit: int) -> list[str]:
@@ -883,7 +1003,11 @@ def extract_any_bullets(text: str, *, limit: int) -> list[str]:
 def source_labeled_text(text: str, source_ids: list[str]) -> str:
     label = ", ".join(source_ids[:3])
     suffix = f" [{label}]" if label else ""
-    return f"{truncate(clean_research_text(text), 280)}{suffix}"
+    return f"{truncate(clean_research_text(text), 420)}{suffix}"
+
+
+def strip_source_label(value: str) -> str:
+    return re.sub(r"\s+\[[^\]]+\]$", "", value).strip()
 
 
 def looks_like_company_profile(text: str) -> bool:
@@ -912,6 +1036,14 @@ def clean_research_text(value: str) -> str:
         "\u2019": "'",
         "\u2013": "-",
         "\u2014": "-",
+        "\u2192": "->",
+        mojibake("\u2192"): "->",
+        mojibake("\u2013"): "-",
+        mojibake("\u2014"): "-",
+        mojibake("\u2018"): "'",
+        mojibake("\u2019"): "'",
+        mojibake("\u201c"): '"',
+        mojibake("\u201d"): '"',
     }
     for old, new in replacements.items():
         value = value.replace(old, new)
@@ -920,6 +1052,10 @@ def clean_research_text(value: str) -> str:
     value = value.replace("**", "").replace("###", "").replace("##", "").strip()
     value = value.lstrip("-* ").strip()
     return value
+
+
+def mojibake(value: str) -> str:
+    return value.encode("utf-8").decode("cp1252", errors="replace")
 
 
 def first_sentence(value: str) -> str:
@@ -997,35 +1133,37 @@ def manual_status(
 
 
 def format_x_narratives(candidate_leads: list[CandidateLead]) -> list[str]:
-    grok_leads = [lead for lead in candidate_leads if "grok" in lead.source_channels]
-    if not grok_leads:
+    grok_groups = [group for group in rank_candidate_groups(candidate_leads) if "grok" in group.source_channels]
+    if not grok_groups:
         return ["- No Grok/X candidate narratives were extracted from current evidence."]
     return [
-        f"- {lead.ticker}: {lead.why_surfaced or 'surfaced by Grok/X'} "
-        f"(hype={lead.hype_level}, verification={lead.verification_status}, rumor={str(lead.rumor_flag).lower()})"
-        for lead in grok_leads
+        f"- {display_candidate_group(group)}: {group.why_surfaced or 'surfaced by Grok/X'} "
+        f"(hype={group.hype_level}, verification={group.verification_status}, rumor={str(group.rumor_flag).lower()})"
+        for group in grok_groups
     ]
 
 
 def format_candidate_table(candidate_leads: list[CandidateLead]) -> list[str]:
     if not candidate_leads:
         return ["No candidates extracted yet.", ""]
+    groups = rank_candidate_groups(candidate_leads)
     rows = [
-        "| Ticker | Channels | Verification | Hype | Cooldown | Next Action | Why surfaced |",
-        "| --- | --- | --- | --- | --- | --- | --- |",
+        "| Candidate | Tickers | Channels | Verification | Hype | Cooldown | Next Action | Why surfaced |",
+        "| --- | --- | --- | --- | --- | --- | --- | --- |",
     ]
-    for lead in candidate_leads:
+    for group in groups:
         rows.append(
             "| "
             + " | ".join(
                 [
-                    lead.ticker or "",
-                    ", ".join(lead.source_channels),
-                    lead.verification_status,
-                    lead.hype_level,
-                    lead.rejected_cooldown_status,
-                    lead.next_action,
-                    sanitize_table_cell(truncate(lead.why_surfaced, 160)),
+                    sanitize_table_cell(group.canonical_name),
+                    ", ".join(group.tickers),
+                    ", ".join(group.source_channels),
+                    group.verification_status,
+                    group.hype_level,
+                    group.rejected_cooldown_status,
+                    group.next_action,
+                    sanitize_table_cell(truncate(group.why_surfaced, 180)),
                 ]
             )
             + " |"
@@ -1056,12 +1194,51 @@ def format_hype_summary(candidate_leads: list[CandidateLead]) -> list[str]:
 
 def next_tasks_from_candidates(candidate_leads: list[CandidateLead]) -> list[str]:
     tasks = []
-    for lead in candidate_leads:
-        if lead.next_action == "verify":
-            tasks.append(f"Verify candidate {lead.ticker} with Exa company search, filings where available, and market data before promotion.")
-        elif lead.next_action == "human_review":
-            tasks.append(f"Human review candidate {lead.ticker} for possible monitoring after evidence review.")
+    for group in rank_candidate_groups(candidate_leads):
+        label = display_candidate_group(group)
+        if group.next_action == "verify":
+            if len(group.tickers) > 1 and group.verification_status == "grok_only":
+                tasks.append(f"Decide whether to verify Grok/X basket {label}; if approved, run Exa/company/financial checks on the strongest names first.")
+            else:
+                tasks.append(f"Verify candidate {label} with Exa company search, filings where available, and market data before promotion.")
+        elif group.next_action == "human_review":
+            tasks.append(f"Human review candidate {label} for possible monitoring after evidence review.")
     return tasks
+
+
+def rank_candidate_groups(candidate_leads: list[CandidateLead]) -> list[CandidateReviewGroup]:
+    return group_candidate_leads(rank_candidate_leads(candidate_leads))
+
+
+def display_candidate_group(group: CandidateReviewGroup) -> str:
+    tickers = f" ({', '.join(group.tickers)})" if group.tickers else ""
+    return f"{group.canonical_name}{tickers}"
+
+
+def candidate_group_signal_label(group: CandidateReviewGroup) -> str:
+    channels = "+".join(group.source_channels) or "unknown"
+    tags = [channels]
+    if group.hype_level != "unknown":
+        tags.append(f"{group.hype_level} hype")
+    if group.sentiment != "unknown":
+        tags.append(f"{group.sentiment} sentiment")
+    if group.rumor_flag:
+        tags.append("rumor/speculation")
+    if len(group.tickers) > 1:
+        tags.append("basket")
+    return ", ".join(tags)
+
+
+def human_decision_label_for_group(group: CandidateReviewGroup) -> str:
+    if group.next_action == "verify":
+        if len(group.tickers) > 1 and group.verification_status == "grok_only":
+            return "approve basket verification / reject / narrow scope"
+        return "approve verification / reject / request more research"
+    if group.next_action == "human_review":
+        return "approve monitoring review / reject / request more research"
+    if group.next_action == "ignore":
+        return "ignore unless user overrides"
+    return group.next_action
 
 
 def hype_level_for_text(text: str) -> str:

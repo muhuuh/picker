@@ -9,7 +9,7 @@ This digest is a concise review surface. It is not an automatic trading instruct
 ## AAPL
 
 - opportunity_view: interesting
-- opportunity_score: 85/100
+- opportunity_score: 86/100
 - risk_level: medium
 - confidence: high
 - thesis_freshness: fresh_recent_evidence
@@ -20,22 +20,21 @@ This digest is a concise review surface. It is not an automatic trading instruct
 - opportunity_report: `agents/runs/2026-05-16_weekly/reports/opportunity_assessment/AAPL_opportunity_assessment.md`
 - financial_review: `agents/runs/2026-05-16_weekly/reports/financial_data_specialist/AAPL_financial_review.md`
 - company_news_review: `agents/runs/2026-05-16_weekly/reports/company_news_specialist/AAPL_company_news_review.md`
-- company_research: `agents/runs/2026-05-16_weekly/company_research/AAPL_company_research.md`
 
 ### Expert Opinion
 
-AAPL is interesting (85/100, medium risk, high confidence) because Apple stock rallies on Q2 earnings and Q3 guidance Main caveat: X bear/skeptic narrative: Sentiment-price divergence: price at fresh highs while news sentiment cools/trends lower. X pulse: Mixed but with a net bullish tilt toward AAPL as a core AI/tech beneficiary, tempered by valuation and margin concerns. High-engagement posts (e.g., thousands of likes/views) highlight strong product demand and...
+AAPL is interesting (86/100, medium risk, high confidence) because Apple stock rallies on Q2 earnings and Q3 guidance Main caveat: X bear/skeptic narrative: 28x earnings with flat iPhone and China weakness looks rich; @Le_Kousou explicitly trimming on that basis. X pulse: X investors are framing $AAPL as a defensive compounder that just printed its strongest March quarter ever while sitting at all-time highs, yet the dominant chatter questions whether 28x earnings and flat iPhone...
 
 ### Financial Facts
 
 - status: ready_for_company_update
-- latest_price: $293.32
-- market_cap: $4.28T
-- pe_ratio: 34.97x
+- latest_price: $292.68
+- market_cap: $4.30T
+- pe_ratio: 35.13x
 - forward_pe: 33.44x
 - analyst_target_price: $305.28
-- analyst_target_implied_upside: 4.08%
-- price_to_sales_ttm: 9.48x
+- analyst_target_implied_upside: 4.31%
+- price_to_sales_ttm: 9.52x
 - profit_margin: 27.20%
 - free_cash_flow_per_share_ttm: $8.78
 - currency: USD
@@ -47,15 +46,15 @@ AAPL is interesting (85/100, medium risk, high confidence) because Apple stock r
   - Apple stock rallies on Q2 earnings and Q3 guidance
   - On its quarterly earnings call, Apple said revenue growth in the current quarter would be between 14% and 17%, well above analysts' estimates. - CEO Tim Cook cited ongoing demand for the iPhone 17 and Mac computers as driving the growth as the company faces supply constraints from the memory crunch. - Apple shares rose more than 3% on Friday.
   - Apple shares jumped more than 3% on Friday after the iPhone maker reported better-than-expected quarterly results and issued revenue guidance for the current period that sailed past analysts' estimates.
-- Grok/X pulse: Mixed but with a net bullish tilt toward AAPL as a core AI/tech beneficiary, tempered by valuation and margin concerns. High-engagement posts (e.g., thousands of likes/views) highlight strong product demand and market leadership, while lower-engagement commentary notes divergences and long-term risks. Spam/promotional noise is very high - many bot-like accounts flood feeds with generic "follow for picks" content tagging $AAPL.[[1]](https://x.com/signulll/status/2050664814012432565)
+- Grok/X pulse: X investors are framing $AAPL as a defensive compounder that just printed its strongest March quarter ever while sitting at all-time highs, yet the dominant chatter questions whether 28x earnings and flat iPhone revenue justify the price when AI narrative momentum has shifted to NVDA, MSFT, and GOOG. In the last 14 days the tone shifted from post-earnings relief (4.5% pop cited by @SpeculaCore) to quiet trimming by names like @Le_Kousou and @SSx3_77_CFA who flag China exposure and valuation stretch. What matters is the emerging divergence: price action and ROIC (~48%) are telling one story while consensus still calls Apple "behind on...
 - X bull case:
-  - AAPL grouped with NVDA, MSFT, AMD, META, GOOGL, AMZN, TSLA as the "money flow" leaders in AI/semiconductors/cloud/data centers.
-  - Strong post-earnings price action (~4.5% in three sessions) driven by iPhone momentum and resilient margins.
+  - Record margins and cash-flow durability reward long-term holders even if growth is modest (@WOLF_Financial long-term math).
+  - Relative strength above key moving averages positions AAPL as a bellwether for any Nasdaq rotation back into quality (@GCRIG_OFFICIAL).
 - X bear/skeptic case:
-  - Sentiment-price divergence: price at fresh highs while news sentiment cools/trends lower.[[3]](https://x.com/assetfeel/status/2052808339189297401)
-  - Long-term risks from consumer-electronics exposure, supply-chain chip desperation (margin pressure), and worsening demand destruction in consumer tech.[[4]](https://x.com/5ElemAlpha/status/2052796437289685393)
-- Accounts/posts to review: @signulll, @assetfeel, @SpeculaCore, @business, @GCRIG_OFFICIAL
-- Hype/noise: Very high. ~70%+ of recent $AAPL-tagged posts appear to be low-quality promotional spam. Genuine discussion is concentrated in a smaller set of higher-quality accounts.
+  - 28x earnings with flat iPhone and China weakness looks rich; @Le_Kousou explicitly trimming on that basis.
+  - Apple is now a "capital preservation stock, not expansion" per one-sheet analysis from @TheRonnieVShow.
+- Accounts/posts to review: @SpeculaCore, @Le_Kousou, @SSx3_77_CFA, @TheRonnieVShow, @WOLF_Financial
+- Hype/noise: Discussion is mostly informed and technical with light promotional overlay from crypto platforms tokenizing stocks. Bot activity low; volume concentrated among accounts with clear bios and historical posting on fundamentals rather than meme-level spam.
 - Filing coverage: available (1 packet(s))
 
 ### Positives
@@ -66,25 +65,26 @@ AAPL is interesting (85/100, medium risk, high confidence) because Apple stock r
 
 ### Risks / Cautions
 
-- X bear/skeptic narrative: Sentiment-price divergence: price at fresh highs while news sentiment cools/trends lower.[[3]](https://x.com/assetfeel/status/2052808339189297401)
-- X bear/skeptic narrative: Long-term risks from consumer-electronics exposure, supply-chain chip desperation (margin pressure), and worsening demand destruction in consumer tech.[[4]](https://x.com/5ElemAlpha/status/2052796437289685393)
-- X bear/skeptic narrative: DCF valuation suggests current price is hard to justify despite strong fundamentals.[[5]](https://x.com/SpeculaCore/status/2051781912595660875)
+- X bear/skeptic narrative: 28x earnings with flat iPhone and China weakness looks rich; @Le_Kousou explicitly trimming on that basis.
+- X bear/skeptic narrative: Apple is now a "capital preservation stock, not expansion" per one-sheet analysis from @TheRonnieVShow.
+- X bear/skeptic narrative: DCF frameworks published post-earnings struggle to justify current levels under disciplined assumptions (@SpeculaCore).[[3]](https://x.com/SpeculaCore/status/2051781912595660875)
 
 ### Next Research Checks
 
-- Monitor for confirmation of the post-earnings momentum and any early signals on Ternus-era capital allocation. The divergence flagged by sentiment tools and DCF concerns suggest watching for a possible near-term correction even while the AI narrative remains supportive. Always cross-reference with official filings and earnings transcripts rather than X alone.
-- Verify X rumor/speculation: Speculation on exact capital-allocation shifts under new CEO Ternus (more investments, fewer buybacks) - Bloomberg-sourced but forward-looking.[[7]](https://x.com/business/status/2050991291480092672)
-- Verify X rumor/speculation: AI-driven "infinite demand" and supply shortages as a near-term inflationary driver - plausible but unquantified.
+- Valuation stretch: evidence 28x with flat iPhone with confidence Medium; confirm via Continued China softness in next print; invalidate if Services acceleration >10%.
+- AI narrative lag: evidence Consensus vs ATH price with confidence High; confirm via Further NVDA/MSFT outperformance; invalidate if Apple Intelligence adoption data.
+- Options dispersion: evidence VIXEQ 44.5 vs VIX 18.4 with confidence Medium; confirm via Rising single-stock vol; invalidate if Correlation spike in Mag-7.
+- Verify X rumor/speculation: Claims that Apple will "kill altcoins" via on-chain equity trading or that Trump-Cook talks will immediately ease China tariffs remain speculative. Verify via 10-Q/10-K filings for China exposure and official summit readout transcripts.
 
 ### Recommended Next Action
 
-- Next research decision: test whether the social bull case is fundamental or mostly momentum. Verify the bull claim (AAPL grouped with NVDA, MSFT, AMD, META, GOOGL, AMZN, TSLA as the "money flow" leaders in AI/semiconductors/cloud/data centers.) against filings/earnings and compare it with the main pushback (Sentiment-price divergence: price at fresh highs while news sentiment cools/trends lower.).
+- Next research decision: test whether the social bull case is fundamental or mostly momentum. Verify the bull claim (Record margins and cash-flow durability reward long-term holders even if growth is modest (@WOLF_Financial long-term math).) against filings/earnings and compare it with the main pushback (28x earnings with flat iPhone and China weakness looks rich; @Le_Kousou explicitly trimming on that basis.).
 
 ## AMZN
 
 - opportunity_view: interesting
-- opportunity_score: 80/100
-- risk_level: low
+- opportunity_score: 81/100
+- risk_level: medium
 - confidence: medium
 - thesis_freshness: fresh_recent_evidence
 - report: `agents/runs/2026-05-16_weekly/reports/opportunity_assessment/AMZN_opportunity_assessment.md`
@@ -94,22 +94,21 @@ AAPL is interesting (85/100, medium risk, high confidence) because Apple stock r
 - opportunity_report: `agents/runs/2026-05-16_weekly/reports/opportunity_assessment/AMZN_opportunity_assessment.md`
 - financial_review: `agents/runs/2026-05-16_weekly/reports/financial_data_specialist/AMZN_financial_review.md`
 - company_news_review: `agents/runs/2026-05-16_weekly/reports/company_news_specialist/AMZN_company_news_review.md`
-- company_research: `agents/runs/2026-05-16_weekly/company_research/AMZN_company_research.md`
 
 ### Expert Opinion
 
-AMZN is interesting (80/100, low risk, medium confidence) because Net sales increased 17% to $181.5 billion in the first quarter, compared with $155.7 billion in first quarter 2025. Excluding the $2.9 billion favorable impact from... Main caveat: X bear/skeptic narrative: Resistance at recent highs with risk of rejection/pullback if $270 - $275 support fails. X pulse: Recent X discussion on $AMZN (early-to-mid May 2026) shows moderately bullish community sentiment with a focus on strong fundamentals, AWS momentum, and AI tailwinds, tempered by technical resistance and broader...
+AMZN is interesting (81/100, medium risk, medium confidence) because Net sales increased 17% to $181.5 billion in the first quarter, compared with $155.7 billion in first quarter 2025. Excluding the $2.9 billion favorable impact from... Main caveat: X bear/skeptic narrative: Institutional trimming (Baillie Gifford reducing AMZN alongside NVDA and MELI) signals crowded positioning and potential forced selling into... X pulse: The X investor community views $AMZN as a multi-engine compounder with AWS re-acceleration (28% YoY in the latest print) and logistics scale (1M+ robots) as the core drivers, rather than pure e-commerce. In the last...
 
 ### Financial Facts
 
 - status: partial_review
-- latest_price: $272.68
-- market_cap: $2.93T
-- pe_ratio: 32.18x
+- latest_price: $268.99
+- market_cap: $2.89T
+- pe_ratio: 31.83x
 - forward_pe: 32.15x
 - analyst_target_price: $311.55
-- analyst_target_implied_upside: 14.25%
-- price_to_sales_ttm: 3.94x
+- analyst_target_implied_upside: 15.82%
+- price_to_sales_ttm: 3.90x
 - profit_margin: 12.20%
 - free_cash_flow_per_share_ttm: -$0.23
 - currency: USD
@@ -121,15 +120,15 @@ AMZN is interesting (80/100, low risk, medium confidence) because Net sales incr
   - Net sales increased 17% to $181.5 billion in the first quarter, compared with $155.7 billion in first quarter 2025. Excluding the $2.9 billion favorable impact from year-over-year changes in foreign exchange rates throughout the quarter, net sales increased 15% compared with first quarter 2025.
   - North America segment sales increased 12% year-over-year to $104.1 billion. - International segment sales increased 19% year-over-year to $39.8 billion, or increased 11% excluding changes in foreign exchange rates. - AWS segment sales increased 28% year-over-year to $37.6 billion.
   - Operating income increased to $23.9 billion in the first quarter, compared with $18.4 billion in first quarter 2025.
-- Grok/X pulse: Recent X discussion on $AMZN (early-to-mid May 2026) shows moderately bullish community sentiment with a focus on strong fundamentals, AWS momentum, and AI tailwinds, tempered by technical resistance and broader big-tech valuation concerns. Activity level is steady but not extremely hyped - no viral frenzy or major scandals. Technical traders dominate alongside fundamental bulls; noise from promo/spam accounts is low-to-moderate.[[1]](https://x.com/MMatters22596/status/2050674195915305396)[[2]](https://x.com/petitnong_/status/2053210561371062780)
+- Grok/X pulse: The X investor community views $AMZN as a multi-engine compounder with AWS re-acceleration (28% YoY in the latest print) and logistics scale (1M+ robots) as the core drivers, rather than pure e-commerce. In the last 14 days, discussion shifted from broad AI-capex tailwinds to granular supply-chain details around Trainium chip packaging, with Intel's EMIB technology emerging as a new angle linking Amazon to foundry plays. This matters because it shows hyperscalers diversifying beyond CoWoS while still embedding Intel in the stack, tightening the AI infrastructure narrative around AMZN without requiring a new earnings catalyst. Sentiment...
 - X bull case:
-  - Clean technical setup + AWS/AI growth = parabolic upside (comparisons to $GOOG's prior run).[[1]](https://x.com/MMatters22596/status/2050674195915305396)
-  - High-margin shift and accelerating AWS make it a "no-brainer" long-term hold.[[1]](https://x.com/MMatters22596/status/2050674195915305396)[[3]](https://x.com/fiscal_ai/status/2051029069794546055)
+  - AWS re-acceleration plus Prime ecosystem and advertising create a self-reinforcing flywheel; @MrStealth27 laid out the ~4x P/S on $743B TTM revenue with a credible path to $1T+ revenue.[[1]](https://x.com/MrStealth27/status/2053898934842470459)
+  - Logistics scale (1M+ robots) drives retail margin expansion while AWS captures AI inference demand; @LorenzoBolsa highlighted multi-branch reinvestment as the reason to hold after re-entering near $199.[[2]](https://x.com/LorenzoBolsa/status/2053946268615913750)
 - X bear/skeptic case:
-  - Resistance at recent highs with risk of rejection/pullback if $270 - $275 support fails.[[7]](https://x.com/SevenParr/status/2052782822348198197)[[5]](https://x.com/NoBSForex/status/2051451006559633890)
-  - Valuation stretched relative to growth; macro/big-tech rotation risk on buyback/capital-return trends.[[2]](https://x.com/petitnong_/status/2053210561371062780)
-- Accounts/posts to review: @MMatters22596, @fiscal_ai, @SRxTrades, @optionscjp, @SevenParr
-- Hype/noise: Moderate. Heavy on technical charts and earnings facts; occasional long-term moon-shot targets ($1k/share, $10T market cap). Low spam relative to meme stocks. No major unverified rumors circulating in these results - discussion stays grounded in reported earnings, partnerships, and price action.
+  - Institutional trimming (Baillie Gifford reducing AMZN alongside NVDA and MELI) signals crowded positioning and potential forced selling into strength; @CapexAndChill flagged the redemptions.[[4]](https://x.com/CapexAndChill/status/2054013980633374751)
+  - Elevated forward multiples remain vulnerable to any AWS growth miss or macro-driven capex pause.
+- Accounts/posts to review: @MrStealth27, @LorenzoBolsa, @jukan05, @imnotharsh, @CapexAndChill
+- Hype/noise: Discussion is predominantly informed and technical among the accounts above, with modest promotional spam in generic "stock picks" replies. Bot activity is low on the high-engagement threads; the conversation is not yet crowded beyond core tech-finance circles.
 - Filing coverage: available (1 packet(s))
 
 ### Positives
@@ -140,19 +139,20 @@ AMZN is interesting (80/100, low risk, medium confidence) because Net sales incr
 
 ### Risks / Cautions
 
-- X bear/skeptic narrative: Resistance at recent highs with risk of rejection/pullback if $270 - $275 support fails.[[7]](https://x.com/SevenParr/status/2052782822348198197)[[5]](https://x.com/NoBSForex/status/2051451006559633890)
-- X bear/skeptic narrative: Valuation stretched relative to growth; macro/big-tech rotation risk on buyback/capital-return trends.[[2]](https://x.com/petitnong_/status/2053210561371062780)
-- Free cash flow per share TTM is negative at -$0.23.
+- X bear/skeptic narrative: Institutional trimming (Baillie Gifford reducing AMZN alongside NVDA and MELI) signals crowded positioning and potential forced selling into strength; @CapexAndChill flagged the redemptions.[[4]](https://x.com/CapexAndChill/status/2054013980633374751)
+- X bear/skeptic narrative: Elevated forward multiples remain vulnerable to any AWS growth miss or macro-driven capex pause.
+- X bear/skeptic narrative: Narrative fatigue around "Amazon as the everything store" ignores execution risk in grocery/pharmacy expansion; several replies to @LorenzoBolsa questioned whether robot count alone moves the needle fast enough.
 
 ### Next Research Checks
 
-- Bull case: AWS + AI cloud tailwinds + margin expansion support continued outperformance; technical breakout above ~$275 could target $300+ quickly. Strong for core long-term holding in growth/tech portfolios.[[1]](https://x.com/MMatters22596/status/2050674195915305396)[[4]](https://x.com/SRxTrades/status/2051037297210990776)
-- Risks: Short-term resistance and any broader big-tech rotation could cause 5 - 10% pullbacks. Valuation is reasonable but not cheap - watch for earnings misses or macro shifts.[[2]](https://x.com/petitnong_/status/2053210561371062780)
-- Overall, X sentiment leans constructive on Amazon's business trajectory while staying realistic on near-term price action.
+- AWS packaging diversification: evidence @jukan05 EMIB/MediaTek thread with confidence Medium; confirm via Intel or AWS supplier commentary; invalidate if Continued Broadcom exclusivity.
+- Institutional trimming: evidence Baillie Gifford 13F trims with confidence High; confirm via Next 13F shows further reduction; invalidate if Re-add in subsequent filing.
+- Logistics margin leverage: evidence 1M+ robot count + margin trend with confidence High; confirm via Next earnings shows retail margin expansion; invalidate if Flat or declining fulfillment margins.
+- Verify X rumor/speculation: Speculation that next-gen Trainium will use both EMIB and CoWoS remains unconfirmed; verify via Intel or MediaTek earnings commentary or AWS re:Invent keynote supply-chain disclosures. Claims of Baillie Gifford redemptions are 13F-derived but timing-specific - cross-check latest filing.
 
 ### Recommended Next Action
 
-- Next research decision: test whether the social bull case is fundamental or mostly momentum. Verify the bull claim (Clean technical setup + AWS/AI growth = parabolic upside (comparisons to $GOOG's prior run).) against filings/earnings and compare it with the main pushback (Resistance at recent highs with risk of rejection/pullback if $270 - $275 support fails.).
+- Next research decision: test whether the social bull case is fundamental or mostly momentum. Verify the bull claim (AWS re-acceleration plus Prime ecosystem and advertising create a self-reinforcing flywheel; @MrStealth27 laid out the ~4x...) against filings/earnings and compare it with the main pushback (Institutional trimming (Baillie Gifford reducing AMZN alongside NVDA and MELI) signals crowded positioning and potential...).
 
 ## Run-Level Next Actions
 

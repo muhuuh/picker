@@ -1,6 +1,6 @@
 # Memory Reflection: 2026-05-16_weekly
 
-Generated: 2026-05-11
+Generated: 2026-05-12
 
 ## Metrics
 
@@ -17,7 +17,7 @@ Generated: 2026-05-11
 - risks: 7
 - contradictions: 2
 - recommended_updates: 6
-- unknowns: 5
+- unknowns: 2
 - run_metrics_exists: False
 - sdk_metric_rows: 0
 - sdk_agent_runs: 0

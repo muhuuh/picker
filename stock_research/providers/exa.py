@@ -382,11 +382,20 @@ def short_digest(value: str) -> str:
 
 
 def artifact_suffix(artifact_id: str, fallback: str) -> str:
-    return safe_name(artifact_id or fallback)
+    return compact_artifact_suffix(safe_name(artifact_id or fallback))
+
+
+def compact_artifact_suffix(value: str, max_length: int = 72) -> str:
+    if len(value) <= max_length:
+        return value
+    digest = short_digest(value)
+    prefix = value[: max_length - len(digest) - 1].rstrip("_")
+    return f"{prefix}_{digest}"
 
 
 def with_packet_suffix(packet: EvidencePacket, suffix: str) -> EvidencePacket:
-    return replace(packet, packet_id=f"{packet.packet_id}_{safe_name(suffix)}")
+    packet_id = compact_artifact_suffix(f"{packet.packet_id}_{safe_name(suffix)}", max_length=110)
+    return replace(packet, packet_id=packet_id)
 
 
 def default_exa_run_id(current_date: date | None = None) -> str:

@@ -2,14 +2,14 @@
 
 Status: ready_for_human_review
 Opportunity view: interesting
-Opportunity score: 80/100
-Risk level: low
+Opportunity score: 81/100
+Risk level: medium
 Confidence: medium
 Thesis freshness: fresh_recent_evidence
 
 ## Expert Opinion
 
-AMZN is interesting (80/100, low risk, medium confidence) because Net sales increased 17% to $181.5 billion in the first quarter, compared with $155.7 billion in first quarter 2025. Excluding the $2.9 billion favorable impact from... Main caveat: X bear/skeptic narrative: Resistance at recent highs with risk of rejection/pullback if $270 - $275 support fails. X pulse: Recent X discussion on $AMZN (early-to-mid May 2026) shows moderately bullish community sentiment with a focus on strong fundamentals, AWS momentum, and AI tailwinds, tempered by technical resistance and broader...
+AMZN is interesting (81/100, medium risk, medium confidence) because Net sales increased 17% to $181.5 billion in the first quarter, compared with $155.7 billion in first quarter 2025. Excluding the $2.9 billion favorable impact from... Main caveat: X bear/skeptic narrative: Institutional trimming (Baillie Gifford reducing AMZN alongside NVDA and MELI) signals crowded positioning and potential forced selling into... X pulse: The X investor community views $AMZN as a multi-engine compounder with AWS re-acceleration (28% YoY in the latest print) and logistics scale (1M+ robots) as the core drivers, rather than pure e-commerce. In the last...
 
 This is a research synthesis for human review, not an automatic trade instruction.
 
@@ -17,40 +17,40 @@ This is a research synthesis for human review, not an automatic trade instructio
 
 ### Executive Read
 
-AMZN: Consumer Cyclical / INTERNET RETAIL: net sales +17% to $181.5B AWS sales +28% YoY to $37.6B operating income $23.9B vs $18.4B. The social bull case centers on Clean technical setup + AWS/AI growth = parabolic upside... Valuation: price $272.68, P/E 32.18x, forward P/E 32.15x, analyst target $311.55, target gap 14.25%. X/community: Recent X discussion on $AMZN (early-to-mid May 2026) shows moderately bullish community sentiment with a focus on strong fundamentals, AWS momentum, and AI tailwinds, tempered by technical resistance and broader.... Under-discussed check: Andrew R. Jassy said, "the cost of components, particularly memory, has skyrocketed," and warned of capacity constraints and supply volatility in the memory market that may...
+AMZN: Consumer Cyclical / INTERNET RETAIL: net sales +17% to $181.5B AWS sales +28% YoY to $37.6B operating income $23.9B vs $18.4B. The social bull case centers on AWS re-acceleration plus Prime ecosystem and advertising... Valuation: price $268.99, P/E 31.83x, forward P/E 32.15x, analyst target $311.55, target gap 15.82%. X/community: The X investor community views $AMZN as a multi-engine compounder with AWS re-acceleration (28% YoY in the latest print) and logistics scale (1M+ robots) as the core drivers, rather than pure e-commerce.. Under-discussed check: X under-discussed angle: AMZN's MediaTek/Intel packaging choice for Trainium creates an indirect read-through to $INTC foundry recovery that most AMZN bulls ignore.
 
 ### Company / Industry Context
 
 - What it does: Amazon.com, Inc. is an American multinational technology company which focuses on e-commerce, cloud computing, digital streaming, and artificial intelligence. It is one of the Big Five companies in the U.S. information technology industry, along with Google, Apple, Microsoft, and Facebook. The company has been referred to as one of the most influential economic and cultural forces in the world, as well as the world's most valuable brand.
 - Sector / industry: Consumer Cyclical / INTERNET RETAIL
-- Business model signals: AWS, retail, AI, cloud
-- Peer/competition set to check: Walmart, Alibaba Group, Temu, Shein, Microsoft, Google, Apple, Target, eBay, Rakuten
-- Positioning note: Positioning should be assessed against Walmart, Alibaba Group, Temu, Shein, Microsoft in INTERNET RETAIL; current evidence is not yet a full peer valuation comparison.
+- Business model signals: AWS, Prime, AI, cloud
+- Peer/competition set to check: Walmart, Alibaba Group, Microsoft, Google, Meta, Target, Costco, eBay, Oracle
+- Positioning note: Positioning should be assessed against Walmart, Alibaba Group, Microsoft, Google, Meta in INTERNET RETAIL; current evidence is not yet a full peer valuation comparison.
 
 ### Thesis, Trends, And What Changed
 
-- Core thesis: Consumer Cyclical / INTERNET RETAIL: net sales +17% to $181.5B AWS sales +28% YoY to $37.6B operating income $23.9B vs $18.4B. The social bull case centers on Clean technical setup + AWS/AI growth = parabolic upside (comparisons to $GOOG's prior run)..
+- Core thesis: Consumer Cyclical / INTERNET RETAIL: net sales +17% to $181.5B AWS sales +28% YoY to $37.6B operating income $23.9B vs $18.4B. The social bull case centers on AWS re-acceleration plus Prime ecosystem and advertising create a self-reinforcing flywheel; @MrStealth27 laid out the ~4x P/S on $743B TTM revenue with a credible path to $1T+ revenue..
 - What changed recently:
   - Net sales increased 17% to $181.5 billion in the first quarter, compared with $155.7 billion in first quarter 2025. Excluding the $2.9 billion favorable impact from year-over-year changes in foreign exchange rates throughout the quarter, net sales increased 15% compared with first quarter 2025.
   - North America segment sales increased 12% year-over-year to $104.1 billion. - International segment sales increased 19% year-over-year to $39.8 billion, or increased 11% excluding changes in foreign exchange rates. - AWS segment sales increased 28% year-over-year to $37.6 billion.
   - Operating income increased to $23.9 billion in the first quarter, compared with $18.4 billion in first quarter 2025.
   - Andrew R. Jassy said, "the cost of components, particularly memory, has skyrocketed," and warned of capacity constraints and supply volatility in the memory market that may impact capital expenditures and supply chain stability. - Brian T. Olsavsky noted, "our guidance anticipates higher transportation costs related to fuel inflation," partially offset...
   - The earnings call highlighted significant acceleration in AWS and AI-related businesses, marked by a $2 billion sequential AWS revenue increase, robust growth in custom silicon, and rapid adoption...
-  - Financial Guidance The following forward-looking s...
+  - Q2 2026 Guidance -- Net sales projected between $194 billion and $199 billion, with a 10 basis point expected headwind from FX; operating income predicted at $20 billion to $24 billion.
 - Tailwinds:
   - Net sales increased 17% to $181.5 billion in the first quarter, compared with $155.7 billion in first quarter 2025. Excluding the $2.9 billion favorable impact from year-over-year changes in foreign exchange rates throughout the quarter, net sales increased 15% compared with first quarter 2025.
   - North America segment sales increased 12% year-over-year to $104.1 billion. - International segment sales increased 19% year-over-year to $39.8 billion, or increased 11% excluding changes in foreign exchange rates. - AWS segment sales increased 28% year-over-year to $37.6 billion.
   - Operating income increased to $23.9 billion in the first quarter, compared with $18.4 billion in first quarter 2025.
-  - X bull narrative: Clean technical setup + AWS/AI growth = parabolic upside (comparisons to $GOOG's prior run).
-  - X bull narrative: High-margin shift and accelerating AWS make it a "no-brainer" long-term hold.
+  - X bull narrative: AWS re-acceleration plus Prime ecosystem and advertising create a self-reinforcing flywheel; @MrStealth27 laid out the ~4x P/S on $743B TTM revenue with a credible path to $1T+ revenue.
+  - X bull narrative: Logistics scale (1M+ robots) drives retail margin expansion while AWS captures AI inference demand; @LorenzoBolsa highlighted multi-branch reinvestment as the reason to hold after re-entering near $199.
   - Scale/profitability anchor: revenue TTM $742.78B, profit margin 12.20%.
 - Headwinds / debate points:
-  - X bear/skeptic narrative: Resistance at recent highs with risk of rejection/pullback if $270 - $275 support fails.
-  - X bear/skeptic narrative: Valuation stretched relative to growth; macro/big-tech rotation risk on buyback/capital-return trends.
+  - X bear/skeptic narrative: Institutional trimming (Baillie Gifford reducing AMZN alongside NVDA and MELI) signals crowded positioning and potential forced selling into strength; @CapexAndChill flagged the redemptions.
+  - X bear/skeptic narrative: Elevated forward multiples remain vulnerable to any AWS growth miss or macro-driven capex pause.
+  - X bear/skeptic narrative: Narrative fatigue around "Amazon as the everything store" ignores execution risk in grocery/pharmacy expansion; several replies to @LorenzoBolsa questioned whether robot count alone moves the needle fast enough.
   - Free cash flow per share TTM is negative at -$0.23.
+  - Grok/X scan includes rumor or speculation language; do not treat it as verified fact.
   - Andrew R. Jassy said, "the cost of components, particularly memory, has skyrocketed," and warned of capacity constraints and supply volatility in the memory market that may impact capital expenditures and supply chain stability. - Brian T. Olsavsky noted, "our guidance anticipates higher transportation costs related to fuel inflation," partially offset...
-  - Q2 2026 Guidance -- Net sales projected between $194 billion and $199 billion, with a 10 basis point expected headwind from FX; operating income predicted at $20 billion to $24 billion.
-  - Free cash flow per share TTM is negative (-$0.23), likely requiring a capex/cash-conversion follow-up.
 - Trend evolution:
   - Fundamental trend: Net sales increased 17% to $181.5 billion in the first quarter, compared with $155.7 billion in first quarter 2025. Excluding the $2.9 billion favorable impact from year-over-year changes in foreign exchange rates throughout the quarter, net sales increased 15% compared with first quarter 2025.
   - Fundamental trend: North America segment sales increased 12% year-over-year to $104.1 billion. - International segment sales increased 19% year-over-year to $39.8 billion, or increased 11% excluding changes in foreign exchange rates. - AWS segment sales increased 28% year-over-year to $37.6 billion.
@@ -60,38 +60,41 @@ AMZN: Consumer Cyclical / INTERNET RETAIL: net sales +17% to $181.5B AWS sales +
 
 ### Expert / Community Split From X
 
-- X pulse: Recent X discussion on $AMZN (early-to-mid May 2026) shows moderately bullish community sentiment with a focus on strong fundamentals, AWS momentum, and AI tailwinds, tempered by technical resistance and broader big-tech valuation concerns. Activity level is steady but not extremely hyped - no viral frenzy or major scandals. Technical traders dominate alongside fundamental bulls; noise from promo/spam accounts is low-to-moderate.[[1]](https://x.com/MMatters22596/status/2050674195915305396)[[2]](https://x.com/petitnong_/status/2053210561371062780)
+- X pulse: The X investor community views $AMZN as a multi-engine compounder with AWS re-acceleration (28% YoY in the latest print) and logistics scale (1M+ robots) as the core drivers, rather than pure e-commerce. In the last 14 days, discussion shifted from broad AI-capex tailwinds to granular supply-chain details around Trainium chip packaging, with Intel's EMIB technology emerging as a new angle linking Amazon to foundry plays. This matters because it shows hyperscalers diversifying beyond CoWoS while still embedding Intel in the stack, tightening the AI infrastructure narrative around AMZN without requiring a new earnings catalyst. Sentiment...
 - Bullish camp:
-  - Clean technical setup + AWS/AI growth = parabolic upside (comparisons to $GOOG's prior run).
-  - High-margin shift and accelerating AWS make it a "no-brainer" long-term hold.
-  - Breakout targets: $300+ short-term; some stretch to $1,000/share by 2035.
+  - AWS re-acceleration plus Prime ecosystem and advertising create a self-reinforcing flywheel; @MrStealth27 laid out the ~4x P/S on $743B TTM revenue with a credible path to $1T+ revenue.
+  - Logistics scale (1M+ robots) drives retail margin expansion while AWS captures AI inference demand; @LorenzoBolsa highlighted multi-branch reinvestment as the reason to hold after re-entering near $199.
+  - Intel's EMIB packaging now appears in lower-end Trainium designs via MediaTek, embedding AMZN deeper in the U.S. foundry ecosystem; @jukan05 and @imnotharsh surfaced this supply-chain detail.
 - Skeptical camp:
-  - Resistance at recent highs with risk of rejection/pullback if $270 - $275 support fails.
-  - Valuation stretched relative to growth; macro/big-tech rotation risk on buyback/capital-return trends.
-- Accounts/posts worth reviewing: @MMatters22596, @fiscal_ai, @SRxTrades, @optionscjp, @SevenParr, @CrowdWisdomAlgo
-- Hype/noise: Moderate. Heavy on technical charts and earnings facts; occasional long-term moon-shot targets ($1k/share, $10T market cap). Low spam relative to meme stocks. No major unverified rumors circulating in these results - discussion stays grounded in reported earnings, partnerships, and price action.
+  - Institutional trimming (Baillie Gifford reducing AMZN alongside NVDA and MELI) signals crowded positioning and potential forced selling into strength; @CapexAndChill flagged the redemptions.
+  - Elevated forward multiples remain vulnerable to any AWS growth miss or macro-driven capex pause.
+  - Narrative fatigue around "Amazon as the everything store" ignores execution risk in grocery/pharmacy expansion; several replies to @LorenzoBolsa questioned whether robot count alone moves the needle fast enough.
+- Accounts/posts worth reviewing: @MrStealth27, @LorenzoBolsa, @jukan05, @imnotharsh, @CapexAndChill, @ArthurRhodes_
+- Hype/noise: Discussion is predominantly informed and technical among the accounts above, with modest promotional spam in generic "stock picks" replies. Bot activity is low on the high-engagement threads; the conversation is not yet crowded beyond core tech-finance circles.
+- Rumors / unverified claims:
+  - Speculation that next-gen Trainium will use both EMIB and CoWoS remains unconfirmed; verify via Intel or MediaTek earnings commentary or AWS re:Invent keynote supply-chain disclosures. Claims of Baillie Gifford redemptions are 13F-derived but timing-specific - cross-check latest filing.
 
 ### Non-obvious / under-discussed insights to verify
 
+- X under-discussed angle: AMZN's MediaTek/Intel packaging choice for Trainium creates an indirect read-through to $INTC foundry recovery that most AMZN bulls ignore.
+- X under-discussed angle: Latin-American e-commerce comparison noise around MELI actually highlights AMZN's slower but steadier penetration in emerging markets via its own Bazar platform.
+- X under-discussed angle: Baillie Gifford's simultaneous adds to SE and APP while trimming AMZN suggests a rotation within high-growth names rather than outright Amazon skepticism.
 - Andrew R. Jassy said, "the cost of components, particularly memory, has skyrocketed," and warned of capacity constraints and supply volatility in the memory market that may impact capital expenditures and supply chain stability. - Brian T. Olsavsky noted, "our guidance anticipates higher transportation costs related to fuel inflation," partially offset...
 - The earnings call highlighted significant acceleration in AWS and AI-related businesses, marked by a $2 billion sequential AWS revenue increase, robust growth in custom silicon, and rapid adoption...
 - Major Customer and Partner Announcements -- New agreements since last call include: OpenAI, Anthropic, Meta, NVIDIA, Uber, U.S. Bank, Fox, Southwest Airlines, U.S. Army, Bloomberg, Cerebras, Fundamental, National Geographic Society, PGA Tour.
 - Andy Jassy on Amazon Ads growth, AI tools in Q1 2026 earnings # Q1 earnings: Amazon CEO Andy Jassy discusses what's powering Amazon Ads
-- Amazon Ads generated $17.2 billion of revenue in Q1, with new AI-powered tools and expanded reach across streaming and shopping.
-- Amazon works hard to support brands of all sizes, offering omnichannel advertising platforms and innovative AI tools that invent and deliver for advertisers.
-- To put our growth in perspective: Three years after AWS launched, it had a $58 million revenue run rate. In the first three years of this AI wave, AWS's AI revenue run rate is over $15 billion-nearly 260 times larger.
 
 ### Valuation And Analyst Snapshot
 
-- Latest price: $272.68
-- Market cap: $2.93T
-- P/E: 32.18x
+- Latest price: $268.99
+- Market cap: $2.89T
+- P/E: 31.83x
 - Forward P/E: 32.15x
 - PEG: 1.89x
-- P/S TTM: 3.94x
-- EV/EBITDA TTM: 17.68x
+- P/S TTM: 3.90x
+- EV/EBITDA TTM: 17.49x
 - Analyst target: $311.55
-- Target gap: 14.25%
+- Target gap: 15.82%
 - 52-week low/high: $196.00 / $278.56
 - Beta: 1.47x
 - Quarterly revenue growth YoY: 16.60%
@@ -106,9 +109,9 @@ AMZN: Consumer Cyclical / INTERNET RETAIL: net sales +17% to $181.5B AWS sales +
 | Dimension | Current read | Evidence | Follow-up |
 | --- | --- | --- | --- |
 | Growth / demand | Net sales increased 17% to $181.5 billion in the first quarter, compared with $155.7 billion in first quarter 2025. Excluding the $2.9 billion favorable... | Exa news + earnings/call excerpts | Check whether growth is broad-based or mostly one segment. |
-| Community / X sentiment | Recent X discussion on $AMZN (early-to-mid May 2026) shows moderately bullish community sentiment with a focus on strong fundamentals, AWS momentum, and AI... | Grok/X social signal | Separate informed accounts from price-action chatter and spam. |
-| Valuation | price $272.68, P/E 32.18x, forward P/E 32.15x, analyst target $311.55, target gap 14.25% | Financial providers / Alpha Vantage / FMP | Compare multiples and analyst target with growth durability. |
-| Non-obvious angle | Andrew R. Jassy said, "the cost of components, particularly memory, has skyrocketed," and warned of capacity constraints and supply volatility in the... | Cross-read of Exa, Grok/X, and financials | Verify with primary source or higher-quality source before thesis update. |
+| Community / X sentiment | The X investor community views $AMZN as a multi-engine compounder with AWS re-acceleration (28% YoY in the latest print) and logistics scale (1M+ robots)... | Grok/X social signal | Separate informed accounts from price-action chatter and spam. |
+| Valuation | price $268.99, P/E 31.83x, forward P/E 32.15x, analyst target $311.55, target gap 15.82% | Financial providers / Alpha Vantage / FMP | Compare multiples and analyst target with growth durability. |
+| Non-obvious angle | X under-discussed angle: AMZN's MediaTek/Intel packaging choice for Trainium creates an indirect read-through to $INTC foundry recovery that most AMZN... | Cross-read of Exa, Grok/X, and financials | Verify with primary source or higher-quality source before thesis update. |
 | Primary-source coverage | Filings lane: available; news sources: 8. | SEC/Exa packets | Use filings for claims that affect valuation or risk. |
 
 ### Next research questions
@@ -116,41 +119,45 @@ AMZN: Consumer Cyclical / INTERNET RETAIL: net sales +17% to $181.5B AWS sales +
 - Is the X bull case supported by reported fundamentals, or is it mainly momentum around the ticker?
 - Does the analyst target upside still leave enough margin after factoring in valuation, capex, and macro risk?
 - Do AWS AI adoption, Amazon Ads growth, and capex pressure change the medium-term margin thesis enough to update the company file?
+- Which X claims are rumor/speculation and which can be verified through company sources or high-quality reporting?
 
 ## Key Positives
 
 - Net sales increased 17% to $181.5 billion in the first quarter, compared with $155.7 billion in first quarter 2025. Excluding the $2.9 billion favorable impact from year-over-year changes in foreign exchange rates throughout the quarter, net sales increased 15% compared with first quarter 2025.
 - North America segment sales increased 12% year-over-year to $104.1 billion. - International segment sales increased 19% year-over-year to $39.8 billion, or increased 11% excluding changes in foreign exchange rates. - AWS segment sales increased 28% year-over-year to $37.6 billion.
 - Operating income increased to $23.9 billion in the first quarter, compared with $18.4 billion in first quarter 2025.
-- X bull narrative: Clean technical setup + AWS/AI growth = parabolic upside (comparisons to $GOOG's prior run).
-- X bull narrative: High-margin shift and accelerating AWS make it a "no-brainer" long-term hold.
+- X bull narrative: AWS re-acceleration plus Prime ecosystem and advertising create a self-reinforcing flywheel; @MrStealth27 laid out the ~4x P/S on $743B TTM revenue with a credible path to $1T+ revenue.
+- X bull narrative: Logistics scale (1M+ robots) drives retail margin expansion while AWS captures AI inference demand; @LorenzoBolsa highlighted multi-branch reinvestment as the reason to hold after re-entering near $199.
 - Scale/profitability anchor: revenue TTM $742.78B, profit margin 12.20%.
 
 ## Key Negatives / Risks
 
-- X bear/skeptic narrative: Resistance at recent highs with risk of rejection/pullback if $270 - $275 support fails.
-- X bear/skeptic narrative: Valuation stretched relative to growth; macro/big-tech rotation risk on buyback/capital-return trends.
+- X bear/skeptic narrative: Institutional trimming (Baillie Gifford reducing AMZN alongside NVDA and MELI) signals crowded positioning and potential forced selling into strength; @CapexAndChill flagged the redemptions.
+- X bear/skeptic narrative: Elevated forward multiples remain vulnerable to any AWS growth miss or macro-driven capex pause.
+- X bear/skeptic narrative: Narrative fatigue around "Amazon as the everything store" ignores execution risk in grocery/pharmacy expansion; several replies to @LorenzoBolsa questioned whether robot count alone moves the needle fast enough.
 - Free cash flow per share TTM is negative at -$0.23.
+- Grok/X scan includes rumor or speculation language; do not treat it as verified fact.
 
 ## Next Research Checks
 
-- Bull case: AWS + AI cloud tailwinds + margin expansion support continued outperformance; technical breakout above ~$275 could target $300+ quickly. Strong for core long-term holding in growth/tech portfolios.
-- Risks: Short-term resistance and any broader big-tech rotation could cause 5 - 10% pullbacks. Valuation is reasonable but not cheap - watch for earnings misses or macro shifts.
-- Overall, X sentiment leans constructive on Amazon's business trajectory while staying realistic on near-term price action.
+- AWS packaging diversification: evidence @jukan05 EMIB/MediaTek thread with confidence Medium; confirm via Intel or AWS supplier commentary; invalidate if Continued Broadcom exclusivity.
+- Institutional trimming: evidence Baillie Gifford 13F trims with confidence High; confirm via Next 13F shows further reduction; invalidate if Re-add in subsequent filing.
+- Logistics margin leverage: evidence 1M+ robot count + margin trend with confidence High; confirm via Next earnings shows retail margin expansion; invalidate if Flat or declining fulfillment margins.
+- Verify X rumor/speculation: Speculation that next-gen Trainium will use both EMIB and CoWoS remains unconfirmed; verify via Intel or MediaTek earnings commentary or AWS re:Invent keynote supply-chain disclosures. Claims of Baillie Gifford redemptions are 13F-derived but timing-specific - cross-check latest filing.
 
 ## Financial Snapshot
 
 - status: partial_review
 - reason: No material numeric conflicts found, but some core metrics are missing or taxonomy labels differ by provider.
-- latest_price: $272.68
-- market_cap: $2.93T
-- pe_ratio: 32.18x
+- latest_price: $268.99
+- market_cap: $2.89T
+- pe_ratio: 31.83x
 - forward_pe: 32.15x
 - peg_ratio: 1.89x
 - analyst_target_price: $311.55
-- analyst_target_implied_upside: 14.25%
-- price_to_sales_ttm: 3.94x
-- ev_to_ebitda_ttm: 17.68x
+- analyst_target_implied_upside: 15.82%
+- price_to_sales_ttm: 3.90x
+- ev_to_ebitda_ttm: 17.49x
 - revenue_ttm: $742.78B
 - profit_margin: 12.20%
 - operating_margin_ttm: 13.10%
@@ -171,54 +178,53 @@ AMZN: Consumer Cyclical / INTERNET RETAIL: net sales +17% to $181.5B AWS sales +
 - Net sales increased 17% to $181.5 billion in the first quarter, compared with $155.7 billion in first quarter 2025. Excluding the $2.9 billion favorable impact from year-over-year changes in foreign exchange rates throughout the quarter, net sales increased 15% compared with first quarter 2025. [exa_result_1]
 - North America segment sales increased 12% year-over-year to $104.1 billion. - International segment sales increased 19% year-over-year to $39.8 billion, or increased 11% excluding changes in foreign exchange rates. - AWS segment sales increased 28% year-over-year to $37.6 billion. [exa_result_1]
 - Operating income increased to $23.9 billion in the first quarter, compared with $18.4 billion in first quarter 2025. [exa_result_1]
-- Andrew R. Jassy said, "the cost of components, particularly memory, has skyrocketed," and warned of capacity constraints and supply volatility in the memory market that may impact capital expenditures and supply chain stability. - Brian T. Olsavsky noted, "our guidance anticipates higher transportation costs related to fuel inflation," partially offset by a new FBA surcharge, indicating pressure on cost... [exa_result_3]
-- The earnings call highlighted significant acceleration in AWS and AI-related businesses, marked by a $2 billion sequential AWS revenue increase, robust growth in custom silicon, and rapid adoption... [exa_result_3]
-- Financial Guidance The following forward-looking s... [exa_result_2]
+- Andrew R. Jassy said, "the cost of components, particularly memory, has skyrocketed," and warned of capacity constraints and supply volatility in the memory market that may impact capital expenditures and supply chain stability. - Brian T. Olsavsky noted, "our guidance anticipates higher transportation costs related to fuel inflation," partially offset by a new FBA surcharge, indicating pressure on cost... [exa_result_2]
+- The earnings call highlighted significant acceleration in AWS and AI-related businesses, marked by a $2 billion sequential AWS revenue increase, robust growth in custom silicon, and rapid adoption... [exa_result_2]
+- Q2 2026 Guidance -- Net sales projected between $194 billion and $199 billion, with a 10 basis point expected headwind from FX; operating income predicted at $20 billion to $24 billion. [exa_result_2]
 
 ## Grok/X Community And Sentiment
 
-- Evidence type: social/community signal from Grok/X; cite-backed but not treated as verified company fact (9 citation(s), rumor_flag=False).
+- Evidence type: social/community signal from Grok/X; cite-backed but not treated as verified company fact (4 citation(s), rumor_flag=True).
 
 ### X Pulse
 
-Recent X discussion on $AMZN (early-to-mid May 2026) shows moderately bullish community sentiment with a focus on strong fundamentals, AWS momentum, and AI tailwinds, tempered by technical resistance and broader big-tech valuation concerns. Activity level is steady but not extremely hyped - no viral frenzy or major scandals. Technical traders dominate alongside fundamental bulls; noise from promo/spam accounts is low-to-moderate.[[1]](https://x.com/MMatters22596/status/2050674195915305396)[[2]](https://x.com/petitnong_/status/2053210561371062780)
+The X investor community views $AMZN as a multi-engine compounder with AWS re-acceleration (28% YoY in the latest print) and logistics scale (1M+ robots) as the core drivers, rather than pure e-commerce. In the last 14 days, discussion shifted from broad AI-capex tailwinds to granular supply-chain details around Trainium chip packaging, with Intel's EMIB technology emerging as a new angle linking Amazon to foundry plays. This matters because it shows hyperscalers diversifying beyond CoWoS while still embedding Intel in the stack, tightening the AI infrastructure narrative around AMZN without requiring a new earnings catalyst. Sentiment...
 
 ### Recurring Bullish Claims
 
-- Clean technical setup + AWS/AI growth = parabolic upside (comparisons to $GOOG's prior run).
-- High-margin shift and accelerating AWS make it a "no-brainer" long-term hold.
-- Breakout targets: $300+ short-term; some stretch to $1,000/share by 2035.
+- AWS re-acceleration plus Prime ecosystem and advertising create a self-reinforcing flywheel; @MrStealth27 laid out the ~4x P/S on $743B TTM revenue with a credible path to $1T+ revenue.
+- Logistics scale (1M+ robots) drives retail margin expansion while AWS captures AI inference demand; @LorenzoBolsa highlighted multi-branch reinvestment as the reason to hold after re-entering near $199.
+- Intel's EMIB packaging now appears in lower-end Trainium designs via MediaTek, embedding AMZN deeper in the U.S. foundry ecosystem; @jukan05 and @imnotharsh surfaced this supply-chain detail.
 
 ### Recurring Bearish / Skeptical Claims
 
-- Resistance at recent highs with risk of rejection/pullback if $270 - $275 support fails.
-- Valuation stretched relative to growth; macro/big-tech rotation risk on buyback/capital-return trends.
-
-### News People Are Reacting To
-
-- Post-earnings digestion of margin expansion and AWS re-acceleration.
-- Jim Cramer commentary.
-- Amazon's supply-chain/logistics expansions and Globalstar/FCC news.
-- Broader big-tech narrative on shifting capital returns.
+- Institutional trimming (Baillie Gifford reducing AMZN alongside NVDA and MELI) signals crowded positioning and potential forced selling into strength; @CapexAndChill flagged the redemptions.
+- Elevated forward multiples remain vulnerable to any AWS growth miss or macro-driven capex pause.
+- Narrative fatigue around "Amazon as the everything store" ignores execution risk in grocery/pharmacy expansion; several replies to @LorenzoBolsa questioned whether robot count alone moves the needle fast enough.
 
 ### Accounts / Posts Worth Reviewing
 
-- @MMatters22596
-- @fiscal_ai
-- @SRxTrades
-- @optionscjp
-- @SevenParr
-- @CrowdWisdomAlgo
+- @MrStealth27
+- @LorenzoBolsa
+- @jukan05
+- @imnotharsh
+- @CapexAndChill
+- @ArthurRhodes_
 
 ### Hype / Noise
 
-Moderate. Heavy on technical charts and earnings facts; occasional long-term moon-shot targets ($1k/share, $10T market cap). Low spam relative to meme stocks. No major unverified rumors circulating in these results - discussion stays grounded in reported earnings, partnerships, and price action.
+Discussion is predominantly informed and technical among the accounts above, with modest promotional spam in generic "stock picks" replies. Bot activity is low on the high-engagement threads; the conversation is not yet crowded beyond core tech-finance circles.
+
+### Rumors Or Unverified Claims
+
+- Speculation that next-gen Trainium will use both EMIB and CoWoS remains unconfirmed; verify via Intel or MediaTek earnings commentary or AWS re:Invent keynote supply-chain disclosures. Claims of Baillie Gifford redemptions are 13F-derived but timing-specific - cross-check latest filing.
 
 ### Investor Implications From X
 
-- Bull case: AWS + AI cloud tailwinds + margin expansion support continued outperformance; technical breakout above ~$275 could target $300+ quickly. Strong for core long-term holding in growth/tech portfolios.
-- Risks: Short-term resistance and any broader big-tech rotation could cause 5 - 10% pullbacks. Valuation is reasonable but not cheap - watch for earnings misses or macro shifts.
-- Overall, X sentiment leans constructive on Amazon's business trajectory while staying realistic on near-term price action.
+- AWS packaging diversification: evidence @jukan05 EMIB/MediaTek thread with confidence Medium; confirm via Intel or AWS supplier commentary; invalidate if Continued Broadcom exclusivity.
+- Institutional trimming: evidence Baillie Gifford 13F trims with confidence High; confirm via Next 13F shows further reduction; invalidate if Re-add in subsequent filing.
+- Logistics margin leverage: evidence 1M+ robot count + margin trend with confidence High; confirm via Next earnings shows retail margin expansion; invalidate if Flat or declining fulfillment margins.
+- AI capex read-through: evidence $700B Big Tech pool with confidence Medium; confirm via Continued AWS growth >25% YoY; invalidate if Any major hyperscaler capex cut.
 
 ## Filing Signal
 
@@ -234,6 +240,8 @@ Moderate. Heavy on technical charts and earnings facts; occasional long-term moo
 - +3 valuation multiple is not extreme for a large growth platform.
 - +10 recent news/contents review is source-backed.
 - +4 Exa contents produced multiple material claims.
+- +4 Grok/X social signal leans positive.
+- -3 social signal includes rumor/speculation language.
 - +3 SEC filing lane is available for primary-source cross-checks.
 - -1 provider taxonomy labels differ, but this is a watch item rather than a thesis blocker.
 
@@ -265,4 +273,4 @@ Moderate. Heavy on technical charts and earnings facts; occasional long-term moo
 
 ## Recommended Next Action
 
-- Next research decision: test whether the social bull case is fundamental or mostly momentum. Verify the bull claim (Clean technical setup + AWS/AI growth = parabolic upside (comparisons to $GOOG's prior run).) against filings/earnings and compare it with the main pushback (Resistance at recent highs with risk of rejection/pullback if $270 - $275 support fails.).
+- Next research decision: test whether the social bull case is fundamental or mostly momentum. Verify the bull claim (AWS re-acceleration plus Prime ecosystem and advertising create a self-reinforcing flywheel; @MrStealth27 laid out the ~4x...) against filings/earnings and compare it with the main pushback (Institutional trimming (Baillie Gifford reducing AMZN alongside NVDA and MELI) signals crowded positioning and potential...).

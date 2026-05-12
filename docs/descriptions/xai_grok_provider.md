@@ -1,6 +1,6 @@
 # xAI Grok Provider
 
-Last updated: 2026-05-10
+Last updated: 2026-05-12
 
 ## Purpose
 
@@ -79,6 +79,7 @@ Discovery-specific usage:
 - Use a bounded recent date window by default: 14 days for stock/latest-news scans and 21 days for industry/theme discovery.
 - Enable image understanding for industry/theme discovery when useful, because X posts often contain charts, screenshots, and product/media context.
 - Prompt Grok to surface niche companies, emerging tickers, credible accounts/posts, rumors, hype cycles, skepticism, and verification tasks.
+- Company and industry prompts must ask for investor-grade sections, not just a sentiment label: X/community pulse, trend evolution, verified facts, bull narratives, bear/skeptical narratives, non-obvious angles, notable accounts/posts, hype/noise/rumors, candidate follow-up, and an investor scorecard.
 - Treat results as social signal and lead generation only.
 
 Inspect planned xAI tasks:
@@ -103,6 +104,10 @@ agents/runs/{run_id}/evidence_packets/{packet_id}.json
 
 When Grok runs from manifest provider tasks, `artifact_id` is the manifest task id. The provider uses a longer timeout and one retry because live `x_search` responses can be slow.
 
+Long run ids, subject ids, and manifest task ids are compacted with a stable hash in packet filenames so Windows path length does not break evidence packet writes.
+
+Human-facing report writers should use the full raw Grok artifact when available. Evidence packet claims may be truncated for compact storage, but market and opportunity reports need the full Grok sections so X pulse, bull/bear narratives, candidate follow-up, and scorecards are not lost.
+
 Live smoke test status:
 
 - 2026-05-03: AMD `x_search` smoke test passed for 2026-05-01 to 2026-05-03.
@@ -116,3 +121,4 @@ Live smoke test status:
 - Preserve citations surfaced by Grok as evidence sources.
 - Separate investor-relevant facts from community narratives, hype, and speculation.
 - Use Exa/SEC/yfinance/FMP/Polygon/Alpha Vantage to verify material factual claims.
+- Do not promote Grok-only leads, or rumor-like leads, directly to monitoring. Route them through candidate review and follow-up verification first.

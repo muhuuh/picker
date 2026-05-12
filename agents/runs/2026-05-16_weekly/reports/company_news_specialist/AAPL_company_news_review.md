@@ -40,7 +40,7 @@ Reason: Company-news scan and contents follow-up produced source-backed developm
 
 ## Review Notes
 
-- exa_news_packet: `agents/runs/2026-05-16_weekly/evidence_packets/2026-05-11_exa_company_aapl_exa_news_company_aapl.json`
+- exa_news_packet: `agents/runs/2026-05-16_weekly/evidence_packets/2026-05-12_exa_company_aapl_exa_news_company_aapl.json`
 - source_count: 5
 - claim_count: 5
 - contents_packet_count: 1

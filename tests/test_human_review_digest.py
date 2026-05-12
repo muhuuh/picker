@@ -30,6 +30,26 @@ class HumanReviewDigestTests(unittest.TestCase):
         self.assertIn("Approve follow-up verification, reject/ignore, or leave open. Do not promote yet.", markdown)
         self.assertNotIn("HRQ-0004", markdown)
 
+    def test_digest_separates_verified_monitoring_candidates_from_grok_verification(self):
+        with TemporaryDirectory() as temp_dir:
+            root = write_review_digest_scaffold(Path(temp_dir))
+            queue = root / "agents" / "human_review_queue.md"
+            queue.write_text(
+                queue.read_text(encoding="utf-8").replace(
+                    "| HRQ-0004 |",
+                    "| HRQ-0005 | 2026-05-12 | Review verified discovery candidate Amkor Technology, Inc. (AMKR) for possible monitoring. | Approve adding this candidate to monitoring, or request more research first. | medium | open | agents/runs/2026-05-12_manual-market/market_research | agents/runs/2026-05-12_manual-market/market_research/candidate_review.md#CRG-0001 | Candidate surfaced from exa, grok with verification=verified, hype=unknown, cooldown=not_rejected. Tickers: AMKR. Source IDs: exa_result_1, xai_x_source_1. |\n| HRQ-0004 |",
+                ),
+                encoding="utf-8",
+            )
+
+            digest = build_human_review_digest(root=root, current_date=date(2026, 5, 11))
+            markdown = format_human_review_digest(digest)
+
+        self.assertEqual(digest.category_counts["candidate_monitoring_review"], 1)
+        self.assertEqual(digest.category_counts["candidate_verification_grok"], 1)
+        self.assertIn("Monitoring Candidate Reviews", markdown)
+        self.assertIn("Approve adding to monitoring, request more research, or reject/ignore.", markdown)
+
     def test_digest_write_creates_review_artifact(self):
         with TemporaryDirectory() as temp_dir:
             root = write_review_digest_scaffold(Path(temp_dir))

@@ -114,7 +114,9 @@ def build_digest_item(row: dict[str, str]) -> HumanReviewDigestItem:
 def classify_review_category(item: str, decision: str, evidence: str, notes: str) -> str:
     text = f"{item} {decision} {evidence} {notes}".lower()
     if "candidate_review.md" in text or "discovery candidate" in text or "discovery lead" in text:
-        if "grok" in text:
+        if "possible monitoring" in text or "approve adding this candidate to monitoring" in text or "monitoring_candidate" in text:
+            return "candidate_monitoring_review"
+        if "grok-only" in text or "grok/x discovery lead" in text or "grok/x discovery basket" in text:
             return "candidate_verification_grok"
         if "cooldown_active" in text or "cooldown override" in text:
             return "candidate_cooldown_review"
@@ -161,6 +163,8 @@ def suggest_action(category: str, item: str, decision: str, notes: str) -> str:
     text = f"{item} {decision} {notes}".lower()
     if category == "candidate_verification_grok":
         return "Approve follow-up verification, reject/ignore, or leave open. Do not promote yet."
+    if category == "candidate_monitoring_review":
+        return "Approve adding to monitoring, request more research, or reject/ignore."
     if category == "candidate_verification":
         return "Approve follow-up verification or reject/ignore before any monitoring decision."
     if category == "candidate_cooldown_review":
@@ -281,10 +285,11 @@ def category_sort_key(category: str) -> int:
         "investment_action": 0,
         "company_file_update": 1,
         "candidate_cooldown_review": 2,
-        "candidate_verification_grok": 3,
-        "candidate_verification": 4,
-        "strategy_or_workflow": 5,
-        "general_review": 6,
+        "candidate_monitoring_review": 3,
+        "candidate_verification_grok": 4,
+        "candidate_verification": 5,
+        "strategy_or_workflow": 6,
+        "general_review": 7,
     }.get(category, 9)
 
 
@@ -293,6 +298,7 @@ def category_label(category: str) -> str:
         "investment_action": "Investment Actions",
         "company_file_update": "Company File Updates",
         "candidate_cooldown_review": "Candidate Cooldown Reviews",
+        "candidate_monitoring_review": "Monitoring Candidate Reviews",
         "candidate_verification_grok": "Grok/X Candidate Verification",
         "candidate_verification": "Candidate Verification",
         "strategy_or_workflow": "Strategy / Workflow",

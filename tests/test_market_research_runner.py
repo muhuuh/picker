@@ -224,6 +224,63 @@ class MarketResearchRunnerTests(unittest.TestCase):
         self.assertEqual(groups[0].verification_status, "verified")
         self.assertEqual(groups[0].decision_kind, "monitoring_candidate")
 
+    def test_candidate_review_groups_repeated_grok_baskets(self):
+        reason = (
+            "Equipment/materials: Ichor ($ICHR), Kulicke & Soffa ($KLIC), "
+            "MKS ($MKSI), Onto ($ONTO), Camtek ($CAMT), and Entegris ($ENTG) "
+            "are being discussed as advanced-packaging suppliers."
+        )
+        groups = group_candidate_leads(
+            [
+                CandidateLead(
+                    ticker="ICHR",
+                    source_channels=["grok"],
+                    source_ids=["grok-1"],
+                    verification_status="grok_only",
+                    next_action="verify",
+                    hype_level="high",
+                    why_surfaced=reason,
+                ),
+                CandidateLead(
+                    ticker="KLIC",
+                    source_channels=["grok"],
+                    source_ids=["grok-1"],
+                    verification_status="grok_only",
+                    next_action="verify",
+                    hype_level="high",
+                    why_surfaced=reason,
+                ),
+                CandidateLead(
+                    ticker="CAMT",
+                    source_channels=["grok"],
+                    source_ids=["grok-1"],
+                    verification_status="grok_only",
+                    next_action="verify",
+                    hype_level="high",
+                    why_surfaced=reason,
+                ),
+            ]
+        )
+
+        self.assertEqual(len(groups), 1)
+        self.assertEqual(groups[0].canonical_name, "Equipment/materials basket")
+        self.assertEqual(groups[0].tickers, ["CAMT", "ICHR", "KLIC"])
+        self.assertEqual(groups[0].decision_kind, "verify_grok_lead")
+        self.assertEqual(groups[0].lead_count, 3)
+
+    def test_candidate_review_names_generic_grok_baskets_by_theme(self):
+        reason = "Public: $INTC (EMIB push), $ASX (ASE LEAP guidance), $LPK (glass TGV equipment leader), $RMBS (memory controllers)."
+        groups = group_candidate_leads(
+            [
+                CandidateLead(ticker="INTC", source_channels=["grok"], source_ids=["grok-1"], verification_status="grok_only", next_action="verify", why_surfaced=reason),
+                CandidateLead(ticker="ASX", source_channels=["grok"], source_ids=["grok-1"], verification_status="grok_only", next_action="verify", why_surfaced=reason),
+                CandidateLead(ticker="LPK", source_channels=["grok"], source_ids=["grok-1"], verification_status="grok_only", next_action="verify", why_surfaced=reason),
+            ]
+        )
+
+        self.assertEqual(len(groups), 1)
+        self.assertEqual(groups[0].canonical_name, "EMIB/ASE/LEAP basket")
+
     def test_candidate_review_writes_report_and_duplicate_safe_review_queue(self):
         with TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
@@ -285,6 +342,66 @@ class MarketResearchRunnerTests(unittest.TestCase):
         self.assertEqual(queue.count("candidate_review.md#CRG-0002"), 1)
         self.assertIn("| CRG-0001 | Robo Holdings | ROBO | exa, grok | verified", report)
         self.assertIn("verify_grok_lead", report)
+
+    def test_candidate_review_supersedes_stale_open_rows_for_regenerated_run(self):
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            write_minimal_repo(root)
+            run_id = "2026-05-10_manual-market"
+            market_dir = root / "agents" / "runs" / run_id / "market_research"
+            market_dir.mkdir(parents=True, exist_ok=True)
+            lead_path = market_dir / "semis_candidate_leads.json"
+            lead_path.write_text(
+                json.dumps(
+                    [
+                        {
+                            "ticker": "CAMT",
+                            "source_channels": ["grok"],
+                            "source_ids": ["grok-1"],
+                            "verification_status": "grok_only",
+                            "hype_level": "high",
+                            "next_action": "verify",
+                            "rejected_cooldown_status": "not_rejected",
+                            "why_surfaced": "Grok/X chatter surfaced $CAMT as a packaging supplier.",
+                        }
+                    ]
+                ),
+                encoding="utf-8",
+            )
+            build_candidate_review(root=root, run_id=run_id, current_date=date(2026, 5, 10), write=True, queue_review=True)
+            lead_path.write_text(
+                json.dumps(
+                    [
+                        {
+                            "ticker": "CAMT",
+                            "source_channels": ["grok"],
+                            "source_ids": ["grok-1"],
+                            "verification_status": "grok_only",
+                            "hype_level": "high",
+                            "next_action": "verify",
+                            "rejected_cooldown_status": "not_rejected",
+                            "why_surfaced": "Equipment/materials: Camtek ($CAMT), Ichor ($ICHR), and Onto ($ONTO) are niche packaging suppliers.",
+                        },
+                        {
+                            "ticker": "ICHR",
+                            "source_channels": ["grok"],
+                            "source_ids": ["grok-1"],
+                            "verification_status": "grok_only",
+                            "hype_level": "high",
+                            "next_action": "verify",
+                            "rejected_cooldown_status": "not_rejected",
+                            "why_surfaced": "Equipment/materials: Camtek ($CAMT), Ichor ($ICHR), and Onto ($ONTO) are niche packaging suppliers.",
+                        },
+                    ]
+                ),
+                encoding="utf-8",
+            )
+            build_candidate_review(root=root, run_id=run_id, current_date=date(2026, 5, 11), write=True, queue_review=True)
+            queue = (root / "agents" / "human_review_queue.md").read_text(encoding="utf-8")
+
+        self.assertIn("| superseded |", queue)
+        self.assertIn("Review Grok/X discovery basket Equipment/materials basket", queue)
+        self.assertEqual(queue.count("candidate_review.md#CRG-0001"), 2)
 
     def test_market_research_candidate_review_cli(self):
         with TemporaryDirectory() as temp_dir:

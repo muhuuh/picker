@@ -337,6 +337,16 @@ Use this file for information we should not lose across sessions.
   - status: active
 
 - 2026-05-12:
+  - decision/fact: Fresh live Grok/X market discovery must preserve full raw Grok output in human-facing reports when evidence packet claims are truncated. Reports should expose X pulse, trend evolution, bull/bear narratives, candidate follow-up, investor scorecard, hype/noise/rumors, and verification tasks. Provider artifact and packet ids are compacted with stable hashes so long topics/run ids do not break Windows path length limits.
+  - evidence artifact path(s): `stock_research/providers/exa.py`, `stock_research/providers/xai_grok.py`, `stock_research/market_research_runner.py`, `agents/runs/2026-05-12_manual-market-ai-semiconductor-supply-chain/market_research/ai_semiconductor_supply_chain_advanced_packaging_manual_market_research.md`, `agents/runs/2026-05-12_manual-market-ai-semiconductor-supply-chain/market_research/candidate_review.md`, `agents/human_review_digest.md`
+  - status: active
+
+- 2026-05-12:
+  - decision/fact: Market discovery now groups repeated Grok/X multi-ticker basket leads into concise thematic review items before writing candidate review and human-review queue rows. When a candidate review is regenerated for the same run, stale open rows for that run are marked `superseded` before replacement rows are appended, preserving audit history without keeping stale review decisions active.
+  - evidence artifact path(s): `stock_research/candidate_review.py`, `stock_research/market_research_runner.py`, `stock_research/human_review_digest.py`, `tests/test_market_research_runner.py`, `tests/test_human_review_digest.py`, `agents/runs/2026-05-12_manual-market-ai-semiconductor-supply-chain/market_research/candidate_review.md`, `agents/human_review_digest.md`
+  - status: active
+
+- 2026-05-12:
   - decision/fact: Opportunity assessments now include a richer investor insight report section. The human-facing company report should include executive read, company/industry context, thesis/trend change, Grok/X expert-community split, non-obvious insights, valuation/analyst target context, peer context, decision table, and next research questions.
   - evidence artifact path(s): `stock_research/opportunity_assessment.py`, `stock_research/weekly_digest.py`, `tests/test_opportunity_assessment.py`, `agents/runs/2026-05-16_weekly/reports/opportunity_assessment/AMZN_opportunity_assessment.md`, `agents/runs/2026-05-16_weekly/final_digest.md`
   - status: active

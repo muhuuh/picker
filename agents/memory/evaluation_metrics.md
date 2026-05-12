@@ -232,3 +232,17 @@ After a weekly or manual run:
 - evidence: `docs/scratchpads/openai_agents_sdk_orchestration_scratchpad.md`, `docs/plans/investment_agent_backlog.md`, `docs/plans/openai_agents_sdk_orchestration_backlog.md`, `stock_research/opportunity_assessment.py`, `stock_research/weekly_digest.py`, `stock_research/market_research_runner.py`, `tests/test_opportunity_assessment.py`, `tests/test_market_research_runner.py`, `agents/specialists/prompts/sentiment.md`, `agents/runs/2026-05-16_weekly/final_digest.md`, `agents/runs/2026-05-16_weekly/reports/opportunity_assessment/AMZN_opportunity_assessment.md`, `agents/runs/2026-05-10_manual-market-energy-storage/market_research/grid_scale_energy_storage_manual_market_research.md`
 - owner: memory and evaluation orchestrator
 - next_review: 2026-06-15
+
+- id: eval-2026-05-12-fresh-grok-market-quality
+- date: 2026-05-12
+- type: evaluation
+- scope: discovery
+- status: active
+- confidence: high
+- trigger/source: Fresh live Grok/X + Exa industry run for `AI semiconductor supply chain and advanced packaging`.
+- lesson: Fresh market discovery reports should load full raw Grok artifacts when evidence packet claims are truncated, preserve explicit X pulse, trend evolution, bull and bear narratives, candidate follow-up, investor scorecard, hype/noise/rumors, and verification tasks, and keep Grok-only or rumor-like leads verification-limited. Long provider artifact ids must be compacted with stable hashes so Windows path length does not break evidence packet writes. Broad Grok/X multi-ticker baskets should be grouped into concise thematic review items, not one active HRQ row per ticker; regenerated candidate reviews should supersede stale open rows for the same run.
+- use_when: Running or reviewing manual market research, Grok/X discovery, candidate extraction, candidate review, market-report formatting, or provider artifact naming.
+- do_not_use_when: Treating Grok/X social lead generation as verified company facts or as permission to add a stock to monitoring without approval-gated verification.
+- evidence: `stock_research/providers/exa.py`, `stock_research/providers/xai_grok.py`, `stock_research/market_research_runner.py`, `agents/runs/2026-05-12_manual-market-ai-semiconductor-supply-chain/market_research/ai_semiconductor_supply_chain_advanced_packaging_manual_market_research.md`, `agents/runs/2026-05-12_manual-market-ai-semiconductor-supply-chain/market_research/candidate_review.md`, `agents/human_review_digest.md`, `tests/test_market_research_runner.py`, `tests/test_exa_provider.py`, `tests/test_xai_grok_provider.py`
+- owner: market research sub-orchestrator
+- next_review: 2026-06-15

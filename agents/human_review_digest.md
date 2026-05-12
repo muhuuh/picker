@@ -2,13 +2,14 @@
 
 Generated: 2026-05-12
 Status: needs_user_review
-Open items summarized: 8
+Open items summarized: 15
 
 ## Summary
 
 - Company File Updates: 2
-- Grok/X Candidate Verification: 3
-- Candidate Verification: 2
+- Monitoring Candidate Reviews: 1
+- Grok/X Candidate Verification: 5
+- Candidate Verification: 6
 - Strategy / Workflow: 1
 
 ## Decision Options
@@ -20,7 +21,7 @@ Open items summarized: 8
 
 ## Priority Counts
 
-- medium: 8
+- medium: 15
 
 ## Company File Updates
 
@@ -29,6 +30,12 @@ Open items summarized: 8
 | medium | HRQ-0002 | AAPL | not specified | Approve, reject, or request more research; approved proposals can then be applied. | agents/runs/2026-05-09_weekly/orchestrator_update_proposals.md#ORP-0001 |
 | medium | HRQ-0003 | AAPL | source validated | Approve, reject, or request more research; approved proposals can then be applied. | agents/runs/2026-05-09_weekly/orchestrator_update_proposals.md#ORP-0002 |
 
+## Monitoring Candidate Reviews
+
+| Priority | ID | Target | Verification | Suggested action | Evidence |
+| --- | --- | --- | --- | --- | --- |
+| medium | HRQ-0010 | AMKR | verified | Approve adding to monitoring, request more research, or reject/ignore. | agents/runs/2026-05-12_manual-market-ai-semiconductor-supply-chain/market_research/candidate_review.md#CRG-0001 |
+
 ## Grok/X Candidate Verification
 
 | Priority | ID | Target | Verification | Suggested action | Evidence |
@@ -36,6 +43,8 @@ Open items summarized: 8
 | medium | HRQ-0004 | FLNC | grok only | Approve follow-up verification, reject/ignore, or leave open. Do not promote yet. | agents/runs/2026-05-10_manual-market-energy-storage/market_research/candidate_review.md#CRG-0001 |
 | medium | HRQ-0005 | NRGV | grok only | Approve follow-up verification, reject/ignore, or leave open. Do not promote yet. | agents/runs/2026-05-10_manual-market-energy-storage/market_research/candidate_review.md#CRG-0002 |
 | medium | HRQ-0006 | NXXT | grok only | Approve follow-up verification, reject/ignore, or leave open. Do not promote yet. | agents/runs/2026-05-10_manual-market-energy-storage/market_research/candidate_review.md#CRG-0003 |
+| medium | HRQ-0043 | ASX, INTC, LPK, RMBS | grok only | Approve follow-up verification, reject/ignore, or leave open. Do not promote yet. | agents/runs/2026-05-12_manual-market-ai-semiconductor-supply-chain/market_research/candidate_review.md#CRG-0002 |
+| medium | HRQ-0044 | GLW, KLAC, LRCX, ONTO, TSM | grok only | Approve follow-up verification, reject/ignore, or leave open. Do not promote yet. | agents/runs/2026-05-12_manual-market-ai-semiconductor-supply-chain/market_research/candidate_review.md#CRG-0003 |
 
 ## Candidate Verification
 
@@ -43,6 +52,10 @@ Open items summarized: 8
 | --- | --- | --- | --- | --- | --- |
 | medium | HRQ-0008 | CWEN | exa only | Approve follow-up verification or reject/ignore before any monitoring decision. | agents/runs/2026-05-10_manual-market-energy-storage/market_research/candidate_review.md#CRG-0005 |
 | medium | HRQ-0009 | IES.L | exa only | Approve follow-up verification or reject/ignore before any monitoring decision. | agents/runs/2026-05-10_manual-market-energy-storage/market_research/candidate_review.md#CRG-0006 |
+| medium | HRQ-0039 | WAF.DE | exa only | Approve follow-up verification or reject/ignore before any monitoring decision. | agents/runs/2026-05-12_manual-market-ai-semiconductor-supply-chain/market_research/candidate_review.md#CRG-0004 |
+| medium | HRQ-0040 | SOI.PA | exa only | Approve follow-up verification or reject/ignore before any monitoring decision. | agents/runs/2026-05-12_manual-market-ai-semiconductor-supply-chain/market_research/candidate_review.md#CRG-0005 |
+| medium | HRQ-0041 | SMHN.F | exa only | Approve follow-up verification or reject/ignore before any monitoring decision. | agents/runs/2026-05-12_manual-market-ai-semiconductor-supply-chain/market_research/candidate_review.md#CRG-0006 |
+| medium | HRQ-0042 | XFAB.PA | exa only | Approve follow-up verification or reject/ignore before any monitoring decision. | agents/runs/2026-05-12_manual-market-ai-semiconductor-supply-chain/market_research/candidate_review.md#CRG-0007 |
 
 ## Strategy / Workflow
 

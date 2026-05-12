@@ -155,6 +155,9 @@ def group_candidate_leads(leads: list[CandidateLead]) -> list[CandidateReviewGro
 
 
 def candidate_group_key(lead: CandidateLead) -> str:
+    basket_key = grok_basket_group_key(lead)
+    if basket_key:
+        return f"grok_basket:{basket_key}"
     company_key = normalize_company_key(lead.company_name)
     if company_key:
         return f"company:{company_key}"
@@ -162,6 +165,19 @@ def candidate_group_key(lead: CandidateLead) -> str:
     if ticker_root:
         return f"ticker:{ticker_root}"
     return f"unknown:{normalize_company_key(lead.why_surfaced) or 'candidate'}"
+
+
+def grok_basket_group_key(lead: CandidateLead) -> str:
+    channels = {channel.lower() for channel in lead.source_channels}
+    if "grok" not in channels:
+        return ""
+    if lead.company_name.strip():
+        return ""
+    if channels != {"grok"} and lead.verification_status != "grok_only":
+        return ""
+    if len(extract_ticker_mentions(lead.why_surfaced)) < 2:
+        return ""
+    return normalize_company_key(strip_ticker_mentions(lead.why_surfaced)) or normalize_company_key(lead.why_surfaced)
 
 
 def aggregate_candidate_group(group_id: str, leads: list[CandidateLead]) -> CandidateReviewGroup:
@@ -175,7 +191,8 @@ def aggregate_candidate_group(group_id: str, leads: list[CandidateLead]) -> Cand
     sentiment = group_sentiment([lead.sentiment for lead in leads])
     rumor_flag = any(lead.rumor_flag for lead in leads)
     next_action = group_next_action(verification_status, cooldown_status)
-    canonical_name = company_names[0] if company_names else (tickers[0] if tickers else "unknown candidate")
+    why_surfaced = choose_longest([lead.why_surfaced for lead in leads])
+    canonical_name = candidate_group_name(company_names=company_names, tickers=tickers, why_surfaced=why_surfaced)
     group = CandidateReviewGroup(
         group_id=group_id,
         canonical_name=canonical_name,
@@ -192,7 +209,7 @@ def aggregate_candidate_group(group_id: str, leads: list[CandidateLead]) -> Cand
         review_priority=group_review_priority(verification_status, cooldown_status, hype_level, rumor_flag),
         decision_kind=group_decision_kind(verification_status, cooldown_status),
         rumor_flag=rumor_flag,
-        why_surfaced=choose_longest([lead.why_surfaced for lead in leads]),
+        why_surfaced=why_surfaced,
         notes=group_notes(verification_status, cooldown_status, rumor_flag),
         lead_count=len(leads),
     )
@@ -382,8 +399,16 @@ def append_candidate_reviews_to_human_review_queue(
 ) -> Path:
     path = repo_root / "agents" / "human_review_queue.md"
     ensure_human_review_queue(path)
-    existing_evidence = {row.get("Evidence / Run Link", "") for row in load_first_table(path)}
     group_by_id = {group.group_id: group for group in groups}
+    desired_items_by_evidence = {
+        f"{report_path.relative_to(repo_root).as_posix()}#{item['review_item_id']}": item for item in review_items
+    }
+    existing_evidence = sync_candidate_review_queue_rows(
+        path=path,
+        run_id=run_id,
+        generated_at=generated_at,
+        desired_items_by_evidence=desired_items_by_evidence,
+    )
     next_id = next_human_review_id(path)
     for item in review_items:
         group = group_by_id.get(str(item["review_item_id"]))
@@ -406,6 +431,90 @@ def append_candidate_reviews_to_human_review_queue(
         existing_evidence.add(evidence)
         next_id = increment_human_review_id(next_id)
     return path
+
+
+def sync_candidate_review_queue_rows(
+    *,
+    path: Path,
+    run_id: str,
+    generated_at: date,
+    desired_items_by_evidence: dict[str, dict[str, Any]],
+) -> set[str]:
+    if not path.exists():
+        return set()
+    lines = path.read_text(encoding="utf-8").splitlines()
+    table_bounds = human_review_table_bounds(lines)
+    if not table_bounds:
+        return set()
+
+    data_start, data_end = table_bounds
+    active_existing_evidence: set[str] = set()
+    changed = False
+    for index in range(data_start, data_end):
+        cells = parse_table_row(lines[index])
+        if len(cells) < 9:
+            continue
+        evidence = cells[7]
+        if not is_run_candidate_review_evidence(evidence, run_id):
+            if cells[5].strip().lower() != "superseded":
+                active_existing_evidence.add(evidence)
+            continue
+
+        desired = desired_items_by_evidence.get(evidence)
+        status = cells[5].strip().lower()
+        should_keep = bool(
+            desired
+            and status != "superseded"
+            and normalize_table_text(cells[2]) == normalize_table_text(str(desired.get("title", "")))
+            and normalize_table_text(cells[3]) == normalize_table_text(str(desired.get("question", "")))
+        )
+        if should_keep:
+            active_existing_evidence.add(evidence)
+            continue
+        if status in {"open", "needs_more_research", "needs_review"}:
+            cells[5] = "superseded"
+            cells[8] = append_note(cells[8], f"Superseded by regenerated candidate review on {generated_at.isoformat()}.")
+            lines[index] = format_table_row(cells)
+            changed = True
+
+    if changed:
+        path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    return active_existing_evidence
+
+
+def human_review_table_bounds(lines: list[str]) -> tuple[int, int] | None:
+    for index, line in enumerate(lines):
+        if line.startswith("| ID | Date Added | Item |"):
+            data_start = index + 2
+            data_end = data_start
+            while data_end < len(lines) and lines[data_end].startswith("|"):
+                data_end += 1
+            return data_start, data_end
+    return None
+
+
+def parse_table_row(line: str) -> list[str]:
+    return [cell.strip() for cell in line.strip().strip("|").split("|")]
+
+
+def format_table_row(cells: list[str]) -> str:
+    return "| " + " | ".join(escape_cell(cell) for cell in cells) + " |"
+
+
+def is_run_candidate_review_evidence(evidence: str, run_id: str) -> bool:
+    return evidence.startswith(f"agents/runs/{run_id}/market_research/") and "candidate_review.md#" in evidence
+
+
+def normalize_table_text(value: str) -> str:
+    return re.sub(r"\s+", " ", normalize_ascii(value)).strip().lower()
+
+
+def append_note(existing: str, note: str) -> str:
+    if note in existing:
+        return existing
+    if existing.strip():
+        return f"{existing.rstrip()} {note}"
+    return note
 
 
 def candidate_review_to_dict(result: CandidateReviewResult) -> dict[str, Any]:
@@ -528,6 +637,8 @@ def review_title(group: CandidateReviewGroup) -> str:
     if group.decision_kind == "monitoring_candidate":
         return f"Review verified discovery candidate {label} for possible monitoring."
     if group.decision_kind == "verify_grok_lead":
+        if len(group.tickers) > 1:
+            return f"Review Grok/X discovery basket {label} for follow-up verification."
         return f"Review Grok/X discovery lead {label} for follow-up verification."
     return f"Review discovery candidate {label} for verification before monitoring."
 
@@ -538,15 +649,20 @@ def review_question(group: CandidateReviewGroup) -> str:
     if group.decision_kind == "monitoring_candidate":
         return "Approve adding this candidate to monitoring, or request more research first."
     if group.decision_kind == "verify_grok_lead":
+        if len(group.tickers) > 1:
+            return "Approve verification for this Grok/X basket, reject/ignore it, or request narrower research."
         return "Approve Exa/filing/financial verification of this Grok-only lead, or ignore it."
     return "Approve follow-up company and financial verification before considering monitoring."
 
 
 def review_reason(group: CandidateReviewGroup) -> str:
+    basket_note = ""
+    if len(group.tickers) > 1:
+        basket_note = f" Basket contains {len(group.tickers)} tickers across {group.lead_count} lead(s)."
     return (
         f"Candidate surfaced from {', '.join(group.source_channels) or 'unknown sources'} "
         f"with verification={group.verification_status}, hype={group.hype_level}, "
-        f"cooldown={group.rejected_cooldown_status}."
+        f"cooldown={group.rejected_cooldown_status}.{basket_note}"
     )
 
 
@@ -560,6 +676,65 @@ def review_notes(group: CandidateReviewGroup | None, item: dict[str, Any]) -> st
 def candidate_label(group: CandidateReviewGroup) -> str:
     ticker_part = f" ({', '.join(group.tickers)})" if group.tickers else ""
     return f"{group.canonical_name}{ticker_part}"
+
+
+def candidate_group_name(*, company_names: list[str], tickers: list[str], why_surfaced: str) -> str:
+    if company_names:
+        return company_names[0]
+    if len(tickers) > 1:
+        cleaned_reason = strip_ticker_mentions(why_surfaced)
+        if ":" in cleaned_reason:
+            prefix = cleaned_reason.split(":", 1)[0].strip()
+        else:
+            prefix = re.split(r"\b(benefit|benefits|are|is|surfaced|surface)\b", cleaned_reason, maxsplit=1)[0].strip()
+        prefix = re.sub(r"\(\$TICKER\)", "", prefix)
+        prefix = re.sub(r"\[[0-9,\s]+\]", "", prefix)
+        prefix = re.sub(r"\s+", " ", prefix).strip(" -.,;:")
+        if prefix.lower() in {"public", "public companies", "others", "other"}:
+            thematic_prefix = thematic_basket_prefix(why_surfaced)
+            if thematic_prefix:
+                return f"{thematic_prefix} basket"
+        if 2 <= len(prefix) <= 80 and re.search(r"[A-Za-z]", prefix):
+            return f"{prefix} basket"
+        return f"Grok/X basket: {', '.join(tickers[:5])}"
+    if tickers:
+        return tickers[0]
+    return "unknown candidate"
+
+
+def extract_ticker_mentions(value: str) -> list[str]:
+    tickers = re.findall(r"\$([A-Z][A-Z0-9.]{1,7})\b", value or "")
+    return sorted(set(ticker.upper() for ticker in tickers))
+
+
+def strip_ticker_mentions(value: str) -> str:
+    return re.sub(r"\$[A-Z][A-Z0-9.]{1,7}\b", "$TICKER", value or "")
+
+
+def thematic_basket_prefix(value: str) -> str:
+    themes = [
+        ("emib", "EMIB"),
+        ("ase", "ASE"),
+        ("leap", "LEAP"),
+        ("glass", "glass"),
+        ("lide", "LIDE"),
+        ("tgv", "TGV"),
+        ("memory controller", "memory-controller"),
+        ("controller", "controller"),
+        ("inspection", "inspection"),
+        ("etch", "etch"),
+        ("cowos", "CoWoS"),
+        ("copos", "CoPoS"),
+        ("hbm", "HBM"),
+    ]
+    text = value.lower()
+    labels: list[str] = []
+    for needle, label in themes:
+        if needle in text and label not in labels:
+            labels.append(label)
+        if len(labels) >= 3:
+            break
+    return "/".join(labels)
 
 
 def choose_longest(values: list[str]) -> str:
