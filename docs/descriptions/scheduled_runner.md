@@ -94,7 +94,11 @@ When `--write` is used:
 
 Generated JSON files remain ignored local runtime artifacts.
 
-The final digest includes readable financial formatting, explicit per-ticker evidence links, concrete news developments, Grok/X pulse, recurring bull/bear narratives, accounts/posts to review, hype/noise, and deterministic digest quality findings when required evidence links, financial/news statuses, social-signal labels, status-only social output, missing social narratives, or trade-instruction guardrails fail. The human-review digest is refreshed so the report can point the user to current approve/reject/needs-more-research/leave-open decisions.
+The final digest includes readable financial formatting, forward P/E and analyst target context when available, explicit per-ticker evidence links, concrete news developments, Grok/X pulse, recurring bull/bear narratives, accounts/posts to review, hype/noise, and deterministic digest quality findings when required evidence links, financial/news statuses, social-signal labels, status-only social output, missing social narratives, or trade-instruction guardrails fail.
+
+The deeper per-company opportunity report includes the richer investor insight section: executive read, company/industry context, thesis/trend change, Grok/X expert-community split, non-obvious insights, valuation/analyst target snapshot, peer context, decision table, and next research questions. The human-review digest is refreshed so the report can point the user to current approve/reject/needs-more-research/leave-open decisions.
+
+Manual market-research reports use the same investor-usefulness standard. They should show industry/theme context, X/community pulse, trend evolution, candidate pipeline, non-obvious/contrarian angles, a decision table, and explicit approve/reject/request-more-research choices instead of generic lane/status labels.
 
 ## Status Semantics
 

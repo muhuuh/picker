@@ -32,6 +32,9 @@ AAPL is interesting (85/100, medium risk, high confidence) because Apple stock r
 - latest_price: $293.32
 - market_cap: $4.28T
 - pe_ratio: 34.97x
+- forward_pe: 33.44x
+- analyst_target_price: $305.28
+- analyst_target_implied_upside: 4.08%
 - price_to_sales_ttm: 9.48x
 - profit_margin: 27.20%
 - free_cash_flow_per_share_ttm: $8.78
@@ -103,6 +106,9 @@ AMZN is interesting (80/100, low risk, medium confidence) because Net sales incr
 - latest_price: $272.68
 - market_cap: $2.93T
 - pe_ratio: 32.18x
+- forward_pe: 32.15x
+- analyst_target_price: $311.55
+- analyst_target_implied_upside: 14.25%
 - price_to_sales_ttm: 3.94x
 - profit_margin: 12.20%
 - free_cash_flow_per_share_ttm: -$0.23

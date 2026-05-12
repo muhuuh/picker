@@ -72,6 +72,7 @@ class MarketResearchRunnerTests(unittest.TestCase):
         self.assertEqual(leads["ROBO"].verification_status, "verified")
         self.assertEqual(leads["ROBO"].next_action, "human_review")
         self.assertEqual(sorted(leads["ROBO"].source_channels), ["exa", "grok"])
+        self.assertIn("ROBO is described as bullish", leads["ROBO"].why_surfaced)
         self.assertEqual(leads["COOL"].verification_status, "grok_only")
         self.assertEqual(leads["COOL"].rejected_cooldown_status, "cooldown_active")
         self.assertEqual(leads["COOL"].next_action, "ignore")
@@ -154,6 +155,10 @@ class MarketResearchRunnerTests(unittest.TestCase):
 
         self.assertEqual(result.status, "dry_run")
         self.assertEqual(result.quality_findings, [])
+        self.assertIn("## Investor Insight Report", report)
+        self.assertIn("### X / Community Pulse", report)
+        self.assertIn("### Non-obvious / Contrarian Angles To Verify", report)
+        self.assertIn("approve monitoring review / reject / request more research", report)
         self.assertIn("| ROBO | exa, grok | verified", report)
         self.assertIn("## Discovery Quality Gate", report)
         self.assertTrue(any(path.endswith("_candidate_leads.json") for path in result.written_paths))

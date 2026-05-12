@@ -331,6 +331,16 @@ Use this file for information we should not lose across sessions.
   - evidence artifact path(s): `docs/scratchpads/openai_agents_sdk_orchestration_scratchpad.md`, `docs/plans/investment_agent_backlog.md`, `docs/plans/openai_agents_sdk_orchestration_backlog.md`, `agents/memory/evaluation_metrics.md`, `stock_research/opportunity_assessment.py`, `stock_research/weekly_digest.py`, `agents/runs/2026-05-16_weekly/final_digest.md`
   - status: active
 
+- 2026-05-12:
+  - decision/fact: Manual market-research reports now include a richer investor insight report section. The human-facing industry/theme report should include executive read, industry/theme context, X/community pulse, trend evolution, candidate pipeline, non-obvious/contrarian angles, decision table, and explicit approve/reject/request-more-research choices.
+  - evidence artifact path(s): `stock_research/market_research_runner.py`, `tests/test_market_research_runner.py`, `agents/runs/2026-05-10_manual-market-energy-storage/market_research/grid_scale_energy_storage_manual_market_research.md`
+  - status: active
+
+- 2026-05-12:
+  - decision/fact: Opportunity assessments now include a richer investor insight report section. The human-facing company report should include executive read, company/industry context, thesis/trend change, Grok/X expert-community split, non-obvious insights, valuation/analyst target context, peer context, decision table, and next research questions.
+  - evidence artifact path(s): `stock_research/opportunity_assessment.py`, `stock_research/weekly_digest.py`, `tests/test_opportunity_assessment.py`, `agents/runs/2026-05-16_weekly/reports/opportunity_assessment/AMZN_opportunity_assessment.md`, `agents/runs/2026-05-16_weekly/final_digest.md`
+  - status: active
+
 - 2026-05-11:
   - decision/fact: The OpenAI Agents SDK weekly path completed successfully after API credit was added and runtime quality gates were tightened. The validation command for AMZN/AAPL is `python -m stock_research run-weekly --write --today 2026-05-11 --execute-providers --execute-analysis --execute-orchestrator --orchestrator-timeout-seconds 900`.
   - evidence artifact path(s): `agents/runs/2026-05-16_weekly/orchestration_report.md`, `agents/runs/2026-05-16_weekly/agent_runtime_main_orchestrator.md`, `stock_research/agent_runtime/reports.py`, `tests/test_agent_runtime.py`

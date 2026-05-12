@@ -172,6 +172,7 @@ def run_manual_market_research(
             subject_id=normalized_subject_id,
             decision=decision,
             candidate_leads=candidates,
+            evidence_packets=packets,
             quality_findings=quality_findings,
             provider_result=provider_result,
         )
@@ -350,7 +351,7 @@ def merge_candidate_from_claim(lead: CandidateLead, packet: EvidencePacket, clai
     if channel and channel not in lead.source_channels:
         lead.source_channels.append(channel)
     lead.source_ids.extend(claim.source_ids or [packet.packet_id])
-    lead.why_surfaced = choose_longer(lead.why_surfaced, claim.claim)
+    lead.why_surfaced = combine_candidate_reason(lead.why_surfaced, candidate_reason_from_claim(lead.ticker, claim))
     if not lead.company_name:
         lead.company_name = company_name_from_claim(claim.claim)
     text = f"{claim.claim} {claim.evidence}".lower()
@@ -394,6 +395,41 @@ def company_name_from_claim(claim: str) -> str:
     if claim.startswith(prefix):
         value = claim[len(prefix) :].strip()
         return value.split(" (", 1)[0].strip()
+    return ""
+
+
+def candidate_reason_from_claim(ticker: str, claim: Claim) -> str:
+    evidence = clean_research_text(claim.evidence)
+    if claim.claim.startswith("Relevant Exa result:") and evidence:
+        return f"{claim.claim}: {first_sentence(evidence)}"
+    ticker_context = ticker_context_from_text(ticker, evidence)
+    if ticker_context:
+        return ticker_context
+    return claim.claim
+
+
+def combine_candidate_reason(current: str, candidate: str) -> str:
+    candidate = clean_research_text(candidate)
+    current = clean_research_text(current)
+    if not candidate:
+        return current
+    if not current:
+        return candidate
+    if candidate.lower() in current.lower():
+        return current
+    if current.lower() in candidate.lower():
+        return candidate
+    return truncate(f"{current} Also surfaced because: {candidate}", 320)
+
+
+def ticker_context_from_text(ticker: str, text: str) -> str:
+    if not ticker or not text:
+        return ""
+    patterns = [rf"\${re.escape(ticker)}\b", rf"\b{re.escape(ticker)}\b"]
+    chunks = re.split(r"(?:\n\s*[-*]\s+|\n\n+|(?<=[.!?])\s+)", text)
+    for chunk in chunks:
+        if any(re.search(pattern, chunk, flags=re.IGNORECASE) for pattern in patterns):
+            return truncate(clean_research_text(chunk), 260)
     return ""
 
 
@@ -455,6 +491,7 @@ def write_manual_market_research_report(
     subject_id: str,
     decision: OrchestratorDecision | None,
     candidate_leads: list[CandidateLead],
+    evidence_packets: list[EvidencePacket],
     quality_findings: list[str],
     provider_result: dict[str, Any],
 ) -> list[Path]:
@@ -471,6 +508,7 @@ def write_manual_market_research_report(
             subject_id=subject_id,
             decision=decision,
             candidate_leads=candidate_leads,
+            evidence_packets=evidence_packets or [],
             quality_findings=quality_findings,
             provider_result=provider_result,
         ),
@@ -488,10 +526,17 @@ def format_manual_market_research_markdown(
     subject_id: str,
     decision: OrchestratorDecision | None,
     candidate_leads: list[CandidateLead],
+    evidence_packets: list[EvidencePacket],
     quality_findings: list[str],
     provider_result: dict[str, Any],
 ) -> str:
     data = output_to_dict(decision) if decision else {}
+    insights = build_market_investor_insight_report(
+        topic=topic,
+        subject_type=subject_type,
+        candidate_leads=candidate_leads,
+        evidence_packets=evidence_packets or [],
+    )
     lines = [
         f"# Manual Market Research: {topic}",
         "",
@@ -505,6 +550,8 @@ def format_manual_market_research_markdown(
         "## Summary",
         "",
         str(data.get("summary", "") or "No synthesis available yet."),
+        "",
+        *format_market_investor_insight_markdown(insights),
         "",
         "## Notable X Narratives",
         "",
@@ -538,6 +585,351 @@ def format_manual_market_research_markdown(
     lines.append(f"- candidate_leads: agents/runs/{context.run_id}/market_research/{slugify(subject_id or topic)}_candidate_leads.json")
     lines.append(f"- evidence_packets: agents/runs/{context.run_id}/evidence_packets/")
     return "\n".join(lines).rstrip() + "\n"
+
+
+def build_market_investor_insight_report(
+    *,
+    topic: str,
+    subject_type: str,
+    candidate_leads: list[CandidateLead],
+    evidence_packets: list[EvidencePacket],
+) -> dict[str, Any]:
+    exa_claims = research_claims(evidence_packets, provider="exa")
+    grok_claims = research_claims(evidence_packets, provider="xai_grok")
+    top_candidates = rank_candidate_leads(candidate_leads)[:8]
+    verified_count = sum(1 for lead in candidate_leads if lead.verification_status in {"verified", "partially_verified"})
+    grok_only_count = sum(1 for lead in candidate_leads if lead.verification_status == "grok_only")
+    return {
+        "executive_read": build_market_executive_read(topic, top_candidates, exa_claims, grok_claims, verified_count, grok_only_count),
+        "industry_context": market_context_items(exa_claims, limit=5),
+        "x_pulse": x_pulse_items(grok_claims, limit=6),
+        "trend_evolution": trend_items(exa_claims, grok_claims, limit=6),
+        "candidate_pipeline": build_candidate_pipeline(top_candidates),
+        "non_obvious_angles": non_obvious_market_angles(exa_claims, grok_claims, candidate_leads, limit=6),
+        "decision_table": build_market_decision_table(top_candidates),
+        "next_questions": market_next_questions(topic, top_candidates, grok_only_count),
+        "coverage": {
+            "subject_type": subject_type,
+            "candidate_count": len(candidate_leads),
+            "verified_or_partially_verified": verified_count,
+            "grok_only": grok_only_count,
+            "source_packet_count": len(evidence_packets),
+        },
+    }
+
+
+def format_market_investor_insight_markdown(report: dict[str, Any]) -> list[str]:
+    lines = [
+        "## Investor Insight Report",
+        "",
+        "### Executive Read",
+        "",
+        str(report.get("executive_read") or "No investor-grade synthesis available yet."),
+        "",
+        "### Industry / Theme Context",
+        "",
+    ]
+    append_report_bullets(lines, report.get("industry_context"), "No source-backed industry context extracted yet.")
+    lines.extend(["", "### X / Community Pulse", ""])
+    append_report_bullets(lines, report.get("x_pulse"), "No Grok/X community pulse extracted yet.")
+    lines.extend(["", "### Trend Evolution And Demand Signals", ""])
+    append_report_bullets(lines, report.get("trend_evolution"), "No trend evolution signals extracted yet.")
+    lines.extend(["", "### Candidate Pipeline", ""])
+    lines.extend(report.get("candidate_pipeline") or ["No candidate pipeline extracted yet."])
+    lines.extend(["", "### Non-obvious / Contrarian Angles To Verify", ""])
+    append_report_bullets(lines, report.get("non_obvious_angles"), "No non-obvious angles extracted yet.")
+    lines.extend(["", "### Decision Table", ""])
+    lines.extend(report.get("decision_table") or ["No decision table available yet."])
+    lines.extend(["", "### Next Research Questions", ""])
+    append_report_bullets(lines, report.get("next_questions"), "No next questions available yet.")
+    return lines
+
+
+def build_market_executive_read(
+    topic: str,
+    candidate_leads: list[CandidateLead],
+    exa_claims: list[Claim],
+    grok_claims: list[Claim],
+    verified_count: int,
+    grok_only_count: int,
+) -> str:
+    context = first_research_bullet(exa_claims) or "source-backed industry context is still thin"
+    x_pulse = first_research_bullet(grok_claims) or "X/community pulse is still thin"
+    candidate_names = ", ".join(display_candidate(lead) for lead in candidate_leads[:5]) or "no candidate yet"
+    return (
+        f"{topic}: {context} X/community angle: {x_pulse} "
+        f"Candidate pipeline: {candidate_names}. Verification state: {verified_count} verified/partially verified, "
+        f"{grok_only_count} Grok-only lead(s). Grok-only ideas are discovery leads, not monitoring additions."
+    )
+
+
+def research_claims(evidence_packets: list[EvidencePacket], *, provider: str) -> list[Claim]:
+    claims: list[Claim] = []
+    for packet in evidence_packets:
+        if packet.provider == provider:
+            claims.extend(packet.claims)
+    return claims
+
+
+def market_context_items(exa_claims: list[Claim], *, limit: int) -> list[str]:
+    items: list[str] = []
+    for claim in exa_claims:
+        if claim.claim.startswith("Exa "):
+            continue
+        evidence = clean_research_text(claim.evidence)
+        if looks_like_company_profile(evidence):
+            continue
+        item = first_sentence(evidence) or clean_research_text(claim.claim)
+        if item:
+            items.append(source_labeled_text(item, claim.source_ids))
+    return dedupe_strings(items)[:limit]
+
+
+def x_pulse_items(grok_claims: list[Claim], *, limit: int) -> list[str]:
+    items: list[str] = []
+    for claim in grok_claims:
+        items.extend(extract_section_bullets(claim.evidence, "Social Sentiment", limit=3))
+        items.extend(extract_section_bullets(claim.evidence, "Speculation, Rumors & Hype", limit=3))
+        if not items:
+            items.append(first_sentence(claim.evidence))
+    return [source_labeled_text(item, source_ids_from_claims(grok_claims)) for item in dedupe_strings(items)[:limit] if item]
+
+
+def trend_items(exa_claims: list[Claim], grok_claims: list[Claim], *, limit: int) -> list[str]:
+    items: list[str] = []
+    for claim in grok_claims:
+        items.extend(extract_section_bullets(claim.evidence, "Verified Facts", limit=5))
+    for claim in exa_claims:
+        if claim.claim.startswith("Exa "):
+            continue
+        text = clean_research_text(claim.evidence)
+        if looks_like_company_profile(text):
+            continue
+        if any(word in text.lower() for word in ["growth", "deal", "capacity", "revenue", "demand", "investment", "capital", "market"]):
+            items.append(source_labeled_text(first_sentence(text), claim.source_ids))
+    return dedupe_strings([item for item in items if item])[:limit]
+
+
+def build_candidate_pipeline(candidate_leads: list[CandidateLead]) -> list[str]:
+    if not candidate_leads:
+        return ["No candidates extracted yet."]
+    rows = [
+        "| Candidate | Signal | Verification | Why it matters | Human decision |",
+        "| --- | --- | --- | --- | --- |",
+    ]
+    for lead in candidate_leads:
+        rows.append(
+            "| "
+            + " | ".join(
+                [
+                    sanitize_table_cell(display_candidate(lead)),
+                    sanitize_table_cell(candidate_signal_label(lead)),
+                    lead.verification_status,
+                    sanitize_table_cell(truncate(clean_research_text(lead.why_surfaced), 220)),
+                    human_decision_label(lead),
+                ]
+            )
+            + " |"
+        )
+    return rows
+
+
+def non_obvious_market_angles(
+    exa_claims: list[Claim],
+    grok_claims: list[Claim],
+    candidate_leads: list[CandidateLead],
+    *,
+    limit: int,
+) -> list[str]:
+    items: list[str] = []
+    for claim in grok_claims:
+        items.extend(extract_section_bullets(claim.evidence, "Speculation, Rumors & Hype", limit=4))
+        items.extend(extract_section_bullets(claim.evidence, "Niche Companies & Tickers Surfaced", limit=4))
+    for claim in exa_claims:
+        if claim.claim.startswith("Exa "):
+            continue
+        text = clean_research_text(claim.evidence)
+        if looks_like_company_profile(text):
+            continue
+        if any(word in text.lower() for word in ["bottleneck", "risk", "queue", "selective", "tightened", "struggling", "outperform"]):
+            items.append(source_labeled_text(first_sentence(text), claim.source_ids))
+    for lead in candidate_leads:
+        if lead.verification_status == "grok_only" or lead.rumor_flag:
+            items.append(f"{display_candidate(lead)} is a Grok/X-only or rumor-like lead; verify with Exa, filings, and market data before any monitoring decision.")
+    return dedupe_strings([item for item in items if item])[:limit]
+
+
+def build_market_decision_table(candidate_leads: list[CandidateLead]) -> list[str]:
+    rows = [
+        "| Dimension | Current read | Actionable next step |",
+        "| --- | --- | --- |",
+    ]
+    verified = [lead for lead in candidate_leads if lead.verification_status in {"verified", "partially_verified"}]
+    grok_only = [lead for lead in candidate_leads if lead.verification_status == "grok_only"]
+    exa_only = [lead for lead in candidate_leads if lead.verification_status == "exa_only"]
+    rows.append(f"| Source-backed candidates | {len(verified)} verified/partially verified; {len(exa_only)} Exa-only | Prioritize Exa-only names for financial and filing checks before monitoring. |")
+    rows.append(f"| X/community leads | {len(grok_only)} Grok-only lead(s) | Treat as early signal; require Exa or primary-source verification before promotion. |")
+    rows.append("| Hype/noise | " + sanitize_table_cell(hype_summary_sentence(candidate_leads)) + " | Separate durable demand signals from ticker pumps and promotional posts. |")
+    rows.append("| Human decision | Candidates are research leads, not automatic additions | Approve verify / reject / more research from the human review digest. |")
+    return rows
+
+
+def market_next_questions(topic: str, candidate_leads: list[CandidateLead], grok_only_count: int) -> list[str]:
+    questions = [
+        f"Which companies are the real economic beneficiaries of {topic}, rather than just adjacent names surfaced by search?",
+        "Which surfaced names have public tickers, adequate liquidity, and financial data good enough for a company research run?",
+    ]
+    if grok_only_count:
+        questions.append("Which Grok/X-only leads can be verified by Exa company search, filings, or financial providers?")
+    if candidate_leads:
+        questions.append(f"Run company research on the highest-signal candidate: {display_candidate(candidate_leads[0])}.")
+    return questions
+
+
+def rank_candidate_leads(candidate_leads: list[CandidateLead]) -> list[CandidateLead]:
+    return sorted(candidate_leads, key=lambda lead: (candidate_rank(lead), lead.ticker or lead.company_name))
+
+
+def candidate_rank(lead: CandidateLead) -> tuple[int, int, int]:
+    verification = {"verified": 0, "partially_verified": 1, "exa_only": 2, "grok_only": 3, "unverified": 4, "cooldown_blocked": 5}.get(lead.verification_status, 9)
+    hype = {"high": 0, "medium": 1, "low": 2, "unknown": 3}.get(lead.hype_level, 3)
+    rumor = 1 if lead.rumor_flag else 0
+    return verification, hype, rumor
+
+
+def display_candidate(lead: CandidateLead) -> str:
+    if lead.company_name and lead.ticker:
+        return f"{lead.company_name} ({lead.ticker})"
+    return lead.company_name or lead.ticker or "unknown"
+
+
+def candidate_signal_label(lead: CandidateLead) -> str:
+    channels = "+".join(lead.source_channels) or "unknown"
+    tags = [channels]
+    if lead.hype_level != "unknown":
+        tags.append(f"{lead.hype_level} hype")
+    if lead.sentiment != "unknown":
+        tags.append(f"{lead.sentiment} sentiment")
+    if lead.rumor_flag:
+        tags.append("rumor/speculation")
+    return ", ".join(tags)
+
+
+def human_decision_label(lead: CandidateLead) -> str:
+    if lead.next_action == "verify":
+        return "approve verification / reject / request more research"
+    if lead.next_action == "human_review":
+        return "approve monitoring review / reject / request more research"
+    if lead.next_action == "ignore":
+        return "ignore unless user overrides"
+    return lead.next_action
+
+
+def hype_summary_sentence(candidate_leads: list[CandidateLead]) -> str:
+    if not candidate_leads:
+        return "No candidate hype state extracted yet."
+    high = [display_candidate(lead) for lead in candidate_leads if lead.hype_level == "high"]
+    rumors = [display_candidate(lead) for lead in candidate_leads if lead.rumor_flag]
+    return f"High-hype: {', '.join(high) if high else 'none'}; rumor/speculation: {', '.join(rumors) if rumors else 'none'}."
+
+
+def append_report_bullets(lines: list[str], values: Any, empty: str) -> None:
+    items = [str(value) for value in (values or []) if str(value).strip()]
+    if not items:
+        lines.append(f"- {empty}")
+        return
+    lines.extend(f"- {item}" for item in items)
+
+
+def first_research_bullet(claims: list[Claim]) -> str:
+    for claim in claims:
+        if claim.claim.startswith("Exa "):
+            continue
+        evidence = clean_research_text(claim.evidence)
+        if looks_like_company_profile(evidence):
+            continue
+        bullets = extract_any_bullets(evidence, limit=1)
+        if bullets:
+            return bullets[0]
+        sentence = first_sentence(evidence)
+        if sentence:
+            return sentence
+    return ""
+
+
+def extract_section_bullets(text: str, section_title: str, *, limit: int) -> list[str]:
+    pattern = rf"#+\s*{re.escape(section_title)}\s*(.*?)(?:\n#+\s+|\Z)"
+    match = re.search(pattern, text, flags=re.IGNORECASE | re.DOTALL)
+    if not match:
+        return []
+    return extract_any_bullets(match.group(1), limit=limit)
+
+
+def extract_any_bullets(text: str, *, limit: int) -> list[str]:
+    bullets: list[str] = []
+    for line in text.splitlines():
+        stripped = line.strip()
+        if stripped.startswith(("-", "*")):
+            value = clean_research_text(stripped.lstrip("-* "))
+            if value.endswith(":") and len(value.split()) <= 4:
+                continue
+            if value:
+                bullets.append(truncate(value, 280))
+        if len(bullets) >= limit:
+            break
+    return bullets
+
+
+def source_labeled_text(text: str, source_ids: list[str]) -> str:
+    label = ", ".join(source_ids[:3])
+    suffix = f" [{label}]" if label else ""
+    return f"{truncate(clean_research_text(text), 280)}{suffix}"
+
+
+def looks_like_company_profile(text: str) -> bool:
+    sample = text[:900].lower()
+    return (
+        " is a " in sample
+        and " company" in sample
+        and any(marker in sample for marker in ["employs", "headquartered", "market cap", "ipo", "founded"])
+    )
+
+
+def source_ids_from_claims(claims: list[Claim]) -> list[str]:
+    result: list[str] = []
+    for claim in claims:
+        result.extend(claim.source_ids)
+    return dedupe_strings(result)
+
+
+def clean_research_text(value: str) -> str:
+    value = value or ""
+    replacements = {
+        "\u200b": "",
+        "\u201c": '"',
+        "\u201d": '"',
+        "\u2018": "'",
+        "\u2019": "'",
+        "\u2013": "-",
+        "\u2014": "-",
+    }
+    for old, new in replacements.items():
+        value = value.replace(old, new)
+    value = re.sub(r"\[\[(\d+)\]\]\([^)]+\)", r"[\1]", value)
+    value = re.sub(r"\s+", " ", value)
+    value = value.replace("**", "").replace("###", "").replace("##", "").strip()
+    value = value.lstrip("-* ").strip()
+    return value
+
+
+def first_sentence(value: str) -> str:
+    text = clean_research_text(value)
+    if not text:
+        return ""
+    match = re.search(r"(.{80,}?[.!?])\s", text)
+    if match:
+        return match.group(1).strip()
+    return truncate(text, 220)
 
 
 def manual_market_result_to_dict(result: ManualMarketResearchResult) -> dict[str, Any]:

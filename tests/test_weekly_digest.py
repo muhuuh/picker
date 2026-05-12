@@ -25,6 +25,9 @@ class WeeklyDigestTests(unittest.TestCase):
             self.assertIn("- market_cap: $1.00M", markdown)
             self.assertIn("- profit_margin: 10.00%", markdown)
             self.assertIn("- pe_ratio: 30.00x", markdown)
+            self.assertIn("- forward_pe: 24.00x", markdown)
+            self.assertIn("- analyst_target_price: $125.00", markdown)
+            self.assertIn("- analyst_target_implied_upside: 25.00%", markdown)
             self.assertIn("- free_cash_flow_per_share_ttm: -$1.00", markdown)
             self.assertNotIn("Digest Quality Findings", markdown)
 
@@ -109,6 +112,9 @@ def write_opportunity_input(
             "latest_price": 100.0,
             "market_cap": 1000000.0,
             "pe_ratio": 30.0,
+            "forward_pe": 24.0,
+            "analyst_target_price": 125.0,
+            "analyst_target_implied_upside": 0.25,
             "price_to_sales_ttm": 3.0,
             "profit_margin": 0.1,
             "free_cash_flow_per_share_ttm": -1.0,

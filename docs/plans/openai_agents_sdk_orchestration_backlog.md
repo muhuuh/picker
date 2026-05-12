@@ -173,6 +173,8 @@ Out of scope for the first slice:
   - Still pending: broader malformed specialist output and missing-citation failure tests across all specialist lanes.
   - Product-quality gap from AMZN review: structural gates passed while the report was still not useful. Add usefulness gates for investor-facing reports: no status-label-only sentiment, no source-count-only news sections, no generic source titles as developments, no internal workflow chores as human watch items, and no final digest without concrete X/community narratives and bullish/bearish arguments.
   - 2026-05-12 repair pass: opportunity/final digest synthesis now preserves raw Grok/X narratives, bull/bear claims, accounts/posts, hype/noise, investor implications, and concrete news developments. This is a repair baseline, not the final target; the required bar is materially above the user's old standalone Grok PDF reports.
+  - 2026-05-12 richer report pass: opportunity reports now include a dedicated investor insight section with company/industry context, trend/thesis change, X community split, non-obvious insights, valuation/analyst target snapshot, peer context, decision table, and research questions.
+  - 2026-05-12 market report pass: manual market-research reports now include investor insight sections for industry/theme context, X/community pulse, trend evolution, candidate pipeline, non-obvious/contrarian angles, decision table, and explicit human decision choices.
 - [x] Add first deterministic output quality gates.
   - Implemented checks: summary/status shape, direct trade wording, valid memory item ids, existing file targets, source-backed update proposals, and existing source artifact paths.
 - [ ] Keep buy/sell/position-size recommendations as human review items.
@@ -191,7 +193,7 @@ Out of scope for the first slice:
   - Current command: `python -m stock_research agent-runtime run --run-id RUN_ID --execute --write`.
 - [x] Add clean manual market-research run path for industry/theme discovery.
   - Current command: `python -m stock_research market-research run --topic "robotics suppliers in Europe" --subject-type industry --write [--execute-providers] [--execute-orchestrator]`.
-  - Current behavior: creates a manual manifest with Exa context, Exa company discovery, and Grok/X discovery lanes; writes a report with candidate leads, verified/unverified status, hype/rumor labels, cooldown checks, and next research tasks.
+  - Current behavior: creates a manual manifest with Exa context, Exa company discovery, and Grok/X discovery lanes; writes a richer investor-facing report with industry/theme context, X/community pulse, trend evolution, candidate leads, verified/unverified status, hype/rumor labels, cooldown checks, decision choices, and next research tasks.
   - Live validation: `robotics suppliers in Europe` and `grid scale energy storage` provider runs completed. The energy-storage SDK market fanout completed after adding direct JSON evidence packet loading for specialists.
 - [x] Add manual candidate-review bridge for discovery candidates.
   - Current command: `python -m stock_research market-research candidate-review --run-id RUN_ID --write --queue-review`.
@@ -241,8 +243,8 @@ Out of scope for the first slice:
 - [ ] Add investor-usefulness golden tests for digest/opportunity reports.
   - Target behavior: reports must surface what changed, why it matters, X/community sentiment with cited account/post themes, recurring bullish/bearish claims, latest developments as actual claims, verified vs social/speculative separation, and concrete next research checks.
   - Failure examples: `mixed_social_signal` without narrative, `ready_for_company_update` without developments, `Exa content excerpt from...` as a positive, taxonomy-label chores in human-facing risks, and vague `run follow-up if material` watch items.
-  - Current progress: first regression test now fails status-only Grok/X output; opportunity/final digest synthesis now preserves raw Grok/X narratives, bull/bear claims, accounts/posts, hype/noise, and concrete news developments.
-  - Still pending: stronger golden tests using richer fixture reports modeled after the user-provided Grok PDFs, but with a higher bar: non-obvious/contrarian insight, expert/community split, trend evolution, company/industry context, valuation/analyst snapshot, and summary table. Also add broader usefulness gates for market-research and discovery reports.
+  - Current progress: first regression test now fails status-only Grok/X output; opportunity/final digest synthesis now preserves raw Grok/X narratives, bull/bear claims, accounts/posts, hype/noise, concrete news developments, forward P/E/analyst target context, non-obvious insight, peer context, and summary table. Manual market-research tests now cover investor insight sections and explicit human decision choices.
+  - Still pending: stronger golden fixture cases modeled after the user-provided Grok PDFs, with fresh live Grok/X company and industry examples.
 - [ ] Add failure-injection tests for provider failure, malformed specialist output, missing citations, and timeout behavior.
   - Current progress: timeout and runtime-error failure injection tests are implemented for `run_agent_sync`; provider failure, malformed specialist output, and missing-citation golden tests remain.
 - [ ] Add quality gates for no direct writes outside allowed targets.

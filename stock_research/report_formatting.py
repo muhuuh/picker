@@ -3,10 +3,17 @@ from __future__ import annotations
 from typing import Any
 
 
-MONEY_FIELDS = {"latest_price"}
+MONEY_FIELDS = {"latest_price", "analyst_target_price", "fifty_two_week_low", "fifty_two_week_high"}
 LARGE_MONEY_FIELDS = {"market_cap", "revenue_ttm"}
-RATIO_FIELDS = {"pe_ratio", "price_to_sales_ttm", "ev_to_ebitda_ttm"}
-PERCENT_FIELDS = {"profit_margin"}
+RATIO_FIELDS = {"pe_ratio", "forward_pe", "peg_ratio", "price_to_sales_ttm", "ev_to_ebitda_ttm", "price_to_book_ratio", "beta"}
+PERCENT_FIELDS = {
+    "profit_margin",
+    "operating_margin_ttm",
+    "quarterly_revenue_growth_yoy",
+    "quarterly_earnings_growth_yoy",
+    "analyst_target_implied_upside",
+    "range_position",
+}
 PER_SHARE_FIELDS = {"free_cash_flow_per_share_ttm"}
 
 
