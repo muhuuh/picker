@@ -246,3 +246,17 @@ After a weekly or manual run:
 - evidence: `stock_research/providers/exa.py`, `stock_research/providers/xai_grok.py`, `stock_research/market_research_runner.py`, `agents/runs/2026-05-12_manual-market-ai-semiconductor-supply-chain/market_research/ai_semiconductor_supply_chain_advanced_packaging_manual_market_research.md`, `agents/runs/2026-05-12_manual-market-ai-semiconductor-supply-chain/market_research/candidate_review.md`, `agents/human_review_digest.md`, `tests/test_market_research_runner.py`, `tests/test_exa_provider.py`, `tests/test_xai_grok_provider.py`
 - owner: market research sub-orchestrator
 - next_review: 2026-06-15
+
+- id: eval-2026-05-13-human-report-format-quality
+- date: 2026-05-13
+- type: evaluation
+- scope: reporting
+- status: active
+- confidence: high
+- trigger/source: User reviewed five human-facing reports and flagged visible truncation, duplicate sections, internal workflow prose, dead-looking source ids, and unclear human-review semantics.
+- lesson: Human-facing investor reports must be edited like products, not audit dumps. Do not show visible `...` or `[...]` truncation markers. Do not duplicate sections such as market `Companies Discovered` after a candidate pipeline or opportunity `Financial Snapshot` after valuation. Keep internal workflow/status details in audit sections, not executive reads. Source ids should resolve to clickable URLs or artifact links where possible. Candidate review and HRQ digest must explain what the human can approve, reject, or mark as needing more research and what each approval actually triggers.
+- use_when: Formatting market reports, opportunity assessments, final digests, candidate reviews, human-review digests, or adding golden tests for investor-facing output.
+- do_not_use_when: Raw JSON artifacts, evidence packets, or low-level provider logs where compact machine-readable status is expected.
+- evidence: `stock_research/report_formatting.py`, `stock_research/market_research_runner.py`, `stock_research/opportunity_assessment.py`, `stock_research/weekly_digest.py`, `stock_research/candidate_review.py`, `stock_research/human_review_digest.py`, `agents/runs/2026-05-12_manual-market-ai-semiconductor-supply-chain/market_research/ai_semiconductor_supply_chain_advanced_packaging_manual_market_research.md`, `agents/runs/2026-05-16_weekly/reports/opportunity_assessment/AMZN_opportunity_assessment.md`
+- owner: reporting quality
+- next_review: 2026-06-15

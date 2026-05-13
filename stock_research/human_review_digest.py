@@ -27,6 +27,7 @@ class HumanReviewDigestItem:
     verification_status: str = "not_specified"
     evidence_link: str = ""
     notes: str = ""
+    context: str = ""
 
 
 @dataclass(frozen=True)
@@ -107,7 +108,8 @@ def build_digest_item(row: dict[str, str]) -> HumanReviewDigestItem:
         suggested_action=suggest_action(category, item, decision, notes),
         verification_status=extract_verification(notes),
         evidence_link=evidence,
-        notes=truncate(notes, 140),
+        notes=truncate(notes, 260),
+        context=build_review_context(category, item, decision, notes, evidence),
     )
 
 
@@ -178,6 +180,23 @@ def suggest_action(category: str, item: str, decision: str, notes: str) -> str:
     return "Approve, reject, or request more research."
 
 
+def build_review_context(category: str, item: str, decision: str, notes: str, evidence: str) -> str:
+    base = notes or decision or item
+    if category == "candidate_monitoring_review":
+        prefix = "Read the linked candidate group and market report first; approval means this source-backed lead may enter the monitoring approval path."
+    elif category == "candidate_verification_grok":
+        prefix = "This is a social/X lead only; approval means run verification, not add to monitoring."
+    elif category == "candidate_verification":
+        prefix = "This lead needs company/news/financial verification before any monitoring decision."
+    elif category == "company_file_update":
+        prefix = "This is a proposed company-file change; multiple rows for one ticker can be separate update proposals."
+    elif category == "strategy_or_workflow":
+        prefix = "This changes strategy or process; approve only if the workflow should remember it."
+    else:
+        prefix = "Review the linked evidence before deciding."
+    return truncate(f"{prefix} {base}", 520)
+
+
 def format_human_review_digest(digest: HumanReviewDigest) -> str:
     lines = [
         "# Human Review Digest",
@@ -197,10 +216,12 @@ def format_human_review_digest(digest: HumanReviewDigest) -> str:
         lines.append("")
         lines.append("## Decision Options")
         lines.append("")
-        lines.append("- approve: allow the next gated follow-up step")
+        lines.append("- approve: allow the next gated follow-up step described in the row")
         lines.append("- reject: close or ignore the item")
         lines.append("- needs_more_research: keep open and request more evidence")
         lines.append("- leave open: make no change")
+        lines.append("")
+        lines.append("Monitoring candidates are not automatically added to monitoring. Grok/X verification items are earlier-stage social leads and only approve deeper verification.")
         lines.append("")
         lines.append("## Priority Counts")
         lines.append("")
@@ -214,8 +235,10 @@ def format_human_review_digest(digest: HumanReviewDigest) -> str:
                 "",
                 f"## {category_label(category)}",
                 "",
-                "| Priority | ID | Target | Verification | Suggested action | Evidence |",
-                "| --- | --- | --- | --- | --- | --- |",
+                category_help(category),
+                "",
+                "| Priority | ID | Target | Verification | Suggested action | Why this is here / where to read | Evidence |",
+                "| --- | --- | --- | --- | --- | --- | --- |",
             ]
         )
         for item in category_items:
@@ -229,6 +252,7 @@ def format_human_review_digest(digest: HumanReviewDigest) -> str:
                         item.target,
                         display_value(item.verification_status),
                         item.suggested_action,
+                        item.context,
                         item.evidence_link or "not linked",
                     ]
                 )
@@ -306,6 +330,16 @@ def category_label(category: str) -> str:
     }.get(category, category.replace("_", " ").title())
 
 
+def category_help(category: str) -> str:
+    return {
+        "company_file_update": "Proposed edits to existing company files. Duplicate tickers can be valid when separate proposals touch different parts of the file.",
+        "candidate_monitoring_review": "Source-backed discovery candidates that may be worth adding to monitoring after you review the linked evidence.",
+        "candidate_verification_grok": "Early social/X leads from Grok. Approving these only starts verification; it does not add them to monitoring.",
+        "candidate_verification": "Leads that need more company/news/financial verification before any monitoring decision.",
+        "strategy_or_workflow": "Strategy or process changes that affect future runs.",
+    }.get(category, "Review the linked evidence and choose approve, reject, needs_more_research, or leave open.")
+
+
 def display_value(value: str) -> str:
     return value.replace("_", " ")
 
@@ -318,4 +352,5 @@ def truncate(value: str, limit: int) -> str:
     cleaned = normalize_ascii(value)
     if len(cleaned) <= limit:
         return cleaned
-    return cleaned[: limit - 3].rstrip() + "..."
+    shortened = cleaned[:limit].rsplit(" ", 1)[0].rstrip(" ,;:-")
+    return f"{shortened}." if shortened and shortened[-1] not in ".!?" else shortened

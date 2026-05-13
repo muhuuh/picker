@@ -1,6 +1,6 @@
 # Human Review Operating Model
 
-Last updated: 2026-05-11
+Last updated: 2026-05-13
 
 ## Goal
 
@@ -48,6 +48,14 @@ The user should not need to read every report after every run. The normal path i
 3. Use linked deeper reports when a decision needs context.
 4. Tell Codex the decisions in natural language.
 5. Codex records the decisions with the deterministic decision writer.
+
+The digest should explain the difference between review categories:
+
+- `Monitoring Candidate Reviews`: source-backed discovery candidates that may enter the monitoring approval path after the user reads the linked candidate review and market report.
+- `Grok/X Candidate Verification`: early social/X leads; approval only starts verification and never adds a stock to monitoring.
+- `Candidate Verification`: Exa-only or otherwise incomplete leads; approval starts company/news/financial verification before any monitoring decision.
+- `Company File Updates`: scoped proposed edits; multiple rows for one ticker can be valid when they are separate update proposals.
+- `Strategy / Workflow`: process or strategy changes that future runs should remember.
 
 ## Who Reads Portfolio Review
 
@@ -152,6 +160,7 @@ This keeps asynchronous approval robust: the system does not require the human t
 - Do not apply memory updates outside the deterministic schema validation path.
 - Do not let expired or duplicate HRQ items create duplicate follow-up work.
 - Every digest item should include the HRQ id, decision type, suggested user action, status, confidence or verification state, and linked evidence artifact.
+- Human-facing reports should not contain visible truncation markers (`...` or `[...]`), dead source ids without links, duplicated narrative sections, or internal workflow/status prose in the executive read.
 
 ## Open Implementation Gaps
 

@@ -10,7 +10,7 @@ from typing import Any
 from .evidence import Claim, EvidencePacket, Risk, Source, default_packet_path, new_packet, read_packet, write_packet
 from .memory import relative_to_root
 from .repo import find_repo_root
-from .report_formatting import format_financial_value, format_percent as format_ratio_percent, format_plain_value
+from .report_formatting import compact_complete_text, format_financial_value, format_percent as format_ratio_percent, format_plain_value, markdown_link
 
 
 class OpportunityAssessmentError(RuntimeError):
@@ -898,13 +898,13 @@ def build_summary_table(
     return [
         {
             "dimension": "Growth / demand",
-            "current_read": compact_text(first_or_default(thesis.get("tailwinds"), "No clear growth tailwind extracted."), 160),
+            "current_read": compact_text(first_or_default(thesis.get("tailwinds"), "No clear growth tailwind extracted."), 360),
             "evidence": "Exa news + earnings/call excerpts",
             "follow_up": "Check whether growth is broad-based or mostly one segment.",
         },
         {
             "dimension": "Community / X sentiment",
-            "current_read": compact_text(strip_citations_and_markdown(str(social.get("x_pulse", "No X pulse available."))), 160),
+            "current_read": compact_text(strip_citations_and_markdown(str(social.get("x_pulse", "No X pulse available."))), 420),
             "evidence": "Grok/X social signal",
             "follow_up": "Separate informed accounts from price-action chatter and spam.",
         },
@@ -916,7 +916,7 @@ def build_summary_table(
         },
         {
             "dimension": "Non-obvious angle",
-            "current_read": compact_text(first_or_default(non_obvious, "No non-obvious angle extracted."), 160),
+            "current_read": compact_text(first_or_default(non_obvious, "No non-obvious angle extracted."), 360),
             "evidence": "Cross-read of Exa, Grok/X, and financials",
             "follow_up": "Verify with primary source or higher-quality source before thesis update.",
         },
@@ -1201,8 +1201,8 @@ def recommended_next_action(
     if risk_level == "high" or confidence == "low":
         return "Review blocking evidence gaps before updating the company thesis."
     if social.get("bearish_claims") and social.get("bullish_claims"):
-        bull = compact_text(strip_citations_and_markdown(str(social["bullish_claims"][0])), 130)
-        bear = compact_text(strip_citations_and_markdown(str(social["bearish_claims"][0])), 130)
+        bull = compact_text(strip_citations_and_markdown(str(social["bullish_claims"][0])), 360)
+        bear = compact_text(strip_citations_and_markdown(str(social["bearish_claims"][0])), 360)
         return (
             "Next research decision: test whether the social bull case is fundamental or mostly momentum. "
             f"Verify the bull claim ({bull}) against filings/earnings and compare it with the main pushback ({bear})."
@@ -1315,94 +1315,43 @@ def write_markdown_assessment(root: Path, run_id: str, ticker: str, assessment: 
 
 
 def format_opportunity_assessment_markdown(root: Path, run_id: str, assessment: dict[str, Any]) -> str:
+    sources = assessment_source_lookup(root, run_id, str(assessment["ticker"]))
     lines = [
         f"# Opportunity Assessment: {assessment['ticker']}",
         "",
-        f"Status: {assessment['status']}",
-        f"Opportunity view: {assessment['opportunity_view']}",
-        f"Opportunity score: {assessment['opportunity_score']}/100",
-        f"Risk level: {assessment['risk_level']}",
-        f"Confidence: {assessment['confidence']}",
-        f"Thesis freshness: {assessment['thesis_freshness']}",
+        f"Status: `{assessment['status']}`",
+        f"Opportunity view: `{assessment['opportunity_view']}`",
+        f"Opportunity score: **{assessment['opportunity_score']}/100**",
+        f"Risk level: `{assessment['risk_level']}`",
+        f"Confidence: `{assessment['confidence']}`",
+        f"Thesis freshness: `{assessment['thesis_freshness']}`",
         "",
-        "## Expert Opinion",
+        "## Verdict",
         "",
-        assessment["summary"],
+        compact_complete_text(assessment["summary"], 900),
         "",
-        "This is a research synthesis for human review, not an automatic trade instruction.",
+        "### Why The Score Looks Like This",
+        "",
+        *format_score_rationale(assessment),
         "",
         "## Investor Insight Report",
-        "",
     ]
     insight = assessment.get("investor_insight_report") or {}
     lines.extend(format_investor_insight_markdown(insight))
-    lines.extend(
-        [
-            "",
-            "## Key Positives",
-            "",
-        ]
-    )
-    lines.extend(f"- {format_report_item(item)}" for item in assessment["positives"])
-    lines.extend(["", "## Key Negatives / Risks", ""])
-    lines.extend(f"- {format_report_item(item)}" for item in assessment["negatives"])
-    lines.extend(["", "## Next Research Checks", ""])
-    lines.extend(f"- {format_report_item(item)}" for item in assessment["watch_items"])
-    lines.extend(["", "## Financial Snapshot", ""])
-    lines.extend(format_financial_snapshot_lines(assessment["financial_snapshot"]))
-    lines.extend(["", "## News And Developments", ""])
-    news = assessment["news_snapshot"]
-    developments = news.get("material_developments") or []
-    if developments:
-        for development in developments[:6]:
-            claim_text = development.get("claim") if isinstance(development, dict) else str(development)
-            source_ids = ", ".join(development.get("source_ids") or []) if isinstance(development, dict) else ""
-            suffix = f" [{source_ids}]" if source_ids else ""
-            lines.append(f"- {format_report_item(claim_text, 420)}{suffix}")
-    else:
-        lines.append("- No concrete source-backed development was extracted.")
-    lines.extend(["", "## Grok/X Community And Sentiment", ""])
-    social = assessment["social_snapshot"]
-    lines.append(
-        "- Evidence type: social/community signal from Grok/X; cite-backed but not treated as verified company fact "
-        f"({social.get('citation_count')} citation(s), rumor_flag={social.get('rumor_flag')})."
-    )
-    if social.get("x_pulse"):
-        lines.extend(["", "### X Pulse", "", social["x_pulse"]])
-    if social.get("bullish_claims"):
-        lines.extend(["", "### Recurring Bullish Claims", ""])
-        lines.extend(f"- {format_report_item(item)}" for item in social["bullish_claims"][:5])
-    if social.get("bearish_claims"):
-        lines.extend(["", "### Recurring Bearish / Skeptical Claims", ""])
-        lines.extend(f"- {format_report_item(item)}" for item in social["bearish_claims"][:5])
-    if social.get("news_reactions"):
-        lines.extend(["", "### News People Are Reacting To", ""])
-        lines.extend(f"- {format_report_item(item)}" for item in social["news_reactions"][:5])
-    if social.get("notable_accounts"):
-        lines.extend(["", "### Accounts / Posts Worth Reviewing", ""])
-        lines.extend(f"- {item}" for item in social["notable_accounts"][:6])
-    if social.get("hype_noise"):
-        lines.extend(["", "### Hype / Noise", "", social["hype_noise"]])
-    if social.get("rumors"):
-        lines.extend(["", "### Rumors Or Unverified Claims", ""])
-        lines.extend(f"- {format_report_item(item)}" for item in social["rumors"][:4])
-    if social.get("investor_implications"):
-        lines.extend(["", "### Investor Implications From X", ""])
-        lines.extend(f"- {format_report_item(item)}" for item in social["investor_implications"][:5])
-    lines.extend(["", "## Filing Signal", ""])
+    lines.extend(["", "## Actionable Follow-ups", ""])
+    lines.extend(f"- {format_report_item(item, 650)}" for item in unique_texts(assessment["watch_items"], 6))
+    lines.extend(["", "## Filing And Data Coverage", ""])
     filing = assessment["filing_snapshot"]
     lines.append(f"- status: {filing.get('status')}")
     lines.append(f"- packet_count: {filing.get('packet_count')}")
     for item in filing.get("recent_items", [])[:3]:
-        lines.append(f"- item: {item}")
-    lines.extend(["", "## Score Factors", ""])
-    lines.extend(f"- {item}" for item in assessment["score_factors"])
+        lines.append(f"- item: {format_report_item(item, 500)}")
     if assessment.get("data_quality_notes"):
-        lines.extend(["", "## Internal Data Quality Notes", ""])
-        lines.extend(f"- {item}" for item in assessment["data_quality_notes"])
+        lines.extend(["", "### Internal Data Quality Notes", ""])
+        lines.extend(f"- {format_report_item(item, 500)}" for item in assessment["data_quality_notes"])
     lines.extend(["", "## Sources", ""])
-    for packet_id in assessment.get("source_ids", []):
-        lines.append(f"- {packet_id}")
+    source_lines = format_assessment_sources(assessment.get("source_ids", []), sources)
+    lines.extend(source_lines or ["- No source URLs were available in the input packets."])
     lines.append(f"- run: `{relative_to_root(root, root / 'agents' / 'runs' / run_id).as_posix()}`")
     lines.extend(["", "## Quality Findings", ""])
     if assessment.get("quality_findings"):
@@ -1411,6 +1360,41 @@ def format_opportunity_assessment_markdown(root: Path, run_id: str, assessment: 
         lines.append("- None.")
     lines.extend(["", "## Recommended Next Action", "", f"- {assessment['recommended_next_action']}"])
     return "\n".join(lines).rstrip() + "\n"
+
+
+def assessment_source_lookup(root: Path, run_id: str, ticker: str) -> dict[str, Source]:
+    try:
+        packets = load_company_packets(root, run_id, ticker)
+    except Exception:
+        return {}
+    sources: dict[str, Source] = {}
+    for packet in packets:
+        for source in packet.sources:
+            if source.source_id:
+                sources[source.source_id] = source
+    return sources
+
+
+def format_assessment_sources(source_ids: list[str], sources: dict[str, Source]) -> list[str]:
+    lines: list[str] = []
+    for source_id in source_ids:
+        source = sources.get(source_id)
+        if not source:
+            lines.append(f"- {source_id}: source metadata unavailable in current packet set")
+            continue
+        label = source.title or source.publisher or source.provider or source.source_id
+        target = source.url or source.artifact_path
+        lines.append(f"- {source_id}: {markdown_link(label, target) if target else label}")
+    return lines
+
+
+def format_score_rationale(assessment: dict[str, Any]) -> list[str]:
+    lines = [
+        f"- Score: {assessment['opportunity_score']}/100; view={assessment['opportunity_view']}; risk={assessment['risk_level']}; confidence={assessment['confidence']}.",
+    ]
+    for item in assessment.get("score_factors", [])[:6]:
+        lines.append(f"- {format_report_item(item, 500)}")
+    return lines
 
 
 def format_investor_insight_markdown(insight: dict[str, Any]) -> list[str]:
@@ -1575,12 +1559,7 @@ def compact_text(value: str, max_length: int) -> str:
     compact = " ".join(line.strip() for line in value.splitlines() if line.strip())
     compact = repair_latin1_mojibake(compact)
     compact = clean_report_text(compact)
-    if len(compact) <= max_length:
-        return compact
-    truncated = compact[: max_length - 3].rstrip()
-    if " " in truncated:
-        truncated = truncated.rsplit(" ", 1)[0].rstrip()
-    return truncated + "..."
+    return compact_complete_text(compact, max_length)
 
 
 def clean_report_text(value: str) -> str:
@@ -1596,6 +1575,8 @@ def clean_report_text(value: str) -> str:
     }
     for bad, good in replacements.items():
         value = value.replace(bad, good)
+    value = re.sub(r"\s*\[\.\.\.\]\s*", " ", value)
+    value = value.replace("...", ".")
     value = re.sub(r"\*\*(.*?)\*\*", r"\1", value)
     value = re.sub(r"\*(.*?)\*", r"\1", value)
     return " ".join(value.split())

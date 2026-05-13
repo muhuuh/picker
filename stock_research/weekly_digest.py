@@ -7,7 +7,7 @@ from typing import Any
 
 from .memory import relative_to_root
 from .repo import find_repo_root
-from .report_formatting import format_financial_value, format_plain_value
+from .report_formatting import compact_complete_text, format_financial_value, format_plain_value
 
 
 @dataclass(frozen=True)
@@ -171,8 +171,6 @@ def format_weekly_digest_markdown(digest: WeeklyDigest) -> str:
         f"Tickers assessed: {digest.ticker_count}",
         f"Open human-review items: {digest.open_review_count}",
         "",
-        "This digest is a concise review surface. It is not an automatic trading instruction.",
-        "",
     ]
     if not digest.tickers:
         lines.extend(["## Company Assessments", "", "- No opportunity assessments were available."])
@@ -203,7 +201,7 @@ def format_weekly_digest_markdown(digest: WeeklyDigest) -> str:
                 "",
                 "### Expert Opinion",
                 "",
-                str(item["summary"]),
+                compact_complete_text(str(item["summary"]), 900),
                 "",
                 "### Financial Facts",
                 "",
@@ -219,28 +217,28 @@ def format_weekly_digest_markdown(digest: WeeklyDigest) -> str:
             lines.append("- Source-backed developments:")
             for development in news["material_developments"][:3]:
                 claim_text = development.get("claim") if isinstance(development, dict) else str(development)
-                lines.append(f"  - {claim_text}")
+                lines.append(f"  - {compact_complete_text(claim_text, 700)}")
         else:
             lines.append("- Source-backed developments: none extracted.")
-        lines.append(f"- Grok/X pulse: {social.get('x_pulse') or social['sentiment']}")
+        lines.append(f"- Grok/X pulse: {compact_complete_text(social.get('x_pulse') or social['sentiment'], 700)}")
         if social.get("bullish_claims"):
             lines.append("- X bull case:")
-            lines.extend(f"  - {value}" for value in social["bullish_claims"][:2])
+            lines.extend(f"  - {compact_complete_text(value, 700)}" for value in social["bullish_claims"][:2])
         if social.get("bearish_claims"):
             lines.append("- X bear/skeptic case:")
-            lines.extend(f"  - {value}" for value in social["bearish_claims"][:2])
+            lines.extend(f"  - {compact_complete_text(value, 700)}" for value in social["bearish_claims"][:2])
         if social.get("notable_accounts"):
             lines.append(f"- Accounts/posts to review: {', '.join(social['notable_accounts'][:5])}")
         if social.get("hype_noise"):
-            lines.append(f"- Hype/noise: {social['hype_noise']}")
+            lines.append(f"- Hype/noise: {compact_complete_text(social['hype_noise'], 700)}")
         lines.append(f"- Filing coverage: {filing['status']} ({filing['packet_count']} packet(s))")
         lines.extend(["", "### Positives", ""])
-        lines.extend(f"- {value}" for value in item["top_positives"])
+        lines.extend(f"- {compact_complete_text(value, 700)}" for value in item["top_positives"])
         lines.extend(["", "### Risks / Cautions", ""])
-        lines.extend(f"- {value}" for value in item["top_negatives"])
+        lines.extend(f"- {compact_complete_text(value, 700)}" for value in item["top_negatives"])
         lines.extend(["", "### Next Research Checks", ""])
         user_checks = [value for value in item["watch_items"] if not str(value).startswith("Extract remaining high-value Exa")]
-        lines.extend(f"- {value}" for value in (user_checks or ["No high-priority human research check surfaced in this digest."]))
+        lines.extend(f"- {compact_complete_text(value, 700)}" for value in (user_checks or ["No high-priority human research check surfaced in this digest."]))
         lines.extend(["", "### Recommended Next Action", "", f"- {item['recommended_next_action']}", ""])
     lines.extend(["## Run-Level Next Actions", ""])
     if digest.next_actions:

@@ -314,7 +314,13 @@ def format_candidate_review_markdown(
         "",
         "## Purpose",
         "",
-        "This file groups market-discovery candidate leads into reviewable decisions. It does not add stocks to monitoring.",
+        "This file is the evidence bridge behind candidate rows in `agents/human_review_digest.md`. It groups market-discovery leads so you can decide what Codex should do next. It does not add stocks to monitoring.",
+        "",
+        "## How To Use This File",
+        "",
+        "- Read this when the human review digest links to a candidate group.",
+        "- Tell Codex the HRQ id or group id and one decision: approve verification, approve monitoring review, reject, or needs_more_research.",
+        "- Verification means collect deeper company/news/financial evidence first. Monitoring review means the lead already has enough source support to consider adding it to monitoring.",
         "",
         "## Source Files",
         "",
@@ -330,8 +336,8 @@ def format_candidate_review_markdown(
             "",
             "## Candidate Groups",
             "",
-            "| Group ID | Candidate | Tickers | Channels | Verification | Hype | Cooldown | Decision Kind | Priority | Why surfaced |",
-            "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |",
+            "| Group ID | Candidate | Evidence state | Decision options | Priority | Why it surfaced | Source IDs |",
+            "| --- | --- | --- | --- | --- | --- | --- |",
         ]
     )
     if groups:
@@ -342,50 +348,31 @@ def format_candidate_review_markdown(
                     escape_cell(value)
                     for value in [
                         group.group_id,
-                        group.canonical_name,
-                        ", ".join(group.tickers),
-                        ", ".join(group.source_channels),
-                        group.verification_status,
-                        group.hype_level,
-                        group.rejected_cooldown_status,
-                        group.decision_kind,
+                        candidate_label(group),
+                        evidence_state_sentence(group),
+                        review_question(group),
                         group.review_priority,
-                        truncate(group.why_surfaced, 180),
+                        truncate(group.why_surfaced, 420),
+                        ", ".join(group.source_ids) or "not linked",
                     ]
                 )
                 + " |"
             )
     else:
-        lines.append("| none |  |  |  |  |  |  |  |  | No candidate leads found. |")
-    lines.extend(
-        [
-            "",
-            "## Human Review Bridge",
-            "",
-            "| Review Item ID | Candidate | Decision Kind | Priority | Question | Reason |",
-            "| --- | --- | --- | --- | --- | --- |",
-        ]
-    )
-    if review_items:
-        for item in review_items:
-            lines.append(
-                "| "
-                + " | ".join(
-                    escape_cell(value)
-                    for value in [
-                        item["review_item_id"],
-                        item["related_candidate"],
-                        item["decision_kind"],
-                        item["priority"],
-                        item["question"],
-                        item["reason"],
-                    ]
-                )
-                + " |"
-            )
-    else:
-        lines.append("| none |  |  |  | No human review items generated. |  |")
+        lines.append("| none |  |  |  |  | No candidate leads found. |  |")
     return "\n".join(lines).rstrip() + "\n"
+
+
+def evidence_state_sentence(group: CandidateReviewGroup) -> str:
+    parts = [
+        f"channels={', '.join(group.source_channels) or 'unknown'}",
+        f"verification={group.verification_status}",
+        f"hype={group.hype_level}",
+        f"cooldown={group.rejected_cooldown_status}",
+    ]
+    if group.rumor_flag:
+        parts.append("rumor/speculation present")
+    return "; ".join(parts)
 
 
 def append_candidate_reviews_to_human_review_queue(
@@ -748,7 +735,8 @@ def escape_cell(value: Any) -> str:
 def truncate(value: str, length: int) -> str:
     if len(value) <= length:
         return value
-    return value[: length - 3].rstrip() + "..."
+    shortened = value[:length].rsplit(" ", 1)[0].rstrip(" ,;:-")
+    return f"{shortened}." if shortened and shortened[-1] not in ".!?" else shortened
 
 
 def action_rank(action: str) -> int:

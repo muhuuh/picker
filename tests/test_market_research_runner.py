@@ -159,7 +159,7 @@ class MarketResearchRunnerTests(unittest.TestCase):
         self.assertIn("### X / Community Pulse", report)
         self.assertIn("### Non-obvious / Contrarian Angles To Verify", report)
         self.assertIn("approve monitoring review / reject / request more research", report)
-        self.assertIn("| ROBO | exa, grok | verified", report)
+        self.assertIn("| ROBO (ROBO) | exa+grok | verified", report)
         self.assertIn("## Discovery Quality Gate", report)
         self.assertTrue(any(path.endswith("_candidate_leads.json") for path in result.written_paths))
 
@@ -340,8 +340,8 @@ class MarketResearchRunnerTests(unittest.TestCase):
         self.assertEqual(second.status, "ready_for_human_review")
         self.assertEqual(queue.count("candidate_review.md#CRG-0001"), 1)
         self.assertEqual(queue.count("candidate_review.md#CRG-0002"), 1)
-        self.assertIn("| CRG-0001 | Robo Holdings | ROBO | exa, grok | verified", report)
-        self.assertIn("verify_grok_lead", report)
+        self.assertIn("| CRG-0001 | Robo Holdings (ROBO) | channels=exa, grok; verification=verified", report)
+        self.assertIn("verification=grok_only", report)
 
     def test_candidate_review_supersedes_stale_open_rows_for_regenerated_run(self):
         with TemporaryDirectory() as temp_dir:
