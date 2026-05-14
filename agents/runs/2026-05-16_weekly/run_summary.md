@@ -1,18 +1,18 @@
 # Run Summary: 2026-05-16_weekly
 
-Generated: 2026-05-12
+Generated: 2026-05-14
 
 ## Metrics
 
 - provider_tasks_planned: 19
 - analysis_tasks_planned: 10
-- evidence_packets: 29
+- evidence_packets: 24
 - financial_reviews: 2
-- company_news_reviews: 2
-- recommended_updates: 6
-- risks: 7
+- company_news_reviews: 1
+- recommended_updates: 5
+- risks: 5
 - contradictions: 2
-- unknowns: 2
+- unknowns: 4
 
 ## Tracked Tickers
 
@@ -23,12 +23,12 @@ Generated: 2026-05-12
 ## Provider Packet Counts
 
 - alpha_vantage: 2
-- company_news_specialist: 2
-- exa: 8
+- company_news_specialist: 1
+- exa: 5
 - financial_compare: 2
 - financial_data_specialist: 2
 - fmp: 2
-- opportunity_assessment_specialist: 2
+- opportunity_assessment_specialist: 1
 - polygon: 2
 - sec_edgar: 2
 - xai_grok: 3
@@ -38,15 +38,14 @@ Generated: 2026-05-12
 
 | Ticker | Status | Report |
 | --- | --- | --- |
-| AAPL | ready_for_company_update | `agents/runs/2026-05-16_weekly/reports/financial_data_specialist/AAPL_financial_review.md` |
-| AMZN | partial_review | `agents/runs/2026-05-16_weekly/reports/financial_data_specialist/AMZN_financial_review.md` |
+| AAPL | ready_for_company_update | `` |
+| AMZN | partial_review | `` |
 
 ## Company News Reviews
 
 | Ticker | Status | Report |
 | --- | --- | --- |
-| AAPL | ready_for_company_update | `agents/runs/2026-05-16_weekly/reports/company_news_specialist/AAPL_company_news_review.md` |
-| AMZN | ready_for_company_update | `agents/runs/2026-05-16_weekly/reports/company_news_specialist/AMZN_company_news_review.md` |
+| AMZN | ready_for_company_update | `` |
 
 ## Open Items
 

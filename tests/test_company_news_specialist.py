@@ -57,6 +57,13 @@ class CompanyNewsSpecialistTests(unittest.TestCase):
             self.assertEqual(result.review["status"], "ready_for_company_update")
             self.assertEqual(result.review["contents_source_count"], 1)
             self.assertEqual(validate_packet(result.packet).errors, [])
+            source_ids = {source.source_id for source in result.packet.sources}
+            self.assertIn("exa_result_1", source_ids)
+            self.assertNotIn("exa_news_packet", source_ids)
+            self.assertNotIn("company_news_specialist_report", source_ids)
+            update_source_ids = result.packet.recommended_updates[0].source_ids
+            self.assertIn("exa_result_1", update_source_ids)
+            self.assertNotIn("exa_news_packet", update_source_ids)
 
     def test_company_news_review_is_partial_when_exa_has_no_sources(self):
         with TemporaryDirectory() as temp_dir:

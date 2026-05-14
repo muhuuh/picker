@@ -217,3 +217,17 @@ Procedural memory for future specialist agents. Specialists should produce struc
 - evidence: stock_research/agent_runtime/outputs.py, stock_research/market_research_runner.py, tests/test_market_research_runner.py
 - owner: discovery specialist
 - next_review: 2026-06-10
+
+- id: memory-2026-05-14-real-source-ids-in-specialist-proposals
+- date: 2026-05-14
+- type: procedural
+- scope: specialist
+- status: active
+- confidence: high
+- trigger/source: Human-facing AMZN reports exposed generic placeholder ids such as financial/company-news packet labels instead of the evidence that supported each claim.
+- lesson: Specialist proposals and human-facing reports must cite actual provider source ids or ticker-specific artifact ids. Do not emit generic placeholders such as `financial_compare_packet`, `company_news_packet`, `exa_news_packet`, `company_news_specialist_report`, or `financial_specialist_report` as evidence for a claim.
+- use_when: Writing company-news, financial, risk/thesis, opportunity, writer, quality-review, or final-digest outputs.
+- do_not_use_when: Naming an internal artifact purely as an input packet in an audit section; even then, prefer ticker-specific ids or artifact paths.
+- evidence: `stock_research/company_news_specialist.py`, `stock_research/financial_specialist.py`, `agents/specialists/prompts/risk_thesis.md`, `tests/test_company_news_specialist.py`, `tests/test_financial_specialist.py`
+- owner: specialist writers
+- next_review: 2026-06-15

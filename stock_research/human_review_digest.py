@@ -181,7 +181,7 @@ def suggest_action(category: str, item: str, decision: str, notes: str) -> str:
 
 
 def build_review_context(category: str, item: str, decision: str, notes: str, evidence: str) -> str:
-    base = notes or decision or item
+    base = strip_dead_source_id_tail(notes or decision or item)
     if category == "candidate_monitoring_review":
         prefix = "Read the linked candidate group and market report first; approval means this source-backed lead may enter the monitoring approval path."
     elif category == "candidate_verification_grok":
@@ -195,6 +195,11 @@ def build_review_context(category: str, item: str, decision: str, notes: str, ev
     else:
         prefix = "Review the linked evidence before deciding."
     return truncate(f"{prefix} {base}", 520)
+
+
+def strip_dead_source_id_tail(value: str) -> str:
+    cleaned = re.sub(r"\s*Source IDs?:\s*[^.]+\.?", "", value or "", flags=re.IGNORECASE)
+    return re.sub(r"\s+", " ", cleaned).strip()
 
 
 def format_human_review_digest(digest: HumanReviewDigest) -> str:
@@ -253,7 +258,7 @@ def format_human_review_digest(digest: HumanReviewDigest) -> str:
                         display_value(item.verification_status),
                         item.suggested_action,
                         item.context,
-                        item.evidence_link or "not linked",
+                        format_evidence_link(item.evidence_link),
                     ]
                 )
                 + " |"
@@ -342,6 +347,13 @@ def category_help(category: str) -> str:
 
 def display_value(value: str) -> str:
     return value.replace("_", " ")
+
+
+def format_evidence_link(value: str) -> str:
+    if not value:
+        return "not linked"
+    label = "open evidence"
+    return f"[{label}]({value})"
 
 
 def escape_cell(value: Any) -> str:

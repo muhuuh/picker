@@ -1,18 +1,18 @@
 # Memory Evaluation: 2026-05-16_weekly
 
-Status: ready
+Status: needs_human_review
 
 ## Summary
 
-Memory evaluation found 0 reflection issue(s), 0 recurring pattern(s), 0 draft memory update(s), and 0 SDK metric row(s).
+Memory evaluation found 2 reflection issue(s), 0 recurring pattern(s), 1 draft memory update(s), and 0 SDK metric row(s).
 
 ## Metrics
 
-- reflection issues: 0
+- reflection issues: 2
 - recurring patterns: 0
-- memory update proposals: 0
-- memory update drafts: 0
-- ready memory update drafts: 0
+- memory update proposals: 1
+- memory update drafts: 1
+- ready memory update drafts: 1
 - SDK metric rows: 0
 - SDK timeouts: 0
 - SDK errors: 0
@@ -32,8 +32,13 @@ Memory evaluation found 0 reflection issue(s), 0 recurring pattern(s), 0 draft m
 
 ## Issues
 
-- No memory/evaluation issues found.
+- medium planned_provider_task_without_packet: Manifest task exa_news_company_aapl planned provider exa but no matching evidence packet was found.
+- medium planned_provider_task_without_packet: Manifest task exa_company_search_company_aapl planned provider exa but no matching evidence packet was found.
 
 ## Next Actions
 
 - Run SDK orchestration or accept that no SDK telemetry exists for this run.
+- Review `memory_reflection.md` before treating the run as learning-loop complete.
+- Review `memory_update_drafts.md`; apply only approved ready drafts with `memory apply-updates`.
+- 1 memory draft(s) are ready for approval/application.
+- Resolve finalization next actions before accepting this run as complete.

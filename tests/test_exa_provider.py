@@ -14,6 +14,7 @@ from stock_research.providers.exa import (
     build_exa_contents_payload,
     build_exa_search_packet,
     build_exa_search_payload,
+    result_evidence_text,
 )
 
 
@@ -136,6 +137,26 @@ class ExaProviderTests(unittest.TestCase):
             self.assertNotEqual(first_packet.packet_id, second_packet.packet_id)
             self.assertNotEqual(first_paths[0], second_paths[0])
             self.assertNotEqual(first_paths[1], second_paths[1])
+
+    def test_company_result_evidence_preserves_entity_description_and_stock_symbol(self):
+        result = {
+            "title": "Amkor Technology, Inc.",
+            "highlights": ["Amkor Technology Vietnam is a packaging operation."],
+            "entities": [
+                {
+                    "properties": {
+                        "name": "Amkor Technology, Inc.",
+                        "description": "Amkor Technology, Inc. (Nasdaq: AMKR) is a public OSAT and advanced packaging company.",
+                    }
+                }
+            ],
+        }
+
+        evidence = result_evidence_text(result, "company")
+
+        self.assertIn("Amkor Technology, Inc.", evidence)
+        self.assertIn("Nasdaq: AMKR", evidence)
+        self.assertIn("Amkor Technology Vietnam", evidence)
 
     def test_build_contents_packet_records_status_errors_as_unknowns(self):
         with TemporaryDirectory() as temp_dir:

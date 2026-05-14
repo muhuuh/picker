@@ -15,6 +15,8 @@ from stock_research.market_research_runner import (
     build_manual_market_manifest,
     evaluate_candidate_leads_quality,
     extract_candidate_leads,
+    is_stale_background_context,
+    looks_like_company_profile,
     run_manual_market_research,
 )
 from stock_research.candidate_review import build_candidate_review, group_candidate_leads
@@ -77,6 +79,24 @@ class MarketResearchRunnerTests(unittest.TestCase):
         self.assertEqual(leads["COOL"].rejected_cooldown_status, "cooldown_active")
         self.assertEqual(leads["COOL"].next_action, "ignore")
         self.assertTrue(leads["COOL"].rumor_flag)
+
+    def test_candidate_extraction_strips_grok_section_heading_noise(self):
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            write_rejected_csv(root, "", "")
+            grok_packet = packet(
+                provider="xai_grok",
+                subject_id="ai_semiconductor_supply_chain",
+                claim="4) Companies being discussed Incumbents: TSMC ($TSM), Broadcom ($AVGO), Nvidia ($NVDA).",
+                evidence="4) Companies being discussed Incumbents: TSMC ($TSM), Broadcom ($AVGO), Nvidia ($NVDA).",
+                source_id="grok-1",
+            )
+
+            leads = {lead.ticker: lead for lead in extract_candidate_leads(packets=[grok_packet], root=root, current_date=date(2026, 5, 10))}
+
+        self.assertIn("AVGO", leads)
+        self.assertNotIn("4) Companies being discussed", leads["AVGO"].why_surfaced)
+        self.assertTrue(leads["AVGO"].why_surfaced.startswith("Incumbents:"))
 
     def test_candidate_extraction_ignores_country_parentheses(self):
         with TemporaryDirectory() as temp_dir:
@@ -280,6 +300,29 @@ class MarketResearchRunnerTests(unittest.TestCase):
 
         self.assertEqual(len(groups), 1)
         self.assertEqual(groups[0].canonical_name, "EMIB/ASE/LEAP basket")
+
+    def test_candidate_review_strips_numbered_grok_section_headings_from_basket_names(self):
+        reason = "4) Companies being discussed Incumbents: TSMC ($TSM), Broadcom ($AVGO), Nvidia ($NVDA)."
+        groups = group_candidate_leads(
+            [
+                CandidateLead(ticker="TSM", source_channels=["grok"], source_ids=["grok-1"], verification_status="grok_only", next_action="verify", why_surfaced=reason),
+                CandidateLead(ticker="AVGO", source_channels=["grok"], source_ids=["grok-1"], verification_status="grok_only", next_action="verify", why_surfaced=reason),
+                CandidateLead(ticker="NVDA", source_channels=["grok"], source_ids=["grok-1"], verification_status="grok_only", next_action="verify", why_surfaced=reason),
+            ]
+        )
+
+        self.assertEqual(len(groups), 1)
+        self.assertEqual(groups[0].canonical_name, "Incumbents basket")
+
+    def test_stale_market_context_blocks_prior_year_quarter_even_with_current_year_outlook(self):
+        text = "Amkor's Q4 2025 performance and aggressive 2026 outlook confirm its status as a packaging bottleneck."
+
+        self.assertTrue(is_stale_background_context(text))
+
+    def test_market_context_filters_company_profile_snippets(self):
+        text = "Siltronic AG Siltronic AG Siltronic AG is one of the world's leading providers of high-tech wafer solutions."
+
+        self.assertTrue(looks_like_company_profile(text))
 
     def test_candidate_review_writes_report_and_duplicate_safe_review_queue(self):
         with TemporaryDirectory() as temp_dir:

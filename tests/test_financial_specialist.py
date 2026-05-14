@@ -25,6 +25,13 @@ class FinancialSpecialistTests(unittest.TestCase):
             self.assertEqual(result.packet.provider, "financial_data_specialist")
             self.assertEqual(result.review["status"], "ready_for_company_update")
             self.assertEqual(validate_packet(result.packet).errors, [])
+            source_ids = {source.source_id for source in result.packet.sources}
+            self.assertIn("fmp_packet", source_ids)
+            self.assertNotIn("financial_compare_packet", source_ids)
+            self.assertNotIn("financial_specialist_report", source_ids)
+            update_source_ids = result.packet.recommended_updates[0].source_ids
+            self.assertIn("fmp_packet", update_source_ids)
+            self.assertNotIn("financial_compare_packet", update_source_ids)
             self.assertEqual(len(result.paths), 3)
             for path in result.paths:
                 self.assertTrue(path.exists())

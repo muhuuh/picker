@@ -163,6 +163,7 @@ def build_exa_search_packet(
     raw_path = write_raw_artifact(root, run_id, "exa", artifact_name, {"payload": payload, "response": response})
     packet = exa_search_to_packet(options, response, raw_path, today)
     packet = with_packet_suffix(packet, artifact_name)
+    packet = with_source_id_suffix(packet, short_digest(artifact_name))
     packet_path = default_packet_path(root, run_id, packet)
     write_packet(packet, packet_path)
     return packet, [packet_path, raw_path]
@@ -183,6 +184,7 @@ def build_exa_contents_packet(
     raw_path = write_raw_artifact(root, run_id, "exa", artifact_name, {"payload": payload, "response": response})
     packet = exa_contents_to_packet(options, response, raw_path, today)
     packet = with_packet_suffix(packet, artifact_name)
+    packet = with_source_id_suffix(packet, short_digest(artifact_name))
     packet_path = default_packet_path(root, run_id, packet)
     write_packet(packet, packet_path)
     return packet, [packet_path, raw_path]
@@ -208,7 +210,7 @@ def exa_search_to_packet(
         )
     ]
     for source, result in zip(sources[:5], results[:5]):
-        highlight_text = first_text(result.get("highlights", [])) or result.get("summary", "")
+        highlight_text = result_evidence_text(result, options.search_mode)
         if highlight_text:
             claims.append(
                 Claim(
@@ -306,6 +308,49 @@ def source_from_result(index: int, result: dict[str, Any], source_type: str, raw
         artifact_path=raw_path.as_posix(),
         notes=f"author={result.get('author') or ''}; id={result.get('id') or url}",
     )
+
+
+def result_evidence_text(result: dict[str, Any], search_mode: str) -> str:
+    highlight_text = first_text(result.get("highlights", [])) or result.get("summary", "")
+    if search_mode != "company":
+        return highlight_text
+
+    entity_texts: list[str] = []
+    for entity in result.get("entities", []) or []:
+        if not isinstance(entity, dict):
+            continue
+        properties = entity.get("properties", {})
+        if not isinstance(properties, dict):
+            continue
+        name = str(properties.get("name", "")).strip()
+        description = str(properties.get("description", "")).strip()
+        if name or description:
+            entity_texts.append(" ".join(part for part in [name, description] if part))
+    parts = [part for part in [str(result.get("title", "")).strip(), *entity_texts, highlight_text] if part]
+    return clean_text("\n".join(parts))
+
+
+def with_source_id_suffix(packet: EvidencePacket, suffix: str) -> EvidencePacket:
+    if not suffix:
+        return packet
+    source_id_map = {source.source_id: f"{source.source_id}_{suffix}" for source in packet.sources}
+    return replace(
+        packet,
+        sources=[replace(source, source_id=source_id_map.get(source.source_id, source.source_id)) for source in packet.sources],
+        claims=[replace(claim, source_ids=remap_source_ids(claim.source_ids, source_id_map)) for claim in packet.claims],
+        risks=[replace(risk, source_ids=remap_source_ids(risk.source_ids, source_id_map)) for risk in packet.risks],
+        contradictions=[
+            replace(contradiction, source_ids=remap_source_ids(contradiction.source_ids, source_id_map))
+            for contradiction in packet.contradictions
+        ],
+        recommended_updates=[
+            replace(update, source_ids=remap_source_ids(update.source_ids, source_id_map)) for update in packet.recommended_updates
+        ],
+    )
+
+
+def remap_source_ids(source_ids: list[str], source_id_map: dict[str, str]) -> list[str]:
+    return [source_id_map.get(source_id, source_id) for source_id in source_ids]
 
 
 def write_raw_artifact(root: Path, run_id: str, provider: str, name: str, payload: dict[str, Any]) -> Path:

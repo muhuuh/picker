@@ -57,6 +57,11 @@ The digest should explain the difference between review categories:
 - `Company File Updates`: scoped proposed edits; multiple rows for one ticker can be valid when they are separate update proposals.
 - `Strategy / Workflow`: process or strategy changes that future runs should remember.
 
+Future company-file UX target:
+
+- Low-risk factual updates that are source-backed and do not change thesis/status should be auto-applied by a scoped deterministic writer and summarized at run end.
+- Thesis changes, opinion changes, stock moves, strategy changes, and ambiguous edits should remain approval-gated in the digest.
+
 ## Who Reads Portfolio Review
 
 `portfolio_review_orchestrator` writes a portfolio review report for two audiences:

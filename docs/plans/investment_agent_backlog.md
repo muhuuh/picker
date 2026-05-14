@@ -1,6 +1,6 @@
 # Investment Agent Backlog
 
-Last updated: 2026-05-12
+Last updated: 2026-05-14
 
 ## Purpose
 
@@ -268,6 +268,7 @@ This is the clear task backlog for building the stock tracking and investment re
 - [ ] Build human request triage specialist.
 - [ ] Build company file updater.
   - Current progress: deterministic approved-proposal writer exists for SDK proposals with `agent-runtime apply-proposal --proposal-id ORP-0001 --write`; SDK writer specialist now drafts proposal-ready updates inside company-research fanout. Broader automatic company-file update strategy is still approval-gated and pending.
+  - New UX target: split company-file changes into low-risk factual updates that can be auto-applied with a clear run summary, versus thesis/status/strategy-changing updates that remain approval-gated in the human review digest.
 - [ ] Build category state updater.
 - [ ] Build CSV updater.
 - [x] Build quality reviewer.
@@ -384,7 +385,9 @@ This is the clear task backlog for building the stock tracking and investment re
   - 2026-05-12 fresh live pass: AMZN company research and `AI semiconductor supply chain and advanced packaging` industry research now run through strengthened Grok/X prompts. The market report now includes concrete X pulse, trend evolution, bull/bear narratives, candidate follow-up, Grok investor scorecard, candidate verification table, hype/noise/rumors, and explicit next research questions. Live run exposed and fixed Windows path-length failures from long provider artifact ids and report loss from truncated Grok evidence packets.
   - 2026-05-12 candidate-review grouping pass: broad Grok/X baskets now collapse into thematic review items such as `EMIB/ASE/LEAP basket` and `glass/inspection/etch basket`; regenerated rows for the same run supersede stale open HRQ rows; the market report, candidate review, and human-review digest were regenerated from a fresh live semiconductor run.
   - 2026-05-13 report cleanup pass: after user review of the semiconductor market report, candidate review, HRQ digest, AMZN opportunity assessment, and weekly final digest, the human-facing formatters were tightened. Visible truncation markers are removed, duplicate report sections were eliminated, internal workflow/status prose moved to audit/context, source ids in market reports became clickable, candidate review now explains its purpose, and HRQ digest rows explain what each approval type means.
-  - Remaining report-quality gap: keep iterating from real outputs. The core manual market loop is now usable, but candidate follow-up should rank the strongest names inside an approved basket before running expensive verification across every ticker.
+  - 2026-05-13 second report-quality pass: after a follow-up review, market reports now avoid letting stale background items dominate the bottom line, remove inline Grok `[[1]]` citation markers from prose, extract more X/community pulse sections, clarify the difference between Grok/X raw scorecards and normalized candidate pipelines, and render human decisions as a table. HRQ digest rows now remove source-id walls and link evidence directly. AMZN opportunity/weekly reports now promote source-backed strategic AI ecosystem signals such as Anthropic, Claude, Bedrock, Trainium, OpenAI, NVIDIA, and Cerebras into tailwinds and non-obvious angles.
+  - 2026-05-14 root-cause quality pass: fixes were generalized rather than hand-patched for AMZN/Amkor. Exa company evidence now includes entity descriptions/tickers; Exa source ids are unique per artifact; stale prior-year quarter/results/outlook snippets are blocked from top synthesis; repeated company-profile snippets are filtered from industry context; Grok candidate heading noise is cleaned at extraction time; company-news and financial specialist proposals cite real provider ids or ticker-specific artifact ids; report text repair catches mojibake/truncation markers. Fresh AI-semiconductor and AMZN outputs were regenerated for review.
+  - Remaining report-quality gap: keep iterating from real outputs. The core manual market loop is now usable, but candidate follow-up should rank the strongest names inside an approved basket before running expensive verification across every ticker. Add golden tests for no generic placeholder source ids, no stale prior-year top-story evidence, and safe incremental report reruns.
 - [ ] Add golden/failure tests.
   - Description: cover provider failures, malformed specialist output, missing citations, stale approvals, duplicate HRQ decisions, and unsupported review statuses.
   - Current progress: weekly digest and opportunity assessment golden tests cover evidence links, missing evidence, Grok/X social-signal labeling, direct trade language, readable financial formatting, taxonomy-only conflict handling, and missing provider/source ids.

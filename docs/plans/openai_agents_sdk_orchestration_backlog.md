@@ -1,6 +1,6 @@
 # OpenAI Agents SDK Orchestration Backlog
 
-Last updated: 2026-05-12
+Last updated: 2026-05-14
 
 ## Goal and Scope
 
@@ -177,10 +177,13 @@ Out of scope for the first slice:
   - 2026-05-12 market report pass: manual market-research reports now include investor insight sections for industry/theme context, X/community pulse, trend evolution, candidate pipeline, non-obvious/contrarian angles, decision table, and explicit human decision choices.
   - 2026-05-12 fresh live pass: live Grok/X + Exa market research for `AI semiconductor supply chain and advanced packaging` now preserves the full raw Grok sections in the human report: X pulse, trend evolution, bull/bear narratives, candidate follow-up, investor scorecard, hype/noise/rumors, and verification tasks. Long provider packet filenames are compacted to avoid Windows path failures.
   - 2026-05-13 report cleanup pass: five human-facing review artifacts were tightened after user feedback. The report formatters now avoid visible `...`/`[...]` truncation, market reports no longer mix duplicate audit sections into the main storyline, opportunity reports no longer duplicate financial/news/Grok sections, market source ids are clickable, candidate review has a clear purpose/how-to-use section, and the HRQ digest explains category semantics and what approval does.
+  - 2026-05-13 second report-quality pass: market reports now rank current/material context above stale background, remove inline Grok citation markers from prose, expand X/community pulse extraction, clarify Grok/X raw scorecard vs normalized candidate pipeline, and use a decision table instead of a wall of text. HRQ digest rows link evidence and hide raw source-id walls. Opportunity/weekly reports now extract strategic AI ecosystem items such as Anthropic, Claude, Bedrock, Trainium, OpenAI, NVIDIA, and Cerebras as explicit tailwinds/non-obvious angles when evidence-backed.
 - [x] Add first deterministic output quality gates.
   - Implemented checks: summary/status shape, direct trade wording, valid memory item ids, existing file targets, source-backed update proposals, and existing source artifact paths.
 - [ ] Keep buy/sell/position-size recommendations as human review items.
 - [ ] Keep stock moves and major strategy changes behind human review unless explicitly approved.
+- [ ] Improve company-file update UX.
+  - Target behavior: low-risk factual/source-backed company-file updates should be auto-applied by a scoped deterministic writer and summarized at run end, while thesis changes, opinion changes, stock moves, and strategy changes remain approval-gated in HRQ.
 - [x] Enforce rejected-stock cooldown before candidate promotion.
   - Current progress: manual market-research candidate gates mark active rejected cooldowns and prevent those leads from being promoted.
 
@@ -249,6 +252,7 @@ Out of scope for the first slice:
   - Current progress: fresh live Grok/X industry report now uses full raw artifact text when evidence packet claims are truncated.
   - Current progress: candidate review and manual market reports now group repeated Grok/X broad-theme leads into concise thematic baskets, and stale regenerated HRQ rows are marked `superseded` before replacement rows are appended.
   - Current progress: formatter cleanup now removes visible truncation markers and duplicate human-facing sections from the five reviewed artifacts; targeted regression suite passes.
+  - Current progress: citation/source cleanup now removes inline Grok `[[1]]`/`[1]` markers from human prose and keeps source details in explicit source/evidence links.
   - Still pending: add explicit golden tests for no visible truncation, no duplicate report sections, clickable source references, and clear HRQ/candidate-review decision semantics.
   - Still pending: stronger golden fixture cases modeled after the user-provided Grok PDFs, especially tests that enforce account-aware sentiment summaries, full raw Grok text usage, and post-approval ranking inside candidate baskets.
 - [ ] Add failure-injection tests for provider failure, malformed specialist output, missing citations, and timeout behavior.
@@ -319,3 +323,5 @@ Proposal writer status: `python -m stock_research agent-runtime apply-proposal -
 - Parallel execution needs explicit timeouts and partial-result handling.
 - Adding the SDK is an infra dependency change and should be done in a focused implementation slice.
 - Email/Gmail should start as notification only. Making email replies a canonical approval source requires identity checks, strict parsing, duplicate-event handling, and deterministic decision writes.
+- Current generated-run cleanup is too blunt for iterative report work. Rerunning `run-weekly` on the same run id can remove provider-dependent artifacts when providers are not executed again. Add a safe incremental rebuild/report-regeneration mode before relying on repeated same-run formatting passes.
+- Specialist proposal source ids must be real provider source ids or ticker-specific artifact ids. Generic ids such as `financial_compare_packet` or `company_news_specialist_report` make human-facing reports look sourced while hiding where the claim came from.

@@ -4,7 +4,7 @@ Status: partial
 
 ## Summary
 
-Portfolio review covers 2 tracked row(s), 8 open review item(s), 1 approved review item(s), and 0 rejected cooldown row(s).
+Portfolio review covers 2 tracked row(s), 21 open review item(s), 1 approved review item(s), and 0 rejected cooldown row(s).
 
 ## Buckets
 
@@ -16,7 +16,7 @@ Portfolio review covers 2 tracked row(s), 8 open review item(s), 1 approved revi
 
 ## Review Queue
 
-- Open items: 8
+- Open items: 21
 - Approved items: 1
 - Rejected cooldown rows: 0
 

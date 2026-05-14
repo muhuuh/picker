@@ -319,8 +319,10 @@ def format_candidate_review_markdown(
         "## How To Use This File",
         "",
         "- Read this when the human review digest links to a candidate group.",
+        "- HRQ means Human Review Queue id. Use the HRQ id from `agents/human_review_digest.md` when telling Codex what to do; the CRG id in this file is the evidence group behind that HRQ row.",
         "- Tell Codex the HRQ id or group id and one decision: approve verification, approve monitoring review, reject, or needs_more_research.",
         "- Verification means collect deeper company/news/financial evidence first. Monitoring review means the lead already has enough source support to consider adding it to monitoring.",
+        "- Source IDs map to the Sources section in the linked market research report; this file is a concise triage view, not the full source bibliography.",
         "",
         "## Source Files",
         "",
@@ -352,7 +354,7 @@ def format_candidate_review_markdown(
                         evidence_state_sentence(group),
                         review_question(group),
                         group.review_priority,
-                        truncate(group.why_surfaced, 420),
+                        truncate(clean_review_text(group.why_surfaced), 420),
                         ", ".join(group.source_ids) or "not linked",
                     ]
                 )
@@ -494,6 +496,13 @@ def is_run_candidate_review_evidence(evidence: str, run_id: str) -> bool:
 
 def normalize_table_text(value: str) -> str:
     return re.sub(r"\s+", " ", normalize_ascii(value)).strip().lower()
+
+
+def clean_review_text(value: str) -> str:
+    cleaned = re.sub(r"\[\[(\d+)\]\]\([^)]+\)", "", value or "")
+    cleaned = re.sub(r"(?<!\w)\[(\d+)\](?!\w)", "", cleaned)
+    cleaned = strip_basket_heading_noise(cleaned)
+    return re.sub(r"\s+", " ", cleaned).strip()
 
 
 def append_note(existing: str, note: str) -> str:
@@ -657,7 +666,7 @@ def review_notes(group: CandidateReviewGroup | None, item: dict[str, Any]) -> st
     if not group:
         return str(item.get("reason", ""))
     tickers = ", ".join(group.tickers) if group.tickers else "no ticker"
-    return f"{item['reason']} Tickers: {tickers}. Source IDs: {', '.join(group.source_ids)}."
+    return f"{item['reason']} Tickers: {tickers}. Source IDs are listed in the linked candidate review and market report."
 
 
 def candidate_label(group: CandidateReviewGroup) -> str:
@@ -669,7 +678,7 @@ def candidate_group_name(*, company_names: list[str], tickers: list[str], why_su
     if company_names:
         return company_names[0]
     if len(tickers) > 1:
-        cleaned_reason = strip_ticker_mentions(why_surfaced)
+        cleaned_reason = strip_basket_heading_noise(strip_ticker_mentions(why_surfaced))
         if ":" in cleaned_reason:
             prefix = cleaned_reason.split(":", 1)[0].strip()
         else:
@@ -687,6 +696,14 @@ def candidate_group_name(*, company_names: list[str], tickers: list[str], why_su
     if tickers:
         return tickers[0]
     return "unknown candidate"
+
+
+def strip_basket_heading_noise(value: str) -> str:
+    cleaned = re.sub(r"^\s*\d+[\).]\s*", "", value or "").strip()
+    cleaned = re.sub(r"^(companies|stocks|tickers)\s+being\s+discussed\s+", "", cleaned, flags=re.IGNORECASE)
+    cleaned = re.sub(r"^(companies|stocks|tickers)\s+surfaced\s+", "", cleaned, flags=re.IGNORECASE)
+    cleaned = re.sub(r"^(candidate|candidates)\s+follow[- ]?up\s+", "", cleaned, flags=re.IGNORECASE)
+    return cleaned.strip()
 
 
 def extract_ticker_mentions(value: str) -> list[str]:

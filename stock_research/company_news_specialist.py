@@ -9,6 +9,7 @@ from typing import Any
 from .evidence import Claim, EvidencePacket, RecommendedUpdate, Risk, Source, default_packet_path, new_packet, read_packet, write_packet
 from .memory import relative_to_root
 from .providers.exa import ExaContentsOptions, build_exa_contents_packet, fetch_json as fetch_exa_json
+from .report_formatting import compact_complete_text
 from .repo import find_repo_root
 
 
@@ -239,6 +240,17 @@ def unique_claims(claims: list[Claim]) -> list[Claim]:
     return unique
 
 
+def dedupe_strings(values: list[str]) -> list[str]:
+    result: list[str] = []
+    seen: set[str] = set()
+    for value in values:
+        cleaned = str(value).strip()
+        if cleaned and cleaned not in seen:
+            seen.add(cleaned)
+            result.append(cleaned)
+    return result
+
+
 def relevant_claims(packet: EvidencePacket) -> list[Claim]:
     return [claim for claim in packet.claims if not claim.claim.lower().startswith("exa news search returned")]
 
@@ -282,10 +294,20 @@ def review_to_packet(
     report_path: Path,
     today: date,
 ) -> EvidencePacket:
-    source_ids = [source["source_id"] for source in review["top_sources"]]
+    source_ids = dedupe_strings(
+        [
+            source["source_id"]
+            for source in [*review["top_sources"], *review["contents_sources"]]
+            if source.get("source_id")
+        ]
+    )
+    packet_source_id = f"{ticker.lower()}_company_news_input_packet"
+    report_source_id = f"{ticker.lower()}_company_news_specialist_report"
+    internal_source_ids = [packet_source_id, report_source_id]
+    evidence_source_ids = source_ids or internal_source_ids
     sources = [
         Source(
-            source_id="exa_news_packet",
+            source_id=packet_source_id,
             provider="company_news_specialist",
             source_type="internal",
             title=f"Exa news packet for {ticker}",
@@ -295,7 +317,7 @@ def review_to_packet(
             notes=f"Input packet {news_packet.packet_id}.",
         ),
         Source(
-            source_id="company_news_specialist_report",
+            source_id=report_source_id,
             provider="company_news_specialist",
             source_type="internal",
             title=f"Company news specialist review for {ticker}",
@@ -305,6 +327,7 @@ def review_to_packet(
             notes="Generated deterministic specialist report.",
         ),
     ]
+    sources.extend(review_sources_as_packet_sources([*review["top_sources"], *review["contents_sources"]], today))
     claim_summary_payload = {
         "status": review["status"],
         "status_reason": review["status_reason"],
@@ -322,20 +345,20 @@ def review_to_packet(
         Claim(
             claim=f"Company news specialist review completed for {ticker}.",
             evidence=json.dumps(claim_summary_payload, sort_keys=True),
-            source_ids=["exa_news_packet", "company_news_specialist_report"],
+            source_ids=evidence_source_ids,
             confidence="high" if review["status"] == "ready_for_company_update" else "medium",
             impact="medium",
             novelty="new",
         )
     ]
-    risks = build_review_risks(review, ["exa_news_packet", "company_news_specialist_report"])
+    risks = build_review_risks(review, evidence_source_ids)
     recommended_updates = [
         RecommendedUpdate(
             target_file="stock_tracking/stock_info_files/",
             update_type="company_file",
             summary=review["recommended_company_file_action"],
             needs_human_review=bool(review["needs_human_review"]),
-            source_ids=["exa_news_packet", "company_news_specialist_report"],
+            source_ids=evidence_source_ids,
         )
     ]
     if source_ids:
@@ -343,7 +366,7 @@ def review_to_packet(
             Claim(
                 claim=f"Company news scan identified {len(source_ids)} top source(s) for {ticker}.",
                 evidence=json.dumps(review["top_sources"][:5], sort_keys=True),
-                source_ids=["exa_news_packet"],
+                source_ids=source_ids[:8],
                 confidence="medium",
                 impact="medium",
                 novelty="new",
@@ -364,6 +387,29 @@ def review_to_packet(
         raw_artifact_path=raw_path.as_posix(),
         notes="Deterministic company-news specialist synthesis built from an Exa company-news packet.",
     )
+
+
+def review_sources_as_packet_sources(sources: list[dict[str, str]], today: date) -> list[Source]:
+    packet_sources: list[Source] = []
+    seen: set[str] = set()
+    for source in sources:
+        source_id = source.get("source_id", "").strip()
+        if not source_id or source_id in seen:
+            continue
+        seen.add(source_id)
+        packet_sources.append(
+            Source(
+                source_id=source_id,
+                provider="exa",
+                source_type="news",
+                title=source.get("title", ""),
+                publisher=source.get("publisher", ""),
+                published_at=source.get("published_at", ""),
+                accessed_at=today.isoformat(),
+                url=source.get("url", ""),
+            )
+        )
+    return packet_sources
 
 
 def build_review_risks(review: dict[str, Any], source_ids: list[str]) -> list[Risk]:
@@ -467,7 +513,8 @@ def format_company_news_review_markdown(root: Path, review: dict[str, Any]) -> s
     else:
         lines.append("- No Exa contents claims available.")
     lines.extend(["", "## Review Notes", ""])
-    lines.append(f"- exa_news_packet: `{relative_to_root(root, Path(review['exa_news_packet'])).as_posix()}`")
+    lines.append(f"- input evidence packet: `{relative_to_root(root, Path(review['exa_news_packet'])).as_posix()}`")
+    lines.append(f"- input evidence packet id: `{review.get('exa_news_packet_id', 'unknown')}`")
     lines.append(f"- source_count: {review['source_count']}")
     lines.append(f"- claim_count: {review['claim_count']}")
     lines.append(f"- contents_packet_count: {review['contents_packet_count']}")
@@ -496,7 +543,4 @@ def select_contents_follow_up_urls(packet: EvidencePacket, max_urls: int) -> lis
 
 
 def format_inline_evidence(value: str, max_length: int = 500) -> str:
-    compact = " ".join(line.strip() for line in value.splitlines() if line.strip())
-    if len(compact) <= max_length:
-        return compact
-    return compact[: max_length - 3].rstrip() + "..."
+    return compact_complete_text(value, max_length)

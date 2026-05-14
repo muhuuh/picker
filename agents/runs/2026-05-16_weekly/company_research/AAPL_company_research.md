@@ -8,17 +8,21 @@
 
 ## Summary
 
-Company research packet for AAPL covers 13 evidence packet(s), 7 ready lane(s), 0 partial lane(s), and 0 missing lane(s). Fanout status is complete; review missing lanes before treating this as complete.
+Company research packet for AAPL covers 8 evidence packet(s), 4 ready lane(s), 3 partial lane(s), and 0 missing lane(s). Fanout status is complete; review missing lanes before treating this as complete.
 
 ## Lanes
 
 - financials: ready (6 packet(s), 1 report(s))
-- company_news: ready (3 packet(s), 1 report(s))
+- company_news: partial (0 packet(s), 0 report(s))
+  - missing: Run Exa company-news search, contents follow-up, and company_news_review for this ticker.
+  - missing: Missing markdown review report for company_news.
 - filings: ready (1 packet(s), 0 report(s))
 - sentiment: ready (1 packet(s), 0 report(s))
-- company_search: ready (1 packet(s), 0 report(s))
-- risk_thesis: ready (4 packet(s), 0 report(s))
-- opportunity_assessment: ready (1 packet(s), 1 report(s))
+- company_search: partial (0 packet(s), 0 report(s))
+  - missing: Run Exa company/general search for this ticker.
+- risk_thesis: ready (2 packet(s), 0 report(s))
+- opportunity_assessment: partial (0 packet(s), 0 report(s))
+  - missing: Run opportunity_assessment after financial, news, filing, sentiment, and company-search evidence is available.
 
 ## Specialist Fanout
 

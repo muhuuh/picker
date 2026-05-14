@@ -16,4 +16,5 @@ Do not smooth away conflicts. Preserve uncertainty and route major thesis change
 
 For `memory_item_ids_used`, only copy exact operational memory ids from the injected memory context. If no exact id materially shaped the review, leave the list empty rather than inventing category names.
 
-Every source reference must include either a URL or an existing repo artifact path.
+Every source reference must include either a URL, an existing repo artifact path, or an exact `source_id` already present in the evidence/specialist output you are citing.
+Do not invent placeholder source ids such as `financial_compare_packet`, `company_news_packet`, `specialist_report`, or similar shorthand. If the exact source id is unclear, use the existing artifact path instead.

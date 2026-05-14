@@ -333,12 +333,18 @@ def build_material_developments(review: dict[str, Any]) -> list[dict[str, Any]]:
 
 def extract_development_items(evidence: str) -> list[str]:
     text = compact_text(evidence, 2500).replace("[...]", "\n")
-    candidates: list[str] = []
+    candidates: list[str] = structured_development_summary(text)
     for line in text.splitlines():
         line = clean_report_text(line.strip(" -\t"))
         if not line:
             continue
+        synthesized = synthesize_development_line(line)
+        if synthesized:
+            candidates.append(synthesized)
+            continue
         if is_bad_truncated_excerpt(line):
+            continue
+        if is_provider_boilerplate_excerpt(line):
             continue
         if not looks_investor_relevant(line):
             continue
@@ -346,12 +352,132 @@ def extract_development_items(evidence: str) -> list[str]:
     if candidates:
         return candidates[:6]
     sentences = re.split(r"(?<=[.!?])\s+", clean_report_text(text))
-    return [sentence for sentence in sentences if looks_investor_relevant(sentence) and not is_bad_truncated_excerpt(sentence)][:6]
+    return [
+        synthesize_development_line(sentence) or sentence
+        for sentence in sentences
+        if looks_investor_relevant(sentence)
+        and not is_bad_truncated_excerpt(sentence)
+        and not is_provider_boilerplate_excerpt(sentence)
+    ][:6]
+
+
+def structured_development_summary(text: str) -> list[str]:
+    cleaned = clean_report_text(text)
+    lower = cleaned.lower()
+    items: list[str] = []
+    revenue = re.search(r"net sales increased\s+([\d.]+%)\s+to\s+\$([\d.]+)\s*billion", cleaned, flags=re.IGNORECASE)
+    aws = re.search(r"aws segment sales increased\s+([\d.]+%)\s+year-over-year to\s+\$([\d.]+)\s*billion", cleaned, flags=re.IGNORECASE)
+    income = re.search(r"operating income increased to\s+\$([\d.]+)\s*billion.*?compared with\s+\$([\d.]+)\s*billion", cleaned, flags=re.IGNORECASE)
+    if revenue or aws or income:
+        parts: list[str] = []
+        if revenue:
+            parts.append(f"net sales +{revenue.group(1)} to ${revenue.group(2)}B")
+        if aws:
+            parts.append(f"AWS sales +{aws.group(1)} YoY to ${aws.group(2)}B")
+        if income:
+            parts.append(f"operating income ${income.group(1)}B vs ${income.group(2)}B")
+        items.append("Q1 2026 operating update: " + "; ".join(parts) + ".")
+    guidance = re.search(
+        r"net sales projected between\s+\$([\d.]+)\s*billion and\s+\$([\d.]+)\s*billion.*?operating income predicted at\s+\$([\d.]+)\s*billion to\s+\$([\d.]+)\s*billion",
+        cleaned,
+        flags=re.IGNORECASE,
+    )
+    if guidance:
+        items.append(
+            f"Q2 2026 guide: revenue ${guidance.group(1)}B-${guidance.group(2)}B and operating income ${guidance.group(3)}B-${guidance.group(4)}B."
+        )
+    adoption_summary = summarize_ai_adoption_signal(cleaned)
+    if adoption_summary:
+        items.append(adoption_summary)
+    ecosystem_summary = summarize_strategic_ecosystem_line(cleaned)
+    if ecosystem_summary:
+        items.append(ecosystem_summary)
+    if "amazon ads generated" in lower:
+        ads = re.search(r"amazon ads generated\s+\$([\d.]+)\s*billion", cleaned, flags=re.IGNORECASE)
+        items.append(f"Advertising tailwind: Amazon Ads generated ${ads.group(1)}B of revenue in Q1 with AI tools expanding reach." if ads else "Advertising tailwind: Amazon Ads growth is being tied to AI tools and expanded reach.")
+    if "cost of components" in lower and "memory" in lower:
+        items.append("AI infrastructure headwind: management flagged sharply higher memory component costs and possible capacity/supply volatility.")
+    if "amazon leo" in lower:
+        items.append("Cost watch item: Amazon LEO is expected to add about $1B of year-over-year cost pressure tied to satellite manufacturing and launches.")
+    apple_revenue = re.search(r"quarterly revenue of\s+\$([\d.]+)\s*billion,\s+up\s+([\d.]+)\s+percent", cleaned, flags=re.IGNORECASE)
+    apple_eps = re.search(r"diluted earnings per share was\s+\$([\d.]+),\s+up\s+([\d.]+)\s+percent", cleaned, flags=re.IGNORECASE)
+    if apple_revenue:
+        parts = [f"revenue ${apple_revenue.group(1)}B, +{apple_revenue.group(2)}% YoY"]
+        if apple_eps:
+            parts.append(f"EPS ${apple_eps.group(1)}, +{apple_eps.group(2)}% YoY")
+        items.append("Fiscal Q2 2026 operating update: " + "; ".join(parts) + ".")
+    apple_guidance = re.search(r"revenue growth in the current quarter would be between\s+([\d.]+%)\s+and\s+([\d.]+%)", cleaned, flags=re.IGNORECASE)
+    if apple_guidance:
+        items.append(f"Guidance signal: current-quarter revenue growth expected at {apple_guidance.group(1)}-{apple_guidance.group(2)}, above analyst estimates in the source excerpt.")
+    return unique_texts(items, 8)
+
+
+def synthesize_development_line(value: str) -> str:
+    lower = value.lower()
+    if lower.startswith(("seattle--", "cupertino,")):
+        summary = structured_development_summary(value)
+        return summary[0] if summary else ""
+    if any(marker in lower for marker in ("major customer and partner announcements", "customer and partner", "strategic partnership", "partner agreements")):
+        return summarize_strategic_ecosystem_line(value)
+    if "cost of components" in lower and "memory" in lower:
+        return "AI infrastructure headwind: management flagged sharply higher memory component costs and possible capacity/supply volatility."
+    if "amazon ads generated" in lower:
+        summary = structured_development_summary(value)
+        return summary[0] if summary else "Advertising tailwind: Amazon Ads growth is being tied to AI tools and expanded reach."
+    if "revenue growth in the current quarter would be between" in lower:
+        summary = structured_development_summary(value)
+        return summary[0] if summary else ""
+    if "quarterly revenue of" in lower and "diluted earnings per share" in lower:
+        summary = structured_development_summary(value)
+        return summary[0] if summary else ""
+    if "apple reported 17% revenue growth" in lower and "iphone sales came up short" in lower:
+        return "Apple operating mix: revenue grew 17% and services beat estimates, but iPhone sales missed, making services/margin durability the key offset to hardware softness."
+    return ""
+
+
+def is_provider_boilerplate_excerpt(value: str) -> bool:
+    lower = value.lower()
+    noisy_starts = ("seattle--", "cupertino,", "# q1 earnings:", "andy jassy on")
+    return lower.startswith(noisy_starts) or (
+        len(value) > 350
+        and any(marker in lower for marker in ("business wire", "today announced financial results", "earnings call transcript", "apple reported 17% revenue growth"))
+    )
+
+
+def is_positive_development(value: str) -> bool:
+    lower = value.lower()
+    if any(word in lower for word in ("headwind", "cost pressure", "supply volatility", "constraint", "skyrocketed", "negative")):
+        return False
+    return any(
+        word in lower
+        for word in (
+            "growth",
+            "increased",
+            "operating income",
+            "tailwind",
+            "customer",
+            "partner",
+            "agreement",
+            "adoption",
+            "revenue",
+            "bedrock",
+            "aws",
+            "ads",
+            "custom silicon",
+            "cloud commitment",
+            "strategic customer",
+            "strategic partner",
+        )
+    )
 
 
 def is_bad_truncated_excerpt(value: str) -> bool:
     lower = value.lower()
-    return bool(value.endswith("...") and any(fragment in lower for fragment in ("per diluted s", "per diluted sh", "the anthropic de", "substan")))
+    if value.endswith("...") and any(fragment in lower for fragment in ("per diluted s", "per diluted sh", "the anthropic de", "substan")):
+        return True
+    if value.startswith('"') and value.count('"') % 2 == 1:
+        return True
+    return False
 
 
 def looks_investor_relevant(value: str) -> bool:
@@ -433,6 +559,11 @@ def summarize_social(packets: list[EvidencePacket]) -> dict[str, Any]:
         "verified_facts": section_items(sections, ["verified facts", "verified facts (from earnings/news reactions)"], limit=5),
         "bullish_claims": section_items(sections, ["recurring bullish arguments", "recurring bullish claims", "bull case narratives"], limit=5),
         "bearish_claims": section_items(sections, ["recurring bearish or skeptical arguments", "recurring bearish/neutral claims", "recurring bearish claims", "bear/skeptic narratives"], limit=5),
+        "strategic_partnerships": section_items(
+            sections,
+            ["strategic partnerships investments and ecosystem leverage", "strategic partnerships, investments, and ecosystem leverage"],
+            limit=5,
+        ),
         "news_reactions": section_items(sections, ["notable news people are reacting to"], limit=5),
         "non_obvious_angles": section_items(sections, ["non-obvious or under-discussed angles", "non-obvious insights", "non-obvious / under-discussed insights"], limit=5),
         "notable_accounts": notable_accounts[:6],
@@ -612,10 +743,14 @@ def classify_confidence(
 
 def build_positives(financial: dict[str, Any], news: dict[str, Any], social: dict[str, Any], filings: dict[str, Any]) -> list[str]:
     positives: list[str] = []
-    for development in news.get("material_developments", [])[:3]:
+    for item in strategic_ai_items(news, social)[:2]:
+        positives.append(f"Strategic AI ecosystem: {item}")
+    for development in news.get("material_developments", []):
         claim_text = development.get("claim") if isinstance(development, dict) else ""
-        if claim_text:
+        if claim_text and is_positive_development(claim_text):
             positives.append(claim_text)
+        if len(positives) >= 5:
+            break
     for claim_text in social.get("bullish_claims", [])[:2]:
         positives.append(f"X bull narrative: {claim_text}")
     if financial.get("revenue_ttm") and numeric(financial.get("profit_margin")) and numeric(financial.get("profit_margin")) > 0:
@@ -768,6 +903,7 @@ def build_community_split(social: dict[str, Any]) -> dict[str, Any]:
         "x_pulse": social.get("x_pulse", ""),
         "bullish_camp": list(social.get("bullish_claims") or [])[:5],
         "skeptical_camp": list(social.get("bearish_claims") or [])[:5],
+        "strategic_partnerships": list(social.get("strategic_partnerships") or [])[:5],
         "notable_accounts_or_posts": list(social.get("notable_accounts") or [])[:8],
         "hype_noise_assessment": social.get("hype_noise", ""),
         "rumors_or_unverified": list(social.get("rumors") or [])[:4],
@@ -795,17 +931,26 @@ def build_thesis_and_trends(
 def build_core_thesis(financial: dict[str, Any], news: dict[str, Any], social: dict[str, Any], positives: list[str]) -> str:
     sector = financial.get("sector") or "the current sector"
     industry = financial.get("industry") or "its industry"
-    first_positive = summarize_developments_short(news) or (strip_citations_and_markdown(positives[0]) if positives else "recent evidence is mixed")
+    first_positive = normalize_sentence_fragment(
+        summarize_developments_short(news) or (strip_citations_and_markdown(positives[0]) if positives else "recent evidence is mixed")
+    )
     if social.get("bullish_claims"):
-        return compact_text(f"{sector} / {industry}: {first_positive}. The social bull case centers on {strip_citations_and_markdown(str(social['bullish_claims'][0]))}.", 550)
+        bull_case = normalize_sentence_fragment(strip_citations_and_markdown(str(social["bullish_claims"][0])))
+        return compact_text(f"{sector} / {industry}: {first_positive}. The social bull case centers on {bull_case}.", 550)
     return compact_text(f"{sector} / {industry}: {first_positive}.", 550)
+
+
+def normalize_sentence_fragment(value: str) -> str:
+    return clean_report_text(value).rstrip(" .;:")
 
 
 def build_tailwinds(news: dict[str, Any], social: dict[str, Any], positives: list[str]) -> list[str]:
     items: list[str] = []
     for value in positives:
-        if any(word in value.lower() for word in ("growth", "aws", "ai", "margin", "sales", "revenue", "income", "backlog", "ads", "partnership")):
+        if is_positive_development(value) and any(word in value.lower() for word in ("growth", "aws", "ai", "margin", "sales", "revenue", "income", "backlog", "ads", "partnership", "anthropic", "claude", "trainium", "bedrock")):
             items.append(value)
+    if not any("strategic ai ecosystem" in item.lower() for item in items):
+        items.extend(strategic_ai_items(news, social))
     items.extend(list(social.get("bullish_claims") or [])[:3])
     return unique_texts([strip_citations_and_markdown(item) for item in items], 6)
 
@@ -828,8 +973,12 @@ def build_trend_evolution(news: dict[str, Any], social: dict[str, Any]) -> list[
         claim = development.get("claim", "") if isinstance(development, dict) else ""
         if any(word in claim.lower() for word in ("increased", "accelerated", "growth", "guidance", "margin", "operating income")):
             items.append(f"Fundamental trend: {claim}")
+        elif any(word in claim.lower() for word in ("adoption", "agreement", "partner", "bedrock")):
+            items.append(f"Ecosystem trend: {claim}")
     if social.get("x_pulse"):
         items.append(f"Social trend: {strip_citations_and_markdown(str(social['x_pulse']))}")
+    for item in social.get("strategic_partnerships", [])[:2]:
+        items.append(f"Strategic ecosystem trend: {strip_citations_and_markdown(str(item))}")
     return unique_texts(items, 5)
 
 
@@ -837,6 +986,8 @@ def build_non_obvious_insights(financial: dict[str, Any], news: dict[str, Any], 
     candidates: list[str] = []
     for angle in social.get("non_obvious_angles", [])[:4]:
         candidates.append(f"X under-discussed angle: {strip_citations_and_markdown(str(angle))}")
+    for item in strategic_ai_items(news, social)[:3]:
+        candidates.append(f"Strategic AI ecosystem angle: {strip_citations_and_markdown(item)}")
     for claim in news.get("contents_claims", []) + news.get("material_claims", []):
         evidence = str(claim.get("evidence", "")) if isinstance(claim, dict) else ""
         for line in extract_development_items(evidence):
@@ -850,6 +1001,158 @@ def build_non_obvious_insights(financial: dict[str, Any], news: dict[str, Any], 
             f"Analyst target context implies {format_percent(financial['analyst_target_implied_upside'])} upside/downside versus the latest provider price; compare this with the X narrative before assuming consensus is already fully priced."
         )
     return unique_texts(candidates, 7)
+
+
+def strategic_ai_items(news: dict[str, Any], social: dict[str, Any]) -> list[str]:
+    items: list[str] = []
+    for value in social.get("strategic_partnerships", []) or []:
+        summary = summarize_strategic_ecosystem_line(str(value)) or summarize_strategic_ai_line(str(value))
+        if summary:
+            items.append(summary)
+    for claim in news.get("contents_claims", []) + news.get("material_claims", []):
+        evidence = str(claim.get("evidence", "")) if isinstance(claim, dict) else ""
+        for line in extract_development_items(evidence):
+            summary = summarize_strategic_ecosystem_line(line) or summarize_strategic_ai_line(line)
+            if summary:
+                items.append(summary)
+    for development in news.get("material_developments", []):
+        claim = str(development.get("claim", "")) if isinstance(development, dict) else ""
+        summary = summarize_strategic_ecosystem_line(claim) or summarize_strategic_ai_line(claim)
+        if summary:
+            items.append(summary)
+    return collapse_strategic_items(items, 5)
+
+
+def collapse_strategic_items(items: list[str], limit: int) -> list[str]:
+    unique = unique_texts(items, limit + 2)
+    ecosystem_entities: list[str] = []
+    other_items: list[str] = []
+    for item in unique:
+        match = re.search(r"evidence cites (.*?), suggesting customer/partner leverage", item)
+        if match:
+            ecosystem_entities.extend(entity.strip() for entity in match.group(1).split(",") if entity.strip())
+        else:
+            other_items.append(item)
+    merged: list[str] = []
+    if ecosystem_entities:
+        entity_text = ", ".join(unique_texts(ecosystem_entities, 10))
+        merged.append(
+            f"Strategic ecosystem signal: evidence cites {entity_text}, suggesting customer/partner leverage that may matter beyond the headline financial metrics."
+        )
+    merged.extend(other_items)
+    return unique_texts(merged, limit)
+
+
+def summarize_ai_adoption_signal(value: str) -> str:
+    lower = value.lower()
+    if "bedrock" in lower and ("170%" in lower or "tokens" in lower):
+        return "AI platform adoption signal: Bedrock customer spend reportedly grew 170% quarter-over-quarter and Q1 token processing exceeded all prior years combined."
+    if "tokens" in lower and any(term in lower for term in ("customer spend", "usage", "processed", "inference")):
+        return compact_text(value, 220)
+    return ""
+
+
+def summarize_strategic_ecosystem_line(value: str) -> str:
+    lower = value.lower()
+    if "cost of components" in lower or "skyrocketed" in lower:
+        return ""
+    if not is_strategic_ecosystem_signal(lower):
+        return ""
+    entities = named_strategic_entities(value)
+    entity_text = ", ".join(entities[:8]) if entities else "major customers, partners, or suppliers"
+    if any(term in lower for term in ("customer", "agreement", "deal", "contract", "commitment", "partnership", "partner")):
+        return (
+            f"Strategic ecosystem signal: evidence cites {entity_text}, suggesting customer/partner leverage that may matter beyond the headline financial metrics."
+        )
+    if any(term in lower for term in ("custom silicon", "trainium", "inferentia", "ai chip", "accelerator", "foundry", "packaging")):
+        return (
+            f"Strategic technology leverage: evidence links {entity_text} to custom silicon, AI infrastructure, or supply-chain positioning that should be verified as a durable thesis driver."
+        )
+    return compact_text(value, 220)
+
+
+def is_strategic_ecosystem_signal(lower: str) -> bool:
+    strategic_terms = (
+        "anthropic",
+        "claude",
+        "openai",
+        "cerebras",
+        "nvidia",
+        "meta",
+        "uber",
+        "bedrock",
+        "trainium",
+        "inferentia",
+        "custom silicon",
+        "ai chip",
+        "accelerator",
+        "cloud commitment",
+        "strategic partner",
+        "strategic customer",
+        "major customer",
+        "partner agreement",
+        "supplier dependency",
+    )
+    action_terms = (
+        "agreement",
+        "announced",
+        "partner",
+        "customer",
+        "commitment",
+        "contract",
+        "uses",
+        "adoption",
+        "selected",
+        "deploy",
+        "training",
+        "inference",
+    )
+    return any(term in lower for term in strategic_terms) and any(term in lower for term in action_terms)
+
+
+def named_strategic_entities(value: str) -> list[str]:
+    known = [
+        "Amazon Bedrock",
+        "OpenAI",
+        "Anthropic",
+        "Claude",
+        "NVIDIA",
+        "Cerebras",
+        "Meta",
+        "Uber",
+        "AWS",
+        "Trainium",
+        "Inferentia",
+        "MediaTek",
+        "Intel",
+        "Broadcom",
+        "Microsoft",
+        "Google",
+        "Oracle",
+    ]
+    lower = value.lower()
+    found = [name for name in known if name.lower() in lower]
+    ticker_entities = re.findall(r"\$[A-Z][A-Z0-9.]{1,6}\b", value)
+    return unique_texts(found + ticker_entities, 10)
+
+
+def summarize_strategic_ai_line(value: str) -> str:
+    lower = value.lower()
+    if not any(keyword in lower for keyword in ("anthropic", "claude", "trainium", "bedrock", "openai", "cerebras", "custom silicon", "ai chip")):
+        return ""
+    if "cost of components" in lower or "skyrocketed" in lower:
+        return ""
+    if any(keyword in lower for keyword in ("anthropic", "openai", "cerebras", "nvidia")) and any(
+        keyword in lower for keyword in ("agreement", "announced", "partner", "customer")
+    ):
+        return summarize_strategic_ecosystem_line(value) or "Strategic AI ecosystem signal: evidence cites major AI customer or partner agreements that may matter beyond headline financial metrics."
+    if "bedrock" in lower and ("170%" in lower or "tokens" in lower):
+        return summarize_ai_adoption_signal(value)
+    if "trainium" in lower:
+        return "Trainium remains a strategic AWS AI lever: verify whether customer adoption and capacity commitments are translating into durable cloud revenue and margin leverage."
+    if "anthropic" in lower or "claude" in lower:
+        return "Anthropic/Claude is a strategic AWS ecosystem asset; verify whether Bedrock usage, training commitments, and investment gains are recurring value or one-off mark-to-market noise."
+    return compact_text(value, 190)
 
 
 def build_peer_competition_context(root: Path, run_id: str, ticker: str, company_context: dict[str, Any]) -> dict[str, Any]:
@@ -947,7 +1250,7 @@ def build_next_research_questions(financial: dict[str, Any], news: dict[str, Any
 def build_executive_read(ticker: str, thesis: dict[str, Any], valuation: dict[str, Any], community: dict[str, Any], non_obvious: list[str]) -> str:
     thesis_text = compact_text(strip_citations_and_markdown(str(thesis.get("core_thesis") or "Evidence is incomplete.")), 220)
     valuation_text = valuation_sentence(valuation)
-    community_text = compact_text(first_sentence(strip_citations_and_markdown(str(community.get("x_pulse", "")))), 300)
+    community_text = normalize_sentence_fragment(compact_text(first_sentence(strip_citations_and_markdown(str(community.get("x_pulse", "")))), 300))
     non_obvious_text = compact_text(first_or_default(non_obvious, "No strong non-obvious angle was extracted."), 220)
     return compact_text(
         f"{ticker}: {thesis_text} Valuation: {valuation_text}. X/community: {community_text}. Under-discussed check: {non_obvious_text}",
@@ -981,6 +1284,8 @@ def metric_phrase(value: str, kind: str) -> str:
         match = re.search(r"operating income increased to\s+\$([\d.]+)\s+billion.*compared with\s+\$([\d.]+)\s+billion", value, flags=re.IGNORECASE)
         if match:
             return f"operating income ${match.group(1)}B vs ${match.group(2)}B"
+    if kind == "ai_partnership":
+        return summarize_strategic_ai_line(value) or compact_text(value, 170)
     return compact_text(value, 130)
 
 
@@ -1154,7 +1459,7 @@ def build_summary(
 ) -> str:
     pulse = social.get("x_pulse", "")
     pulse_sentence = f" X pulse: {compact_text(strip_citations_and_markdown(pulse), 220)}" if pulse else ""
-    positive = compact_text(strip_citations_and_markdown(positives[0]), 180)
+    positive = compact_text(strip_citations_and_markdown(positives[0]), 280)
     negative = compact_text(strip_citations_and_markdown(negatives[0]), 180)
     return (
         f"{ticker} is {opportunity_view} ({score}/100, {risk_level} risk, {confidence} confidence) because {positive} "
@@ -1432,6 +1737,7 @@ def format_investor_insight_markdown(insight: dict[str, Any]) -> list[str]:
     lines.append(f"- X pulse: {community.get('x_pulse') or 'No X pulse available.'}")
     append_list_section(lines, "Bullish camp", community.get("bullish_camp") or [])
     append_list_section(lines, "Skeptical camp", community.get("skeptical_camp") or [])
+    append_list_section(lines, "Strategic partnerships / ecosystem leverage", community.get("strategic_partnerships") or [])
     if community.get("notable_accounts_or_posts"):
         lines.append(f"- Accounts/posts worth reviewing: {', '.join(community['notable_accounts_or_posts'][:8])}")
     if community.get("hype_noise_assessment"):

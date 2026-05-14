@@ -516,3 +516,17 @@ Operational memory for workflow routing, orchestration, run ordering, and user c
 - evidence: `docs/descriptions/human_review_operating_model.md`, `docs/descriptions/human_interaction_workflow.md`, `MEMORY.md`
 - owner: main orchestrator
 - next_review: 2026-06-15
+
+- id: orch-2026-05-14-safe-incremental-reruns
+- date: 2026-05-14
+- type: procedural
+- scope: orchestrator
+- status: active
+- confidence: high
+- trigger/source: Fresh AMZN and market report regeneration showed that rerunning weekly workflows on the same run id can remove provider-dependent artifacts when providers are not executed again.
+- lesson: For final report formatting or synthesis-only iterations, do not rerun destructive generated-artifact cleanup unless provider artifacts will be regenerated or a future safe incremental rebuild mode is used. Preserve evidence packets before rerendering human-facing reports.
+- use_when: Regenerating weekly digests, opportunity reports, company-research reports, or manual market reports from an existing run id.
+- do_not_use_when: Starting a deliberate full fresh run where provider and analysis artifacts will be rebuilt end to end.
+- evidence: `docs/scratchpads/openai_agents_sdk_orchestration_scratchpad.md`, `stock_research/weekly_runner.py`, `agents/runs/2026-05-16_weekly/`
+- owner: main orchestrator
+- next_review: 2026-06-15

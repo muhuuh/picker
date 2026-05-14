@@ -260,3 +260,17 @@ After a weekly or manual run:
 - evidence: `stock_research/report_formatting.py`, `stock_research/market_research_runner.py`, `stock_research/opportunity_assessment.py`, `stock_research/weekly_digest.py`, `stock_research/candidate_review.py`, `stock_research/human_review_digest.py`, `agents/runs/2026-05-12_manual-market-ai-semiconductor-supply-chain/market_research/ai_semiconductor_supply_chain_advanced_packaging_manual_market_research.md`, `agents/runs/2026-05-16_weekly/reports/opportunity_assessment/AMZN_opportunity_assessment.md`
 - owner: reporting quality
 - next_review: 2026-06-15
+
+- id: eval-2026-05-13-report-storyline-citation-recency
+- date: 2026-05-13
+- type: evaluation
+- scope: global
+- status: active
+- confidence: high
+- trigger/source: User review of semiconductor market report, HRQ digest, AMZN opportunity report, and weekly final digest on 2026-05-13.
+- lesson: Investor-facing reports must rank current, material evidence above stale background; remove inline Grok citation markers unless converted to clickable links; explain verification states in human terms; keep HRQ rows concise with linked evidence; and promote strategic AI ecosystem items such as Anthropic, Claude, Bedrock, Trainium, OpenAI, and Cerebras into company tailwinds when source-backed rather than burying them in generic partner lists.
+- use_when: Formatting market reports, opportunity assessments, weekly digests, candidate reviews, human-review digests, Grok/X prompts, and quality gates.
+- do_not_use_when: Storing ordinary company facts or raw provider output; those belong in run artifacts or company files.
+- evidence: stock_research/market_research_runner.py, stock_research/opportunity_assessment.py, stock_research/weekly_digest.py, stock_research/human_review_digest.py, stock_research/candidate_review.py, agents/runs/2026-05-12_manual-market-ai-semiconductor-supply-chain/market_research/ai_semiconductor_supply_chain_advanced_packaging_manual_market_research.md, agents/runs/2026-05-16_weekly/reports/opportunity_assessment/AMZN_opportunity_assessment.md
+- owner: Codex
+- next_review: 2026-06-13

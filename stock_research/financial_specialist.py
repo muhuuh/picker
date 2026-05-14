@@ -199,10 +199,13 @@ def review_to_packet(
     report_path: Path,
     today: date,
 ) -> EvidencePacket:
-    source_id = "financial_compare_packet"
+    compare_source_id = f"{ticker.lower()}_financial_compare_input_packet"
+    report_source_id = f"{ticker.lower()}_financial_specialist_report"
+    provider_source_ids = dedupe_strings([source.source_id for source in compare_packet.sources])
+    evidence_source_ids = provider_source_ids or [compare_source_id, report_source_id]
     sources = [
         Source(
-            source_id=source_id,
+            source_id=compare_source_id,
             provider="financial_data_specialist",
             source_type="internal",
             title=f"financial_compare packet for {ticker}",
@@ -212,7 +215,7 @@ def review_to_packet(
             notes=f"Input packet {compare_packet.packet_id}.",
         ),
         Source(
-            source_id="financial_specialist_report",
+            source_id=report_source_id,
             provider="financial_data_specialist",
             source_type="internal",
             title=f"Financial specialist review for {ticker}",
@@ -222,6 +225,7 @@ def review_to_packet(
             notes="Generated deterministic specialist report.",
         ),
     ]
+    sources.extend(source for source in compare_packet.sources if source.source_id not in {compare_source_id, report_source_id})
     claim_summary = {
         "status": review["status"],
         "status_reason": review["status_reason"],
@@ -237,20 +241,20 @@ def review_to_packet(
         Claim(
             claim=f"Financial data specialist review completed for {ticker}.",
             evidence=json.dumps(claim_summary, sort_keys=True),
-            source_ids=[source_id, "financial_specialist_report"],
+            source_ids=evidence_source_ids,
             confidence="high" if review["status"] == "ready_for_company_update" else "medium",
             impact="medium",
             novelty="new",
         )
     ]
-    risks = build_review_risks(review, [source_id])
+    risks = build_review_risks(review, evidence_source_ids)
     recommended_updates = [
         RecommendedUpdate(
             target_file="stock_tracking/stock_info_files/",
             update_type="company_file",
             summary=review["recommended_company_file_action"],
             needs_human_review=bool(review["needs_human_review"]),
-            source_ids=[source_id, "financial_specialist_report"],
+            source_ids=evidence_source_ids,
         )
     ]
     return new_packet(
@@ -266,7 +270,7 @@ def review_to_packet(
             Contradiction(
                 current_repo_claim=contradiction.current_repo_claim,
                 new_evidence=contradiction.new_evidence,
-                source_ids=[source_id],
+                source_ids=evidence_source_ids,
                 suggested_action=contradiction.suggested_action,
             )
             for contradiction in compare_packet.contradictions
@@ -276,6 +280,17 @@ def review_to_packet(
         raw_artifact_path=raw_path.as_posix(),
         notes="Deterministic financial specialist synthesis built from a financial_compare packet. Exa/Grok are intentionally excluded.",
     )
+
+
+def dedupe_strings(values: list[str]) -> list[str]:
+    result: list[str] = []
+    seen: set[str] = set()
+    for value in values:
+        cleaned = str(value).strip()
+        if cleaned and cleaned not in seen:
+            seen.add(cleaned)
+            result.append(cleaned)
+    return result
 
 
 def build_review_risks(review: dict[str, Any], source_ids: list[str]) -> list[Risk]:

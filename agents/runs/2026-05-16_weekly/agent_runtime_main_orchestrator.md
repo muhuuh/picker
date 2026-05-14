@@ -1,13 +1,13 @@
 # Agent Runtime Report: main_orchestrator
 
 - run_id: 2026-05-16_weekly
-- trace_id: trace_cadcfbb4a5414619a62fe16be2ef7349
+- trace_id: trace_30b63fa040da4854b1e7dee16248d95f
 - group_id: 2026-05-16_weekly
-- status: ready
+- status: partial
 
 ## Summary
 
-This run executed both provider and analysis tasks with all required company research lanes completed for tracked tickers (AAPL in monitoring, AMZN in current holdings). There are no outstanding quality or memory findings, no missing company files, and no identified run or learning-loop issues. Eight open human-review items exist; these must be resolved prior to certain actions but do not block current synthesis status. Portfolio review and memory evaluation report partial or ready statuses but show no blockers or stale data. No new candidate leads or update proposals are indicated in this run. All memory quality, security, and fanout gates passed without findings.
+The 2026-05-16_weekly run provides deterministic, multi-lane research outputs for both current holding (AMZN) and monitoring (AAPL) tickers, with fresh provider and analysis tasks executed. Portfolio and memory evaluation surfaced some open and approved human review queue items. The run is not fully ready for closeout due to specific missing provider evidence for AAPL (planned Exa news and company search packets did not run or complete). No candidate verification reports were found. Memory reflection and update drafts are present, but some actions require human review. No company-file update proposals are present in this run; accordingly, no company file edits are proposed. PR and memory lessons shaped the structure, finding no critical risks—just procedural gaps. Next: review and resolve open HRQ items, address planned provider task gaps for AAPL, and finalize memory actions.
 
 ## Alerts
 
@@ -23,11 +23,15 @@ This run executed both provider and analysis tasks with all required company res
 
 ## Next Run Tasks
 
-- Review open human-review queue items before applying proposals or promoting candidates.
+- review open human review queue items
+- run Exa news and company/general search provider tasks for AAPL
+- finalize memory reflection/update actions
 
 ## Memory Items Used
 
+- orch-2026-05-11-main-aggregation-packet
 - orch-2026-05-03-deterministic-first
 - orch-2026-05-06-agent-runtime-registry
-- orch-2026-05-06-agent-runtime-quality-gates
-- orch-2026-05-11-main-aggregation-packet
+- orch-2026-05-10-company-research-sub-orchestrator
+- orch-2026-05-11-portfolio-review-orchestrator
+- orch-2026-05-11-memory-evaluation-orchestrator

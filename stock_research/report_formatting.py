@@ -108,9 +108,25 @@ def repair_common_mojibake(value: str) -> str:
         "\u00e2\u20ac\u201c": "-",
         "\u00e2\u20ac\u201d": "-",
         "\u00c2\u00a0": " ",
+        "Ã—": "x",
+        "Ã©": "e",
+        "Ã¨": "e",
+        "Ã¡": "a",
+        "Ã ": "a",
+        "Ã¼": "u",
+        "Ã¶": "o",
+        "Ã¤": "a",
+        "â€™": "'",
+        "â€œ": '"',
+        "â€": '"',
+        "â€“": "-",
+        "â€”": "-",
+        "â€¦": ".",
     }
     for bad, good in replacements.items():
         value = value.replace(bad, good)
+    value = value.replace("\u00d7", "x")
+    value = re.sub(r"(?<=\d)\?\?(?=\s*(?:P/[ESB]|P/E|P/S|PE|EV|multiple|margin|revenue))", "x", value)
     return value
 
 

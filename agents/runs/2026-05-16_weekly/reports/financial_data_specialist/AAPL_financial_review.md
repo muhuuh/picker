@@ -8,11 +8,11 @@ Reason: Core metrics are available and no material provider conflicts were found
 | Metric | Value | Confidence | Providers |
 | --- | --- | --- | --- |
 | company_name | Apple Inc. | high | alpha_vantage, fmp, polygon |
-| latest_price | 292.7 | high | alpha_vantage, fmp, polygon, yfinance |
-| market_cap | 4.299e+12 | high | alpha_vantage, fmp, polygon, yfinance |
-| pe_ratio | 35.13 | high | alpha_vantage, fmp, yfinance |
-| price_to_sales_ttm | 9.522 | medium | fmp |
-| ev_to_ebitda_ttm | 27.11 | medium | fmp |
+| latest_price | 298.9 | high | alpha_vantage, fmp, polygon, yfinance |
+| market_cap | 4.39e+12 | high | alpha_vantage, fmp, polygon, yfinance |
+| pe_ratio | 35.87 | high | alpha_vantage, fmp, yfinance |
+| price_to_sales_ttm | 9.724 | medium | fmp |
+| ev_to_ebitda_ttm | 27.68 | medium | fmp |
 | revenue_ttm | 4.514e+11 | medium | alpha_vantage |
 | profit_margin | 0.272 | medium | alpha_vantage |
 | eps | 8.25 | medium | alpha_vantage |
@@ -26,7 +26,7 @@ Reason: Core metrics are available and no material provider conflicts were found
 
 ## Review Notes
 
-- financial_compare packet: `agents/runs/2026-05-16_weekly/evidence_packets/2026-05-12_financial_compare_company_aapl.json`
+- financial_compare packet: `agents/runs/2026-05-16_weekly/evidence_packets/2026-05-14_financial_compare_company_aapl.json`
 - confidence_counts: {"high": 9, "medium": 16}
 - status_counts: {"consistent": 25}
 - single_provider_metrics: debt_to_equity_ttm, eps, ev_to_ebitda_ttm, fifty_two_week_high, fifty_two_week_low, free_cash_flow_per_share_ttm, peg_ratio, previous_high, previous_low, previous_open, previous_volume, previous_vwap, price_to_book_ratio, price_to_sales_ttm, profit_margin, revenue_ttm
