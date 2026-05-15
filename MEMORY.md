@@ -351,6 +351,21 @@ Use this file for information we should not lose across sessions.
   - evidence artifact path(s): `stock_research/opportunity_assessment.py`, `stock_research/weekly_digest.py`, `tests/test_opportunity_assessment.py`, `agents/runs/2026-05-16_weekly/reports/opportunity_assessment/AMZN_opportunity_assessment.md`, `agents/runs/2026-05-16_weekly/final_digest.md`
   - status: active
 
+- 2026-05-15:
+  - decision/fact: The AMZN opportunity-assessment structure and detail level is accepted as the current target for human-facing company reports. Final digests should stay concise as quick-read summaries with links to deeper opportunity assessments. Company research packets are primarily internal lane/coverage artifacts.
+  - evidence artifact path(s): `agents/runs/2026-05-16_weekly/reports/opportunity_assessment/AMZN_opportunity_assessment.md`, `agents/runs/2026-05-16_weekly/final_digest.md`, `docs/HUMAN_USAGE_GUIDE.md`
+  - status: active
+
+- 2026-05-15:
+  - decision/fact: Routine source-backed company-file factual updates should not normally require user approval. The target UX is scoped auto-apply plus FYI change summaries; thesis changes, opinion changes, stock moves, strategy changes, and buy/sell/position-size decisions remain approval-gated.
+  - evidence artifact path(s): `docs/descriptions/human_review_operating_model.md`, `docs/descriptions/human_interaction_workflow.md`, `docs/plans/investment_agent_backlog.md`, `stock_research/human_review_digest.py`
+  - status: active
+
+- 2026-05-15:
+  - decision/fact: Research artifact hygiene needs an archive/index lifecycle. Active knowledge should be promoted into stock files, category state, market research, and strategy files; old non-active run artifacts should be movable to an indexed archive rather than staying in the active working surface forever.
+  - evidence artifact path(s): `docs/descriptions/artifact_lifecycle_and_hygiene.md`, `docs/plans/investment_agent_backlog.md`, `docs/descriptions/repo_map.md`
+  - status: active
+
 - 2026-05-11:
   - decision/fact: The OpenAI Agents SDK weekly path completed successfully after API credit was added and runtime quality gates were tightened. The validation command for AMZN/AAPL is `python -m stock_research run-weekly --write --today 2026-05-11 --execute-providers --execute-analysis --execute-orchestrator --orchestrator-timeout-seconds 900`.
   - evidence artifact path(s): `agents/runs/2026-05-16_weekly/orchestration_report.md`, `agents/runs/2026-05-16_weekly/agent_runtime_main_orchestrator.md`, `stock_research/agent_runtime/reports.py`, `tests/test_agent_runtime.py`

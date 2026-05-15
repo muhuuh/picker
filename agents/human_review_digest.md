@@ -1,13 +1,13 @@
 # Human Review Digest
 
-Generated: 2026-05-14
+Generated: 2026-05-15
 Status: needs_user_review
-Open items summarized: 21
+Open items summarized: 20
 
 ## Summary
 
-- Company File Updates: 2
-- Monitoring Candidate Reviews: 2
+- Company File Updates / FYI: 2
+- Monitoring Candidate Reviews: 1
 - Grok/X Candidate Verification: 10
 - Candidate Verification: 6
 - Strategy / Workflow: 1
@@ -19,20 +19,20 @@ Open items summarized: 21
 - needs_more_research: keep open and request more evidence
 - leave open: make no change
 
-Monitoring candidates are not automatically added to monitoring. Grok/X verification items are earlier-stage social leads and only approve deeper verification.
+Monitoring candidates are not automatically added to monitoring. Grok/X and Exa-only verification items both enter the same deeper verification loop. Company-file update rows are informational/legacy; low-risk factual edits should be auto-applied and summarized in future runs.
 
 ## Priority Counts
 
-- medium: 21
+- medium: 20
 
-## Company File Updates
+## Company File Updates / FYI
 
-Proposed edits to existing company files. Duplicate tickers can be valid when separate proposals touch different parts of the file.
+FYI or legacy proposed edits to existing company files. The target behavior is that low-risk factual updates are applied by a scoped writer and summarized here, while thesis/status-changing edits remain approval-gated.
 
 | Priority | ID | Target | Verification | Suggested action | Why this is here / where to read | Evidence |
 | --- | --- | --- | --- | --- | --- | --- |
-| medium | HRQ-0002 | AAPL | not specified | Approve, reject, or request more research; approved proposals can then be applied. | This is a proposed company-file change; multiple rows for one ticker can be separate update proposals. Update AAPL company news: Q2 2026 record results, 17% revenue growth, Q3 guidance 14-17% growth, and CEO transition news as reported by reliable sources. | [open evidence](agents/runs/2026-05-09_weekly/orchestrator_update_proposals.md#ORP-0001) |
-| medium | HRQ-0003 | AAPL | source validated | Approve, reject, or request more research; approved proposals can then be applied. | This is a proposed company-file change; multiple rows for one ticker can be separate update proposals. Update AAPL financial snapshot as-of 2026-05: price $284.2, market cap $4.157T, P/E 33.99, and other headline metrics from financial_compare, all source-validated and consistent. | [open evidence](agents/runs/2026-05-09_weekly/orchestrator_update_proposals.md#ORP-0002) |
+| medium | HRQ-0002 | AAPL | not specified | FYI/legacy proposal. Future low-risk factual edits should be auto-applied and summarized, not approved here. | This is a legacy proposed company-file change. The target UX is auto-apply low-risk factual updates and summarize the edit for you. Update AAPL company news: Q2 2026 record results, 17% revenue growth, Q3 guidance 14-17% growth, and CEO transition news as reported by reliable sources. | [open evidence](agents/runs/2026-05-09_weekly/orchestrator_update_proposals.md#ORP-0001) |
+| medium | HRQ-0003 | AAPL | source validated | FYI/legacy proposal. Future low-risk factual edits should be auto-applied and summarized, not approved here. | This is a legacy proposed company-file change. The target UX is auto-apply low-risk factual updates and summarize the edit for you. Update AAPL financial snapshot as-of 2026-05: price $284.2, market cap $4.157T, P/E 33.99, and other headline metrics from financial_compare, all source-validated and consistent. | [open evidence](agents/runs/2026-05-09_weekly/orchestrator_update_proposals.md#ORP-0002) |
 
 ## Monitoring Candidate Reviews
 
@@ -40,7 +40,6 @@ Source-backed discovery candidates that may be worth adding to monitoring after 
 
 | Priority | ID | Target | Verification | Suggested action | Why this is here / where to read | Evidence |
 | --- | --- | --- | --- | --- | --- | --- |
-| medium | HRQ-0010 | AMKR | verified | Approve adding to monitoring, request more research, or reject/ignore. | Read the linked candidate group and market report first; approval means this source-backed lead may enter the monitoring approval path. Candidate surfaced from exa, grok with verification=verified, hype=unknown, cooldown=not_rejected. Tickers: AMKR. | [open evidence](agents/runs/2026-05-12_manual-market-ai-semiconductor-supply-chain/market_research/candidate_review.md#CRG-0001) |
 | medium | HRQ-0053 | AMKR | verified | Approve adding to monitoring, request more research, or reject/ignore. | Read the linked candidate group and market report first; approval means this source-backed lead may enter the monitoring approval path. Candidate surfaced from exa, grok with verification=verified, hype=unknown, cooldown=not_rejected. Tickers: AMKR. Source IDs are listed in the linked candidate review and market report. | [open evidence](agents/runs/2026-05-14_manual-market-ai-semiconductor-fresh/market_research/candidate_review.md#CRG-0001) |
 
 ## Grok/X Candidate Verification

@@ -1,6 +1,6 @@
 # Human Review Operating Model
 
-Last updated: 2026-05-13
+Last updated: 2026-05-15
 
 ## Goal
 
@@ -53,14 +53,16 @@ The digest should explain the difference between review categories:
 
 - `Monitoring Candidate Reviews`: source-backed discovery candidates that may enter the monitoring approval path after the user reads the linked candidate review and market report.
 - `Grok/X Candidate Verification`: early social/X leads; approval only starts verification and never adds a stock to monitoring.
-- `Candidate Verification`: Exa-only or otherwise incomplete leads; approval starts company/news/financial verification before any monitoring decision.
-- `Company File Updates`: scoped proposed edits; multiple rows for one ticker can be valid when they are separate update proposals.
+- `Candidate Verification`: Exa-only or otherwise incomplete leads; approval starts the same company/news/financial verification loop before any monitoring decision.
+- `Company File Updates / FYI`: low-risk factual edits should be auto-applied by a scoped writer and summarized for awareness. Legacy proposal rows may appear here until the auto-apply path is complete, but the target UX is not to ask the user to approve routine factual file edits.
 - `Strategy / Workflow`: process or strategy changes that future runs should remember.
 
-Future company-file UX target:
+Company-file UX target:
 
 - Low-risk factual updates that are source-backed and do not change thesis/status should be auto-applied by a scoped deterministic writer and summarized at run end.
 - Thesis changes, opinion changes, stock moves, strategy changes, and ambiguous edits should remain approval-gated in the digest.
+- The run-end summary should say which file changed, what section changed, and where to read the exact diff/details.
+- Company-file update summaries are FYI unless they change investment opinion, status, strategy, or any buy/sell/position-size decision.
 
 ## Who Reads Portfolio Review
 
@@ -140,7 +142,8 @@ Each approved review type maps to a separate deterministic action:
 | --- | --- | --- |
 | Candidate verification | user wants deeper research | `market-research candidate-followup`, provider tasks, analysis tasks, `candidate-verification-result` |
 | Monitoring candidate | user may want tracking after verification | `market-research candidate-promote` only after approval and required verification |
-| Company-file proposal | user approves one proposed edit | `agent-runtime apply-proposal` for one proposal id |
+| Company-file factual update | no normal approval expected | scoped writer applies and run-end digest summarizes file/section/source |
+| Company-file thesis/status proposal | user approves one proposed edit | approval-gated writer for one proposal id |
 | Memory update | user approves one memory draft | `memory apply-updates` for one proposal id |
 | Strategy change | user approves strategy adjustment | deterministic strategy file update or explicit Codex edit |
 | Stock move | user approves status change | scoped CSV/category/company-file update |
@@ -161,7 +164,8 @@ This keeps asynchronous approval robust: the system does not require the human t
 
 - Do not treat an email notification as approval unless a future explicit email-ingestion workflow is built and tested.
 - Do not promote discovery candidates from Grok-only or rumor-only evidence.
-- Do not apply company-file proposals from open, rejected, or missing HRQ rows.
+- Do not apply thesis/status-changing company-file proposals from open, rejected, or missing HRQ rows.
+- Do auto-apply low-risk factual company-file updates only through a scoped writer with source links and a run-end FYI summary.
 - Do not apply memory updates outside the deterministic schema validation path.
 - Do not let expired or duplicate HRQ items create duplicate follow-up work.
 - Every digest item should include the HRQ id, decision type, suggested user action, status, confidence or verification state, and linked evidence artifact.
@@ -174,3 +178,5 @@ This keeps asynchronous approval robust: the system does not require the human t
 - Add optional email digest delivery later.
 - Evaluate strict email-reply ingestion only after notifications are stable.
 - Add tests for duplicate HRQ decisions, stale approvals, and unsupported review statuses.
+- Build the low-risk factual company-file auto-apply writer and FYI summary path.
+- Keep digest deduplication so regenerated discovery rows do not ask the user twice about the same company or basket.

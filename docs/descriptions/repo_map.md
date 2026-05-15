@@ -1,6 +1,6 @@
 # Repo Map
 
-Last updated: 2026-05-11
+Last updated: 2026-05-15
 
 ## Purpose
 
@@ -21,9 +21,11 @@ This file tells Codex, the orchestrator, and future agents where to find and upd
 
 - `docs/descriptions/human_interaction_workflow.md`: how user chat input becomes repo state.
 - `docs/descriptions/human_review_operating_model.md`: how asynchronous human review, digest use, notifications, and approval-gated follow-up should work.
+- `docs/descriptions/artifact_lifecycle_and_hygiene.md`: how active, archived, ignored, and index artifacts should be organized as research volume grows.
 - `docs/plans/human_research_requests.md`: human input queue.
 - `agents/human_review_queue.md`: system-generated items requiring user approval.
 - `agents/human_review_digest.md`: concise open-review digest grouped by decision type, including allowed decisions: approve, reject, needs more research, or leave open.
+  - Company-file factual updates should appear as FYI summaries after scoped auto-apply; thesis/status/strategy/trade-impacting changes remain approval-gated.
 
 ## Strategy
 
@@ -81,6 +83,7 @@ This file tells Codex, the orchestrator, and future agents where to find and upd
 - `agents/runs/`: future run artifacts.
   - Generated JSON/raw/evidence artifacts are local runtime output and ignored by Git.
   - Markdown run summaries, quality reports, reflections, and finalization reports are the reviewable artifacts.
+  - Long-lived active knowledge should be promoted into stock files, market research files, strategy files, or indexes; old run artifacts should be archiveable without losing discoverability.
 - `agents/memory/`: operational agent memory.
 - `agents/memory/memory_index.md`: entry point for task-relevant memory loading.
 - `agents/memory/orchestrator_lessons.md`: orchestration and routing lessons.

@@ -1,6 +1,6 @@
 # Investment Agent Backlog
 
-Last updated: 2026-05-14
+Last updated: 2026-05-15
 
 ## Purpose
 
@@ -269,6 +269,7 @@ This is the clear task backlog for building the stock tracking and investment re
 - [ ] Build company file updater.
   - Current progress: deterministic approved-proposal writer exists for SDK proposals with `agent-runtime apply-proposal --proposal-id ORP-0001 --write`; SDK writer specialist now drafts proposal-ready updates inside company-research fanout. Broader automatic company-file update strategy is still approval-gated and pending.
   - New UX target: split company-file changes into low-risk factual updates that can be auto-applied with a clear run summary, versus thesis/status/strategy-changing updates that remain approval-gated in the human review digest.
+  - 2026-05-15 user feedback: routine source-backed company-file edits should not ask for approval. Build a scoped factual-update writer that applies low-risk updates and writes an FYI summary showing file, section, source, and short change summary. Keep thesis/opinion/status/strategy/trade-impacting edits approval-gated.
 - [ ] Build category state updater.
 - [ ] Build CSV updater.
 - [x] Build quality reviewer.
@@ -289,6 +290,7 @@ This is the clear task backlog for building the stock tracking and investment re
   - Purpose: the user should not need to manually scan the full markdown table to find what needs attention.
   - Current command: `python -m stock_research human-review digest --write`.
   - Current output: `agents/human_review_digest.md`.
+  - 2026-05-15 UX fix: digest now deduplicates regenerated candidate rows by category/target so the user does not see the same company twice from old and fresh runs. Company-file update rows are labeled FYI/legacy instead of normal approval requests.
 - [x] Build deterministic human-review decision updater.
   - Description: record explicit user decisions on HRQ rows without triggering side effects directly.
   - Current command: `python -m stock_research human-review decide --set HRQ-0004=approved --note "Run verification." --write`.
@@ -318,6 +320,7 @@ This is the clear task backlog for building the stock tracking and investment re
   - Phase 5 - Verify: after explicit user approval is recorded with `human-review decide`, run company research, financial checks, filings, news, sentiment, risks, and thesis impact for approved candidates.
   - Phase 6 - Promote: after approval and sufficient verification, add to monitoring, create the company file, and schedule future tracking.
   - Current progress: phases 1, 3, and 4 exist for manual market research; phase 2 is partial through candidate grouping; phase 5 can now create verification manifests from approved candidate-review rows and consolidate provider/specialist verification into `candidate_verification_result.md`; phase 6 now has an approval-gated promotion writer for approved and verified `monitoring_candidate` rows.
+  - UX clarification: Grok/X-only leads and Exa-only leads are both pre-verification. The category only explains where the lead came from; approved items enter the same deeper verification loop and produce `candidate_verification_result.md`.
 - [x] Build portfolio review sub-orchestrator.
   - Description: assesses impact across current holdings, monitoring, and rejected buckets.
   - Current progress: first SDK version registered as `portfolio_review_orchestrator`; it summarizes holdings, monitoring, rejected cooldowns, open/approved human-review items, and candidate verification results without trading, moving stocks, or editing files.
@@ -407,6 +410,10 @@ This is the clear task backlog for building the stock tracking and investment re
   - Description: after manual quality is stable, use Codex/app automation or external scheduler for Saturday runs and review notifications.
 - [ ] Wire scheduled market-research fanout later.
   - Description: keep market research manual-first until prompts, candidate quality, and review workflow are stable.
+- [ ] Add artifact lifecycle and archive hygiene.
+  - Description: prevent `agents/runs/`, company reports, and candidate artifacts from becoming an unbounded active working set.
+  - Current plan: `docs/descriptions/artifact_lifecycle_and_hygiene.md` defines an archive/index approach. Future implementation should add an archive index, artifact inventory command, archive/move command, and run-finalization proposals for stale artifacts after active findings are promoted into stock/market/strategy files.
+  - Guardrails: never archive active holding/monitoring company files, never delete evidence by default, never archive unresolved HRQ context, and keep rejected cooldown/reason discoverable.
 
 ## Open Decisions
 

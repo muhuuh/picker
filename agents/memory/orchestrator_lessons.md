@@ -530,3 +530,31 @@ Operational memory for workflow routing, orchestration, run ordering, and user c
 - evidence: `docs/scratchpads/openai_agents_sdk_orchestration_scratchpad.md`, `stock_research/weekly_runner.py`, `agents/runs/2026-05-16_weekly/`
 - owner: main orchestrator
 - next_review: 2026-06-15
+
+- id: orch-2026-05-15-digest-is-primary-human-inbox
+- date: 2026-05-15
+- type: procedural
+- scope: orchestrator
+- status: active
+- confidence: high
+- trigger/source: User feedback clarified confusion about final digests, opportunity assessments, company research packets, candidate verification results, and human review rows.
+- lesson: Treat `final_digest.md` as the quick-read weekly surface, opportunity assessments as the deep human-facing company reports, company-research packets as mostly internal lane/coverage artifacts, market reports as the human-facing industry/theme reports, candidate reviews as evidence bridges, and `agents/human_review_digest.md` as the decision/FYI inbox.
+- use_when: Explaining workflow to the user, building run-end summaries, choosing which files to surface after a run, or designing notification automation.
+- do_not_use_when: Hiding deeper evidence when the user asks for drill-down or debugging specialist coverage.
+- evidence: `docs/HUMAN_USAGE_GUIDE.md`, `docs/descriptions/human_interaction_workflow.md`, `docs/descriptions/human_review_operating_model.md`
+- owner: main orchestrator
+- next_review: 2026-06-15
+
+- id: orch-2026-05-15-company-file-factual-updates-are-fyi
+- date: 2026-05-15
+- type: procedural
+- scope: writer
+- status: active
+- confidence: high
+- trigger/source: User explicitly rejected being asked to approve routine company-file edits.
+- lesson: Low-risk source-backed factual company-file updates should be applied by a scoped writer and summarized as FYI. Only thesis/opinion/status/strategy/trade-impacting or ambiguous edits should create approval-gated human-review rows.
+- use_when: Building company-file writer logic, formatting human-review digests, applying run-end file updates, or deciding whether a file update needs user approval.
+- do_not_use_when: Moving stocks between buckets, changing investment thesis/opinion, changing strategy, or making buy/sell/position-size recommendations.
+- evidence: `docs/descriptions/human_review_operating_model.md`, `docs/plans/investment_agent_backlog.md`, `stock_research/human_review_digest.py`
+- owner: writer specialist
+- next_review: 2026-06-15

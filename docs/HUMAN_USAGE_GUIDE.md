@@ -1,6 +1,6 @@
 # Human Usage Guide
 
-Last updated: 2026-05-11
+Last updated: 2026-05-15
 
 ## Short Version
 
@@ -19,6 +19,50 @@ Run market research on European semiconductor equipment suppliers. Include Exa/w
 ```
 
 Codex should read the repo context, run the relevant workflow, write durable artifacts, and summarize where the results are.
+
+## What The Main Reports Mean
+
+For weekly-style holding/watchlist research:
+
+- `final_digest.md` is the quick read. It summarizes each current holding and monitored stock from the latest run, including the most important opportunity view, financial facts, news, Grok/X pulse, bull/bear case, and links to deeper reports.
+- `reports/opportunity_assessment/{TICKER}_opportunity_assessment.md` is the main human-facing deep company report. Read this when the digest says a stock needs attention or when you want the full thesis, X/community narrative, valuation context, non-obvious angles, and next research checks.
+- `company_research/{TICKER}_company_research.md` is mostly an internal orchestration packet. It shows which specialist lanes ran or missed. You normally do not need to read it unless Codex points you there while debugging coverage.
+
+For market/industry/theme research:
+
+- `market_research/*_manual_market_research.md` is the human-facing market report.
+- `market_research/candidate_review.md` is the evidence bridge behind discovered candidate stocks.
+- `agents/human_review_digest.md` is the inbox for decisions and FYI update summaries.
+
+For candidate verification:
+
+- Approving a Grok/X or Exa-only candidate starts deeper verification. It does not add the stock to monitoring.
+- Verification results are written to `agents/runs/{run_id}/market_research/candidate_verification_result.md`.
+- After verification, Codex should summarize the result and recommend `add to monitoring`, `reject`, or `needs_more_research`.
+- Adding to monitoring is a separate approved step and creates/updates `stock_tracking/monitoring/monitoring.csv` plus a company file.
+
+
+```mermaid
+flowchart TD
+    A["You ask Codex in chat"] --> B{"Request type"}
+    B --> C["Company / holding / monitoring research"]
+    B --> D["Industry or theme research"]
+    B --> E["Review / decision request"]
+    C --> C1["Run company research lanes"]
+    C1 --> C2["Write opportunity assessment"]
+    C2 --> C3["Write final digest"]
+    C3 --> C4["Low-risk factual file updates summarized as FYI"]
+    C3 --> C5["Thesis/status/buy/sell decisions go to human review digest"]
+    D --> D1["Run Exa + Grok/X market research"]
+    D1 --> D2["Write market report"]
+    D2 --> D3["Write candidate review"]
+    D3 --> D4["Digest asks whether to verify or ignore candidates"]
+    D4 --> D5["Approved candidates get verification result report"]
+    D5 --> D6["Only approved and verified candidates can enter monitoring"]
+    E --> E1["Codex reads human review digest"]
+    E1 --> E2["You answer with HRQ ids and decisions"]
+    E2 --> E3["Codex records decisions and runs only approved follow-up steps"]
+```
 
 ## What To Ask Codex
 
@@ -103,7 +147,12 @@ You can answer:
 Approve HRQ-0007 for verification, reject HRQ-0008, and leave HRQ-0009 open.
 ```
 
-Codex should record that decision. Recording a decision does not automatically trade, promote a stock, or edit company files. Follow-up actions stay approval-gated.
+Codex should record that decision. Recording a decision does not automatically trade or promote a stock. Follow-up actions stay approval-gated.
+
+Company-file updates are different:
+
+- Low-risk factual updates should be applied by Codex/the scoped writer and summarized as FYI.
+- Thesis changes, opinion changes, stock-status moves, strategy changes, buy/sell decisions, and ambiguous edits still need your review.
 
 Allowed decisions:
 
@@ -146,6 +195,12 @@ What Codex should do:
 - refresh the review digest,
 - summarize what changed and what you need to decide.
 
+Where to read:
+
+- start with `agents/runs/{run_id}/final_digest.md`,
+- open `agents/runs/{run_id}/reports/opportunity_assessment/{TICKER}_opportunity_assessment.md` for any stock that matters,
+- use `agents/human_review_digest.md` for decisions and FYI update summaries.
+
 ## Where Results Live
 
 Use this simple map:
@@ -169,9 +224,11 @@ Use this simple map:
 2. Ask a natural-language request.
 3. Codex runs or queues the right workflow.
 4. Codex summarizes the result in chat.
-5. For deeper detail, ask Codex to summarize the relevant run report or company file.
-6. For decisions, ask Codex to show `agents/human_review_digest.md`.
-7. Tell Codex which HRQ items to approve, reject, mark for more research, or leave open.
+5. Start with the final digest or market report.
+6. Open the opportunity assessment only when you want deeper company detail.
+7. For decisions, ask Codex to show `agents/human_review_digest.md`.
+8. Tell Codex which HRQ items to approve, reject, mark for more research, or leave open.
+9. If you decide to buy, sell, move to monitoring, or reject a stock, say that plainly in Codex chat. Codex should update the relevant CSV/state/company files and preserve the decision trail.
 
 ## Good Prompts
 

@@ -58,6 +58,7 @@ def build_human_review_digest(
         for row in rows
         if normalize_ascii(row.get("Status", "")).lower() in status_filter
     ]
+    items = dedupe_digest_items(items)
     items.sort(key=digest_sort_key)
     priority_counts = count_by(items, "priority")
     category_counts = count_by(items, "category")
@@ -111,6 +112,37 @@ def build_digest_item(row: dict[str, str]) -> HumanReviewDigestItem:
         notes=truncate(notes, 260),
         context=build_review_context(category, item, decision, notes, evidence),
     )
+
+
+def dedupe_digest_items(items: list[HumanReviewDigestItem]) -> list[HumanReviewDigestItem]:
+    """Keep the newest human-facing candidate row when regenerated runs surface the same target again."""
+    dedupe_categories = {
+        "candidate_monitoring_review",
+        "candidate_verification_grok",
+        "candidate_verification",
+        "candidate_cooldown_review",
+    }
+    selected: dict[tuple[str, str], HumanReviewDigestItem] = {}
+    passthrough: list[HumanReviewDigestItem] = []
+    for item in items:
+        if item.category not in dedupe_categories:
+            passthrough.append(item)
+            continue
+        key = (item.category, normalize_target_key(item.target))
+        previous = selected.get(key)
+        if previous is None or review_item_recency_key(item) > review_item_recency_key(previous):
+            selected[key] = item
+    return passthrough + list(selected.values())
+
+
+def normalize_target_key(value: str) -> str:
+    return re.sub(r"\s+", " ", normalize_ascii(value).upper()).strip()
+
+
+def review_item_recency_key(item: HumanReviewDigestItem) -> tuple[str, int]:
+    match = re.search(r"(\d+)$", item.review_id or "")
+    numeric_id = int(match.group(1)) if match else -1
+    return item.date_added, numeric_id
 
 
 def classify_review_category(item: str, decision: str, evidence: str, notes: str) -> str:
@@ -172,7 +204,7 @@ def suggest_action(category: str, item: str, decision: str, notes: str) -> str:
     if category == "candidate_cooldown_review":
         return "Approve explicit cooldown override or keep the candidate blocked."
     if category == "company_file_update":
-        return "Approve, reject, or request more research; approved proposals can then be applied."
+        return "FYI/legacy proposal. Future low-risk factual edits should be auto-applied and summarized, not approved here."
     if category == "strategy_or_workflow":
         return "Approve, reject, or refine the workflow/strategy change."
     if "buy" in text or "sell" in text or "position" in text:
@@ -189,7 +221,7 @@ def build_review_context(category: str, item: str, decision: str, notes: str, ev
     elif category == "candidate_verification":
         prefix = "This lead needs company/news/financial verification before any monitoring decision."
     elif category == "company_file_update":
-        prefix = "This is a proposed company-file change; multiple rows for one ticker can be separate update proposals."
+        prefix = "This is a legacy proposed company-file change. The target UX is auto-apply low-risk factual updates and summarize the edit for you."
     elif category == "strategy_or_workflow":
         prefix = "This changes strategy or process; approve only if the workflow should remember it."
     else:
@@ -226,7 +258,7 @@ def format_human_review_digest(digest: HumanReviewDigest) -> str:
         lines.append("- needs_more_research: keep open and request more evidence")
         lines.append("- leave open: make no change")
         lines.append("")
-        lines.append("Monitoring candidates are not automatically added to monitoring. Grok/X verification items are earlier-stage social leads and only approve deeper verification.")
+        lines.append("Monitoring candidates are not automatically added to monitoring. Grok/X and Exa-only verification items both enter the same deeper verification loop. Company-file update rows are informational/legacy; low-risk factual edits should be auto-applied and summarized in future runs.")
         lines.append("")
         lines.append("## Priority Counts")
         lines.append("")
@@ -325,7 +357,7 @@ def category_sort_key(category: str) -> int:
 def category_label(category: str) -> str:
     return {
         "investment_action": "Investment Actions",
-        "company_file_update": "Company File Updates",
+        "company_file_update": "Company File Updates / FYI",
         "candidate_cooldown_review": "Candidate Cooldown Reviews",
         "candidate_monitoring_review": "Monitoring Candidate Reviews",
         "candidate_verification_grok": "Grok/X Candidate Verification",
@@ -337,7 +369,7 @@ def category_label(category: str) -> str:
 
 def category_help(category: str) -> str:
     return {
-        "company_file_update": "Proposed edits to existing company files. Duplicate tickers can be valid when separate proposals touch different parts of the file.",
+        "company_file_update": "FYI or legacy proposed edits to existing company files. The target behavior is that low-risk factual updates are applied by a scoped writer and summarized here, while thesis/status-changing edits remain approval-gated.",
         "candidate_monitoring_review": "Source-backed discovery candidates that may be worth adding to monitoring after you review the linked evidence.",
         "candidate_verification_grok": "Early social/X leads from Grok. Approving these only starts verification; it does not add them to monitoring.",
         "candidate_verification": "Leads that need more company/news/financial verification before any monitoring decision.",

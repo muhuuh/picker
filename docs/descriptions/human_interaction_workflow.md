@@ -1,6 +1,6 @@
 # Human Interaction Workflow
 
-Last updated: 2026-05-11
+Last updated: 2026-05-15
 
 ## Goal
 
@@ -101,7 +101,13 @@ python -m stock_research analysis-tasks --manifest agents\runs\RUN_ID\market_res
 python -m stock_research market-research candidate-verification-result --run-id RUN_ID --review-id HRQ-0004 --write
 ```
 
-Promotion to monitoring is separate and remains blocked unless the HRQ row is approved, the candidate-review decision is `monitoring_candidate`, and required verification artifacts exist.
+Verification results are written to `agents/runs/{run_id}/market_research/candidate_verification_result.md`. Promotion to monitoring is separate and remains blocked unless the HRQ row is approved, the candidate-review decision is `monitoring_candidate`, and required verification artifacts exist.
+
+Company-file updates should not normally ask the user for approval when they are low-risk factual updates with source-backed evidence. The desired behavior is:
+
+- auto-apply low-risk factual updates through a scoped writer,
+- summarize file/section/source changes as FYI in the run-end digest,
+- keep thesis changes, opinion changes, stock moves, strategy changes, and buy/sell/position-size decisions approval-gated.
 
 Examples:
 
