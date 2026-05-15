@@ -158,8 +158,10 @@ This is the clear task backlog for building the stock tracking and investment re
   - Description: holdings/monitoring use Exa news; research priorities use Exa industry/general; discovery uses Exa company; human input queue items route to the relevant Exa modes; high-value results use Exa contents.
 - [x] Implement xAI/Grok X research tools.
   - Description: stock sentiment, industry sentiment, latest X news, and discovery support through Grok `x_search` using `XAI_API_KEY`. Manifest-driven artifacts use task-specific names and retry slow `x_search` responses once.
-- [ ] Add Grok model selection optimization.
-  - Description: keep `grok-4.3` as the current conservative default, but later add deterministic model-tier routing such as a faster Grok model for low-priority/simple X scans and `grok-4.3` for high-priority holdings, user-requested research, candidate discovery, and complex sentiment synthesis.
+- [x] Add initial model routing optimization.
+  - Description: `agents/model_routing.yaml` and `stock_research/model_routing.py` now route OpenAI SDK, memory-writer, and xAI/Grok X-search model choices by task complexity and provider need. Current default keeps `grok-4.3` for X.com-native sentiment/discovery and uses `gpt-5.5` for strong OpenAI API synthesis.
+- [ ] Tune Grok model routing after more live X-search output.
+  - Description: evaluate whether any future faster Grok tier is good enough for low-priority/simple X scans while keeping the strongest Grok X-search model for holdings, user-requested research, candidate discovery, and complex sentiment synthesis.
 - [x] Implement market data tools.
   - Description: yfinance, FMP, Polygon/Massive, and Alpha Vantage are implemented. FMP/Polygon/Alpha live AAPL smoke tests passed on 2026-05-04.
 - [x] Implement financial data comparison layer.

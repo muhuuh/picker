@@ -11,6 +11,7 @@ from stock_research.agent_runtime.context import ResearchRunContext
 from stock_research.agent_runtime.registry import build_agent
 from stock_research.agent_runtime.reports import evaluate_runtime_output_quality, output_to_dict, write_agent_runtime_report
 from stock_research.agent_runtime.tracing import LocalRunHooks, LocalRunMetric, LocalRunTelemetry, write_run_metrics, write_trace_links
+from stock_research.model_routing import ModelRoute, resolve_model_for_route
 
 
 @dataclass(frozen=True)
@@ -24,9 +25,10 @@ class AgentRuntimeResult:
     metrics: tuple[LocalRunMetric, ...] = ()
 
 
-def build_run_config(context: ResearchRunContext, *, model: str | None = None) -> RunConfig:
+def build_run_config(context: ResearchRunContext, *, model: str | None = None, agent_id: str | None = None) -> RunConfig:
+    resolved = resolve_agent_model(context, agent_id or context.task, model)
     return RunConfig(
-        model=model,
+        model=resolved.model,
         workflow_name="stock-research-agent-runtime",
         trace_id=context.trace_id,
         group_id=context.trace_group_id,
@@ -49,12 +51,24 @@ async def run_agent(
     timeout_seconds: float | None = None,
 ) -> AgentRuntimeResult:
     agent = build_agent(agent_id, context)
+    resolved_model = resolve_agent_model(context, agent_id, model)
+    if telemetry:
+        telemetry.record(
+            name=f"model_route:{agent_id}",
+            status=resolved_model.source,
+            detail=(
+                f"route={resolved_model.route_id}; provider={resolved_model.provider}; "
+                f"tier={resolved_model.model_tier}; model={resolved_model.model}; "
+                f"complexity={resolved_model.complexity}; "
+                f"codex_preferred_when_manual={str(resolved_model.codex_preferred_when_manual).lower()}"
+            ),
+        )
     runner_call = Runner.run(
         starting_agent=agent,
         input=prompt,
         context=context,
         hooks=LocalRunHooks(telemetry) if telemetry else None,
-        run_config=build_run_config(context, model=model),
+        run_config=build_run_config(context, model=resolved_model.model, agent_id=agent_id),
     )
     result = await asyncio.wait_for(runner_call, timeout=timeout_seconds) if timeout_seconds else await runner_call
     quality_findings = evaluate_runtime_output_quality(result.final_output, context)
@@ -155,6 +169,10 @@ def run_agent_sync(
 
 def utc_now_iso() -> str:
     return datetime.now(timezone.utc).replace(microsecond=0).isoformat()
+
+
+def resolve_agent_model(context: ResearchRunContext, agent_or_task: str, explicit_model: str | None = None) -> ModelRoute:
+    return resolve_model_for_route(context.root, agent_or_task, explicit_model=explicit_model)
 
 
 def failure_output(agent_id: str, context: ResearchRunContext, status: str, detail: str) -> dict[str, Any]:

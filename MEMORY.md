@@ -381,6 +381,11 @@ Use this file for information we should not lose across sessions.
   - evidence artifact path(s): `stock_research/run_end_review.py`, `stock_research/market_research_runner.py`, `stock_research/candidate_review.py`, `stock_research/cli.py`
   - status: active
 
+- 2026-05-15:
+  - decision/fact: Model routing is explicit and centralized. `agents/model_routing.yaml` plus `stock_research/model_routing.py` route OpenAI SDK runs, bounded memory-writer review, and xAI/Grok X-search tasks by complexity and provider need. Strong/balanced OpenAI API routes default to `gpt-5.5`; manual Codex app/automation should use the user's Codex GPT-5.5 high environment for repo commands, report review, prompt iteration, synthesis critique, and edits where possible. Repo Python cannot directly call the current Codex chat model internally.
+  - evidence artifact path(s): `agents/model_routing.yaml`, `stock_research/model_routing.py`, `stock_research/agent_runtime/runner.py`, `stock_research/memory_llm_writer.py`, `docs/descriptions/model_routing_and_codex_usage.md`, `tests/test_model_routing.py`
+  - status: active
+
 - 2026-05-11:
   - decision/fact: The OpenAI Agents SDK weekly path completed successfully after API credit was added and runtime quality gates were tightened. The validation command for AMZN/AAPL is `python -m stock_research run-weekly --write --today 2026-05-11 --execute-providers --execute-analysis --execute-orchestrator --orchestrator-timeout-seconds 900`.
   - evidence artifact path(s): `agents/runs/2026-05-16_weekly/orchestration_report.md`, `agents/runs/2026-05-16_weekly/agent_runtime_main_orchestrator.md`, `stock_research/agent_runtime/reports.py`, `tests/test_agent_runtime.py`

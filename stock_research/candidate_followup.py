@@ -16,6 +16,7 @@ from stock_research.manifest import (
     stock_sentiment_prompt,
     x_search_window_args,
 )
+from stock_research.model_routing import resolve_model_for_route
 from stock_research.repo import find_repo_root, load_all_tables, load_first_table
 
 
@@ -97,6 +98,7 @@ def build_candidate_verification_followup(
     manifest, items, findings = build_candidate_verification_manifest(
         run_id=run_id,
         generated_at=today,
+        root=repo_root,
         review_rows=selected_rows,
         groups=groups,
     )
@@ -167,6 +169,7 @@ def build_candidate_verification_manifest(
     *,
     run_id: str,
     generated_at: date,
+    root: Path | None = None,
     review_rows: list[dict[str, str]],
     groups: dict[str, dict[str, str]],
 ) -> tuple[dict[str, Any], list[CandidateVerificationItem], list[str]]:
@@ -196,7 +199,7 @@ def build_candidate_verification_manifest(
         item = build_verification_item(row, group)
         for ticker in item.tickers:
             label = f"{ticker} {item.candidate}".strip()
-            add_provider_tasks_for_ticker(provider_tasks, seen_provider_ids, ticker, item.candidate, run_id, generated_at, row.get("ID", ""))
+            add_provider_tasks_for_ticker(provider_tasks, seen_provider_ids, ticker, item.candidate, run_id, generated_at, row.get("ID", ""), root=root)
             add_analysis_tasks_for_ticker(analysis_tasks, seen_analysis_ids, ticker, run_id, row.get("ID", ""))
             item.planned_provider_task_ids.extend(task["id"] for task in provider_tasks if task["subject_id"] == ticker and task["id"].endswith(slugify(row.get("ID", ""))))
             item.planned_analysis_task_ids.extend(task["id"] for task in analysis_tasks if task["subject_id"] == ticker and task["id"].endswith(slugify(row.get("ID", ""))))
@@ -250,8 +253,10 @@ def add_provider_tasks_for_ticker(
     run_id: str,
     generated_at: date,
     review_id: str,
+    root: Path | None = None,
 ) -> None:
     suffix = f"{slugify(ticker)}_{slugify(review_id)}"
+    xai_stock_model = resolve_model_for_route(root, "xai_stock_sentiment").model
     candidates = [
         provider_task(
             task_id=f"candidate_yfinance_{suffix}",
@@ -297,7 +302,7 @@ def add_provider_tasks_for_ticker(
                 "prompt": stock_sentiment_prompt(ticker, company),
                 "run_id": run_id,
                 "research_kind": "stock_sentiment",
-                "model": "grok-4.3",
+                "model": xai_stock_model,
                 **x_search_window_args(generated_at, days=14),
             },
             reason=f"Candidate verification Grok/X sentiment scan for {ticker} from approved review {review_id}.",

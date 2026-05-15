@@ -13,6 +13,7 @@ from .providers.polygon_provider import PolygonCompanyOptions, build_polygon_com
 from .providers.sec_edgar import build_sec_company_packet, resolve_sec_user_agent
 from .providers.xai_grok import XaiXSearchOptions, build_xai_x_search_packet, resolve_xai_api_key
 from .providers.yfinance_provider import build_yfinance_company_packet
+from .model_routing import resolve_model_for_route
 
 
 ProviderExecutor = Callable[[Path, dict[str, Any], date | None], dict[str, Any]]
@@ -211,13 +212,14 @@ def execute_provider_task(root: Path, task: dict[str, Any], current_date: date |
 
     if provider == "xai_grok" and tool == "x_search":
         api_key = resolve_xai_api_key(get_config_value(root, "XAI_API_KEY"))
+        model_route = xai_route_for_task(task)
         packet, paths = build_xai_x_search_packet(
             options=XaiXSearchOptions(
                 prompt=str(args["prompt"]),
                 subject_type=str(task["subject_type"]),
                 subject_id=str(task["subject_id"]),
                 research_kind=str(args.get("research_kind", "x_sentiment")),
-                model=str(args.get("model", "grok-4.3")),
+                model=str(args.get("model") or resolve_model_for_route(root, model_route).model),
                 from_date=str(args.get("from_date", "")),
                 to_date=str(args.get("to_date", "")),
                 allowed_x_handles=tuple(args.get("allowed_x_handles", [])),
@@ -238,3 +240,16 @@ def execute_provider_task(root: Path, task: dict[str, Any], current_date: date |
 
 def packet_result(packet_id: str, paths: list[Path]) -> dict[str, Any]:
     return {"packet_id": packet_id, "paths": [str(path) for path in paths]}
+
+
+def xai_route_for_task(task: dict[str, Any]) -> str:
+    args = task.get("args", {})
+    if not isinstance(args, dict):
+        args = {}
+    research_kind = str(args.get("research_kind", "")).strip().lower()
+    subject_type = str(task.get("subject_type", "")).strip().lower()
+    if research_kind == "stock_sentiment" or subject_type == "company":
+        return "xai_stock_sentiment"
+    if research_kind == "latest_news":
+        return "xai_latest_news"
+    return "xai_industry_discovery"

@@ -1,6 +1,6 @@
 # Setup
 
-Last updated: 2026-05-11
+Last updated: 2026-05-15
 
 ## Requirements
 
@@ -27,6 +27,7 @@ cd C:\Users\valen\Documents\Code\stocks
 python -m stock_research summary
 python -m stock_research validate
 python -m stock_research memory validate
+python -m stock_research model-routing show --route main_orchestrator
 python -m unittest discover -s tests
 ```
 
@@ -107,6 +108,29 @@ OPENAI_API_KEY="..."
 Keep secrets in `.env` or local environment variables. Do not commit `.env`.
 
 Use `.env.example` as a local template.
+
+## Model Routing
+
+Model tiers and task routes live in `agents/model_routing.yaml`.
+
+Inspect the resolved route:
+
+```powershell
+python -m stock_research model-routing show --route main_orchestrator
+python -m stock_research model-routing show --route writer_specialist
+python -m stock_research model-routing show --route xai_stock_sentiment
+```
+
+Precedence is explicit override, route-specific environment variable, tier environment variable, config file, then built-in fallback. Useful overrides:
+
+```text
+STOCK_RESEARCH_MODEL_MAIN_ORCHESTRATOR="..."
+STOCK_RESEARCH_OPENAI_STRONG_MODEL="..."
+STOCK_RESEARCH_OPENAI_FAST_MODEL="..."
+STOCK_RESEARCH_XAI_GROK_MODEL="..."
+```
+
+Manual Codex mode is different from API mode. Codex app/automation can use your configured Codex GPT-5.5 high environment to run repo commands, inspect reports, improve prompts, and edit files. Python code in this repo cannot directly call the current Codex chat model internally; unattended SDK execution must use routed API models through `OPENAI_API_KEY`.
 
 ## OpenAI Agents SDK Runtime
 

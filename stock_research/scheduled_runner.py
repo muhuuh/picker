@@ -39,7 +39,6 @@ from .manifest import build_weekly_manifest, write_manifest
 from .human_review_digest import HumanReviewDigest, build_human_review_digest, human_review_digest_to_dict
 from .memory import relative_to_root
 from .memory_llm_writer import (
-    DEFAULT_MEMORY_WRITER_MODEL,
     MemoryWriterReview,
     build_memory_writer_review,
     memory_writer_review_to_dict,
@@ -74,7 +73,7 @@ def run_weekly_research_workflow(
     execute_company_research: bool | None = None,
     update_memory_drafts: bool = True,
     recurring_threshold: int = 2,
-    memory_writer_model: str = DEFAULT_MEMORY_WRITER_MODEL,
+    memory_writer_model: str | None = None,
     orchestrator_model: str | None = None,
     orchestrator_timeout_seconds: float | None = 300.0,
     provider_executor: ProviderExecutor | None = None,

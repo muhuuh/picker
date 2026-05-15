@@ -174,22 +174,21 @@ run-weekly
 
 ## Open Questions
 
-- Which OpenAI model should be the default for orchestrator vs low-risk specialists? Defer model optimization until the first runtime spike works.
-- Should the first SDK-backed specialist be company-news synthesis, Grok sentiment synthesis, or main orchestrator synthesis over existing deterministic artifacts?
-- Should sessions use SQLite initially, or should early scheduled runs avoid sessions and use explicit repo artifacts only?
-- What exact local trace metrics format should be persisted: JSON-only, markdown summary, or both?
+- Should any future faster Grok tier be safe for low-priority/simple X scans, or should all X-search stay on `grok-4.3` until live outputs prove otherwise?
+- Should programmatic Codex SDK/app-agent control ever become part of this repo, or should Codex remain the outside human-supervised automation runner?
+- Should sessions use SQLite later for interactive workflows, or should scheduled/manual runs continue to rely only on explicit repo artifacts?
+- What additional local trace metrics are worth persisting beyond the current markdown metrics without creating noisy artifacts?
 
 ## Next Steps
 
+- Feed selected model/tier into finalization and memory reflection only if it proves useful for cost/quality retrospectives.
 - Add provider failure, malformed specialist output, and missing-citation golden tests.
 - Add deeper memory-use evaluation beyond injected/reported ids.
 - Run 2-3 real manual market-research examples with live providers and inspect whether Exa/Grok prompts surface useful candidate leads.
 - Improve candidate extraction beyond ticker regex if live provider output uses company names without tickers.
-- Improve market candidate grouping so repeated Grok basket mentions can become fewer, richer grouped review items instead of many single-ticker HRQ rows.
 - Execute an approved candidate verification run after the user approves one HRQ row, then inspect whether the generated provider/analysis evidence is enough for promotion.
 - Run `candidate-promote` after a verified `monitoring_candidate` row is approved, then inspect the created monitoring row/company file quality on a real candidate.
 - Use the open human-review digest as the source surface for future notification automation, so reminders are concise and actionable rather than a raw table dump.
-- Add run-end review digest summaries for manual/weekly flows so every completed run tells the user what needs review without requiring manual file opening.
 - Later add Codex/app or email digest notifications; keep email notification-only until strict reply ingestion is designed and tested.
 - Run realistic manual and weekly-style examples through final main aggregation and improve prompts where output is too generic.
 - Add missing specialist/provider depth only when real runs show a specific quality gap.
@@ -296,3 +295,10 @@ run-weekly
   - Added thesis/status proposal UX test and human-facing report-quality golden tests.
   - Validation: focused readiness tests passed; full `python -m pytest -q` passed with 213 tests.
   - Remaining before remote/set-and-forget use: notification/scheduling automation, optional email digest, model optimization, scheduled market-research fanout after manual loop remains stable, and ongoing report-quality iteration from new real outputs.
+- 2026-05-15 model-routing slice:
+  - Implemented `agents/model_routing.yaml` plus `stock_research/model_routing.py`.
+  - Strong/balanced/fast OpenAI API routes default to `gpt-5.5` for now; xAI X-search routes default to `grok-4.3`.
+  - Codex app/automation remains the preferred manual-mode runner for command execution, report review, prompt iteration, synthesis critique, and file edits because it can use the user's Codex GPT-5.5 high environment. Repo Python cannot directly call the current Codex chat model internally.
+  - Wired routing into SDK `RunConfig.model`, memory writer, weekly/manifest xAI tasks, manual market research, candidate follow-up, provider runner, and CLI xAI search.
+  - Inspection command: `python -m stock_research model-routing show --route main_orchestrator`.
+  - Validation so far: `tests/test_model_routing.py` passed and route inspection commands returned expected GPT-5.5/fast/Grok routes.

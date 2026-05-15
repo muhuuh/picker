@@ -23,6 +23,7 @@ from stock_research.manifest import (
     slugify,
     x_search_window_args,
 )
+from stock_research.model_routing import resolve_model_for_route
 from stock_research.provider_runner import run_provider_tasks
 from stock_research.providers.xai_grok import industry_sentiment_prompt, latest_news_prompt
 from stock_research.report_formatting import compact_complete_text, markdown_link
@@ -215,6 +216,8 @@ def build_manual_market_manifest(
 ) -> dict[str, Any]:
     query = topic.strip()
     grok_prompt = latest_news_prompt(query) if subject_type == "theme" else industry_sentiment_prompt(query)
+    grok_route = "xai_latest_news" if subject_type == "theme" else "xai_industry_discovery"
+    grok_model = resolve_model_for_route(None, grok_route).model
     return {
         "manifest_version": 1,
         "manifest_id": f"manual_market_{run_id}",
@@ -281,7 +284,7 @@ def build_manual_market_manifest(
                     "prompt": grok_prompt,
                     "run_id": run_id,
                     "research_kind": "industry_sentiment" if subject_type == "industry" else "latest_news",
-                    "model": "grok-4.3",
+                    "model": grok_model,
                     **x_search_window_args(current_date, days=days),
                     "enable_image_understanding": True,
                 },

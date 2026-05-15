@@ -37,6 +37,7 @@ from .memory_llm_writer import (
     memory_writer_review_to_dict,
     write_memory_writer_prompt,
 )
+from .model_routing import model_route_to_dict, resolve_model_for_route
 from .memory_updates import (
     apply_memory_update_draft,
     build_memory_update_draft,
@@ -179,7 +180,7 @@ def main(argv: list[str] | None = None) -> int:
     memory_writer_review.add_argument("--execute", action="store_true", help="Call OpenAI Responses API. Without this, run deterministic review only.")
     memory_writer_review.add_argument("--write", action="store_true", help="Write memory_writer_review.json/md into the run directory.")
     memory_writer_review.add_argument("--update-drafts", action="store_true", help="Update memory_update_drafts.json/md from writer recommendations.")
-    memory_writer_review.add_argument("--model", default=DEFAULT_MEMORY_WRITER_MODEL)
+    memory_writer_review.add_argument("--model", help=f"OpenAI model override. Defaults through agents/model_routing.yaml, fallback {DEFAULT_MEMORY_WRITER_MODEL}.")
     memory_writer_review.add_argument("--api-key", help="OpenAI API key. Or set OPENAI_API_KEY.")
     memory_writer_review.add_argument("--today", help="Override current date as YYYY-MM-DD.")
 
@@ -209,6 +210,12 @@ def main(argv: list[str] | None = None) -> int:
     route_parser.add_argument("--priority", default="medium", choices=["low", "medium", "high", "urgent"])
     route_parser.add_argument("--status", default="queued_for_weekly_run")
     route_parser.add_argument("--today", help="Override current date as YYYY-MM-DD.")
+
+    model_routing_parser = subparsers.add_parser("model-routing", help="Inspect resolved model routing for a task or agent.")
+    model_routing_subparsers = model_routing_parser.add_subparsers(dest="model_routing_command", required=True)
+    model_routing_show = model_routing_subparsers.add_parser("show", help="Show the resolved model route.")
+    model_routing_show.add_argument("--route", required=True, help="Route id, agent id, or task label.")
+    model_routing_show.add_argument("--model", help="Optional explicit model override to test precedence.")
 
     human_review_parser = subparsers.add_parser("human-review", help="Inspect human review queue items.")
     human_review_subparsers = human_review_parser.add_subparsers(dest="human_review_command", required=True)
@@ -374,7 +381,7 @@ def main(argv: list[str] | None = None) -> int:
     xai_x_search.add_argument("--subject-type", required=True, choices=["company", "industry", "theme", "macro", "strategy", "portfolio"])
     xai_x_search.add_argument("--subject-id", required=True)
     xai_x_search.add_argument("--run-id", help="Run ID for output artifacts. Defaults to YYYY-MM-DD_manual-xai.")
-    xai_x_search.add_argument("--model", default="grok-4.3")
+    xai_x_search.add_argument("--model", help="xAI model override. Defaults through agents/model_routing.yaml.")
     xai_x_search.add_argument("--from-date")
     xai_x_search.add_argument("--to-date")
     xai_x_search.add_argument("--allowed-x-handle", action="append", default=[])
@@ -541,7 +548,7 @@ def main(argv: list[str] | None = None) -> int:
     run_weekly_parser.add_argument("--execute-memory-writer", action="store_true", help="Call OpenAI for bounded memory-writer review. Omit for deterministic review.")
     run_weekly_parser.add_argument("--execute-orchestrator", action="store_true", help="Call OpenAI Agents SDK orchestrator after deterministic finalization. Requires --write and OPENAI_API_KEY.")
     run_weekly_parser.add_argument("--no-update-memory-drafts", action="store_true", help="Do not rewrite memory_update_drafts from memory-writer recommendations.")
-    run_weekly_parser.add_argument("--memory-writer-model", default=DEFAULT_MEMORY_WRITER_MODEL)
+    run_weekly_parser.add_argument("--memory-writer-model", help=f"OpenAI memory-writer model override. Defaults through agents/model_routing.yaml, fallback {DEFAULT_MEMORY_WRITER_MODEL}.")
     run_weekly_parser.add_argument("--orchestrator-model", help="Optional OpenAI model override for SDK orchestrator.")
     run_weekly_parser.add_argument("--orchestrator-timeout-seconds", type=float, default=300.0, help="Maximum live SDK orchestrator duration before returning a blocked reviewable result.")
     run_weekly_parser.add_argument("--recurring-threshold", type=int, default=2)
@@ -748,6 +755,12 @@ def main(argv: list[str] | None = None) -> int:
         result = route_request(state.root, args.request, args.priority, args.status, request_date)
         print(json.dumps(result.__dict__, indent=2, sort_keys=True))
         return 0
+
+    if args.command == "model-routing":
+        if args.model_routing_command == "show":
+            route = resolve_model_for_route(state.root, args.route, explicit_model=args.model)
+            print(json.dumps(model_route_to_dict(route), indent=2, sort_keys=True))
+            return 0
 
     if args.command == "human-review":
         from .human_review_digest import (
@@ -1078,13 +1091,15 @@ def main(argv: list[str] | None = None) -> int:
                 research_kind=args.research_kind,
             )
             if args.xai_command == "x-search":
+                route_id = xai_route_for_research_kind(args.research_kind)
+                resolved_xai_model = resolve_model_for_route(state.root, route_id, explicit_model=args.model).model
                 packet, paths = build_xai_x_search_packet(
                     options=XaiXSearchOptions(
                         prompt=prompt,
                         subject_type=args.subject_type,
                         subject_id=args.subject_id,
                         research_kind=args.research_kind,
-                        model=args.model,
+                        model=resolved_xai_model,
                         from_date=args.from_date or "",
                         to_date=args.to_date or "",
                         allowed_x_handles=tuple(args.allowed_x_handle),
@@ -1579,3 +1594,11 @@ def resolve_xai_prompt(
     if topic:
         return industry_sentiment_prompt(topic)
     raise XaiGrokError("Provide --prompt, --ticker, or --topic for xAI Grok x-search.")
+
+
+def xai_route_for_research_kind(research_kind: str) -> str:
+    if research_kind == "stock_sentiment":
+        return "xai_stock_sentiment"
+    if research_kind == "latest_news":
+        return "xai_latest_news"
+    return "xai_industry_discovery"

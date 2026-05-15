@@ -253,6 +253,19 @@ Current examples:
 | Approved proposal writer | `apply_approved_proposal(...)` | approval-gated manual/scheduler handle | writer tool should call function directly |
 | Memory prompt context | `format_memory_context_for_prompt(...)` / memory loader functions | inspection/debug | specialist prompt injection should call memory code directly |
 
+## Model Routing
+
+SDK model selection is centralized in `agents/model_routing.yaml` and resolved by `stock_research/model_routing.py`.
+
+The SDK runtime passes the resolved model through `RunConfig.model`, which the OpenAI Agents SDK uses as the run-level model override. Current routing policy:
+
+- `gpt-5.5` for high-complexity autonomous OpenAI API synthesis: main orchestrator, company research, market research, opportunity assessment, and risk/thesis.
+- configured fast OpenAI tier for lower-complexity autonomous synthesis: writer, quality review, memory/evaluation, portfolio review, filing, financial/news artifact synthesis. The current default is still `gpt-5.5` until a cheaper confirmed model is deliberately selected and validated.
+- `grok-4.3` through xAI for X.com-native sentiment, hype, rumors, niche lead generation, and latest X narrative shifts.
+- no LLM for deterministic providers, validation, artifact hygiene, category state updates, human-review digest generation, and approval-gated writers.
+
+Codex app/automation is the preferred manual-mode runner for repo commands, report review, prompt iteration, and file edits because it can use the user's Codex GPT-5.5 high environment. Python code cannot directly call the current Codex chat model internally, so unattended API-mode runs still need routed API models.
+
 ## Guardrails
 
 Use tool guardrails for custom function tools because repo/provider/file tools can have side effects.

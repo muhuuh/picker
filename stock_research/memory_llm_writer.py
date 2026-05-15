@@ -17,11 +17,12 @@ from .memory_updates import (
     memory_update_draft_to_dict,
     write_memory_update_draft,
 )
+from .model_routing import resolve_model_for_route
 from .repo import find_repo_root
 
 
 OPENAI_RESPONSES_URL = "https://api.openai.com/v1/responses"
-DEFAULT_MEMORY_WRITER_MODEL = "gpt-5.4-mini"
+DEFAULT_MEMORY_WRITER_MODEL = "gpt-5.5"
 
 
 class MemoryWriterError(RuntimeError):
@@ -116,7 +117,7 @@ def build_memory_writer_review(
     run_id: str,
     current_date: date | None = None,
     execute: bool = False,
-    model: str = DEFAULT_MEMORY_WRITER_MODEL,
+    model: str | None = None,
     api_key: str | None = None,
     update_drafts: bool = False,
     responder=None,
@@ -124,6 +125,7 @@ def build_memory_writer_review(
 ) -> tuple[MemoryWriterReview, list[Path]]:
     repo_root = find_repo_root(root)
     today = current_date or date.today()
+    resolved_model = resolve_model_for_route(repo_root, "memory_writer", explicit_model=model)
     prompt = build_memory_writer_prompt(repo_root, run_id, today)
     paths: list[Path] = []
     if write_artifacts:
@@ -131,7 +133,7 @@ def build_memory_writer_review(
     draft = build_memory_update_draft(repo_root, run_id, today)
 
     if execute:
-        response = call_openai_memory_writer(prompt, model=model, api_key=api_key, responder=responder)
+        response = call_openai_memory_writer(prompt, model=resolved_model.model, api_key=api_key, responder=responder)
         raw_recommendations = response.get("recommendations", [])
         mode = "openai_responses"
     else:
@@ -143,7 +145,7 @@ def build_memory_writer_review(
         run_id=run_id,
         generated_at=today.isoformat(),
         mode=mode,
-        model=model if execute else "none",
+        model=resolved_model.model if execute else "none",
         recommendations=recommendations,
     )
     if write_artifacts:
@@ -156,15 +158,16 @@ def build_memory_writer_review(
 
 def call_openai_memory_writer(
     prompt: MemoryWriterPrompt,
-    model: str = DEFAULT_MEMORY_WRITER_MODEL,
+    model: str | None = None,
     api_key: str | None = None,
     responder=None,
 ) -> dict[str, Any]:
     resolved_key = api_key or os.getenv("OPENAI_API_KEY")
     if not resolved_key:
         raise MemoryWriterError("OpenAI memory writer requires OPENAI_API_KEY or --api-key when --execute is used.")
+    resolved_model = model or DEFAULT_MEMORY_WRITER_MODEL
     payload = {
-        "model": model,
+        "model": resolved_model,
         "store": False,
         "input": [
             {"role": "system", "content": prompt.instructions},

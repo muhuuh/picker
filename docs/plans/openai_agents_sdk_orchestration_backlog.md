@@ -1,6 +1,6 @@
 # OpenAI Agents SDK Orchestration Backlog
 
-Last updated: 2026-05-14
+Last updated: 2026-05-15
 
 ## Goal and Scope
 
@@ -10,7 +10,6 @@ This backlog covers runtime architecture, composability, tracing, guardrails, me
 
 Out of scope for the first slice:
 
-- model-tier optimization,
 - replacing deterministic provider/analysis code,
 - vector databases,
 - automatic trading or broker actions.
@@ -265,6 +264,36 @@ Out of scope for the first slice:
   - Guardrails: matching HRQ row must be `approved`, target must be an existing markdown file under `stock_tracking/stock_info_files/`, and each write is scoped to one proposal id.
 - [x] Add saved runtime output validator.
   - Command: `python -m stock_research agent-runtime validate-output --run-id RUN_ID`.
+
+## Priority 10: Model Routing And Cost Optimization
+
+- [x] Document current LLM call sites, complexity levels, and Codex-vs-API boundary.
+  - Output: `docs/descriptions/model_routing_and_codex_usage.md`.
+- [x] Add repo-local model routing config.
+  - Current file: `agents/model_routing.yaml`.
+  - Includes OpenAI strong/balanced/fast/nano tiers, Codex manual-mode defaults, and xAI/Grok X-search tier.
+  - Strong, balanced, and fast OpenAI API tiers default to `gpt-5.5` for quality until we deliberately select a cheaper confirmed model; xAI X-search defaults to `grok-4.3`.
+- [x] Add `stock_research/model_routing.py`.
+  - Precedence: explicit CLI arg > environment override > repo config default.
+  - Expose helper functions for OpenAI Agents SDK runtime, memory writer, and xAI/Grok provider tasks.
+- [x] Route OpenAI SDK agents by task complexity.
+  - Strong: main orchestrator, company research, market research, opportunity assessment.
+  - Fast/cheap: portfolio review, memory/evaluation, writer, filing, financial/news artifact synthesis, quality review.
+- [x] Route xAI/Grok by X-search need.
+  - Keep `grok-4.3` for X.com stock sentiment, industry/theme discovery, hype/noise/rumor mapping, and niche lead generation.
+  - Do not use Grok as a generic summarizer when X.com access is not needed.
+- [x] Add telemetry for selected model and tier.
+  - SDK runs write `model_route:{agent_id}` telemetry rows into `run_metrics.md`.
+  - Remaining improvement: feed selected model/tier into finalization summary and memory reflection metrics when useful.
+- [x] Add tests.
+  - Cheap routes should not accidentally use strong models.
+  - Explicit CLI model override should win.
+  - Missing config should fall back to safe defaults.
+  - xAI routes should resolve through the Grok X-search tier; live provider execution still requires `XAI_API_KEY`.
+- [ ] Evaluate Codex SDK / app automation usage later.
+  - Codex chat/automation should be the default manual improvement loop.
+  - Do not mix Codex SDK into the core stock workflow until it is tested separately.
+  - Current policy: Codex app/automation can use GPT-5.5 high as the human-supervised runner for repo commands, report review, prompt iteration, and file edits; repo Python cannot directly call the current Codex chat model as an internal function.
 
 ## Planned Runtime Diagram
 

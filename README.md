@@ -25,6 +25,8 @@ The current implementation is a deterministic Python foundation. It reads the re
 - `docs/descriptions/llm_memory_writer.md`: bounded LLM memory writer workflow.
 - `docs/descriptions/scheduled_runner.md`: deterministic weekly workflow wrapper.
 - `docs/descriptions/openai_agents_sdk_orchestration.md`: selected OpenAI Agents SDK runtime design.
+- `docs/descriptions/model_routing_and_codex_usage.md`: model routing, Codex app vs API boundary, and cost/quality policy.
+- `agents/model_routing.yaml`: current model tiers and route assignments.
 - `docs/plans/openai_agents_sdk_orchestration_backlog.md`: dedicated SDK runtime backlog.
 - `strategy/research_priorities.md`: recurring research priorities.
 - `stock_tracking/`: holdings, monitoring, rejected stocks, and company files.
@@ -40,6 +42,7 @@ python -m stock_research stale
 python -m stock_research manifest
 python -m stock_research memory summary
 python -m stock_research memory validate
+python -m stock_research model-routing show --route main_orchestrator
 ```
 
 Write a weekly manifest:
@@ -85,6 +88,8 @@ python -m stock_research run-weekly --write --execute-providers --execute-analys
 ```
 
 `--execute-orchestrator` requires `OPENAI_API_KEY`. It now runs per-ticker company-research fanout for current-holding and monitoring tickers before main orchestration. If provider or analysis tasks are still dry-run and the SDK proposes alerts or file updates, the scheduled run is marked `needs_review` so stale artifacts cannot look like fresh research. If live SDK execution times out or errors, it writes a blocked reviewable artifact plus `run_metrics.md` instead of silently failing.
+
+Model routing is explicit in `agents/model_routing.yaml`. OpenAI API routes currently default to `gpt-5.5` for quality-first autonomous synthesis; cheaper/faster models can be selected later through config or env overrides after validation. Grok/X routes use the configured xAI X-search tier. Codex app/automation is still preferred for manual repo execution, report review, prompt iteration, and file edits because it can use your Codex GPT-5.5 high environment outside the Python process.
 
 Inspect the OpenAI Agents SDK runtime registry without making live model calls:
 

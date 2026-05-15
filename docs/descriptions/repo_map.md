@@ -63,6 +63,8 @@ This file tells Codex, the orchestrator, and future agents where to find and upd
 - `docs/descriptions/llm_memory_writer.md`: bounded LLM memory writer workflow over memory update drafts.
 - `docs/descriptions/scheduled_runner.md`: deterministic weekly workflow wrapper.
 - `docs/descriptions/openai_agents_sdk_orchestration.md`: selected OpenAI Agents SDK runtime design.
+- `docs/descriptions/model_routing_and_codex_usage.md`: current LLM call sites, task complexity levels, and Codex app vs API runtime boundary.
+- `agents/model_routing.yaml`: repo-local model tiers and route assignments for OpenAI API, xAI/Grok, and Codex manual-mode guidance.
 - `docs/plans/openai_agents_sdk_orchestration_backlog.md`: dedicated backlog for OpenAI Agents SDK runtime implementation.
 - `docs/scratchpads/openai_agents_sdk_orchestration_scratchpad.md`: dedicated scratchpad for SDK orchestration findings and decisions.
 - `docs/descriptions/evidence_schema.md`: shared source/evidence packet schema for all providers and specialists.
@@ -130,6 +132,7 @@ Use CLI commands for manual operation, scheduler entrypoints, validation, smoke 
 - `python -m stock_research classify-request "..."`
 - `python -m stock_research add-request "..."`
 - `python -m stock_research route-request "..."`: append and route a user request into target repo artifacts.
+- `python -m stock_research model-routing show --route ROUTE_OR_TASK`: inspect the resolved model/provider/tier after explicit/env/config fallback precedence.
 - `python -m stock_research evidence new ...`: create a provider-neutral evidence packet.
 - `python -m stock_research evidence validate ...`: validate an evidence packet.
 - `python -m stock_research sec company --ticker TICKER --run-id RUN_ID`: fetch SEC submissions into evidence artifacts.

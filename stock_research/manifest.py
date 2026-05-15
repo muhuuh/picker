@@ -7,6 +7,7 @@ from typing import Any
 
 from .repo import RepoState
 from .validation import parse_date
+from .model_routing import resolve_model_for_route
 from .providers.xai_grok import industry_sentiment_prompt, latest_news_prompt, stock_sentiment_prompt
 
 
@@ -360,6 +361,9 @@ def build_provider_tasks(
     run_date: date,
 ) -> list[dict[str, Any]]:
     run_id = f"{run_date.isoformat()}_weekly"
+    xai_stock_model = resolve_model_for_route(state.root, "xai_stock_sentiment").model
+    xai_industry_model = resolve_model_for_route(state.root, "xai_industry_discovery").model
+    xai_latest_news_model = resolve_model_for_route(state.root, "xai_latest_news").model
     tasks: list[dict[str, Any]] = []
     seen_task_ids: set[str] = set()
 
@@ -504,7 +508,7 @@ def build_provider_tasks(
                         "prompt": stock_sentiment_prompt(ticker, company),
                         "run_id": run_id,
                         "research_kind": "stock_sentiment",
-                        "model": "grok-4.3",
+                        "model": xai_stock_model,
                         **x_search_window_args(run_date, days=14),
                     },
                     reason=f"Default Grok x_search community-sentiment scan for {bucket} ticker {label}.",
@@ -574,7 +578,7 @@ def build_provider_tasks(
                         "prompt": industry_sentiment_prompt(topic),
                         "run_id": run_id,
                         "research_kind": "industry_sentiment",
-                        "model": "grok-4.3",
+                        "model": xai_industry_model,
                         **x_search_window_args(run_date, days=21),
                         "enable_image_understanding": True,
                     },
@@ -585,13 +589,26 @@ def build_provider_tasks(
         )
 
     for request in human_requests:
-        for task in provider_tasks_for_human_request(request, run_id):
+        for task in provider_tasks_for_human_request(
+            request,
+            run_id,
+            xai_stock_model=xai_stock_model,
+            xai_industry_model=xai_industry_model,
+            xai_latest_news_model=xai_latest_news_model,
+        ):
             add_task(tasks, seen_task_ids, task)
 
     return tasks
 
 
-def provider_tasks_for_human_request(request: dict[str, str], run_id: str) -> list[dict[str, Any]]:
+def provider_tasks_for_human_request(
+    request: dict[str, str],
+    run_id: str,
+    *,
+    xai_stock_model: str = "grok-4.3",
+    xai_industry_model: str = "grok-4.3",
+    xai_latest_news_model: str = "grok-4.3",
+) -> list[dict[str, Any]]:
     request_id = request.get("ID", "").strip() or "human_request"
     request_type = request.get("Type", "").strip().lower()
     request_text = request.get("Request", "").strip()
@@ -679,7 +696,7 @@ def provider_tasks_for_human_request(request: dict[str, str], run_id: str) -> li
                         "prompt": stock_sentiment_prompt(ticker_upper),
                         "run_id": run_id,
                         "research_kind": "stock_sentiment",
-                        "model": "grok-4.3",
+                        "model": xai_stock_model,
                         **x_search_window_args_from_run_id(run_id, days=14),
                     },
                     reason=f"Human input queue Grok x_search stock sentiment request {request_id}.",
@@ -724,7 +741,7 @@ def provider_tasks_for_human_request(request: dict[str, str], run_id: str) -> li
                             "prompt": industry_sentiment_prompt(topic),
                             "run_id": run_id,
                             "research_kind": "industry_sentiment",
-                            "model": "grok-4.3",
+                            "model": xai_industry_model,
                             **x_search_window_args_from_run_id(run_id, days=21),
                             "enable_image_understanding": True,
                         },
@@ -776,7 +793,7 @@ def provider_tasks_for_human_request(request: dict[str, str], run_id: str) -> li
                             "prompt": latest_news_prompt(topic),
                             "run_id": run_id,
                             "research_kind": "latest_news",
-                            "model": "grok-4.3",
+                            "model": xai_latest_news_model,
                             **x_search_window_args_from_run_id(run_id, days=14),
                             "enable_image_understanding": True,
                         },

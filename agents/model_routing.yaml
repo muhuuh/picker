@@ -1,0 +1,122 @@
+# Model routing for stock research automation.
+#
+# Runtime precedence:
+# 1. explicit CLI/function model override
+# 2. route-specific env var, e.g. STOCK_RESEARCH_MODEL_MAIN_ORCHESTRATOR
+# 3. tier env var, e.g. STOCK_RESEARCH_OPENAI_STRONG_MODEL
+# 4. this file
+# 5. built-in fallback in stock_research/model_routing.py
+
+defaults:
+  openai_strong: gpt-5.5
+  openai_balanced: gpt-5.5
+  openai_fast: gpt-5.5
+  openai_nano: gpt-5.5
+  xai_grok_x_search: grok-4.3
+  codex_manual_model: gpt-5.5
+  codex_manual_reasoning: high
+
+runtime_modes:
+  manual_codex:
+    preferred: true
+    model: gpt-5.5
+    reasoning: high
+    use_for: repo command execution, report review, prompt iteration, workflow improvement, human-facing synthesis review
+    note: Codex app automation can run repo commands and improve outputs, but Python code cannot call the current Codex chat model as an internal function.
+  autonomous_api:
+    preferred: false
+    use_for: unattended scheduled OpenAI Agents SDK synthesis when Codex chat is not actively supervising
+
+routes:
+  main_orchestrator:
+    provider: openai
+    model_tier: strong
+    complexity: high
+    codex_preferred_when_manual: true
+  company_research_orchestrator:
+    provider: openai
+    model_tier: strong
+    complexity: high
+    codex_preferred_when_manual: true
+  market_research_orchestrator:
+    provider: openai
+    model_tier: strong
+    complexity: high
+    codex_preferred_when_manual: true
+  opportunity_assessment_specialist:
+    provider: openai
+    model_tier: strong
+    complexity: high
+    codex_preferred_when_manual: true
+  risk_thesis_specialist:
+    provider: openai
+    model_tier: strong
+    complexity: high
+    codex_preferred_when_manual: true
+  discovery_specialist:
+    provider: openai
+    model_tier: balanced
+    complexity: medium_high
+    codex_preferred_when_manual: true
+  grok_discovery_specialist:
+    provider: openai
+    model_tier: balanced
+    complexity: medium_high
+    codex_preferred_when_manual: true
+  sentiment_specialist:
+    provider: openai
+    model_tier: balanced
+    complexity: medium_high
+    codex_preferred_when_manual: true
+  company_search_specialist:
+    provider: openai
+    model_tier: fast
+    complexity: medium
+  company_news_specialist:
+    provider: openai
+    model_tier: fast
+    complexity: medium
+  financial_specialist:
+    provider: openai
+    model_tier: fast
+    complexity: medium
+  filing_specialist:
+    provider: openai
+    model_tier: fast
+    complexity: medium
+  exa_industry_specialist:
+    provider: openai
+    model_tier: fast
+    complexity: medium
+  writer_specialist:
+    provider: openai
+    model_tier: fast
+    complexity: low_medium
+  quality_reviewer_specialist:
+    provider: openai
+    model_tier: fast
+    complexity: low_medium
+  portfolio_review_orchestrator:
+    provider: openai
+    model_tier: fast
+    complexity: medium
+  memory_evaluation_orchestrator:
+    provider: openai
+    model_tier: fast
+    complexity: low_medium
+  memory_writer:
+    provider: openai
+    model_tier: fast
+    complexity: low_medium
+  xai_stock_sentiment:
+    provider: xai
+    model_tier: grok_x_search
+    complexity: high
+  xai_industry_discovery:
+    provider: xai
+    model_tier: grok_x_search
+    complexity: high
+  xai_latest_news:
+    provider: xai
+    model_tier: grok_x_search
+    complexity: medium_high
