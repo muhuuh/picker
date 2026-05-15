@@ -386,6 +386,16 @@ Use this file for information we should not lose across sessions.
   - evidence artifact path(s): `agents/model_routing.yaml`, `stock_research/model_routing.py`, `stock_research/agent_runtime/runner.py`, `stock_research/memory_llm_writer.py`, `docs/descriptions/model_routing_and_codex_usage.md`, `tests/test_model_routing.py`
   - status: active
 
+- 2026-05-15:
+  - decision/fact: Codex app automation is configured for the tracked-stock workflow every two weeks on Saturday at 08:00, starting 2026-05-16. The automation uses GPT-5.5 high in the Codex app and runs the exact command `C:\Python313\python.exe -m stock_research run-weekly --write --execute-providers --execute-analysis --execute-orchestrator --orchestrator-timeout-seconds 900` from `C:\Users\valen\Documents\Code\stocks`.
+  - evidence artifact path(s): `C:\Users\valen\.codex\automations\biweekly-holdings-and-monitoring-research\automation.toml`, `docs/descriptions/scheduled_runner.md`, `docs/plans/openai_agents_sdk_orchestration_backlog.md`
+  - status: active
+
+- 2026-05-15:
+  - decision/fact: Codex automation sandbox rules are required for this workflow because the automation needs network access to provider APIs and OpenAI orchestration. `C:\Users\valen\.codex\rules\default.rules` now allowlists only the exact stock `run-weekly` command and the equivalent PowerShell wrapper; broad Git commands and arbitrary `stock_research` provider commands are not allowlisted.
+  - evidence artifact path(s): `C:\Users\valen\.codex\rules\default.rules`, `docs/descriptions/scheduled_runner.md`, `docs/scratchpads/openai_agents_sdk_orchestration_scratchpad.md`
+  - status: active
+
 - 2026-05-11:
   - decision/fact: The OpenAI Agents SDK weekly path completed successfully after API credit was added and runtime quality gates were tightened. The validation command for AMZN/AAPL is `python -m stock_research run-weekly --write --today 2026-05-11 --execute-providers --execute-analysis --execute-orchestrator --orchestrator-timeout-seconds 900`.
   - evidence artifact path(s): `agents/runs/2026-05-16_weekly/orchestration_report.md`, `agents/runs/2026-05-16_weekly/agent_runtime_main_orchestrator.md`, `stock_research/agent_runtime/reports.py`, `tests/test_agent_runtime.py`

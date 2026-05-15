@@ -225,12 +225,15 @@ Out of scope for the first slice:
   - Rule: notification should summarize `agents/human_review_digest.md`; it should not directly approve, reject, promote, or write files.
   - Future option: evaluate Gmail reply ingestion only after notification quality is stable and only with strict parsing, duplicate protection, and deterministic `human-review decide` writes.
   - Timing: defer until the digest is concise and stable enough to avoid noisy notifications.
-- [ ] Add run-end review digest summary to manual and weekly flows.
+- [x] Add run-end review digest summary to manual and weekly flows.
   - Target behavior: after any manual/weekly run, refresh or summarize `agents/human_review_digest.md`, mention new high-priority items, and state allowed decisions.
   - Reason: review items should be visible at the end of the run without requiring the user to open the raw queue manually.
   - Current progress: weekly `run-weekly --write` refreshes `agents/human_review_digest.md`, includes it as a workflow step, writes it as an artifact, and adds a next action with allowed decision types when open items exist.
-  - Still pending: make every manual market/company research path refresh or summarize the digest at the end.
-- [ ] Add Saturday automation only after the SDK runtime can run safely and produce reviewable outputs.
+  - Current progress: manual market-research runs, candidate-review runs, and SDK `agent-runtime run --write` now write run-local `human_review_digest_summary.md`.
+- [x] Add Saturday automation only after the SDK runtime can run safely and produce reviewable outputs.
+  - Current progress: Codex app automation `biweekly-holdings-and-monitoring-research` is active. It runs every two weeks on Saturday at 08:00, starting 2026-05-16, from `C:\Users\valen\Documents\Code\stocks`.
+  - Current command: `C:\Python313\python.exe -m stock_research run-weekly --write --execute-providers --execute-analysis --execute-orchestrator --orchestrator-timeout-seconds 900`.
+  - Sandbox note: `C:\Users\valen\.codex\rules\default.rules` allowlists only this exact command and the equivalent PowerShell wrapper. `codex execpolicy check` returns `decision: allow` for the exact command; broad Git commands and arbitrary provider execution are not allowlisted.
 - [x] Investigate scheduled main SDK connection failure and prompt/context size.
   - Resolution: after OpenAI API credit was added, scheduled `run-weekly --execute-orchestrator` reached the live model path and completed.
   - Follow-up fix: runtime quality gates were tightened so valid report artifact paths can back proposal `source_ids`, and direct trade-language checks no longer flag ordinary business text such as `Sell on Amazon`.

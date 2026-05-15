@@ -11,8 +11,8 @@ This is the clear task backlog for building the stock tracking and investment re
 - Scope: US and Europe.
 - Outputs: tracked-stock change alerts and new-stock discovery alerts.
 - Initial approved providers: Exa, xAI/Grok, SEC, yfinance, FMP, Polygon, Alpha Vantage.
-- Schedule: weekly deep research on Saturday.
-- Review rhythm: user reviews results on Sunday and plans the next week.
+- Automation cadence: the first Codex app automation runs tracked-stock research every two weeks on Saturday at 08:00.
+- Review rhythm: user reviews results after the Saturday run, normally on Sunday before planning the week.
 - Rejected-stock rule: do not resurface rejected stocks for 6 weeks unless the user overrides it.
 - Human interface: Codex chat is the primary interface; proactive user requests go to a human input queue and system approval items go to a separate human review queue.
 - Agent framework: OpenAI Agents SDK.
@@ -290,8 +290,10 @@ This is the clear task backlog for building the stock tracking and investment re
   - Description: implement the dedicated SDK runtime backlog with context, registry, guarded tools, structured outputs, tracing, memory injection, and one specialist-as-tool spike.
   - Current progress: first manual runtime slice is implemented and live-smoke-tested with no quality findings after prompt/tool/validator tightening. `run-weekly --write --execute-orchestrator` is implemented as an opt-in scheduled SDK path, with freshness gating when provider/analysis tasks are dry-run. Full fresh `--execute-providers --execute-analysis --execute-orchestrator` validation completed with no findings after adding generated-artifact cleanup. SDK proposals now flow through `agent-runtime queue-proposals --write --queue-review`, approved individual proposals can be applied through `agent-runtime apply-proposal`, repo/memory inspection tools now wrap Python functions directly with task-specific memory injection, guarded provider/analysis SDK tools plan by default while blocking live side effects unless runtime context grants execution, local SDK hooks now record agent/tool/LLM telemetry plus injected/reported memory ids, SDK timeouts/errors now return blocked reviewable artifacts, memory reflection now reads SDK run metrics, code-level fanout infrastructure exists for sub-orchestrators, and scheduled company-research fanout now runs across current-holding and monitoring tickers with financial, company-news, Exa company-search, SEC filing, sentiment, risk/thesis, writer, and quality-review specialist lanes.
   - Output: `stock_research/agent_runtime/`, `docs/descriptions/openai_agents_sdk_orchestration.md`, tests, `python -m stock_research agent-runtime smoke`, and `python -m stock_research agent-runtime run --run-id RUN_ID --execute --write`.
-- [ ] Build OS/app scheduled execution.
-  - Description: run the deterministic weekly runner automatically on Saturday and support manual trigger flows.
+- [x] Build OS/app scheduled execution.
+  - Description: run the tracked-stock workflow automatically on Saturday and support manual trigger flows.
+  - Current progress: Codex app automation `biweekly-holdings-and-monitoring-research` runs every two weeks on Saturday at 08:00, starting 2026-05-16. It uses GPT-5.5 high in the Codex app and the exact command `C:\Python313\python.exe -m stock_research run-weekly --write --execute-providers --execute-analysis --execute-orchestrator --orchestrator-timeout-seconds 900`.
+  - Sandbox note: `C:\Users\valen\.codex\rules\default.rules` allowlists only that exact command and the equivalent PowerShell wrapper; broad Git commands and arbitrary provider execution remain unallowlisted.
 - [x] Build open human-review digest.
   - Description: create a concise report/command that summarizes only open `agents/human_review_queue.md` items, grouped by decision type and priority, with each item showing the HRQ id, ticker/company, recommended user action, confidence/verification status, and link to the deeper evidence artifact.
   - Purpose: the user should not need to manually scan the full markdown table to find what needs attention.
@@ -303,7 +305,7 @@ This is the clear task backlog for building the stock tracking and investment re
   - Current command: `python -m stock_research human-review decide --set HRQ-0004=approved --note "Run verification." --write`.
   - Current behavior: updates `agents/human_review_queue.md`, appends a decision note, refreshes `agents/human_review_digest.md`, and leaves follow-up verification, proposal application, stock moves, or monitoring promotion to separate approval-gated commands.
 - [ ] Add review notification automation.
-  - Description: after weekly/manual runs, have Codex/app automation summarize new or high-priority open review items and notify the user by app notification and/or email when there are interesting findings or approvals needed.
+  - Description: after scheduled/manual runs, have Codex/app automation summarize new or high-priority open review items and notify the user by app notification and/or email when there are interesting findings or approvals needed.
   - Rule: notifications summarize `agents/human_review_digest.md`; they are not approvals.
   - Future option: evaluate strict Gmail reply ingestion only after digest quality is stable, with duplicate detection, identity checks, and deterministic decision writing.
   - Timing: implement after the manual review digest is reliable and after the scheduled/manual run flow is stable enough to avoid noisy alerts.
@@ -414,7 +416,9 @@ This is the clear task backlog for building the stock tracking and investment re
 - [ ] Add model selection optimization.
   - Description: later route cheaper/faster models to low-risk scans and stronger models to high-impact synthesis, holdings, candidate discovery, and complex sentiment.
 - [ ] Add scheduling and notification automation.
-  - Description: after manual quality is stable, use Codex/app automation or external scheduler for Saturday runs and review notifications.
+  - Description: scheduling is implemented through Codex app automation for biweekly tracked-stock runs; notification delivery is still pending.
+  - Current progress: `biweekly-holdings-and-monitoring-research` is active in the Codex app, with sandbox rules validated for the exact workflow command.
+  - Remaining: add Codex/app notification and/or email digest that summarizes `agents/human_review_digest.md` after runs. Notifications are not approvals.
 - [ ] Wire scheduled market-research fanout later.
   - Description: keep market research manual-first until prompts, candidate quality, and review workflow are stable.
 - [x] Add artifact lifecycle and archive hygiene.

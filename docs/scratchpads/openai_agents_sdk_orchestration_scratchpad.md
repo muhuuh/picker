@@ -193,7 +193,7 @@ run-weekly
 - Run realistic manual and weekly-style examples through final main aggregation and improve prompts where output is too generic.
 - Add missing specialist/provider depth only when real runs show a specific quality gap.
 - Wire market-research fanout into scheduled `run-weekly` only after validating the manual market-research quality.
-- Add Saturday automation only after the scheduled SDK path is validated with a realistic multi-ticker universe.
+- Use the Codex app automation as the first scheduled runner; next automation work is notification/email digest, not more scheduler plumbing.
 
 ## Risks / Gotchas
 
@@ -220,6 +220,8 @@ run-weekly
 - Current runtime quality gates check summary/status, direct trade wording, valid memory ids, existing file targets, proposal source ids, and source artifact paths.
 - Scheduled SDK command: `python -m stock_research run-weekly --write --execute-orchestrator`.
 - Fresh scheduled SDK command: `python -m stock_research run-weekly --write --execute-providers --execute-analysis --execute-orchestrator`.
+- Codex app biweekly automation command: `C:\Python313\python.exe -m stock_research run-weekly --write --execute-providers --execute-analysis --execute-orchestrator --orchestrator-timeout-seconds 900`.
+- Codex execpolicy validation command: `codex execpolicy check --pretty --rules C:\Users\valen\.codex\rules\default.rules -- C:\Python313\python.exe -m stock_research run-weekly --write --execute-providers --execute-analysis --execute-orchestrator --orchestrator-timeout-seconds 900`.
 - SDK timeout knobs:
   - `python -m stock_research agent-runtime run --run-id RUN_ID --execute --write --timeout-seconds 300`
   - `python -m stock_research run-weekly --write --execute-orchestrator --orchestrator-timeout-seconds 300`
@@ -294,7 +296,7 @@ run-weekly
   - Applied category state update to current repo for `2026-05-16_weekly`.
   - Added thesis/status proposal UX test and human-facing report-quality golden tests.
   - Validation: focused readiness tests passed; full `python -m pytest -q` passed with 213 tests.
-  - Remaining before remote/set-and-forget use: notification/scheduling automation, optional email digest, model optimization, scheduled market-research fanout after manual loop remains stable, and ongoing report-quality iteration from new real outputs.
+  - Remaining before remote/set-and-forget use: notification/email digest automation, model optimization, scheduled market-research fanout after manual loop remains stable, and ongoing report-quality iteration from new real outputs.
 - 2026-05-15 model-routing slice:
   - Implemented `agents/model_routing.yaml` plus `stock_research/model_routing.py`.
   - Strong/balanced/fast OpenAI API routes default to `gpt-5.5` for now; xAI X-search routes default to `grok-4.3`.
@@ -302,3 +304,9 @@ run-weekly
   - Wired routing into SDK `RunConfig.model`, memory writer, weekly/manifest xAI tasks, manual market research, candidate follow-up, provider runner, and CLI xAI search.
   - Inspection command: `python -m stock_research model-routing show --route main_orchestrator`.
   - Validation so far: `tests/test_model_routing.py` passed and route inspection commands returned expected GPT-5.5/fast/Grok routes.
+- 2026-05-15 Codex automation/rules slice:
+  - Codex app automation `biweekly-holdings-and-monitoring-research` is active for tracked holdings/monitoring research every two weeks on Saturday at 08:00, starting 2026-05-16.
+  - Automation command is intentionally exact: `C:\Python313\python.exe -m stock_research run-weekly --write --execute-providers --execute-analysis --execute-orchestrator --orchestrator-timeout-seconds 900`.
+  - Updated `C:\Users\valen\.codex\rules\default.rules` with narrow `prefix_rule` entries for the exact command and the equivalent PowerShell wrapper.
+  - Validated with `codex execpolicy check`: exact direct command and PowerShell wrapper return `decision: allow`; `git fetch` and arbitrary `stock_research provider-tasks --execute` remain unallowlisted.
+  - Dry-run with `C:\Python313\python.exe -m stock_research run-weekly` succeeds from repo root, confirming editable install/Python entrypoint works.

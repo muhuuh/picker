@@ -7,7 +7,7 @@ The current implementation is a deterministic Python foundation. It reads the re
 ## Current Scope
 
 - Markets: US and Europe.
-- Cadence: weekly deep research on Saturday.
+- Cadence: the first Codex app automation runs tracked-stock research every two weeks on Saturday at 08:00; manual Codex runs can be requested any time.
 - Human review rhythm: Sunday review and planning.
 - Human interface: Codex chat first; durable state is stored in repo files.
 - Rejected stocks: 6-week cooldown before they can surface again unless manually overridden.
@@ -23,7 +23,7 @@ The current implementation is a deterministic Python foundation. It reads the re
 - `agents/memory/memory_index.md`: entry point for operational agent memory.
 - `docs/descriptions/agent_memory_workflow.md`: memory read/write workflow and guardrails.
 - `docs/descriptions/llm_memory_writer.md`: bounded LLM memory writer workflow.
-- `docs/descriptions/scheduled_runner.md`: deterministic weekly workflow wrapper.
+- `docs/descriptions/scheduled_runner.md`: deterministic workflow wrapper and Codex app automation details.
 - `docs/descriptions/openai_agents_sdk_orchestration.md`: selected OpenAI Agents SDK runtime design.
 - `docs/descriptions/model_routing_and_codex_usage.md`: model routing, Codex app vs API boundary, and cost/quality policy.
 - `agents/model_routing.yaml`: current model tiers and route assignments.

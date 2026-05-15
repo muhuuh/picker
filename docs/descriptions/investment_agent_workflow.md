@@ -1,6 +1,6 @@
 # Investment Agent Workflow Architecture
 
-Last updated: 2026-05-11
+Last updated: 2026-05-15
 
 ## Goal
 
@@ -10,7 +10,7 @@ This is research automation, not automatic trading. Buy, sell, and position-size
 
 Initial market scope: US and Europe.
 
-Default recurring cadence: weekly deep research on Saturday, so Sunday can be used for review and planning.
+Default research rhythm: Saturday runs with Sunday review and planning. The first Codex app automation runs tracked-stock research every two weeks on Saturday at 08:00, while manual Codex chat runs can be requested any time.
 
 Alert goals:
 
@@ -546,7 +546,7 @@ OpenAI Agents SDK runtime plan:
 - Initial scope: US and Europe.
 - Output goals: tracked-stock change alerts and new-stock discovery alerts.
 - Approved initial providers: Exa, xAI/Grok, SEC, yfinance, FMP, Polygon, Alpha Vantage.
-- Cadence: weekly deep research on Saturday.
+- Automation cadence: tracked-stock research every two weeks on Saturday at 08:00 through the Codex app; manual Codex runs remain available any time.
 - Rejected-stock cooldown: 6 weeks before resurfacing as a candidate.
 
 ## Open Questions

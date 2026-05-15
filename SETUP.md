@@ -132,6 +132,36 @@ STOCK_RESEARCH_XAI_GROK_MODEL="..."
 
 Manual Codex mode is different from API mode. Codex app/automation can use your configured Codex GPT-5.5 high environment to run repo commands, inspect reports, improve prompts, and edit files. Python code in this repo cannot directly call the current Codex chat model internally; unattended SDK execution must use routed API models through `OPENAI_API_KEY`.
 
+## Codex App Automation
+
+The first scheduled automation is managed by the Codex app:
+
+```text
+C:\Users\valen\.codex\automations\biweekly-holdings-and-monitoring-research\automation.toml
+```
+
+It runs every two weeks on Saturday at 08:00, starting 2026-05-16, from `C:\Users\valen\Documents\Code\stocks`.
+
+The automation command is intentionally exact:
+
+```powershell
+C:\Python313\python.exe -m stock_research run-weekly --write --execute-providers --execute-analysis --execute-orchestrator --orchestrator-timeout-seconds 900
+```
+
+Codex automation sandbox rules live at:
+
+```text
+C:\Users\valen\.codex\rules\default.rules
+```
+
+Validate the rule before relying on the automation:
+
+```powershell
+codex execpolicy check --pretty --rules C:\Users\valen\.codex\rules\default.rules -- C:\Python313\python.exe -m stock_research run-weekly --write --execute-providers --execute-analysis --execute-orchestrator --orchestrator-timeout-seconds 900
+```
+
+Expected result: `decision: allow`. Keep this narrow; do not allow broad Git/network commands or arbitrary Python module execution for the automation.
+
 ## OpenAI Agents SDK Runtime
 
 OpenAI Agents SDK is selected as the LLM orchestration framework. The package is declared in `pyproject.toml`, and the initial runtime foundation exists under `stock_research/agent_runtime/`. SDK tools wrap importable Python functions directly; CLI commands are only manual/scheduler/debug handles.

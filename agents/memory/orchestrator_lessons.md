@@ -572,3 +572,17 @@ Operational memory for workflow routing, orchestration, run ordering, and user c
 - evidence: `agents/model_routing.yaml`, `stock_research/model_routing.py`, `docs/descriptions/model_routing_and_codex_usage.md`, `tests/test_model_routing.py`
 - owner: main orchestrator
 - next_review: 2026-06-15
+
+- id: orch-2026-05-15-codex-automation-execpolicy
+- date: 2026-05-15
+- type: procedural
+- scope: orchestrator
+- status: active
+- confidence: high
+- trigger/source: Codex app automation needs to run provider APIs and OpenAI SDK orchestration from a stricter automation sandbox.
+- lesson: For the biweekly tracked-stock automation, use the exact allowlisted command `C:\Python313\python.exe -m stock_research run-weekly --write --execute-providers --execute-analysis --execute-orchestrator --orchestrator-timeout-seconds 900`. Validate sandbox rules with `codex execpolicy check` before relying on the automation. Do not switch the automation to bare `python`, arbitrary module execution, or Git network/write commands.
+- use_when: Creating, reviewing, debugging, or updating Codex app automations for scheduled stock research.
+- do_not_use_when: Running manual Codex chat commands that do not need sandbox escape, or adding unrelated broad command permissions.
+- evidence: `C:\Users\valen\.codex\automations\biweekly-holdings-and-monitoring-research\automation.toml`, `C:\Users\valen\.codex\rules\default.rules`, `docs/descriptions/scheduled_runner.md`
+- owner: main orchestrator
+- next_review: 2026-06-15

@@ -1,16 +1,52 @@
 # Scheduled Runner
 
-Last updated: 2026-05-11
+Last updated: 2026-05-15
 
 ## Purpose
 
-The scheduled runner is the deterministic weekly workflow wrapper. It chains the already-built repo loaders, manifest generation, provider task runner, analysis task runner, run summary, quality report, memory finalization, and bounded memory-writer review.
+The scheduled runner is the deterministic tracked-stock workflow wrapper. The command is still named `run-weekly` because it builds weekly-style run artifacts, but the first Codex app automation runs it every two weeks. It chains the already-built repo loaders, manifest generation, provider task runner, analysis task runner, run summary, quality report, memory finalization, and bounded memory-writer review.
 
 Implementation: `stock_research/scheduled_runner.py`.
 
 The runner is deterministic by default, but it can now optionally call OpenAI Agents SDK company-research fanout and the main orchestrator after deterministic finalization.
 
 The CLI command is only the scheduler/manual entrypoint. Internal workflow steps should call importable Python functions directly rather than shelling out to other CLI commands.
+
+## Codex App Automation
+
+The first Codex app automation is configured as a biweekly tracked-stock run, not a remote worker. It runs every two weeks on Saturday at 08:00, starting 2026-05-16, from:
+
+```text
+C:\Users\valen\Documents\Code\stocks
+```
+
+Automation file:
+
+```text
+C:\Users\valen\.codex\automations\biweekly-holdings-and-monitoring-research\automation.toml
+```
+
+The automation must use the explicit Python executable and this exact command:
+
+```powershell
+C:\Python313\python.exe -m stock_research run-weekly --write --execute-providers --execute-analysis --execute-orchestrator --orchestrator-timeout-seconds 900
+```
+
+Do not change it to bare `python`. Do not add `git fetch`, `git pull`, `git checkout`, `git reset`, or other Git metadata writes to the automation.
+
+Codex automation sandbox rules are stored at:
+
+```text
+C:\Users\valen\.codex\rules\default.rules
+```
+
+The rules intentionally allow only the exact stock workflow command above and the equivalent Windows PowerShell wrapper. Validate changes with:
+
+```powershell
+codex execpolicy check --pretty --rules C:\Users\valen\.codex\rules\default.rules -- C:\Python313\python.exe -m stock_research run-weekly --write --execute-providers --execute-analysis --execute-orchestrator --orchestrator-timeout-seconds 900
+```
+
+The expected decision is `allow`. Broad Git commands and arbitrary `stock_research` provider execution should remain unallowlisted.
 
 ## Command
 
