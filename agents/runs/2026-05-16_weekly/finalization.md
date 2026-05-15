@@ -1,6 +1,6 @@
 # Run Finalization: 2026-05-16_weekly
 
-Generated: 2026-05-14
+Generated: 2026-05-16
 Status: needs_review
 
 ## Metrics
@@ -16,6 +16,8 @@ Status: needs_review
 - evidence_packets: 24
 - valid_evidence_packets: 24
 - invalid_evidence_packets: 0
+- archive_candidates: 0
+- archive_after_days: 30
 
 ## Artifacts
 
@@ -25,6 +27,7 @@ Status: needs_review
 - `agents/memory/recurring_failures.md`
 - `agents/runs/2026-05-16_weekly/memory_update_drafts.json`
 - `agents/runs/2026-05-16_weekly/memory_update_drafts.md`
+- `agents/runs/2026-05-16_weekly/archive_proposals.md`
 
 ## Next Actions
 

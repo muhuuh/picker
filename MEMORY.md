@@ -366,6 +366,21 @@ Use this file for information we should not lose across sessions.
   - evidence artifact path(s): `docs/descriptions/artifact_lifecycle_and_hygiene.md`, `docs/plans/investment_agent_backlog.md`, `docs/descriptions/repo_map.md`
   - status: active
 
+- 2026-05-16:
+  - decision/fact: Research artifact hygiene is implemented with inventory, archive proposals, and guarded archive moves. Use `artifact-hygiene inventory --write` for `archive/research_index.md`; run finalization writes `archive_proposals.md`; use `artifact-hygiene archive --write` to move only eligible stale markdown artifacts into `archive/runs/`.
+  - evidence artifact path(s): `stock_research/artifact_hygiene.py`, `stock_research/run_finalization.py`, `archive/research_index.md`, `archive/archive_move_report.md`, `agents/runs/2026-05-16_weekly/archive_proposals.md`
+  - status: active
+
+- 2026-05-16:
+  - decision/fact: Category state updates are implemented. Use `python -m stock_research category-state update --run-id RUN_ID --write`; weekly runs now refresh holdings, monitoring, and rejected state files with source-linked automated summary rows.
+  - evidence artifact path(s): `stock_research/category_state_updater.py`, `stock_research/scheduled_runner.py`, `stock_tracking/current_holdings/current_holdings_state.md`, `stock_tracking/monitoring/monitoring_state.md`, `stock_tracking/rejected/rejected_state.md`
+  - status: active
+
+- 2026-05-16:
+  - decision/fact: Manual run-end review summaries are implemented for manual market research, candidate review, and SDK agent-runtime runs. They refresh `agents/human_review_digest.md` and write `agents/runs/{run_id}/human_review_digest_summary.md`.
+  - evidence artifact path(s): `stock_research/run_end_review.py`, `stock_research/market_research_runner.py`, `stock_research/candidate_review.py`, `stock_research/cli.py`
+  - status: active
+
 - 2026-05-11:
   - decision/fact: The OpenAI Agents SDK weekly path completed successfully after API credit was added and runtime quality gates were tightened. The validation command for AMZN/AAPL is `python -m stock_research run-weekly --write --today 2026-05-11 --execute-providers --execute-analysis --execute-orchestrator --orchestrator-timeout-seconds 900`.
   - evidence artifact path(s): `agents/runs/2026-05-16_weekly/orchestration_report.md`, `agents/runs/2026-05-16_weekly/agent_runtime_main_orchestrator.md`, `stock_research/agent_runtime/reports.py`, `tests/test_agent_runtime.py`

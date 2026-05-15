@@ -1,6 +1,6 @@
 # Human Review Operating Model
 
-Last updated: 2026-05-15
+Last updated: 2026-05-16
 
 ## Goal
 
@@ -63,6 +63,8 @@ Company-file UX target:
 - Thesis changes, opinion changes, stock moves, strategy changes, and ambiguous edits should remain approval-gated in the digest.
 - The run-end summary should say which file changed, what section changed, and where to read the exact diff/details.
 - Company-file update summaries are FYI unless they change investment opinion, status, strategy, or any buy/sell/position-size decision.
+- Current implementation: `python -m stock_research company-file apply-factual-updates --run-id RUN_ID --write` reads opportunity-assessment JSON, updates only the target company file's automated factual-update/source/change-log sections, and writes `agents/runs/{run_id}/company_file_factual_updates.md`. Weekly runs call this after executed analysis when opportunity-assessment artifacts exist.
+- If the same run needs regenerated cleaner text, use `--refresh` to replace rows with the same factual update id.
 
 ## Who Reads Portfolio Review
 
@@ -122,6 +124,7 @@ Near term:
 - Codex chat and repo artifacts are the canonical review interface.
 - Manual or Codex automation runs should end by summarizing the current review digest.
 - The user can ask Codex: "show my open review items" or "approve HRQ-0007 for verification."
+- Current implementation: manual market-research runs, candidate-review runs, SDK `agent-runtime run --write`, and weekly runs refresh the digest or write a run-local `human_review_digest_summary.md` so the run output points back to the review inbox.
 
 Later:
 
@@ -173,10 +176,9 @@ This keeps asynchronous approval robust: the system does not require the human t
 
 ## Open Implementation Gaps
 
-- Add a run-end summary step that always prints or writes the open-review digest after manual/weekly runs.
 - Add notification automation after digest quality is stable.
 - Add optional email digest delivery later.
 - Evaluate strict email-reply ingestion only after notifications are stable.
 - Add tests for duplicate HRQ decisions, stale approvals, and unsupported review statuses.
-- Build the low-risk factual company-file auto-apply writer and FYI summary path.
+- Add thesis/status-changing company-file proposal UX tests.
 - Keep digest deduplication so regenerated discovery rows do not ask the user twice about the same company or basket.

@@ -274,3 +274,17 @@ After a weekly or manual run:
 - evidence: stock_research/market_research_runner.py, stock_research/opportunity_assessment.py, stock_research/weekly_digest.py, stock_research/human_review_digest.py, stock_research/candidate_review.py, agents/runs/2026-05-12_manual-market-ai-semiconductor-supply-chain/market_research/ai_semiconductor_supply_chain_advanced_packaging_manual_market_research.md, agents/runs/2026-05-16_weekly/reports/opportunity_assessment/AMZN_opportunity_assessment.md
 - owner: Codex
 - next_review: 2026-06-13
+
+- id: eval-2026-05-16-readiness-hardening-slice
+- date: 2026-05-16
+- type: evaluation
+- scope: global
+- status: active
+- confidence: high
+- trigger/source: Implemented the final pre-ready workflow hardening slice requested by the user.
+- lesson: Ready-to-use hardening now includes guarded artifact archive moves, run-finalization archive proposals, run-end human-review summaries for manual paths, category state updates, thesis/status proposal UX tests, and a human-facing report-quality golden gate for truncation, dead citations, raw dict dumps, duplicate sections, and status-only Grok/X output.
+- use_when: Reviewing whether the repo is ready for manual weekly use, planning remaining automation/notification work, or changing archive/category/digest/report-quality behavior.
+- do_not_use_when: Assuming notification/email automation or scheduled remote execution is already implemented.
+- evidence: stock_research/artifact_hygiene.py, stock_research/run_finalization.py, stock_research/run_end_review.py, stock_research/category_state_updater.py, stock_research/report_quality.py, tests/test_artifact_hygiene.py, tests/test_category_state_updater.py, tests/test_run_end_review.py, tests/test_report_quality_golden.py
+- owner: orchestration quality
+- next_review: 2026-06-16

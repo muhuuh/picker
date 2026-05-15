@@ -26,6 +26,7 @@ from stock_research.manifest import (
 from stock_research.provider_runner import run_provider_tasks
 from stock_research.providers.xai_grok import industry_sentiment_prompt, latest_news_prompt
 from stock_research.report_formatting import compact_complete_text, markdown_link
+from stock_research.run_end_review import build_run_end_review_summary
 from stock_research.validation import parse_date
 
 
@@ -179,6 +180,13 @@ def run_manual_market_research(
             provider_result=provider_result,
         )
         written_paths.extend(str(path) for path in report_paths)
+        run_end_summary = build_run_end_review_summary(
+            root=root,
+            run_id=normalized_run_id,
+            current_date=today,
+            write=True,
+        )
+        written_paths.extend(str(root / path) for path in run_end_summary.written_paths)
 
     status = manual_status(provider_result, decision, quality_findings, execute_providers, execute_orchestrator)
     return ManualMarketResearchResult(

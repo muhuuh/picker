@@ -231,3 +231,17 @@ Procedural memory for future specialist agents. Specialists should produce struc
 - evidence: `stock_research/company_news_specialist.py`, `stock_research/financial_specialist.py`, `agents/specialists/prompts/risk_thesis.md`, `tests/test_company_news_specialist.py`, `tests/test_financial_specialist.py`
 - owner: specialist writers
 - next_review: 2026-06-15
+
+- id: memory-2026-05-16-company-file-factual-writer-formatting
+- date: 2026-05-16
+- type: procedural
+- scope: writer
+- status: active
+- confidence: high
+- trigger/source: First AMZN factual company-file sync exposed raw dictionary rendering in human-facing rows.
+- lesson: The scoped company-file factual updater may auto-apply low-risk opportunity-assessment summaries, but it must render structured evidence as clean investor text, not raw JSON/Python dictionaries. Extract fields such as claim, summary, title, or development; format percent-like financial values as percentages; write only automated factual/source/change-log sections; keep thesis/status/trade changes approval-gated.
+- use_when: Building or changing company-file writers, opportunity-assessment summaries, weekly run-end factual sync, or human-facing FYI update summaries.
+- do_not_use_when: Applying thesis/opinion/status/strategy changes, promoting stocks, or editing company files outside the scoped writer/approved-proposal paths.
+- evidence: `stock_research/company_file_factual_update.py`, `tests/test_company_file_factual_update.py`, `agents/runs/2026-05-16_weekly/company_file_factual_updates.md`
+- owner: company file updater
+- next_review: 2026-06-16

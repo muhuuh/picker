@@ -132,6 +132,27 @@ This requires `OPENAI_API_KEY`. It writes local runtime report, trace-link, and 
 
 `agent-runtime apply-proposal` is the approval-gated company-file writer. It dry-runs by default, refuses proposals without a matching `approved` human-review queue row, and only edits the proposal's target company file when `--write` is passed.
 
+Low-risk factual company-file sync is separate from thesis/status proposals:
+
+```powershell
+python -m stock_research company-file apply-factual-updates --run-id RUN_ID --write
+python -m stock_research company-file apply-factual-updates --run-id RUN_ID --ticker AMZN --write --refresh
+python -m stock_research category-state update --run-id RUN_ID --write
+```
+
+This reads opportunity-assessment artifacts, updates only automated factual/source/change-log sections in the target company file, and writes an FYI summary at `agents/runs/{run_id}/company_file_factual_updates.md`.
+`category-state update` appends bucket-level summaries to holdings, monitoring, and rejected state files without overwriting human notes.
+
+Artifact hygiene is indexed with:
+
+```powershell
+python -m stock_research artifact-hygiene inventory --write
+python -m stock_research artifact-hygiene archive
+python -m stock_research artifact-hygiene archive --write
+```
+
+Inventory writes `archive/research_index.md` with active, recent, review-blocked, archive-candidate, and archived run artifacts. Archive is dry-run by default; `--write` moves only eligible stale markdown reports into `archive/runs/` and refreshes the index.
+
 Generated run JSON, raw provider JSON, and evidence packet JSON are local runtime artifacts ignored by Git. Commit the markdown summaries/reports and source/docs changes, not the generated JSON blobs.
 
 Classify a natural-language user request:
@@ -293,6 +314,9 @@ Implemented:
 - opt-in scheduled OpenAI Agents SDK orchestration through `run-weekly --write --execute-orchestrator`, with per-ticker company-research fanout for current/monitoring tickers and freshness gating for dry-run provider/analysis inputs.
 - deterministic SDK proposal review bridge: `agent-runtime queue-proposals --write --queue-review`.
 - approval-gated SDK proposal writer: `agent-runtime apply-proposal --proposal-id ORP-0001 --write`.
+- low-risk company-file factual updater with run-end FYI summary.
+- category-state updater for holdings/monitoring/rejected bucket summaries.
+- artifact inventory/index/archive commands for research-output hygiene.
 - deterministic human request classifier and queue appender.
 - deterministic request router for stock, industry, theme, strategy, alert-review, manual-run, and status-move requests.
 - provider-neutral evidence packet schema and JSON artifact writer.

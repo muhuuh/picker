@@ -177,6 +177,12 @@ def seed_repo(root: Path, monitoring_rows: list[str] | None = None) -> Path:
     write_stock_csv(root / "stock_tracking/current_holdings/current_holdings.csv", [])
     write_stock_csv(root / "stock_tracking/monitoring/monitoring.csv", monitoring_rows or [])
     write_stock_csv(root / "stock_tracking/rejected/rejected.csv", [])
+    for category in ("current_holdings", "monitoring", "rejected"):
+        title = category.replace("_", " ").title()
+        (root / f"stock_tracking/{category}/{category}_state.md").write_text(
+            f"# {title} State\n\nLast updated: 2026-05-01\n\n## Current View\n\n- Test seed.\n",
+            encoding="utf-8",
+        )
     (root / "docs/plans/human_research_requests.md").write_text("# Human Research Requests\n", encoding="utf-8")
     (root / "strategy/research_priorities.md").write_text("# Research Priorities\n", encoding="utf-8")
     (root / "agents/human_review_queue.md").write_text("# Human Review Queue\n", encoding="utf-8")

@@ -86,6 +86,23 @@ class AgentRuntimeProposalWriterTests(unittest.TestCase):
             self.assertEqual(result.status, "blocked")
             self.assertIn("outside stock_info_files", result.findings[0])
 
+    def test_thesis_status_like_proposal_still_requires_approval_and_uses_generic_section(self):
+        with TemporaryDirectory() as temp_dir:
+            root = seed_repo(Path(temp_dir), review_status="approved", update_type="thesis_status_change")
+
+            result = apply_approved_proposal(
+                root=root,
+                run_id="test_weekly",
+                proposal_id="ORP-0001",
+                current_date=date(2026, 5, 7),
+                write=True,
+            )
+
+            company_text = (root / "stock_tracking/stock_info_files/monitoring/AAPL.md").read_text(encoding="utf-8")
+            self.assertEqual(result.status, "applied")
+            self.assertIn("## Approved Proposal Updates", company_text)
+            self.assertIn("thesis_status_change", company_text)
+
     def test_cli_apply_proposal(self):
         with TemporaryDirectory() as temp_dir:
             root = seed_repo(Path(temp_dir), review_status="approved")
@@ -112,7 +129,13 @@ class AgentRuntimeProposalWriterTests(unittest.TestCase):
             self.assertIn("Applied ORP-0001", company_text)
 
 
-def seed_repo(root: Path, *, review_status: str, target_file: str = "stock_tracking/stock_info_files/monitoring/AAPL.md") -> Path:
+def seed_repo(
+    root: Path,
+    *,
+    review_status: str,
+    target_file: str = "stock_tracking/stock_info_files/monitoring/AAPL.md",
+    update_type: str = "company_news_developments",
+) -> Path:
     (root / "AGENTS.md").write_text("# AGENTS\n", encoding="utf-8")
     (root / "stock_tracking/stock_info_files/monitoring").mkdir(parents=True)
     (root / "agents/runs/test_weekly").mkdir(parents=True)
@@ -140,7 +163,7 @@ def seed_repo(root: Path, *, review_status: str, target_file: str = "stock_track
                 "",
                 "| Proposal ID | Target File | Update Type | Confidence | Needs Human Review | Source IDs | Summary |",
                 "| --- | --- | --- | --- | --- | --- | --- |",
-                f"| ORP-0001 | {target_file} | company_news_developments | high | no | source-1 | Update AAPL developments from approved proposal. |",
+                f"| ORP-0001 | {target_file} | {update_type} | high | no | source-1 | Update AAPL developments from approved proposal. |",
             ]
         )
         + "\n",

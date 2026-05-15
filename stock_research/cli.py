@@ -155,6 +155,7 @@ def main(argv: list[str] | None = None) -> int:
     memory_finalize = memory_subparsers.add_parser("finalize-run", help="Finalize a run by writing reflection, recurring-failure, and finalization artifacts.")
     memory_finalize.add_argument("--run-id", required=True)
     memory_finalize.add_argument("--recurring-threshold", type=int, default=2, help="Minimum distinct runs required for recurring-failure patterns.")
+    memory_finalize.add_argument("--archive-after-days", type=int, default=30, help="Minimum age before stale artifacts are proposed for archive.")
     memory_finalize.add_argument("--today", help="Override current date as YYYY-MM-DD.")
 
     memory_draft_updates = memory_subparsers.add_parser("draft-updates", help="Draft schema-valid memory updates from reflection proposals.")
@@ -493,6 +494,46 @@ def main(argv: list[str] | None = None) -> int:
     market_research_candidate_promote.add_argument("--write", action="store_true", help="Write the monitoring CSV row and company file. Omit for dry-run validation.")
     market_research_candidate_promote.add_argument("--today", help="Override current date as YYYY-MM-DD.")
 
+    company_file_parser = subparsers.add_parser("company-file", help="Maintain stock_info_files from reviewed research artifacts.")
+    company_file_subparsers = company_file_parser.add_subparsers(dest="company_file_command", required=True)
+    company_file_factual = company_file_subparsers.add_parser(
+        "apply-factual-updates",
+        help="Apply low-risk factual summaries from opportunity assessments to company files.",
+    )
+    company_file_factual.add_argument("--run-id", required=True)
+    company_file_factual.add_argument("--ticker", action="append", default=[], help="Optional ticker filter. Can be repeated.")
+    company_file_factual.add_argument("--write", action="store_true", help="Write company file updates and FYI summary. Omit for dry-run.")
+    company_file_factual.add_argument("--refresh", action="store_true", help="Replace existing rows for the same update id before writing.")
+    company_file_factual.add_argument("--today", help="Override current date as YYYY-MM-DD.")
+
+    category_state_parser = subparsers.add_parser("category-state", help="Update holdings/monitoring/rejected state files.")
+    category_state_subparsers = category_state_parser.add_subparsers(dest="category_state_command", required=True)
+    category_state_update = category_state_subparsers.add_parser(
+        "update",
+        help="Append an automated category-state summary row to each stock-tracking category state file.",
+    )
+    category_state_update.add_argument("--run-id", default="", help="Optional source run id for links and idempotency.")
+    category_state_update.add_argument("--write", action="store_true", help="Write category state files. Omit for dry-run.")
+    category_state_update.add_argument("--today", help="Override current date as YYYY-MM-DD.")
+
+    artifact_hygiene_parser = subparsers.add_parser("artifact-hygiene", help="Inventory and index generated research artifacts.")
+    artifact_hygiene_subparsers = artifact_hygiene_parser.add_subparsers(dest="artifact_hygiene_command", required=True)
+    artifact_inventory = artifact_hygiene_subparsers.add_parser(
+        "inventory",
+        help="Classify active, review-blocked, recent, and archive-candidate research artifacts.",
+    )
+    artifact_inventory.add_argument("--write", action="store_true", help="Write archive/research_index.md.")
+    artifact_inventory.add_argument("--archive-after-days", type=int, default=30)
+    artifact_inventory.add_argument("--today", help="Override current date as YYYY-MM-DD.")
+    artifact_archive = artifact_hygiene_subparsers.add_parser(
+        "archive",
+        help="Move archive-candidate markdown artifacts into archive/runs. Dry-run by default.",
+    )
+    artifact_archive.add_argument("--write", action="store_true", help="Move files and refresh archive/research_index.md.")
+    artifact_archive.add_argument("--archive-after-days", type=int, default=30)
+    artifact_archive.add_argument("--limit", type=int, help="Optional maximum number of artifacts to move.")
+    artifact_archive.add_argument("--today", help="Override current date as YYYY-MM-DD.")
+
     run_weekly_parser = subparsers.add_parser("run-weekly", help="Run the deterministic weekly workflow up to the agent-framework decision boundary.")
     run_weekly_parser.add_argument("--write", action="store_true", help="Persist manifest, reports, finalization, memory-writer review, and orchestration report.")
     run_weekly_parser.add_argument("--execute-providers", action="store_true", help="Execute live provider tasks. Omit for safe dry-run.")
@@ -604,6 +645,7 @@ def main(argv: list[str] | None = None) -> int:
                     run_id=args.run_id,
                     current_date=memory_date,
                     recurring_threshold=args.recurring_threshold,
+                    archive_after_days=args.archive_after_days,
                 )
             except (FileNotFoundError, ValueError) as exc:
                 print(f"ERROR: {exc}")
@@ -1229,6 +1271,65 @@ def main(argv: list[str] | None = None) -> int:
             print(json.dumps(candidate_promotion_to_dict(result), indent=2, sort_keys=True))
             return 0 if result.status in {"ready_to_promote", "promoted", "already_promoted"} else 2
 
+    if args.command == "company-file":
+        from .company_file_factual_update import build_company_file_factual_updates, factual_update_result_to_dict
+
+        request_date = parse_cli_date(args.today)
+        if args.company_file_command == "apply-factual-updates":
+            result = build_company_file_factual_updates(
+                root=state.root,
+                run_id=args.run_id,
+                current_date=request_date,
+                tickers=args.ticker,
+                write=args.write,
+                refresh=args.refresh,
+            )
+            print(json.dumps(factual_update_result_to_dict(result), indent=2, sort_keys=True))
+            return 0 if result.status != "blocked" else 1
+
+    if args.command == "artifact-hygiene":
+        from .artifact_hygiene import (
+            archive_artifacts,
+            archive_move_result_to_dict,
+            artifact_inventory_to_dict,
+            build_artifact_inventory,
+        )
+
+        request_date = parse_cli_date(args.today)
+        if args.artifact_hygiene_command == "inventory":
+            result = build_artifact_inventory(
+                root=state.root,
+                current_date=request_date,
+                write=args.write,
+                archive_after_days=args.archive_after_days,
+            )
+            print(json.dumps(artifact_inventory_to_dict(result), indent=2, sort_keys=True))
+            return 0
+        if args.artifact_hygiene_command == "archive":
+            result = archive_artifacts(
+                root=state.root,
+                current_date=request_date,
+                write=args.write,
+                archive_after_days=args.archive_after_days,
+                limit=args.limit,
+            )
+            print(json.dumps(archive_move_result_to_dict(result), indent=2, sort_keys=True))
+            return 0 if result.status not in {"blocked"} else 1
+
+    if args.command == "category-state":
+        from .category_state_updater import category_state_update_result_to_dict, update_category_state_files
+
+        request_date = parse_cli_date(args.today)
+        if args.category_state_command == "update":
+            result = update_category_state_files(
+                root=state.root,
+                run_id=args.run_id,
+                current_date=request_date,
+                write=args.write,
+            )
+            print(json.dumps(category_state_update_result_to_dict(result), indent=2, sort_keys=True))
+            return 0 if result.status != "blocked" else 1
+
     if args.command == "run-weekly":
         request_date = parse_cli_date(args.today)
         if args.execute_orchestrator and not args.write:
@@ -1275,6 +1376,7 @@ def main(argv: list[str] | None = None) -> int:
         from .agent_runtime.reports import build_orchestrator_input, evaluate_runtime_output_quality, output_status, output_to_dict
         from .agent_runtime.registry import build_agent, list_agent_specs
         from .agent_runtime.runner import build_run_config, run_agent_sync
+        from .run_end_review import build_run_end_review_summary, run_end_review_summary_to_dict
 
         if args.agent_runtime_command == "list-agents":
             print(
@@ -1344,6 +1446,11 @@ def main(argv: list[str] | None = None) -> int:
                 print(f"ERROR: {exc}")
                 return 1
             runtime_status = "complete" if not result.quality_findings and output_status(result.final_output) == "ready" else "needs_review"
+            run_end_summary = None
+            written_paths = list(result.written_paths)
+            if args.write:
+                run_end_summary = build_run_end_review_summary(root=state.root, run_id=args.run_id, write=True)
+                written_paths.extend(run_end_summary.written_paths)
             print(
                 json.dumps(
                     {
@@ -1353,8 +1460,9 @@ def main(argv: list[str] | None = None) -> int:
                         "trace_id": result.trace_id,
                         "group_id": result.group_id,
                         "quality_findings": result.quality_findings,
-                        "written_paths": list(result.written_paths),
+                        "written_paths": written_paths,
                         "final_output": output_to_dict(result.final_output),
+                        "human_review_summary": run_end_review_summary_to_dict(run_end_summary) if run_end_summary else {},
                         "live_model_called": True,
                     },
                     indent=2,

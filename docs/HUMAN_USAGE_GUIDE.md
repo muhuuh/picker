@@ -27,12 +27,14 @@ For weekly-style holding/watchlist research:
 - `final_digest.md` is the quick read. It summarizes each current holding and monitored stock from the latest run, including the most important opportunity view, financial facts, news, Grok/X pulse, bull/bear case, and links to deeper reports.
 - `reports/opportunity_assessment/{TICKER}_opportunity_assessment.md` is the main human-facing deep company report. Read this when the digest says a stock needs attention or when you want the full thesis, X/community narrative, valuation context, non-obvious angles, and next research checks.
 - `company_research/{TICKER}_company_research.md` is mostly an internal orchestration packet. It shows which specialist lanes ran or missed. You normally do not need to read it unless Codex points you there while debugging coverage.
+- `company_file_factual_updates.md` is an FYI summary of low-risk company-file facts that were synced automatically.
 
 For market/industry/theme research:
 
 - `market_research/*_manual_market_research.md` is the human-facing market report.
 - `market_research/candidate_review.md` is the evidence bridge behind discovered candidate stocks.
 - `agents/human_review_digest.md` is the inbox for decisions and FYI update summaries.
+- `human_review_digest_summary.md` inside a run folder is the run-local pointer back to the current decision inbox.
 
 For candidate verification:
 
@@ -211,12 +213,14 @@ Use this simple map:
 | Durable review queue | `agents/human_review_queue.md` |
 | Latest run outputs | `agents/runs/{run_id}/` |
 | Specific company knowledge | `stock_tracking/stock_info_files/` |
+| Category state summaries | `stock_tracking/current_holdings/current_holdings_state.md`, `stock_tracking/monitoring/monitoring_state.md`, `stock_tracking/rejected/rejected_state.md` |
 | Current holdings overview | `stock_tracking/current_holdings/current_holdings.csv` |
 | Monitoring overview | `stock_tracking/monitoring/monitoring.csv` |
 | Rejected/cooldown overview | `stock_tracking/rejected/rejected.csv` |
 | Industry/theme research | `market_research/industries/`, `market_research/themes/` |
 | Strategy and priorities | `strategy/` |
 | Your proactive requests | `docs/plans/human_research_requests.md` |
+| Archived artifact index | `archive/research_index.md` |
 
 ## Normal Human Workflow
 

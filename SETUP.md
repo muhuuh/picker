@@ -374,6 +374,21 @@ python -m stock_research run-weekly --write --execute-providers --execute-analys
 python -m stock_research run-weekly --write --execute-orchestrator
 ```
 
+Apply low-risk factual company-file updates from a completed opportunity-assessment run:
+
+```powershell
+python -m stock_research company-file apply-factual-updates --run-id 2026-05-16_weekly --write
+python -m stock_research category-state update --run-id 2026-05-16_weekly --write
+```
+
+Refresh generated artifact hygiene index:
+
+```powershell
+python -m stock_research artifact-hygiene inventory --write
+python -m stock_research artifact-hygiene archive
+python -m stock_research artifact-hygiene archive --write
+```
+
 Write run summary and quality report artifacts:
 
 ```powershell

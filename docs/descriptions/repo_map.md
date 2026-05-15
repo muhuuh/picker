@@ -1,6 +1,6 @@
 # Repo Map
 
-Last updated: 2026-05-15
+Last updated: 2026-05-16
 
 ## Purpose
 
@@ -42,7 +42,9 @@ This file tells Codex, the orchestrator, and future agents where to find and upd
 - `stock_tracking/monitoring/monitoring_state.md`: state of the monitoring bucket.
 - `stock_tracking/rejected/rejected.csv`: overview of rejected stocks and cooldown dates.
 - `stock_tracking/rejected/rejected_state.md`: state of the rejected bucket.
+- Category state files can be refreshed by the scoped state updater; it appends an `Automated State Updates` table without overwriting human notes.
 - `stock_tracking/stock_info_files/`: detailed company files.
+- `stock_tracking/stock_info_files/*/*.md` may include an `Automated Factual Updates` section written by the scoped factual updater; this is an FYI audit surface, not a thesis/status decision.
 - `docs/templates/company_stock_info_template.md`: template for company files.
 - `docs/templates/stock_tracking_csv_schema.md`: CSV schema documentation.
 
@@ -84,6 +86,9 @@ This file tells Codex, the orchestrator, and future agents where to find and upd
   - Generated JSON/raw/evidence artifacts are local runtime output and ignored by Git.
   - Markdown run summaries, quality reports, reflections, and finalization reports are the reviewable artifacts.
   - Long-lived active knowledge should be promoted into stock files, market research files, strategy files, or indexes; old run artifacts should be archiveable without losing discoverability.
+- `archive/research_index.md`: generated inventory of run markdown artifacts, classified as active, recent, review-blocked, archive candidates, or archived.
+- `archive/archive_move_report.md`: latest archive move report.
+- `archive/runs/`: indexed location for moved stale/inactive run markdown artifacts.
 - `agents/memory/`: operational agent memory.
 - `agents/memory/memory_index.md`: entry point for task-relevant memory loading.
 - `agents/memory/orchestrator_lessons.md`: orchestration and routing lessons.
@@ -162,6 +167,12 @@ Use CLI commands for manual operation, scheduler entrypoints, validation, smoke 
 - `python -m stock_research market-research candidate-followup --run-id RUN_ID --review-id HRQ-0004 --write`: turn approved candidate-review rows into `candidate_verification_manifest.json` and `candidate_verification_plan.md` for the existing provider/analysis runners. This does not add stocks to monitoring.
 - `python -m stock_research market-research candidate-verification-result --run-id RUN_ID --review-id HRQ-0004 --write`: summarize candidate verification provider coverage, specialist statuses, findings, and next actions after follow-up provider/analysis tasks run.
 - `python -m stock_research market-research candidate-promote --run-id RUN_ID --review-id HRQ-0004 --write`: add one approved and verified `monitoring_candidate` to `stock_tracking/monitoring/monitoring.csv` and create its company file. This blocks unless approval and verification artifacts exist.
+- `python -m stock_research company-file apply-factual-updates --run-id RUN_ID --write`: apply low-risk factual summaries from opportunity assessments to company files and write a run-level FYI summary.
+- `python -m stock_research company-file apply-factual-updates --run-id RUN_ID --ticker TICKER --write --refresh`: refresh existing factual rows for the same run/ticker after report regeneration or formatter improvement.
+- `python -m stock_research category-state update --run-id RUN_ID --write`: append current bucket summaries to holdings/monitoring/rejected state files.
+- `python -m stock_research artifact-hygiene inventory --write`: classify generated run markdown artifacts and write `archive/research_index.md`.
+- `python -m stock_research artifact-hygiene archive`: dry-run archive moves for eligible stale markdown artifacts.
+- `python -m stock_research artifact-hygiene archive --write`: move only archive-eligible markdown artifacts into `archive/runs/` and refresh the index.
 - `python -m stock_research human-review digest --write`: summarize open human-review queue items by decision type and priority, writing `agents/human_review_digest.md`.
 - `python -m stock_research human-review decide --set HRQ-0004=approved --note "Run verification." --write`: record explicit user decisions on human-review queue rows and refresh the digest. This does not run follow-up actions or edit stock/company files by itself.
 - `tests/`: unit tests for current deterministic core.

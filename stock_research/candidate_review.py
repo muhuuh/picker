@@ -17,6 +17,7 @@ from stock_research.agent_runtime.proposal_review import (
 from stock_research.manifest import slugify
 from stock_research.markdown_edit import append_markdown_table_row
 from stock_research.repo import find_repo_root, load_first_table
+from stock_research.run_end_review import build_run_end_review_summary
 
 
 @dataclass
@@ -95,6 +96,13 @@ def build_candidate_review(
                 report_path=report_path,
             )
             written_paths.append(queue_path.relative_to(repo_root).as_posix())
+        run_end_summary = build_run_end_review_summary(
+            root=repo_root,
+            run_id=run_id,
+            current_date=today,
+            write=True,
+        )
+        written_paths.extend(run_end_summary.written_paths)
 
     return CandidateReviewResult(
         run_id=run_id,

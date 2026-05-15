@@ -6,6 +6,7 @@ from datetime import date
 from pathlib import Path
 from typing import Any
 
+from .artifact_hygiene import write_archive_proposals_for_run
 from .memory import relative_to_root
 from .memory_reflection import (
     build_recurring_failure_report,
@@ -33,6 +34,7 @@ def finalize_run(
     run_id: str,
     current_date: date | None = None,
     recurring_threshold: int = 2,
+    archive_after_days: int = 30,
 ) -> tuple[RunFinalization, tuple[Path, Path]]:
     repo_root = find_repo_root(root)
     today = current_date or date.today()
@@ -44,11 +46,18 @@ def finalize_run(
     recurring_paths = write_recurring_failure_report(repo_root, recurring_report)
     memory_update_draft = build_memory_update_draft(repo_root, run_id, today)
     memory_update_draft_paths = write_memory_update_draft(repo_root, memory_update_draft)
+    archive_proposals_path, archive_candidate_count = write_archive_proposals_for_run(
+        repo_root=repo_root,
+        run_id=run_id,
+        current_date=today,
+        archive_after_days=archive_after_days,
+    )
 
     artifacts = [
         relative_to_root(repo_root, path).as_posix()
         for path in (*reflection_paths, *recurring_paths, *memory_update_draft_paths)
     ]
+    artifacts.append(archive_proposals_path)
     metrics = {
         "reflection_issues": len(reflection.issues),
         "reflection_memory_update_proposals": len(reflection.memory_update_proposals),
@@ -61,6 +70,8 @@ def finalize_run(
         "evidence_packets": reflection.metrics.get("evidence_packets", 0),
         "valid_evidence_packets": reflection.metrics.get("valid_evidence_packets", 0),
         "invalid_evidence_packets": reflection.metrics.get("invalid_evidence_packets", 0),
+        "archive_candidates": archive_candidate_count,
+        "archive_after_days": archive_after_days,
     }
     status = "needs_review" if reflection.issues or recurring_report.patterns else "complete"
     finalization = RunFinalization(
@@ -70,7 +81,7 @@ def finalize_run(
         status=status,
         metrics=metrics,
         artifacts=artifacts,
-        next_actions=build_next_actions(reflection, recurring_report),
+        next_actions=build_next_actions(reflection, recurring_report, archive_candidate_count),
     )
     finalization_paths = write_run_finalization(repo_root, finalization)
     return finalization, finalization_paths
@@ -111,7 +122,7 @@ def format_finalization_markdown(finalization: RunFinalization) -> str:
     return "\n".join(lines).rstrip() + "\n"
 
 
-def build_next_actions(reflection, recurring_report) -> list[str]:
+def build_next_actions(reflection, recurring_report, archive_candidate_count: int = 0) -> list[str]:
     actions: list[str] = []
     if reflection.issues:
         actions.append("Review `memory_reflection.md` before treating the run as complete.")
@@ -123,6 +134,8 @@ def build_next_actions(reflection, recurring_report) -> list[str]:
         actions.append("Apply or reject recurring-failure memory proposals.")
     if getattr(reflection, "memory_update_proposals", None) or getattr(recurring_report, "memory_update_proposals", None):
         actions.append("Review `memory_update_drafts.md` and apply approved ready drafts with `memory apply-updates`.")
+    if archive_candidate_count:
+        actions.append("Review `archive_proposals.md`; move eligible stale artifacts with `artifact-hygiene archive --write`.")
     if not actions:
         actions.append("No deterministic learning-loop issues found.")
     return actions

@@ -25,6 +25,16 @@ from .agent_runtime.proposal_review import build_proposal_review, proposal_revie
 from .agent_runtime.reports import build_orchestrator_input, output_status, output_to_dict
 from .agent_runtime.runner import AgentRuntimeResult, run_agent_sync
 from .analysis_runner import AnalysisExecutor, run_analysis_tasks
+from .category_state_updater import (
+    CategoryStateUpdateResult,
+    category_state_update_result_to_dict,
+    update_category_state_files,
+)
+from .company_file_factual_update import (
+    FactualUpdateResult,
+    build_company_file_factual_updates,
+    factual_update_result_to_dict,
+)
 from .manifest import build_weekly_manifest, write_manifest
 from .human_review_digest import HumanReviewDigest, build_human_review_digest, human_review_digest_to_dict
 from .memory import relative_to_root
@@ -110,6 +120,8 @@ def run_weekly_research_workflow(
     company_research_result: dict[str, Any] = {"status": "not_run"}
     portfolio_review_result: dict[str, Any] = {"status": "not_run"}
     memory_evaluation_result: dict[str, Any] = {"status": "not_run"}
+    company_file_factual_updates: FactualUpdateResult | None = None
+    category_state_updates: CategoryStateUpdateResult | None = None
     orchestrator_result: dict[str, Any] = {"status": "not_run"}
     proposal_review_result: dict[str, Any] = {"status": "not_run"}
     weekly_digest: WeeklyDigest | None = None
@@ -141,6 +153,15 @@ def run_weekly_research_workflow(
             write_artifacts=True,
         )
         artifacts.extend(memory_writer_paths)
+
+        if execute_analysis and (repo_root / "agents" / "runs" / run_id / "raw" / "opportunity_assessment").exists():
+            company_file_factual_updates = build_company_file_factual_updates(
+                root=repo_root,
+                run_id=run_id,
+                current_date=today,
+                write=True,
+            )
+            artifacts.extend(repo_root / path for path in company_file_factual_updates.written_paths)
 
         if should_execute_company_research(execute_orchestrator, execute_company_research, orchestrator_executor):
             company_research_result, company_research_paths = run_scheduled_company_research(
@@ -241,6 +262,13 @@ def run_weekly_research_workflow(
         artifacts.extend(write_weekly_digest(repo_root, weekly_digest))
         human_review_digest = build_human_review_digest(root=repo_root, current_date=today, write=True)
         artifacts.extend(repo_root / path for path in human_review_digest.written_paths)
+        category_state_updates = update_category_state_files(
+            root=repo_root,
+            run_id=run_id,
+            current_date=today,
+            write=True,
+        )
+        artifacts.extend(repo_root / path for path in category_state_updates.written_paths)
 
     result = ScheduledRunResult(
         run_id=run_id,
@@ -254,6 +282,8 @@ def run_weekly_research_workflow(
             company_research_result,
             portfolio_review_result,
             memory_evaluation_result,
+            company_file_factual_updates,
+            category_state_updates,
             orchestrator_result,
             weekly_digest,
         ),
@@ -271,6 +301,8 @@ def run_weekly_research_workflow(
             company_research_result=company_research_result,
             portfolio_review_result=portfolio_review_result,
             memory_evaluation_result=memory_evaluation_result,
+            company_file_factual_updates=company_file_factual_updates,
+            category_state_updates=category_state_updates,
             proposal_review_result=proposal_review_result,
             weekly_digest=weekly_digest,
             human_review_digest=human_review_digest,
@@ -285,6 +317,8 @@ def run_weekly_research_workflow(
             company_research_result,
             portfolio_review_result,
             memory_evaluation_result,
+            company_file_factual_updates,
+            category_state_updates,
             orchestrator_result,
             weekly_digest,
             human_review_digest,
@@ -306,6 +340,8 @@ def determine_status(
     company_research_result: dict[str, Any] | None = None,
     portfolio_review_result: dict[str, Any] | None = None,
     memory_evaluation_result: dict[str, Any] | None = None,
+    company_file_factual_updates: FactualUpdateResult | None = None,
+    category_state_updates: CategoryStateUpdateResult | None = None,
     orchestrator_result: dict[str, Any] | None = None,
     weekly_digest: WeeklyDigest | None = None,
 ) -> str:
@@ -322,6 +358,10 @@ def determine_status(
     if portfolio_review_result and portfolio_review_result.get("status") in {"blocked", "needs_human_review"}:
         return "needs_review"
     if memory_evaluation_result and memory_evaluation_result.get("status") in {"blocked", "needs_human_review"}:
+        return "needs_review"
+    if company_file_factual_updates and company_file_factual_updates.status == "blocked":
+        return "needs_review"
+    if category_state_updates and category_state_updates.status == "blocked":
         return "needs_review"
     if orchestrator_result and orchestrator_result.get("status") in {"error", "needs_review"}:
         return "needs_review"
@@ -361,6 +401,8 @@ def build_steps(
     company_research_result: dict[str, Any],
     portfolio_review_result: dict[str, Any],
     memory_evaluation_result: dict[str, Any],
+    company_file_factual_updates: FactualUpdateResult | None,
+    category_state_updates: CategoryStateUpdateResult | None,
     proposal_review_result: dict[str, Any],
     weekly_digest: WeeklyDigest | None,
     human_review_digest: HumanReviewDigest | None,
@@ -381,6 +423,16 @@ def build_steps(
         "company_research": company_research_result,
         "portfolio_review": portfolio_review_result,
         "memory_evaluation": memory_evaluation_result,
+        "company_file_factual_updates": (
+            factual_update_result_to_dict(company_file_factual_updates)
+            if company_file_factual_updates
+            else {"status": "not_run"}
+        ),
+        "category_state_updates": (
+            category_state_update_result_to_dict(category_state_updates)
+            if category_state_updates
+            else {"status": "not_run"}
+        ),
         "agent_orchestrator": orchestrator_result,
         "orchestrator_proposal_review": proposal_review_result,
         "final_digest": weekly_digest_to_dict(weekly_digest) if weekly_digest else {"status": "not_written"},
@@ -402,6 +454,8 @@ def next_actions(
     company_research_result: dict[str, Any] | None = None,
     portfolio_review_result: dict[str, Any] | None = None,
     memory_evaluation_result: dict[str, Any] | None = None,
+    company_file_factual_updates: FactualUpdateResult | None = None,
+    category_state_updates: CategoryStateUpdateResult | None = None,
     orchestrator_result: dict[str, Any] | None = None,
     weekly_digest: WeeklyDigest | None = None,
     human_review_digest: HumanReviewDigest | None = None,
@@ -429,6 +483,13 @@ def next_actions(
         actions.append("Review portfolio review output before accepting final synthesis.")
     if memory_evaluation_result and memory_evaluation_result.get("status") in {"partial", "needs_human_review", "blocked"}:
         actions.append("Review memory/evaluation output before accepting the learning loop as complete.")
+    if company_file_factual_updates:
+        if company_file_factual_updates.status == "blocked":
+            actions.append("Review blocked company-file factual updates before accepting company-file sync.")
+        elif company_file_factual_updates.items:
+            actions.append("Review `company_file_factual_updates.md` for the FYI summary of factual company-file changes.")
+    if category_state_updates and category_state_updates.status == "blocked":
+        actions.append("Review blocked category-state updates before accepting stock-tracking state sync.")
     if not write:
         actions.append("Use `--write --execute-orchestrator` after deterministic artifacts are ready to run SDK synthesis.")
     elif not orchestrator_result or orchestrator_result.get("status") == "not_run":
@@ -644,6 +705,7 @@ GENERATED_RUN_ROOT_FILES = (
     "memory_writer_prompt.md",
     "memory_writer_review.json",
     "memory_writer_review.md",
+    "archive_proposals.md",
     "agent_runtime_main_orchestrator.json",
     "agent_runtime_main_orchestrator.md",
     "orchestrator_update_proposals.md",
@@ -653,6 +715,7 @@ GENERATED_RUN_ROOT_FILES = (
     "orchestration_report.md",
     "final_digest.json",
     "final_digest.md",
+    "company_file_factual_updates.md",
 )
 
 
@@ -701,6 +764,8 @@ def format_scheduled_run_report_markdown(result: ScheduledRunResult) -> str:
         f"- quality_report: {result.steps['quality_report'].get('metrics', {}).get('findings', 'not_written')} finding(s)",
         f"- memory_finalization: {result.steps['memory_finalization'].get('status', 'not_written')}",
         f"- memory_writer_review: {result.steps['memory_writer_review'].get('mode', 'not_written')}",
+        f"- company_file_factual_updates: {result.steps['company_file_factual_updates'].get('status', 'not_run')} ({len(result.steps['company_file_factual_updates'].get('items', []))} item(s))",
+        f"- category_state_updates: {result.steps['category_state_updates'].get('status', 'not_run')} ({len(result.steps['category_state_updates'].get('items', []))} item(s))",
         f"- company_research: {result.steps['company_research'].get('status', 'not_run')} ({len(result.steps['company_research'].get('results', []))} ticker(s))",
         f"- final_digest: {result.steps['final_digest'].get('status', 'not_written')} ({result.steps['final_digest'].get('ticker_count', 0)} ticker(s))",
         f"- human_review_digest: {result.steps['human_review_digest'].get('status', 'not_written')} ({result.steps['human_review_digest'].get('open_item_count', 0)} open item(s))",

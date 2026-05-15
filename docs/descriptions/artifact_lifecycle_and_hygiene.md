@@ -1,6 +1,6 @@
 # Artifact Lifecycle And Hygiene
 
-Last updated: 2026-05-15
+Last updated: 2026-05-16
 
 ## Goal
 
@@ -25,6 +25,38 @@ Active truth should live in:
 
 Run artifacts under `agents/runs/` are evidence and audit history. They are useful, but they should not become the primary place to find current investment state.
 
+## Current Implementation
+
+The hygiene layer is implemented as inventory, proposal, and archive-move commands:
+
+```powershell
+python -m stock_research artifact-hygiene inventory --write
+python -m stock_research artifact-hygiene archive
+python -m stock_research artifact-hygiene archive --write
+```
+
+Inventory scans markdown report artifacts under `agents/runs/` and `archive/runs/`, classifies them as `active_keep`, `recent_keep`, `review_blocked`, `archive_candidate`, or `archived`, and writes:
+
+```text
+archive/research_index.md
+```
+
+Archive moves are dry-run by default. With `--write`, only `archive_candidate` markdown artifacts are moved to:
+
+```text
+archive/runs/{year}/{run_id}/...
+```
+
+The command never moves active ticker artifacts, open human-review context, stock info files, or non-markdown raw/evidence files. It writes `archive/archive_move_report.md` and refreshes `archive/research_index.md`.
+
+Run finalization writes archive proposals into:
+
+```text
+agents/runs/{run_id}/archive_proposals.md
+```
+
+This tells the user/Codex what would be eligible for archive before any move command is run.
+
 ## Proposed Archive Structure
 
 ```text
@@ -44,23 +76,21 @@ This structure can be added later. For now, the important part is to plan for it
 
 ## Research Index
 
-Create a durable index when archive automation starts:
+The durable index is:
 
 ```text
 archive/research_index.md
 ```
 
-Each row should track:
+The current index tracks:
 
+- status: active_keep, recent_keep, review_blocked, archive_candidate, or archived
+- run id
+- artifact type
 - ticker or topic
-- company/topic name
-- status: active_holding, monitoring, rejected_cooldown, rejected_archive, archived, superseded
-- latest active file
-- archived evidence path
-- last reviewed date
-- next eligible review date
-- reason archived or rejected
-- confidence / usefulness note
+- age in days when the run id contains a date
+- artifact path
+- reason for the classification
 
 This lets Codex answer: "Have we researched this before, and where is the material?"
 
@@ -111,11 +141,11 @@ Ignored local JSON/raw/evidence artifacts should remain local runtime outputs un
 
 ## Automation Backlog
 
-1. Add `archive/research_index.md`.
-2. Add an artifact inventory command that lists active vs stale run artifacts.
-3. Add an archive command that moves old run markdown into `archive/` and updates the index.
-4. Add guardrails so archiving never removes active holding/monitoring company files.
-5. Add run-finalization logic that proposes archive candidates after reports are promoted into durable company/market/strategy files.
+1. [x] Add `archive/research_index.md`.
+2. [x] Add an artifact inventory command that lists active vs stale run artifacts.
+3. [x] Add an archive command that moves old run markdown into `archive/` and updates the index.
+4. [x] Add guardrails so archiving never removes active holding/monitoring company files.
+5. [x] Add run-finalization logic that proposes archive candidates after reports are promoted into durable company/market/strategy files.
 
 ## Guardrails
 

@@ -1,6 +1,6 @@
 # Current Holdings State
 
-Last updated: 2026-05-11
+Last updated: 2026-05-16
 
 ## Current View
 
@@ -35,3 +35,10 @@ Last updated: 2026-05-11
 
 - 2026-04-30: Created initial state file template.
 - 2026-05-11: Added AMZN as the first current holding for full workflow validation.
+
+## Automated State Updates
+
+| Date | Update ID | Category | Summary | Source |
+| --- | --- | --- | --- | --- |
+| 2026-05-16 | CATSTATE-2026-05-16_weekly | current_holdings | 1 current holding(s): AMZN. | [agents/runs/2026-05-16_weekly/final_digest.md](agents/runs/2026-05-16_weekly/final_digest.md) |
+

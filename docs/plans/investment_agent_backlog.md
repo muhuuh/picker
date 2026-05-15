@@ -1,6 +1,6 @@
 # Investment Agent Backlog
 
-Last updated: 2026-05-15
+Last updated: 2026-05-16
 
 ## Purpose
 
@@ -266,11 +266,16 @@ This is the clear task backlog for building the stock tracking and investment re
 - [x] Build contradiction and risk specialist.
   - Description: SDK risk/thesis specialist is included in company-research fanout and reviews thesis impact, contradictions, and risk deltas from the aggregated packet.
 - [ ] Build human request triage specialist.
-- [ ] Build company file updater.
-  - Current progress: deterministic approved-proposal writer exists for SDK proposals with `agent-runtime apply-proposal --proposal-id ORP-0001 --write`; SDK writer specialist now drafts proposal-ready updates inside company-research fanout. Broader automatic company-file update strategy is still approval-gated and pending.
+- [x] Build company file updater.
+  - Current progress: deterministic approved-proposal writer exists for SDK proposals with `agent-runtime apply-proposal --proposal-id ORP-0001 --write`; SDK writer specialist now drafts proposal-ready updates inside company-research fanout.
   - New UX target: split company-file changes into low-risk factual updates that can be auto-applied with a clear run summary, versus thesis/status/strategy-changing updates that remain approval-gated in the human review digest.
   - 2026-05-15 user feedback: routine source-backed company-file edits should not ask for approval. Build a scoped factual-update writer that applies low-risk updates and writes an FYI summary showing file, section, source, and short change summary. Keep thesis/opinion/status/strategy/trade-impacting edits approval-gated.
-- [ ] Build category state updater.
+  - 2026-05-16 progress: implemented `python -m stock_research company-file apply-factual-updates --run-id RUN_ID --write`, wired it into weekly runs after executed analysis when opportunity-assessment artifacts exist, wrote `agents/runs/{run_id}/company_file_factual_updates.md`, and refreshed AMZN with clean factual rows. Remaining: broaden beyond opportunity assessments if needed and add thesis/status proposal UX tests.
+  - 2026-05-16 completion: thesis/status proposal UX tests now verify approval gating and approved generic-section writes; future enhancements are extension work, not a readiness blocker.
+- [x] Build category state updater.
+  - Description: append source-linked bucket summaries to holdings, monitoring, and rejected state files without overwriting human notes.
+  - Current command: `python -m stock_research category-state update --run-id RUN_ID --write`.
+  - 2026-05-16 progress: wired into weekly runs and applied to the current AMZN/AAPL repo state.
 - [ ] Build CSV updater.
 - [x] Build quality reviewer.
   - Description: SDK quality-review specialist is included in company-research fanout for citation/source/approval-gate checks.
@@ -300,11 +305,10 @@ This is the clear task backlog for building the stock tracking and investment re
   - Rule: notifications summarize `agents/human_review_digest.md`; they are not approvals.
   - Future option: evaluate strict Gmail reply ingestion only after digest quality is stable, with duplicate detection, identity checks, and deterministic decision writing.
   - Timing: implement after the manual review digest is reliable and after the scheduled/manual run flow is stable enough to avoid noisy alerts.
-- [ ] Add run-end review digest summary.
+- [x] Add run-end review digest summary.
   - Description: every manual/weekly run should finish by refreshing or summarizing `agents/human_review_digest.md`, including new high-priority items and what the human can decide next.
   - Reason: the user should not need to remember to open review files manually.
-  - Current progress: weekly `run-weekly --write` refreshes `agents/human_review_digest.md`, includes it in the workflow step output, and adds a next action when open HRQ items need approve/reject/more-research/leave-open decisions.
-  - Still pending: add the same end-of-run digest refresh/summary behavior to manual market/company research paths.
+  - Current progress: weekly `run-weekly --write` refreshes `agents/human_review_digest.md`, includes it in the workflow step output, and adds a next action when open HRQ items need approve/reject/more-research/leave-open decisions. Manual market-research runs, candidate-review runs, and SDK `agent-runtime run --write` now write a run-local `human_review_digest_summary.md`.
 - [x] Build company research sub-orchestrator.
   - Description: coordinates filings, news, financials, sentiment, and risk checks for one ticker.
   - Current progress: first SDK version registered as `company_research_orchestrator`; it builds a one-ticker lane packet, uses financial, company-news, company-search, filing, sentiment, risk/thesis, writer, and quality-review fanout, writes per-ticker scheduled artifacts, and aggregates partial results into next-run tasks.
@@ -396,7 +400,8 @@ This is the clear task backlog for building the stock tracking and investment re
   - Current progress: weekly digest and opportunity assessment golden tests cover evidence links, missing evidence, Grok/X social-signal labeling, direct trade language, readable financial formatting, taxonomy-only conflict handling, and missing provider/source ids.
   - 2026-05-12 progress: added investor-usefulness regression coverage for status-only Grok/X output, richer opportunity-report section coverage, and manual market-research report sections/decision wording.
   - 2026-05-13 progress: targeted report-quality tests pass after removing visible truncation and duplicate human-facing sections from generated reports.
-  - Gap: extend golden fixture cases with stronger examples modeled on the user-provided Grok PDFs, especially fresh live Grok/X industry discovery and company sentiment runs. Add regression coverage that full raw Grok artifacts feed reports when evidence packet claims are truncated, broad Grok baskets stay concise and thematically named, source references are clickable, and reports do not reintroduce duplicate sections.
+  - 2026-05-16 progress: added golden human-facing markdown quality checks for visible truncation, dead numeric citations, unlinked source ids, raw dict/JSON-like dumps, duplicate sections, and status-only Grok/X sentiment; added archive, category-state, run-end digest, and thesis/status proposal UX tests.
+  - Gap: keep extending fixture cases with stronger examples modeled on the user-provided Grok PDFs, especially fresh live Grok/X industry discovery and company sentiment runs. Add more regression coverage that full raw Grok artifacts feed reports when evidence packet claims are truncated and broad Grok baskets stay concise and thematically named.
 - [ ] Strengthen guardrails.
   - Description: enforce no writes outside allowed targets, no Grok-only promotion, no overconfident claims without sources, and no buy/sell/position-size action outside human review.
   - Current progress: final digest and opportunity assessment validators now enforce evidence/source presence, social-signal labeling, direct trade-language blocking, and taxonomy-only conflict handling.
@@ -410,9 +415,9 @@ This is the clear task backlog for building the stock tracking and investment re
   - Description: after manual quality is stable, use Codex/app automation or external scheduler for Saturday runs and review notifications.
 - [ ] Wire scheduled market-research fanout later.
   - Description: keep market research manual-first until prompts, candidate quality, and review workflow are stable.
-- [ ] Add artifact lifecycle and archive hygiene.
+- [x] Add artifact lifecycle and archive hygiene.
   - Description: prevent `agents/runs/`, company reports, and candidate artifacts from becoming an unbounded active working set.
-  - Current plan: `docs/descriptions/artifact_lifecycle_and_hygiene.md` defines an archive/index approach. Future implementation should add an archive index, artifact inventory command, archive/move command, and run-finalization proposals for stale artifacts after active findings are promoted into stock/market/strategy files.
+  - Current progress: `docs/descriptions/artifact_lifecycle_and_hygiene.md` defines the archive/index approach. `python -m stock_research artifact-hygiene inventory --write` writes `archive/research_index.md`; `python -m stock_research artifact-hygiene archive [--write]` dry-runs or moves only archive-eligible markdown reports into `archive/runs/`; run finalization writes `archive_proposals.md`.
   - Guardrails: never archive active holding/monitoring company files, never delete evidence by default, never archive unresolved HRQ context, and keep rejected cooldown/reason discoverable.
 
 ## Open Decisions

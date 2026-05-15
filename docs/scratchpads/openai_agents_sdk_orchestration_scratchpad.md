@@ -278,3 +278,21 @@ run-weekly
   - `agents/runs/2026-05-10_manual-market-energy-storage/market_research/grid_scale_energy_storage_market_research.md`
 - Dependency install command used: `python -m pip install -e .`.
 - Install warning observed: `openai-agents` pulled `starlette 1.0.0`, which conflicts with an unrelated installed `fastapi 0.117.1` requirement in this environment. The repo does not currently use FastAPI, but revisit this if a FastAPI service is added later.
+- 2026-05-16 company-file/hygiene slice:
+  - Implemented scoped factual company-file updater: `python -m stock_research company-file apply-factual-updates --run-id RUN_ID --write`.
+  - Weekly runner now auto-applies this low-risk factual sync only after executed analysis when opportunity-assessment artifacts exist.
+  - AMZN factual update was refreshed after formatter QA exposed raw dict rendering; formatter now extracts `claim`/`summary` text and formats percent fields.
+  - FYI summary artifact: `agents/runs/2026-05-16_weekly/company_file_factual_updates.md`.
+  - Implemented artifact inventory/index command: `python -m stock_research artifact-hygiene inventory --write`; output `archive/research_index.md`.
+  - Validation: `python -m pytest -q` passed with 207 tests.
+  - Remaining: archive/move command, run-finalization archive proposals, broader thesis/status company-file proposal UX tests, notification/scheduling.
+- 2026-05-16 readiness hardening slice:
+  - Implemented archive move command: `python -m stock_research artifact-hygiene archive [--write]`.
+  - Archive moves are dry-run by default and only move `archive_candidate` markdown artifacts into `archive/runs/{year}/{run_id}/...`; active ticker artifacts and open HRQ context stay in place.
+  - Run finalization now writes `agents/runs/{run_id}/archive_proposals.md`; 2026-05-16 weekly currently has 0 archive candidates at the 30-day threshold.
+  - Implemented run-end human-review summary: `agents/runs/{run_id}/human_review_digest_summary.md` for manual market runs, candidate review, and SDK `agent-runtime run --write`.
+  - Implemented category state updater: `python -m stock_research category-state update --run-id RUN_ID --write`; weekly runs now call it.
+  - Applied category state update to current repo for `2026-05-16_weekly`.
+  - Added thesis/status proposal UX test and human-facing report-quality golden tests.
+  - Validation: focused readiness tests passed; full `python -m pytest -q` passed with 213 tests.
+  - Remaining before remote/set-and-forget use: notification/scheduling automation, optional email digest, model optimization, scheduled market-research fanout after manual loop remains stable, and ongoing report-quality iteration from new real outputs.
