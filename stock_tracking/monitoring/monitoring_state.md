@@ -1,22 +1,23 @@
 # Monitoring State
 
-Last updated: 2026-05-16
+Last updated: 2026-05-15
 
 ## Current View
 
-- AAPL was added as a monitoring workflow validation seed, not as a confirmed investment candidate.
+- Monitoring is currently empty.
+- AAPL was an earlier workflow validation seed and has been removed from `monitoring.csv` so the first live automation run focuses on the user's actual holdings.
 
 ## Watchlist Thesis
 
-- Current monitoring bucket contains a test seed used to validate provider, manifest, and analysis-task workflow behavior.
+- TODO: add real monitored companies when the user wants ongoing tracking before buying.
 
 ## Important Changes Since Last Review
 
-- 2026-05-04: AAPL financial specialist review reported `ready_for_company_update` from existing AAPL evidence packets.
+- 2026-05-15: Removed AAPL validation seed from active monitoring.
 
 ## High-Priority Reviews
 
-- AAPL: validate workflow outputs, then decide whether to keep as real monitoring candidate or replace with actual watchlist names.
+- None currently.
 
 ## Candidate Alerts
 
@@ -28,22 +29,21 @@ Last updated: 2026-05-16
 
 ## Planned Next Steps
 
-- Regenerate weekly manifest and confirm AAPL provider/analysis tasks are planned.
-- Run deterministic analysis tasks for AAPL from the manifest.
-- Decide whether AAPL stays as a monitored stock after validation.
+- Add real watchlist names when the user confirms monitoring candidates.
 
 ## Open Questions
 
-- Is AAPL only a test seed, or should it become a real monitored candidate?
+- Which non-held companies should be monitored separately from current holdings?
 
 ## Change Log
 
 - 2026-04-30: Created initial state file template.
 - 2026-05-04: Added AAPL as monitoring workflow validation seed.
+- 2026-05-15: Removed AAPL validation seed from active monitoring.
 
 ## Automated State Updates
 
 | Date | Update ID | Category | Summary | Source |
 | --- | --- | --- | --- | --- |
-| 2026-05-16 | CATSTATE-2026-05-16_weekly | monitoring | 1 monitored stock(s): AAPL. | [agents/runs/2026-05-16_weekly/final_digest.md](agents/runs/2026-05-16_weekly/final_digest.md) |
+| 2026-05-15 | MANUAL-MONITORING-UPDATE | monitoring | Monitoring is empty after removing the AAPL validation seed. | [monitoring.csv](stock_tracking/monitoring/monitoring.csv) |
 

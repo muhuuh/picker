@@ -310,3 +310,9 @@ run-weekly
   - Updated `C:\Users\valen\.codex\rules\default.rules` with narrow `prefix_rule` entries for the exact command and the equivalent PowerShell wrapper.
   - Validated with `codex execpolicy check`: exact direct command and PowerShell wrapper return `decision: allow`; `git fetch` and arbitrary `stock_research provider-tasks --execute` remain unallowlisted.
   - Dry-run with `C:\Python313\python.exe -m stock_research run-weekly` succeeds from repo root, confirming editable install/Python entrypoint works.
+- 2026-05-15 holdings update:
+  - Replaced the old AMZN validation holding with the user's current holding list: AXTI, NBIS, MU, GOOGL, IREN, OSS, TE, AMBA, AVAV, KRKNF.
+  - Removed the AAPL monitoring validation seed so `Run now` focuses on real holdings only.
+  - Created current-holding company stub files for all 10 tickers.
+  - Ticker assumptions to verify with user later if needed: `Ambarelly` -> AMBA / Ambarella Inc.; `Iren` -> NASDAQ IREN Limited; Kraken Robotics -> OTCQB KRKNF for US ticker compatibility, with primary Canadian listing TSX-V PNG.
+  - Dry-run validation: repo has 10 current holdings, 0 monitoring rows, `run-weekly` plans 81 provider tasks and 50 analysis tasks for run id `2026-05-16_weekly`.
