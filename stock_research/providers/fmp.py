@@ -84,13 +84,89 @@ def build_fmp_company_packet(
     fetcher: Callable[[FmpCompanyOptions, str], dict[str, Any]] = fetch_fmp_company_snapshot,
 ) -> tuple[EvidencePacket, list[Path]]:
     today = current_date or date.today()
-    snapshot = fetcher(options, api_key)
     ticker = options.ticker.upper()
+    try:
+        snapshot = fetcher(options, api_key)
+    except FmpError as exc:
+        if not is_subscription_unavailable_error(exc):
+            raise
+        snapshot = unavailable_snapshot(ticker, exc)
+        raw_path = write_raw_artifact(root, run_id, ticker, snapshot)
+        packet = fmp_unavailable_to_packet(ticker, snapshot, raw_path, today)
+        packet_path = default_packet_path(root, run_id, packet)
+        write_packet(packet, packet_path)
+        return packet, [packet_path, raw_path]
+
     raw_path = write_raw_artifact(root, run_id, ticker, snapshot)
     packet = fmp_snapshot_to_packet(ticker, snapshot, raw_path, today, options.include_statements)
     packet_path = default_packet_path(root, run_id, packet)
     write_packet(packet, packet_path)
     return packet, [packet_path, raw_path]
+
+
+def is_subscription_unavailable_error(error: Exception) -> bool:
+    message = str(error).lower()
+    return "http 402" in message or "premium query parameter" in message or "subscription" in message
+
+
+def unavailable_snapshot(ticker: str, error: Exception) -> dict[str, Any]:
+    return {
+        "ticker": ticker.upper(),
+        "status": "subscription_unavailable",
+        "provider": "fmp",
+        "error": str(error),
+    }
+
+
+def fmp_unavailable_to_packet(
+    ticker: str,
+    snapshot: dict[str, Any],
+    raw_path: Path,
+    today: date,
+) -> EvidencePacket:
+    ticker_upper = ticker.upper()
+    source_id = "fmp_subscription_unavailable"
+    source = Source(
+        source_id=source_id,
+        provider="fmp",
+        source_type="market_data",
+        title=f"FMP unavailable for {ticker_upper} under current subscription",
+        url=FMP_DOCS,
+        publisher="Financial Modeling Prep",
+        accessed_at=today.isoformat(),
+        artifact_path=raw_path.as_posix(),
+        notes="The configured FMP key returned a subscription/tier limitation. This is a provider-coverage gap, not company evidence.",
+    )
+    return new_packet(
+        provider="fmp",
+        subject_type="company",
+        subject_id=ticker_upper,
+        time_window="subscription_unavailable",
+        current_date=today,
+        sources=[source],
+        claims=[
+            Claim(
+                claim=f"FMP data was unavailable for {ticker_upper} under the current subscription.",
+                evidence=json.dumps(
+                    {
+                        "status": snapshot.get("status"),
+                        "provider": "fmp",
+                        "error_type": "subscription_unavailable",
+                    },
+                    sort_keys=True,
+                ),
+                source_ids=[source_id],
+                confidence="high",
+                impact="low",
+                novelty="new",
+            )
+        ],
+        unknowns=[
+            "FMP fundamentals were unavailable under the current subscription; rely on yfinance, Polygon/Massive, Alpha Vantage, SEC, and source-backed research for this run."
+        ],
+        raw_artifact_path=raw_path.as_posix(),
+        notes="Unavailable-provider packet written so planned-provider quality gates distinguish subscription coverage gaps from missing execution.",
+    )
 
 
 def fmp_snapshot_to_packet(

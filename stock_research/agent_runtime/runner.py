@@ -3,15 +3,15 @@ from __future__ import annotations
 from dataclasses import dataclass
 import asyncio
 from datetime import datetime, timezone
-from typing import Any
-
-from agents import RunConfig, Runner, flush_traces
+from typing import TYPE_CHECKING, Any
 
 from stock_research.agent_runtime.context import ResearchRunContext
-from stock_research.agent_runtime.registry import build_agent
 from stock_research.agent_runtime.reports import evaluate_runtime_output_quality, output_to_dict, write_agent_runtime_report
 from stock_research.agent_runtime.tracing import LocalRunHooks, LocalRunMetric, LocalRunTelemetry, write_run_metrics, write_trace_links
 from stock_research.model_routing import ModelRoute, resolve_model_for_route
+
+if TYPE_CHECKING:
+    from agents import RunConfig
 
 
 @dataclass(frozen=True)
@@ -25,7 +25,9 @@ class AgentRuntimeResult:
     metrics: tuple[LocalRunMetric, ...] = ()
 
 
-def build_run_config(context: ResearchRunContext, *, model: str | None = None, agent_id: str | None = None) -> RunConfig:
+def build_run_config(context: ResearchRunContext, *, model: str | None = None, agent_id: str | None = None) -> "RunConfig":
+    from agents import RunConfig
+
     resolved = resolve_agent_model(context, agent_id or context.task, model)
     return RunConfig(
         model=resolved.model,
@@ -50,6 +52,10 @@ async def run_agent(
     telemetry: LocalRunTelemetry | None = None,
     timeout_seconds: float | None = None,
 ) -> AgentRuntimeResult:
+    from agents import Runner
+
+    from stock_research.agent_runtime.registry import build_agent
+
     agent = build_agent(agent_id, context)
     resolved_model = resolve_agent_model(context, agent_id, model)
     if telemetry:
@@ -126,6 +132,8 @@ def run_agent_sync(
         )
     finally:
         try:
+            from agents import flush_traces
+
             flush_traces()
         except Exception:
             pass

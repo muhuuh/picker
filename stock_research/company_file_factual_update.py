@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 from dataclasses import asdict, dataclass, field
 from datetime import date
 from pathlib import Path
@@ -471,6 +472,8 @@ def remove_existing_update_rows(text: str, update_id: str) -> str:
 
 
 def clean_cell(value: str) -> str:
+    value = re.sub(r"\[\[\d+\]\]\([^)]+\)", "", value)
+    value = re.sub(r"(?<!\w)\[(\d+)\](?!\()", "", value)
     return " ".join(value.replace("|", "/").split())
 
 

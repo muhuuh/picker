@@ -614,3 +614,31 @@ Operational memory for workflow routing, orchestration, run ordering, and user c
 - evidence: `C:\Users\valen\.codex\automations\biweekly-holdings-and-monitoring-research\automation.toml`, `C:\Users\valen\.codex\rules\default.rules`, `docs/descriptions/scheduled_runner.md`
 - owner: main orchestrator
 - next_review: 2026-06-15
+
+- id: orch-2026-05-16-codex-supervised-run-weekly-must-keep-openai-age
+- date: 2026-05-16
+- type: procedural
+- scope: orchestrator
+- status: active
+- confidence: high
+- trigger/source: 2026-05-16 Codex-supervised automation import blocker
+- lesson: Codex-supervised run-weekly must keep OpenAI Agents SDK imports lazy so the exact lower-cost command works with C:\Python313 even when openai-agents is not installed; import SDK paths only for --execute-orchestrator, scheduled company research, or agent-runtime features.
+- use_when: Changing CLI, scheduled_runner, agent_runtime package imports, or Codex-supervised automation code paths.
+- do_not_use_when: Running API SDK benchmark or remote/headless SDK synthesis, where openai-agents remains a required dependency.
+- evidence: stock_research/scheduled_runner.py, stock_research/agent_runtime/__init__.py, agents/runs/2026-05-16_weekly/codex_supervised_review_pack.md
+- owner: main orchestrator
+- next_review: 2026-06-16
+
+- id: orch-2026-05-16-human-report-quality-gates
+- date: 2026-05-16
+- type: procedural
+- scope: quality
+- status: active
+- confidence: high
+- trigger/source: First real Codex-supervised weekly run produced reports that passed coarse checks but still contained mojibake, dead citation fragments, and dangling excerpt tails.
+- lesson: Do not judge human-facing research output as good only because provider tasks completed. Validate final digests, opportunity reports, and human-review digests for encoding artifacts, dead source ids, visible truncation, duplicate sections, and dangling sentence fragments; regenerate reports from existing evidence before asking the user to review.
+- use_when: Ending weekly/manual runs, changing report formatting, reviewing Codex-supervised output, or claiming a run is ready for human review.
+- do_not_use_when: Raw provider artifacts or machine-readable JSON, where partial snippets may be preserved for debugging.
+- evidence: `stock_research/report_quality.py`, `stock_research/report_formatting.py`, `tests/test_report_quality_golden.py`, `agents/runs/2026-05-16_weekly/reports/opportunity_assessment/AMBA_opportunity_assessment.md`
+- owner: quality reviewer
+- next_review: 2026-06-16

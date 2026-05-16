@@ -140,7 +140,7 @@ Out of scope for the first slice:
 - [x] Add final weekly-style digest artifact.
   - Current implementation: `stock_research/weekly_digest.py` writes `agents/runs/{run_id}/final_digest.md/json` with per-ticker opportunity view, financial facts, news/trends/sentiment, filing coverage, watch items, and next actions.
   - Current quality gates: digest validation requires existing opportunity, financial-review, and company-news evidence links; flags direct trade language; flags Grok/X labels that are not explicitly social signals; writes digest quality findings when gates fail.
-  - Validation: AMZN/AAPL weekly-style run wrote `agents/runs/2026-05-16_weekly/final_digest.md`; deterministic digest status is `ready` with no digest quality findings.
+  - 2026-05-16 real-holdings validation: rebuilt `agents/runs/2026-05-16_weekly/final_digest.md` after automation hardening. It now has 10 ticker assessments, 0 digest quality findings, and status `needs_review` because several financial reviews still need human review.
 - [x] Build market research sub-orchestrator.
   - Coordinates industry/theme research, discovery, candidate validation, and strategy fit.
   - Current progress: first SDK version registered as `market_research_orchestrator`; it builds an industry/theme packet and runs Exa industry, Grok/X discovery, candidate discovery, and quality-review fanout. Manual market research is now available through `python -m stock_research market-research run --topic TOPIC --subject-type industry|theme --write [--execute-providers] [--execute-orchestrator]`. The manual path writes a market report, candidate lead schema, and discovery quality gates. Grok/X is a required discovery lane for niche trends, hype, rumors, sentiment, and emerging ticker leads; promotion still requires Exa/filing/market-data verification.
@@ -177,6 +177,7 @@ Out of scope for the first slice:
   - 2026-05-12 fresh live pass: live Grok/X + Exa market research for `AI semiconductor supply chain and advanced packaging` now preserves the full raw Grok sections in the human report: X pulse, trend evolution, bull/bear narratives, candidate follow-up, investor scorecard, hype/noise/rumors, and verification tasks. Long provider packet filenames are compacted to avoid Windows path failures.
   - 2026-05-13 report cleanup pass: five human-facing review artifacts were tightened after user feedback. The report formatters now avoid visible `...`/`[...]` truncation, market reports no longer mix duplicate audit sections into the main storyline, opportunity reports no longer duplicate financial/news/Grok sections, market source ids are clickable, candidate review has a clear purpose/how-to-use section, and the HRQ digest explains category semantics and what approval does.
   - 2026-05-13 second report-quality pass: market reports now rank current/material context above stale background, remove inline Grok citation markers from prose, expand X/community pulse extraction, clarify Grok/X raw scorecard vs normalized candidate pipeline, and use a decision table instead of a wall of text. HRQ digest rows link evidence and hide raw source-id walls. Opportunity/weekly reports now extract strategic AI ecosystem items such as Anthropic, Claude, Bedrock, Trainium, OpenAI, NVIDIA, and Cerebras as explicit tailwinds/non-obvious angles when evidence-backed.
+  - 2026-05-16 automation postmortem pass: human-facing validation now catches mojibake/encoding artifacts, dead citation markers, dead source-id brackets, visible truncation, duplicate top-level sections, status-only Grok text, and dangling excerpt tails. Opportunity generation now repairs common mojibake, strips Grok `[[n]]` markers, synthesizes repeated raw excerpts into investor-readable claims, and treats missing forward P/E/analyst targets as a data-quality note when other valuation context exists.
 - [x] Add first deterministic output quality gates.
   - Implemented checks: summary/status shape, direct trade wording, valid memory item ids, existing file targets, source-backed update proposals, and existing source artifact paths.
 - [ ] Keep buy/sell/position-size recommendations as human review items.
@@ -235,6 +236,7 @@ Out of scope for the first slice:
   - Current command: `C:\Python313\python.exe -m stock_research run-weekly --write --execute-providers --execute-analysis`.
   - Current mode: Codex-supervised. Python writes deterministic artifacts and `codex_supervised_review_pack.md`; Codex GPT-5.5 high reads the pack and writes `codex_supervised_review.md`.
   - Sandbox note: `C:\Users\valen\.codex\rules\default.rules` allowlists this exact command and the equivalent PowerShell wrapper. `codex execpolicy check` returns `decision: allow` for the exact command; broad Git commands and arbitrary provider execution are not allowlisted. The previous `--execute-orchestrator` command is now only an explicit API SDK benchmark/remote-mode path.
+  - 2026-05-16 first real Codex-supervised automation follow-up: root causes were lazy SDK import gaps, stale generated directories from old API-mode artifacts, provider tier/rate-limit handling, and report-quality gates that were too weak for smaller/newer holdings. FMP/Alpha unavailable responses now produce explicit coverage-gap packets; cleanup removes stale `portfolio_review` and `memory_evaluation`; the regenerated 10-holding run has 131 evidence packets, 0 provider errors, and 0 deterministic quality findings.
 - [x] Investigate scheduled main SDK connection failure and prompt/context size.
   - Resolution: after OpenAI API credit was added, scheduled `run-weekly --execute-orchestrator` reached the live model path and completed.
   - Follow-up fix: runtime quality gates were tightened so valid report artifact paths can back proposal `source_ids`, and direct trade-language checks no longer flag ordinary business text such as `Sell on Amazon`.
@@ -259,7 +261,7 @@ Out of scope for the first slice:
   - Still pending: add explicit golden tests for no visible truncation, no duplicate report sections, clickable source references, and clear HRQ/candidate-review decision semantics.
   - Still pending: stronger golden fixture cases modeled after the user-provided Grok PDFs, especially tests that enforce account-aware sentiment summaries, full raw Grok text usage, and post-approval ranking inside candidate baskets.
 - [ ] Add failure-injection tests for provider failure, malformed specialist output, missing citations, and timeout behavior.
-  - Current progress: timeout and runtime-error failure injection tests are implemented for `run_agent_sync`; provider failure, malformed specialist output, and missing-citation golden tests remain.
+  - Current progress: timeout and runtime-error failure injection tests are implemented for `run_agent_sync`; FMP subscription-unavailable and Alpha rate-limit unavailable packet tests are implemented. Remaining: malformed specialist output, missing-citation golden tests, and broader provider hard-failure cases that should not be converted to unavailable packets.
 - [ ] Add quality gates for no direct writes outside allowed targets.
 - [ ] Add human-review lifecycle tests.
   - Target behavior: stale approvals, duplicate HRQ ids, unsupported statuses, notification-only digests, and waiting-for-human branches are handled deterministically.
@@ -276,7 +278,7 @@ Out of scope for the first slice:
 - [x] Add repo-local model routing config.
   - Current file: `agents/model_routing.yaml`.
   - Includes OpenAI strong/balanced/fast/nano tiers, Codex manual-mode defaults, and xAI/Grok X-search tier.
-  - Strong, balanced, and fast OpenAI API tiers default to `gpt-5.5` for quality until we deliberately select a cheaper confirmed model; xAI X-search defaults to `grok-4.3`.
+  - Strong OpenAI API tier defaults to `gpt-5.5`; balanced/fast/nano tiers default to `gpt-5.4-mini` for cost control; xAI X-search defaults to `grok-4.3`.
 - [x] Add `stock_research/model_routing.py`.
   - Precedence: explicit CLI arg > environment override > repo config default.
   - Expose helper functions for OpenAI Agents SDK runtime, memory writer, and xAI/Grok provider tasks.
@@ -300,6 +302,8 @@ Out of scope for the first slice:
   - Review contract: `agents/runs/{run_id}/codex_supervised_review_pack.md` tells Codex which reports, memory artifacts, human-review artifacts, and hygiene/state files to inspect before writing `agents/runs/{run_id}/codex_supervised_review.md`.
   - Do not mix Codex SDK into the core stock workflow until it is tested separately.
   - Current policy: Codex app/automation can use GPT-5.5 high as the human-supervised runner for repo commands, report review, prompt iteration, final synthesis, and file edits; repo Python cannot directly call the current Codex chat model as an internal function. API SDK mode remains available for remote/headless execution, structured traces, and benchmarking.
+  - 2026-05-16 first automation hardening: the non-SDK weekly command now keeps OpenAI Agents SDK imports lazy, so `C:\Python313` can run Codex-supervised mode without `openai-agents` installed. Follow-up test hardening covered runtime helper imports and injected-executor paths. Opportunity/factual-update formatting was also tightened to strip Grok `[[n]]` citation markers from human-facing prose.
+  - 2026-05-16 report-quality hardening: final digest, HRQ digest, and all 10 opportunity reports pass `validate_human_facing_markdown`; weekly digest now uses the same deduped HRQ builder as `agents/human_review_digest.md`.
 
 ## Planned Runtime Diagram
 
@@ -360,3 +364,4 @@ Proposal writer status: `python -m stock_research agent-runtime apply-proposal -
 - Email/Gmail should start as notification only. Making email replies a canonical approval source requires identity checks, strict parsing, duplicate-event handling, and deterministic decision writes.
 - Current generated-run cleanup is too blunt for iterative report work. Rerunning `run-weekly` on the same run id can remove provider-dependent artifacts when providers are not executed again. Add a safe incremental rebuild/report-regeneration mode before relying on repeated same-run formatting passes.
 - Specialist proposal source ids must be real provider source ids or ticker-specific artifact ids. Generic ids such as `financial_compare_packet` or `company_news_specialist_report` make human-facing reports look sourced while hiding where the claim came from.
+- Smaller/less-covered holdings often lack forward P/E or analyst targets from current providers. Treat this as a data-quality note when trailing valuation context exists, not a hard report-quality failure; otherwise routine company-file factual updates get blocked unnecessarily.

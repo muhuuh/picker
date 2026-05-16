@@ -135,6 +135,12 @@ class ScheduledRunnerTests(unittest.TestCase):
             stale_report = root / "agents/runs/2026-05-09_weekly/reports/stale.md"
             stale_report.parent.mkdir(parents=True)
             stale_report.write_text("# stale\n", encoding="utf-8")
+            stale_portfolio = root / "agents/runs/2026-05-09_weekly/portfolio_review/stale.md"
+            stale_portfolio.parent.mkdir(parents=True)
+            stale_portfolio.write_text("# stale portfolio\n", encoding="utf-8")
+            stale_memory = root / "agents/runs/2026-05-09_weekly/memory_evaluation/stale.md"
+            stale_memory.parent.mkdir(parents=True)
+            stale_memory.write_text("# stale memory\n", encoding="utf-8")
 
             run_weekly_research_workflow(
                 root=root,
@@ -146,6 +152,8 @@ class ScheduledRunnerTests(unittest.TestCase):
 
             self.assertFalse(stale_packet.exists())
             self.assertFalse(stale_report.exists())
+            self.assertFalse(stale_portfolio.exists())
+            self.assertFalse(stale_memory.exists())
 
     def test_weekly_workflow_can_write_company_research_for_tracked_tickers(self):
         with TemporaryDirectory() as temp_dir:

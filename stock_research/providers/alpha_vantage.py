@@ -103,13 +103,89 @@ def build_alpha_vantage_company_packet(
     fetcher: Callable[[AlphaVantageCompanyOptions, str], dict[str, Any]] = fetch_alpha_vantage_company_snapshot,
 ) -> tuple[EvidencePacket, list[Path]]:
     today = current_date or date.today()
-    snapshot = fetcher(options, api_key)
     ticker = options.ticker.upper()
+    try:
+        snapshot = fetcher(options, api_key)
+    except AlphaVantageError as exc:
+        if not is_unavailable_error(exc):
+            raise
+        snapshot = unavailable_snapshot(ticker, exc)
+        raw_path = write_raw_artifact(root, run_id, ticker, snapshot)
+        packet = alpha_vantage_unavailable_to_packet(ticker, snapshot, raw_path, today)
+        packet_path = default_packet_path(root, run_id, packet)
+        write_packet(packet, packet_path)
+        return packet, [packet_path, raw_path]
+
     raw_path = write_raw_artifact(root, run_id, ticker, snapshot)
     packet = alpha_vantage_snapshot_to_packet(ticker, snapshot, raw_path, today, options.include_statements)
     packet_path = default_packet_path(root, run_id, packet)
     write_packet(packet, packet_path)
     return packet, [packet_path, raw_path]
+
+
+def is_unavailable_error(error: Exception) -> bool:
+    message = str(error).lower()
+    return "rate limit" in message or "premium" in message or "please subscribe" in message
+
+
+def unavailable_snapshot(ticker: str, error: Exception) -> dict[str, Any]:
+    return {
+        "ticker": ticker.upper(),
+        "status": "rate_limit_unavailable",
+        "provider": "alpha_vantage",
+        "error": str(error),
+    }
+
+
+def alpha_vantage_unavailable_to_packet(
+    ticker: str,
+    snapshot: dict[str, Any],
+    raw_path: Path,
+    today: date,
+) -> EvidencePacket:
+    ticker_upper = ticker.upper()
+    source_id = "alpha_vantage_rate_limit_unavailable"
+    source = Source(
+        source_id=source_id,
+        provider="alpha_vantage",
+        source_type="market_data",
+        title=f"Alpha Vantage unavailable for {ticker_upper} because of rate limit",
+        url=ALPHA_VANTAGE_DOCS,
+        publisher="Alpha Vantage",
+        accessed_at=today.isoformat(),
+        artifact_path=raw_path.as_posix(),
+        notes="The configured Alpha Vantage key returned a rate-limit/subscription message. This is a provider-coverage gap, not company evidence.",
+    )
+    return new_packet(
+        provider="alpha_vantage",
+        subject_type="company",
+        subject_id=ticker_upper,
+        time_window="rate_limit_unavailable",
+        current_date=today,
+        sources=[source],
+        claims=[
+            Claim(
+                claim=f"Alpha Vantage data was unavailable for {ticker_upper} because of API rate limits or subscription limits.",
+                evidence=json.dumps(
+                    {
+                        "status": snapshot.get("status"),
+                        "provider": "alpha_vantage",
+                        "error_type": "rate_limit_unavailable",
+                    },
+                    sort_keys=True,
+                ),
+                source_ids=[source_id],
+                confidence="high",
+                impact="low",
+                novelty="new",
+            )
+        ],
+        unknowns=[
+            "Alpha Vantage fundamentals were unavailable because of rate limits or subscription limits; rely on yfinance, Polygon/Massive, FMP, SEC, and source-backed research for this run."
+        ],
+        raw_artifact_path=raw_path.as_posix(),
+        notes="Unavailable-provider packet written so planned-provider quality gates distinguish rate-limit coverage gaps from missing execution.",
+    )
 
 
 def alpha_vantage_snapshot_to_packet(

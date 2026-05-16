@@ -5,25 +5,8 @@ import shutil
 from dataclasses import asdict, dataclass, field, replace
 from datetime import date
 from pathlib import Path
-from typing import Any
+from typing import Any, TYPE_CHECKING
 
-from .agent_runtime.context import build_research_run_context
-from .agent_runtime.orchestrators.company_research import (
-    company_research_result_to_dict,
-    run_company_research_sub_orchestrator_sync,
-    write_company_research_report,
-)
-from .agent_runtime.orchestrators.memory_evaluation import (
-    aggregate_memory_evaluation,
-    write_memory_evaluation_report,
-)
-from .agent_runtime.orchestrators.portfolio_review import (
-    aggregate_portfolio_review,
-    write_portfolio_review_report,
-)
-from .agent_runtime.proposal_review import build_proposal_review, proposal_review_to_dict
-from .agent_runtime.reports import build_orchestrator_input, output_status, output_to_dict
-from .agent_runtime.runner import AgentRuntimeResult, run_agent_sync
 from .analysis_runner import AnalysisExecutor, run_analysis_tasks
 from .category_state_updater import (
     CategoryStateUpdateResult,
@@ -55,6 +38,9 @@ from .repo import find_repo_root, load_repo_state
 from .run_finalization import RunFinalization, finalize_run, finalization_to_dict
 from .run_summary import RunSummary, build_run_summary, run_summary_to_dict, write_run_summary
 from .weekly_digest import WeeklyDigest, build_weekly_digest, weekly_digest_to_dict, write_weekly_digest
+
+if TYPE_CHECKING:
+    from .agent_runtime.runner import AgentRuntimeResult
 
 
 @dataclass(frozen=True)
@@ -184,7 +170,18 @@ def run_weekly_research_workflow(
             )
             artifacts.extend(company_research_paths)
 
-        if execute_orchestrator:
+        if execute_orchestrator and orchestrator_executor is None:
+            from .agent_runtime.context import build_research_run_context
+            from .agent_runtime.orchestrators.memory_evaluation import (
+                aggregate_memory_evaluation,
+                write_memory_evaluation_report,
+            )
+            from .agent_runtime.orchestrators.portfolio_review import (
+                aggregate_portfolio_review,
+                write_portfolio_review_report,
+            )
+            from .agent_runtime.reports import output_to_dict
+
             portfolio_context = build_research_run_context(
                 root=repo_root,
                 run_id=run_id,
@@ -208,8 +205,16 @@ def run_weekly_research_workflow(
             memory_paths = write_memory_evaluation_report(memory_context, memory_decision)
             memory_evaluation_result = output_to_dict(memory_decision)
             artifacts.extend(memory_paths)
+        elif execute_orchestrator:
+            portfolio_review_result = {"status": "not_run", "reason": "injected_orchestrator_executor"}
+            memory_evaluation_result = {"status": "not_run", "reason": "injected_orchestrator_executor"}
 
         if execute_orchestrator:
+            from .agent_runtime.context import build_research_run_context
+            from .agent_runtime.proposal_review import build_proposal_review, proposal_review_to_dict
+            from .agent_runtime.reports import build_orchestrator_input
+            from .agent_runtime.runner import run_agent_sync
+
             context = build_research_run_context(
                 root=repo_root,
                 run_id=run_id,
@@ -556,6 +561,24 @@ def run_scheduled_company_research(
     executor=None,
     write_artifacts: bool = False,
 ) -> tuple[dict[str, Any], list[Path]]:
+    from .agent_runtime.context import build_research_run_context
+
+    if executor:
+        from .agent_runtime.fanout import fanout_result_to_dict
+        from .agent_runtime.reports import output_to_dict
+
+        def company_research_result_to_dict(decision, fanout) -> dict[str, Any]:
+            return {"decision": output_to_dict(decision), "fanout": fanout_result_to_dict(fanout)}
+
+        write_company_research_report = write_injected_company_research_report
+        run_company_research_sub_orchestrator_sync = None
+    else:
+        from .agent_runtime.orchestrators.company_research import (
+            company_research_result_to_dict,
+            run_company_research_sub_orchestrator_sync,
+            write_company_research_report,
+        )
+
     tickers = scheduled_company_research_tickers(manifest)
     if not tickers:
         return {"status": "not_run", "reason": "no_current_or_monitoring_tickers", "results": []}, []
@@ -576,6 +599,7 @@ def run_scheduled_company_research(
             if executor:
                 decision, fanout = executor(context, ticker, model)
             else:
+                assert run_company_research_sub_orchestrator_sync is not None
                 decision, fanout = run_company_research_sub_orchestrator_sync(
                     context,
                     ticker,
@@ -613,6 +637,41 @@ def run_scheduled_company_research(
     }, artifacts
 
 
+def write_injected_company_research_report(context, ticker: str, decision, fanout) -> tuple[Path, Path, Path]:
+    from .agent_runtime.fanout import fanout_result_to_dict
+    from .agent_runtime.reports import output_to_dict
+    from .agent_runtime.tracing import write_run_metrics
+
+    target_dir = context.run_dir / "company_research"
+    target_dir.mkdir(parents=True, exist_ok=True)
+    normalized = ticker.upper()
+    json_path = target_dir / f"{normalized}_company_research.json"
+    md_path = target_dir / f"{normalized}_company_research.md"
+    metrics_path = target_dir / f"{normalized}_company_research_metrics.md"
+    decision_data = output_to_dict(decision)
+    fanout_data = fanout_result_to_dict(fanout)
+    json_path.write_text(json.dumps({"decision": decision_data, "fanout": fanout_data}, indent=2, sort_keys=True), encoding="utf-8")
+    lines = [
+        f"# Company Research: {normalized}",
+        "",
+        f"- run_id: {context.run_id}",
+        f"- status: {decision_data.get('status', 'unknown')}",
+        f"- fanout_status: {fanout_data.get('status', 'unknown')}",
+        "",
+        "## Summary",
+        "",
+        str(decision_data.get("summary", "No summary provided.")),
+        "",
+        "## Specialist Fanout",
+        "",
+    ]
+    for item in fanout_data.get("results", []):
+        lines.append(f"- {item.get('task_id', 'unknown')}: {item.get('status', 'unknown')} via `{item.get('agent_id', 'unknown')}`")
+    md_path.write_text("\n".join(lines).rstrip() + "\n", encoding="utf-8")
+    write_run_metrics(context, list(getattr(fanout, "metrics", ()) or ()), path=metrics_path)
+    return json_path, md_path, metrics_path
+
+
 def scheduled_company_research_tickers(manifest: dict[str, Any]) -> list[str]:
     tracked = manifest.get("tracked_tickers") or {}
     tickers: list[str] = []
@@ -625,6 +684,8 @@ def scheduled_company_research_tickers(manifest: dict[str, Any]) -> list[str]:
 
 
 def agent_runtime_result_to_dict(result: AgentRuntimeResult) -> dict[str, Any]:
+    from .agent_runtime.reports import output_status, output_to_dict
+
     final_status = output_status(result.final_output)
     status = "complete" if not result.quality_findings and final_status == "ready" else "needs_review"
     return {
@@ -701,7 +762,15 @@ def clean_generated_run_artifacts(repo_root: Path, run_id: str) -> None:
     if resolved_run_dir.parent != allowed_parent:
         raise ValueError(f"Refusing to clean unexpected run directory: {run_dir}")
 
-    for dirname in ("evidence_packets", "raw", "reports", "company_research"):
+    for dirname in (
+        "evidence_packets",
+        "raw",
+        "reports",
+        "company_research",
+        "market_research",
+        "portfolio_review",
+        "memory_evaluation",
+    ):
         target = run_dir / dirname
         if target.exists():
             safe_remove_tree(target, resolved_run_dir)

@@ -77,6 +77,8 @@ The Codex final review must be more useful than a status summary. It should incl
 
 Codex should actively inspect output quality. If reports are truncated, duplicated, stale, shallow, missing X/community insight, or not actionable, Codex should fix the relevant prompt/formatter/code and regenerate the affected report before finishing.
 
+For the 2026-05-16 real-holdings run, this quality check must include explicit scans for mojibake/encoding artifacts, dead citation markers, dead bracketed source ids, visible truncation, duplicate report sections, and dangling excerpt tails. Passing provider execution is not enough to call the run good.
+
 ## Memory And Learning
 
 Codex-supervised mode must preserve the learning loop.
@@ -138,3 +140,5 @@ Codex-supervised mode should meet or exceed API SDK mode for human-facing qualit
 - correct memory and hygiene behavior,
 - no duplicate/truncated/stale sections,
 - clear next decisions for the human.
+
+2026-05-16 postmortem result: the first real Codex-supervised run exposed lazy SDK import gaps, stale API-mode artifact cleanup gaps, FMP/Alpha provider-unavailable handling gaps, and weak report-quality gates. The fixed baseline is a 10-holding run with 131 evidence packets, 0 provider errors, 0 deterministic quality findings, deduped HRQ counts, explicit provider coverage-gap packets, and human-facing markdown validation over the final digest, HRQ digest, Codex review, and opportunity reports.

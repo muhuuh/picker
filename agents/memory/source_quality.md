@@ -1,6 +1,6 @@
 # Source Quality Memory
 
-Last updated: 2026-05-12
+Last updated: 2026-05-16
 
 Operational memory about provider reliability, source behavior, and known gotchas.
 
@@ -62,6 +62,20 @@ Operational memory about provider reliability, source behavior, and known gotcha
 - owner: financial-data specialist
 - next_review: 2026-08-01
 
+- id: source-2026-05-16-fmp-subscription-unavailable-packets
+- date: 2026-05-16
+- type: source_quality
+- scope: financial
+- status: active
+- confidence: high
+- trigger/source: First real Codex-supervised weekly run over 10 holdings hit FMP HTTP 402 `Premium Query Parameter` responses.
+- lesson: FMP tier/subscription failures should be represented as explicit `subscription_unavailable` evidence packets, not missing provider-task errors. Financial review should treat these as coverage gaps and continue with other providers.
+- use_when: FMP provider tasks, scheduled weekly runs, financial compare, and provider-quality reporting.
+- do_not_use_when: Suppressing real malformed responses, authentication failures, or schema regressions that need debugging.
+- evidence: `stock_research/providers/fmp.py`, `tests/test_fmp_provider.py`, `agents/runs/2026-05-16_weekly/quality_report.md`
+- owner: financial-data specialist
+- next_review: 2026-06-16
+
 - id: source-2026-05-04-fmp-ttm-cross-check
 - date: 2026-05-04
 - type: source_quality
@@ -75,6 +89,20 @@ Operational memory about provider reliability, source behavior, and known gotcha
 - evidence: `stock_research/providers/fmp.py`, `docs/descriptions/fmp_provider.md`, `agents/runs/2026-05-09_weekly/evidence_packets/2026-05-04_fmp_company_aapl.json`
 - owner: financial-data specialist
 - next_review: 2026-08-01
+
+- id: source-2026-05-16-alpha-rate-limit-unavailable-packets
+- date: 2026-05-16
+- type: source_quality
+- scope: financial
+- status: active
+- confidence: high
+- trigger/source: First real Codex-supervised weekly run over 10 holdings hit Alpha Vantage daily rate-limit responses after the first batch.
+- lesson: Alpha Vantage rate-limit and premium/unavailable messages should be written as explicit `rate_limit_unavailable` evidence packets, not hard provider failures. This preserves run completeness while keeping valuation/analyst fields marked lower coverage when Alpha cannot answer.
+- use_when: Alpha Vantage provider tasks, scheduled weekly runs, financial compare, and rate-limit planning.
+- do_not_use_when: Treating Alpha as complete when the unavailable packet says fields were not retrieved.
+- evidence: `stock_research/providers/alpha_vantage.py`, `tests/test_alpha_vantage_provider.py`, `agents/runs/2026-05-16_weekly/quality_report.md`
+- owner: financial-data specialist
+- next_review: 2026-06-16
 
 - id: source-2026-05-04-polygon-massive-us-focus
 - date: 2026-05-04

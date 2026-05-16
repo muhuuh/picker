@@ -310,14 +310,9 @@ def read_json(path: Path) -> dict[str, Any]:
 
 
 def count_open_review_items(root: Path) -> int:
-    queue = root / "agents" / "human_review_queue.md"
-    if not queue.exists():
-        return 0
-    count = 0
-    for line in queue.read_text(encoding="utf-8").splitlines():
-        if "| open |" in line.lower() or "| needs_more_research |" in line.lower():
-            count += 1
-    return count
+    from .human_review_digest import build_human_review_digest
+
+    return build_human_review_digest(root=root).open_item_count
 
 
 def build_next_actions(tickers: list[dict[str, Any]], open_review_count: int, run_dir: Path) -> list[str]:

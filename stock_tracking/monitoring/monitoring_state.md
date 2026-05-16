@@ -1,6 +1,6 @@
 # Monitoring State
 
-Last updated: 2026-05-15
+Last updated: 2026-05-16
 
 ## Current View
 
@@ -46,4 +46,5 @@ Last updated: 2026-05-15
 | Date | Update ID | Category | Summary | Source |
 | --- | --- | --- | --- | --- |
 | 2026-05-15 | MANUAL-MONITORING-UPDATE | monitoring | Monitoring is empty after removing the AAPL validation seed. | [monitoring.csv](stock_tracking/monitoring/monitoring.csv) |
+| 2026-05-16 | CATSTATE-2026-05-16_weekly | monitoring | 0 monitored stock(s): none. | [agents/runs/2026-05-16_weekly/final_digest.md](agents/runs/2026-05-16_weekly/final_digest.md) |
 

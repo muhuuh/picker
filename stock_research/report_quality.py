@@ -7,6 +7,14 @@ def validate_human_facing_markdown(text: str) -> list[str]:
     findings: list[str] = []
     if "[...]" in text or re.search(r"\w\.\.\.(?:\s|$)", text):
         findings.append("Visible truncation marker found.")
+    if re.search(r"[\u00c2\u00c3\u00e2\ufffd]", text):
+        findings.append("Mojibake or encoding artifact found.")
+    if re.search(
+        r"(?:\([^)]*\b(?:up|down|from|during|with)\.|\b(?:hig|implying|compared|indust|announc|subsequen|preliminar|approxim|financ|operat|developm)\.|\b(?:is|are|was|were|be|while)\.)",
+        text,
+        flags=re.IGNORECASE,
+    ):
+        findings.append("Dangling sentence fragment found.")
     if re.search(r"(?<!\!)\[[0-9]+\](?!\()", text):
         findings.append("Dead numeric citation marker found.")
     if re.search(r"\[[a-z0-9_:-]+\](?!\()", text, flags=re.IGNORECASE):

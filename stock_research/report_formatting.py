@@ -82,17 +82,59 @@ def format_plain_value(value: Any) -> str:
 def compact_complete_text(value: str, max_length: int = 600) -> str:
     """Compact text for human reports without producing visible ellipses."""
     compact = " ".join(str(value or "").split())
+    compact = re.sub(r"\[\[\d+\]\](?:\([^)]+\))?", "", compact)
+    compact = re.sub(r"(?<!\!)\[(\d+)\](?!\()", "", compact)
     compact = re.sub(r"\s*\[\.\.\.\]\s*", " ", compact)
     compact = compact.replace("...", ".")
     compact = compact.replace("\u2026", ".")
     compact = repair_common_mojibake(compact)
     if len(compact) <= max_length:
-        return compact
+        return finalize_compact_text(compact)
     boundary = sentence_boundary(compact, max_length)
     if boundary >= int(max_length * 0.45):
-        return compact[:boundary].rstrip()
+        return finalize_compact_text(compact[:boundary].rstrip())
     shortened = compact[:max_length].rsplit(" ", 1)[0].rstrip(" ,;:-")
-    return f"{shortened}." if shortened and shortened[-1] not in ".!?" else shortened
+    shortened = f"{shortened}." if shortened and shortened[-1] not in ".!?" else shortened
+    return finalize_compact_text(shortened)
+
+
+def finalize_compact_text(value: str) -> str:
+    """Remove common extract artifacts after compacting provider prose."""
+    cleaned = trim_unbalanced_tail(value.strip())
+    cleaned = trim_dangling_fragment(cleaned)
+    return cleaned.strip()
+
+
+def trim_unbalanced_tail(value: str) -> str:
+    cleaned = value
+    for open_char, close_char in (("(", ")"), ("[", "]")):
+        if cleaned.count(open_char) > cleaned.count(close_char):
+            index = cleaned.rfind(open_char)
+            if index >= 0 and (index >= int(len(cleaned) * 0.55) or len(cleaned) - index <= 90):
+                cleaned = cleaned[:index].rstrip(" ,;:-")
+    if cleaned.count('"') % 2 == 1:
+        index = cleaned.rfind('"')
+        if index >= int(len(cleaned) * 0.55):
+            cleaned = cleaned[:index].rstrip(" ,;:-")
+    return cleaned
+
+
+def trim_dangling_fragment(value: str) -> str:
+    bad_tail = re.search(
+        r"(?:\b(?:hig|implying|compared|indust|announc|subsequen|preliminar|approxim|financ|operat|developm)\.|\b(?:is|are|was|were|be|while|up|down|from|during|with|including|and|or|to|of|for|in|at|by|as)\.)$",
+        value,
+        flags=re.IGNORECASE,
+    )
+    if not bad_tail:
+        return value
+    previous_boundary = max(
+        value.rfind(". ", 0, bad_tail.start()),
+        value.rfind("! ", 0, bad_tail.start()),
+        value.rfind("? ", 0, bad_tail.start()),
+    )
+    if previous_boundary > 0:
+        return value[: previous_boundary + 1].rstrip()
+    return value[: bad_tail.start()].rstrip(" ,;:-(")
 
 
 def sentence_boundary(value: str, max_length: int) -> int:
@@ -101,6 +143,7 @@ def sentence_boundary(value: str, max_length: int) -> int:
 
 
 def repair_common_mojibake(value: str) -> str:
+    value = repair_latin1_mojibake(value)
     replacements = {
         "\u00e2\u20ac\u2122": "'",
         "\u00e2\u20ac\u0153": '"',
@@ -123,11 +166,50 @@ def repair_common_mojibake(value: str) -> str:
         "â€”": "-",
         "â€¦": ".",
     }
+    replacements.update(
+        {
+            "\u00e2\u20ac\u00a2": "-",
+            "\u00e2\u2020\u2019": "->",
+            "\u00e2\u201e\u00a2": "",
+            "\u00c2\u00ae": "",
+            "\u2022": "-",
+            "\u2192": "->",
+            "\u2122": "",
+            "\u00ae": "",
+            "\u2018": "'",
+            "\u2019": "'",
+            "\u201c": '"',
+            "\u201d": '"',
+            "\u2013": "-",
+            "\u2014": "-",
+            "\u00c3\u00bc": "u",
+            "\u00c3\u00b6": "o",
+            "\u00c3\u00a4": "a",
+            "\u00c3\u00a9": "e",
+            "\u00c3\u00a8": "e",
+            "\u00c3\u00a1": "a",
+            "\u00c2": "",
+        }
+    )
     for bad, good in replacements.items():
         value = value.replace(bad, good)
     value = value.replace("\u00d7", "x")
     value = re.sub(r"(?<=\d)\?\?(?=\s*(?:P/[ESB]|P/E|P/S|PE|EV|multiple|margin|revenue))", "x", value)
     return value
+
+
+def repair_latin1_mojibake(value: str) -> str:
+    if not any(marker in value for marker in ("\u00c2", "\u00c3", "\u00e2", "\ufffd")):
+        return value
+    try:
+        repaired = value.encode("cp1252").decode("utf-8")
+    except UnicodeError:
+        return value
+    return repaired if mojibake_score(repaired) < mojibake_score(value) else value
+
+
+def mojibake_score(value: str) -> int:
+    return len(re.findall(r"[\u00c2\u00c3\u00e2\ufffd]", value))
 
 
 def markdown_link(label: str, url: str) -> str:

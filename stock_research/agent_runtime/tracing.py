@@ -5,9 +5,14 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from agents.lifecycle import RunHooksBase
-
 from stock_research.agent_runtime.context import ResearchRunContext
+
+try:
+    from agents.lifecycle import RunHooksBase
+except Exception:  # pragma: no cover - exercised when API-mode SDK is not installed.
+    class RunHooksBase:
+        def __class_getitem__(cls, _item):
+            return cls
 
 
 @dataclass(frozen=True)

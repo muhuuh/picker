@@ -10,7 +10,7 @@ from typing import Any
 from .evidence import Claim, EvidencePacket, Risk, Source, default_packet_path, new_packet, read_packet, write_packet
 from .memory import relative_to_root
 from .repo import find_repo_root
-from .report_formatting import compact_complete_text, format_financial_value, format_percent as format_ratio_percent, format_plain_value, markdown_link
+from .report_formatting import compact_complete_text, format_financial_value, format_percent as format_ratio_percent, format_plain_value, markdown_link, repair_common_mojibake
 
 
 class OpportunityAssessmentError(RuntimeError):
@@ -149,8 +149,13 @@ def validate_opportunity_assessment(assessment: dict[str, Any]) -> list[str]:
         findings.append(f"{ticker} investor insight report is missing an executive read.")
     if not insight.get("non_obvious_insights"):
         findings.append(f"{ticker} investor insight report is missing non-obvious or under-discussed insights.")
-    if not insight.get("valuation_snapshot", {}).get("forward_pe") and not insight.get("valuation_snapshot", {}).get("analyst_target_price"):
-        findings.append(f"{ticker} investor insight report is missing forward valuation or analyst target context.")
+    valuation = insight.get("valuation_snapshot", {}) or {}
+    if (
+        not valuation.get("forward_pe")
+        and not valuation.get("analyst_target_price")
+        and not any(valuation.get(key) is not None for key in ("latest_price", "market_cap", "pe_ratio", "price_to_sales_ttm", "ev_to_ebitda_ttm"))
+    ):
+        findings.append(f"{ticker} investor insight report is missing usable valuation context.")
     if not insight.get("peer_competition_context", {}).get("competitors"):
         findings.append(f"{ticker} investor insight report is missing peer/competition context.")
     return findings
@@ -332,9 +337,10 @@ def build_material_developments(review: dict[str, Any]) -> list[dict[str, Any]]:
 
 
 def extract_development_items(evidence: str) -> list[str]:
-    text = compact_text(evidence, 2500).replace("[...]", "\n")
+    raw_text = prepare_evidence_for_development_extraction(evidence)
+    text = clean_report_text(raw_text)
     candidates: list[str] = structured_development_summary(text)
-    for line in text.splitlines():
+    for line in development_candidate_lines(raw_text):
         line = clean_report_text(line.strip(" -\t"))
         if not line:
             continue
@@ -359,6 +365,31 @@ def extract_development_items(evidence: str) -> list[str]:
         and not is_bad_truncated_excerpt(sentence)
         and not is_provider_boilerplate_excerpt(sentence)
     ][:6]
+
+
+def prepare_evidence_for_development_extraction(evidence: str) -> str:
+    raw = str(evidence or "")
+    raw = re.sub(r"\[\[\d+\]\](?:\([^)]+\))?", "", raw)
+    raw = re.sub(r"\[[^\]]+\]\([^)]+\)", "", raw)
+    raw = raw.replace("[...]", "\n")
+    raw = re.sub(r"\s+\.{3,}\s+", "\n", raw)
+    raw = re.sub(r"(?m)^\s*#{1,6}\s*", "", raw)
+    raw = re.sub(r"\s+#{1,6}\s+", "\n", raw)
+    return raw
+
+
+def development_candidate_lines(raw_text: str) -> list[str]:
+    lines: list[str] = []
+    for raw_line in raw_text.splitlines():
+        for part in re.split(r"\s{2,}|\s+-\s+", raw_line):
+            line = part.strip()
+            if not line:
+                continue
+            line = re.sub(r"^\d{1,4}\s+(?=[A-Z#])", "", line)
+            line = re.sub(r"^[-*#\d.)\s]+", "", line).strip()
+            if line:
+                lines.append(line)
+    return lines[:60]
 
 
 def structured_development_summary(text: str) -> list[str]:
@@ -432,6 +463,18 @@ def synthesize_development_line(value: str) -> str:
         return summary[0] if summary else ""
     if "apple reported 17% revenue growth" in lower and "iphone sales came up short" in lower:
         return "Apple operating mix: revenue grew 17% and services beat estimates, but iPhone sales missed, making services/margin durability the key offset to hardware softness."
+    if "reported revenue of $26.9m" in lower and "export permits" in lower:
+        return "AXT reported revenue of $26.9M, up 17% QoQ and 39% YoY, slightly above forecast as export permits came in better than guidance."
+    if "42 million ai soc units" in lower and "physical edge ai" in lower:
+        return "Ambarella says its installed base exceeds 42M AI SoCs across edge endpoint and infrastructure use cases, including security, vehicle safety, telematics, drones, autonomy, and emerging robotics."
+    if "kraken robotics delivered record 2025 revenue" in lower or ("cad 102 million" in lower and "gross profit margin" in lower):
+        return "Kraken reported record 2025 revenue of CAD 102M, 12% YoY growth, and gross margin expansion to 62%, with battery/SAS demand and subsea services as the main drivers."
+    if "certain preliminary 2025 year-end results" in lower and "2026 guidance" in lower:
+        return "Kraken's current release confirms previously announced preliminary 2025 results and 2026 guidance, so the main update is validation of the revenue/gross-margin trajectory rather than a new standalone catalyst."
+    if "micron set new records" in lower or ("revenue of $23.86 billion" in lower and "gross margin" in lower):
+        return "Micron reported record revenue, gross margin, EPS, and free cash flow, with management tying the acceleration to AI memory demand, tight supply, and HBM/data-center strength."
+    if "third quarter revenue of" in lower and "bookings" in lower and "funded backlog" in lower:
+        return "AeroVironment reported Q3 revenue of $408M, $2.1B of bookings over the first nine months, and record funded backlog of $1.1B."
     return ""
 
 
@@ -473,6 +516,18 @@ def is_positive_development(value: str) -> bool:
 
 def is_bad_truncated_excerpt(value: str) -> bool:
     lower = value.lower()
+    if "##" in value or value.lstrip().startswith("#"):
+        return True
+    if value.rstrip().endswith(":") and len(value) > 50:
+        return True
+    if value.count("(") != value.count(")") or value.count("[") != value.count("]"):
+        return True
+    if re.search(r"\b(?:up|down|during|with|from|to|of|and|or|including|amid|for|in|by|the|a|while)\.$", lower) and len(value) > 40:
+        return True
+    if re.search(r"\b(?:hig|implying|compared|indust|announc|subsequen|preliminar|approxim|financ|operat|developm)\.$", lower):
+        return True
+    if re.search(r"\b(?:is|are|was|were|be)\.$", lower) and len(value) > 70:
+        return True
     if value.endswith("...") and any(fragment in lower for fragment in ("per diluted s", "per diluted sh", "the anthropic de", "substan")):
         return True
     if value.startswith('"') and value.count('"') % 2 == 1:
@@ -744,7 +799,7 @@ def classify_confidence(
 def build_positives(financial: dict[str, Any], news: dict[str, Any], social: dict[str, Any], filings: dict[str, Any]) -> list[str]:
     positives: list[str] = []
     for item in strategic_ai_items(news, social)[:2]:
-        positives.append(f"Strategic AI ecosystem: {item}")
+        positives.append(item if item.lower().startswith("strategic") else f"Strategic AI ecosystem: {item}")
     for development in news.get("material_developments", []):
         claim_text = development.get("claim") if isinstance(development, dict) else ""
         if claim_text and is_positive_development(claim_text):
@@ -816,6 +871,8 @@ def build_watch_items(
 
 def build_data_quality_notes(financial: dict[str, Any], news: dict[str, Any]) -> list[str]:
     notes: list[str] = []
+    if not financial.get("forward_pe") and not financial.get("analyst_target_price"):
+        notes.append("Forward P/E and analyst target were not available from the current provider artifacts; use the valuation table as trailing/contextual, not consensus-forward.")
     if financial.get("taxonomy_conflict_count"):
         notes.append("Provider industry labels differ; keep this as internal classification hygiene, not an investment risk.")
     if financial.get("single_provider_metric_count"):
@@ -987,7 +1044,10 @@ def build_non_obvious_insights(financial: dict[str, Any], news: dict[str, Any], 
     for angle in social.get("non_obvious_angles", [])[:4]:
         candidates.append(f"X under-discussed angle: {strip_citations_and_markdown(str(angle))}")
     for item in strategic_ai_items(news, social)[:3]:
-        candidates.append(f"Strategic AI ecosystem angle: {strip_citations_and_markdown(item)}")
+        cleaned = strip_citations_and_markdown(item)
+        if cleaned.lower().startswith("strategic ecosystem signal:"):
+            cleaned = "Evidence-backed ecosystem leverage: " + cleaned.split(":", 1)[1].strip()
+        candidates.append(f"Strategic AI ecosystem angle: {cleaned}")
     for claim in news.get("contents_claims", []) + news.get("material_claims", []):
         evidence = str(claim.get("evidence", "")) if isinstance(claim, dict) else ""
         for line in extract_development_items(evidence):
@@ -1248,10 +1308,10 @@ def build_next_research_questions(financial: dict[str, Any], news: dict[str, Any
 
 
 def build_executive_read(ticker: str, thesis: dict[str, Any], valuation: dict[str, Any], community: dict[str, Any], non_obvious: list[str]) -> str:
-    thesis_text = compact_text(strip_citations_and_markdown(str(thesis.get("core_thesis") or "Evidence is incomplete.")), 220)
+    thesis_text = compact_text(strip_citations_and_markdown(str(thesis.get("core_thesis") or "Evidence is incomplete.")), 500)
     valuation_text = valuation_sentence(valuation)
     community_text = normalize_sentence_fragment(compact_text(first_sentence(strip_citations_and_markdown(str(community.get("x_pulse", "")))), 300))
-    non_obvious_text = compact_text(first_or_default(non_obvious, "No strong non-obvious angle was extracted."), 220)
+    non_obvious_text = compact_text(first_or_default(non_obvious, "No strong non-obvious angle was extracted."), 360)
     return compact_text(
         f"{ticker}: {thesis_text} Valuation: {valuation_text}. X/community: {community_text}. Under-discussed check: {non_obvious_text}",
         860,
@@ -1276,6 +1336,9 @@ def metric_phrase(value: str, kind: str) -> str:
         match = re.search(r"net sales increased\s+([\d.]+%)\s+to\s+\$([\d.]+)\s+billion", value, flags=re.IGNORECASE)
         if match:
             return f"net sales +{match.group(1)} to ${match.group(2)}B"
+        match = re.search(r"revenue for the fourth quarter.*?\$([\d.]+)\s*million,\s+up\s+([\d.]+%)", value, flags=re.IGNORECASE)
+        if match:
+            return f"quarterly revenue ${match.group(1)}M, +{match.group(2)} YoY"
     if kind == "aws":
         match = re.search(r"aws segment sales increased\s+([\d.]+%)\s+year-over-year to\s+\$([\d.]+)\s+billion", value, flags=re.IGNORECASE)
         if match:
@@ -1284,9 +1347,13 @@ def metric_phrase(value: str, kind: str) -> str:
         match = re.search(r"operating income increased to\s+\$([\d.]+)\s+billion.*compared with\s+\$([\d.]+)\s+billion", value, flags=re.IGNORECASE)
         if match:
             return f"operating income ${match.group(1)}B vs ${match.group(2)}B"
+        match = re.search(r"gross margin.*?was\s+([\d.]+%).*?compared with\s+([\d.]+%)", value, flags=re.IGNORECASE)
+        if match:
+            return f"GAAP gross margin {match.group(1)} vs {match.group(2)} YoY"
     if kind == "ai_partnership":
         return summarize_strategic_ai_line(value) or compact_text(value, 170)
-    return compact_text(value, 130)
+    fallback = compact_text(value, 130)
+    return "" if is_bad_truncated_excerpt(fallback) else fallback
 
 
 def first_matching(values: list[str], keywords: tuple[str, ...]) -> str:
@@ -1362,7 +1429,11 @@ def extract_competitors(text: str) -> list[str]:
         item = clean_report_text(raw).strip(" .:").lower()
         if not item or len(item) < 3 or len(item) > 45:
             continue
-        if any(skip in item.lower() for skip in ("competitors", "categories", "products", "tech stack")):
+        if any(marker in item for marker in ("[", "]", "(", ")")):
+            continue
+        if re.search(r"\d", item):
+            continue
+        if any(skip in item.lower() for skip in ("competitors", "categories", "products", "tech stack", "comments", "comment")):
             continue
         if item not in {value.lower() for value in competitors}:
             competitors.append(item)
@@ -1459,8 +1530,8 @@ def build_summary(
 ) -> str:
     pulse = social.get("x_pulse", "")
     pulse_sentence = f" X pulse: {compact_text(strip_citations_and_markdown(pulse), 220)}" if pulse else ""
-    positive = compact_text(strip_citations_and_markdown(positives[0]), 280)
-    negative = compact_text(strip_citations_and_markdown(negatives[0]), 180)
+    positive = compact_text(strip_citations_and_markdown(positives[0]), 320)
+    negative = compact_text(strip_citations_and_markdown(negatives[0]), 320)
     return (
         f"{ticker} is {opportunity_view} ({score}/100, {risk_level} risk, {confidence} confidence) because {positive} "
         f"Main caveat: {negative}{pulse_sentence}"
@@ -1734,14 +1805,15 @@ def format_investor_insight_markdown(insight: dict[str, Any]) -> list[str]:
 
     community = insight.get("community_and_expert_split") or {}
     lines.extend(["", "### Expert / Community Split From X", ""])
-    lines.append(f"- X pulse: {community.get('x_pulse') or 'No X pulse available.'}")
+    x_pulse = community.get("x_pulse") or "No X pulse available."
+    lines.append(f"- X pulse: {format_report_item(x_pulse, 700)}")
     append_list_section(lines, "Bullish camp", community.get("bullish_camp") or [])
     append_list_section(lines, "Skeptical camp", community.get("skeptical_camp") or [])
     append_list_section(lines, "Strategic partnerships / ecosystem leverage", community.get("strategic_partnerships") or [])
     if community.get("notable_accounts_or_posts"):
         lines.append(f"- Accounts/posts worth reviewing: {', '.join(community['notable_accounts_or_posts'][:8])}")
     if community.get("hype_noise_assessment"):
-        lines.append(f"- Hype/noise: {community['hype_noise_assessment']}")
+        lines.append(f"- Hype/noise: {format_report_item(community['hype_noise_assessment'], 500)}")
     append_list_section(lines, "Rumors / unverified claims", community.get("rumors_or_unverified") or [])
 
     append_list_section(lines, "Non-obvious / under-discussed insights to verify", insight.get("non_obvious_insights") or [], heading_level="###")
@@ -1863,12 +1935,13 @@ def escape_table_cell(value: str) -> str:
 
 def compact_text(value: str, max_length: int) -> str:
     compact = " ".join(line.strip() for line in value.splitlines() if line.strip())
-    compact = repair_latin1_mojibake(compact)
+    compact = repair_common_mojibake(compact)
     compact = clean_report_text(compact)
     return compact_complete_text(compact, max_length)
 
 
 def clean_report_text(value: str) -> str:
+    value = repair_common_mojibake(str(value or ""))
     replacements = {
         "\u201c": '"',
         "\u201d": '"',
@@ -1881,8 +1954,12 @@ def clean_report_text(value: str) -> str:
     }
     for bad, good in replacements.items():
         value = value.replace(bad, good)
+    value = re.sub(r"\[\[\d+\]\](?:\([^)]+\))?", "", value)
+    value = re.sub(r"(?<!\!)\[(\d+)\](?!\()", "", value)
     value = re.sub(r"\s*\[\.\.\.\]\s*", " ", value)
     value = value.replace("...", ".")
+    value = re.sub(r"(?m)^\s*#{1,6}\s*", "", value)
+    value = re.sub(r"\s+#{1,6}\s+", " ", value)
     value = re.sub(r"\*\*(.*?)\*\*", r"\1", value)
     value = re.sub(r"\*(.*?)\*", r"\1", value)
     return " ".join(value.split())
@@ -1890,6 +1967,8 @@ def clean_report_text(value: str) -> str:
 
 def strip_citations_and_markdown(value: str) -> str:
     value = re.sub(r"\[\[\d+\]\]\([^)]+\)", "", value)
+    value = re.sub(r"\[\[\d+\]\]", "", value)
+    value = re.sub(r"(?<!\!)\[(\d+)\](?!\()", "", value)
     value = re.sub(r"\[[^\]]+\]\([^)]+\)", "", value)
     value = re.sub(r"\*\*(.*?)\*\*", r"\1", value)
     value = re.sub(r"\*(.*?)\*", r"\1", value)

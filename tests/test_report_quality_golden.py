@@ -35,6 +35,8 @@ Grok/X social signal: mixed_social_signal
 Raw item: {'claim': 'AWS grew', 'confidence': 'medium'}
 Source: [xai_x_source_1]
 Another dead marker [1]
+Encoding artifact: \u00e2\u20ac\u00a2 Revenue.
+Fragment: gross margin expanded to 62% (up.
 
 ## News
 
@@ -48,6 +50,8 @@ Duplicate section.
         self.assertTrue(any("raw dict" in finding.lower() for finding in findings))
         self.assertTrue(any("duplicate" in finding.lower() for finding in findings))
         self.assertTrue(any("status-only" in finding.lower() for finding in findings))
+        self.assertTrue(any("mojibake" in finding.lower() for finding in findings))
+        self.assertTrue(any("dangling" in finding.lower() for finding in findings))
 
 
 if __name__ == "__main__":

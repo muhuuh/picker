@@ -6,6 +6,7 @@ import unittest
 from stock_research.evidence import read_packet, validate_packet
 from stock_research.providers.alpha_vantage import (
     AlphaVantageCompanyOptions,
+    AlphaVantageError,
     build_alpha_vantage_company_packet,
     extract_alpha_vantage_metrics,
 )
@@ -36,6 +37,26 @@ class AlphaVantageProviderTests(unittest.TestCase):
             loaded = read_packet(paths[0])
             self.assertTrue(validate_packet(loaded).ok)
             self.assertIn("latest_price", loaded.claims[0].evidence)
+
+    def test_rate_limit_unavailable_writes_coverage_gap_packet(self):
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            packet, paths = build_alpha_vantage_company_packet(
+                options=AlphaVantageCompanyOptions(ticker="MU"),
+                api_key="test",
+                run_id="2026-05-16_weekly",
+                root=root,
+                current_date=date(2026, 5, 16),
+                fetcher=lambda options, api_key: (_ for _ in ()).throw(
+                    AlphaVantageError("standard API rate limit is 25 requests per day")
+                ),
+            )
+
+            self.assertEqual(packet.provider, "alpha_vantage")
+            self.assertEqual(packet.time_window, "rate_limit_unavailable")
+            self.assertEqual(len(paths), 2)
+            self.assertTrue(validate_packet(packet).ok)
+            self.assertIn("rate_limit_unavailable", packet.claims[0].evidence)
 
 
 def fake_snapshot():

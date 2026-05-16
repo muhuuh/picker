@@ -1,7 +1,7 @@
 import unittest
 from pathlib import Path
 
-from stock_research.opportunity_assessment import format_opportunity_assessment_markdown, validate_opportunity_assessment
+from stock_research.opportunity_assessment import extract_development_items, format_opportunity_assessment_markdown, validate_opportunity_assessment
 
 
 class OpportunityAssessmentTests(unittest.TestCase):
@@ -43,7 +43,7 @@ class OpportunityAssessmentTests(unittest.TestCase):
         findings = validate_opportunity_assessment(assessment)
 
         self.assertTrue(any("non-obvious" in finding for finding in findings))
-        self.assertTrue(any("forward valuation or analyst target" in finding for finding in findings))
+        self.assertTrue(any("usable valuation context" in finding for finding in findings))
         self.assertTrue(any("peer/competition" in finding for finding in findings))
 
     def test_investor_report_markdown_has_high_bar_sections(self):
@@ -60,6 +60,19 @@ class OpportunityAssessmentTests(unittest.TestCase):
         self.assertIn("Forward P/E", markdown)
         self.assertNotIn("sentiment_label", markdown)
         self.assertNotIn("Extract remaining high-value Exa", markdown)
+
+    def test_development_extraction_rejects_truncated_markdown_fragments(self):
+        evidence = """
+## Earnings call
+Kraken Robotics delivered record 2025 revenue of CAD 102 million (up [...]
+026 ## Kraken Robotics Reports 2025 Financial Results
+Kraken announced 2025 revenue of CAD 102 million and gross margin of 62%, with 2026 guidance pointing to continued defense and offshore demand.
+"""
+        items = extract_development_items(evidence)
+
+        self.assertTrue(any("2025 revenue of CAD 102 million" in item for item in items))
+        self.assertFalse(any("026 ##" in item for item in items))
+        self.assertFalse(any(item.endswith("(up.") for item in items))
 
 
 def base_assessment() -> dict:
