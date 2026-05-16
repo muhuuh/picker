@@ -346,3 +346,7 @@ run-weekly
   - Human report formatter/validator now rejects mojibake, dead citation fragments, visible truncation, and dangling excerpt tails such as `(up.`, `implying.`, `hig.`, or `while.`.
   - Rebuilt `2026-05-16_weekly` from existing evidence after patches: 131 evidence packets, 0 provider errors, 0 deterministic quality findings, 10 opportunity reports, 10 company-news reports, 10 financial reports, final digest, HRQ digest, company-file factual summary, and Codex review pack.
   - Current run still has `needs_review`, which is expected because several financial reviews have material conflicts/low-confidence metrics. This is a human/financial-review gate, not a provider execution failure.
+- 2026-05-16 provider fallback key slice:
+  - Added optional fallback keys `FMP_API_KEY2` and `ALPHA_VANTAGE_API_KEY2`.
+  - Provider execution now tries the primary key first, retries the secondary key only on tier/subscription, rate-limit/quota, or credential-style unavailable errors, and writes sanitized attempt labels only.
+  - If both keys fail, the workflow still writes explicit unavailable evidence packets so the automation can continue with the rest of the data sources.

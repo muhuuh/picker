@@ -1,8 +1,11 @@
 from datetime import date
 from pathlib import Path
+from tempfile import TemporaryDirectory
+from types import SimpleNamespace
 import unittest
+from unittest.mock import patch
 
-from stock_research.provider_runner import run_provider_tasks
+from stock_research.provider_runner import execute_provider_task, run_provider_tasks
 
 
 class ProviderRunnerTests(unittest.TestCase):
@@ -43,6 +46,42 @@ class ProviderRunnerTests(unittest.TestCase):
         self.assertEqual(result["executed"][0]["packet_id"], "packet_exa_one")
         self.assertEqual(result["errors"], [])
 
+    def test_execute_fmp_provider_task_passes_fallback_key_from_env_file(self):
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            (root / ".env").write_text("FMP_API_KEY=primary\nFMP_API_KEY2=secondary\n", encoding="utf-8")
+
+            def fake_build_fmp_company_packet(**kwargs):
+                self.assertEqual(kwargs["api_key"], "primary")
+                self.assertEqual(kwargs["fallback_api_key"], "secondary")
+                return SimpleNamespace(packet_id="fmp_packet"), [root / "packet.json"]
+
+            with patch("stock_research.provider_runner.build_fmp_company_packet", side_effect=fake_build_fmp_company_packet):
+                result = execute_provider_task(root, provider_task("fmp_one", "fmp"), current_date=date(2026, 5, 16))
+
+            self.assertEqual(result["packet_id"], "fmp_packet")
+
+    def test_execute_alpha_provider_task_passes_fallback_key_from_env_file(self):
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            (root / ".env").write_text(
+                "ALPHA_VANTAGE_API_KEY=primary\nALPHA_VANTAGE_API_KEY2=secondary\n",
+                encoding="utf-8",
+            )
+
+            def fake_build_alpha_vantage_company_packet(**kwargs):
+                self.assertEqual(kwargs["api_key"], "primary")
+                self.assertEqual(kwargs["fallback_api_key"], "secondary")
+                return SimpleNamespace(packet_id="alpha_packet"), [root / "packet.json"]
+
+            with patch(
+                "stock_research.provider_runner.build_alpha_vantage_company_packet",
+                side_effect=fake_build_alpha_vantage_company_packet,
+            ):
+                result = execute_provider_task(root, provider_task("alpha_one", "alpha_vantage"), current_date=date(2026, 5, 16))
+
+            self.assertEqual(result["packet_id"], "alpha_packet")
+
 
 def provider_task(task_id: str, provider: str):
     return {
@@ -52,7 +91,7 @@ def provider_task(task_id: str, provider: str):
         "subject_type": "theme",
         "subject_id": "test",
         "priority": "medium",
-        "args": {"query": "test", "run_id": "2026-05-09_weekly"},
+        "args": {"query": "test", "ticker": "AAPL", "run_id": "2026-05-09_weekly"},
         "reason": "test",
     }
 

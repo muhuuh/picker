@@ -1,6 +1,6 @@
 # Alpha Vantage Provider
 
-Last updated: 2026-05-04
+Last updated: 2026-05-16
 
 ## Purpose
 
@@ -37,7 +37,10 @@ python -m stock_research alpha-vantage company --ticker AAPL --run-id 2026-05-09
 
 ```text
 ALPHA_VANTAGE_API_KEY="..."
+ALPHA_VANTAGE_API_KEY2="..." # optional fallback
 ```
+
+The provider tries `ALPHA_VANTAGE_API_KEY` first. If Alpha Vantage returns a rate-limit, subscription/premium, or credential-style failure, the workflow retries once with `ALPHA_VANTAGE_API_KEY2` when configured. Secret values are never written to run artifacts; raw artifacts record only `primary`/`secondary` labels and sanitized error messages. If both keys fail, the provider still writes an explicit unavailable evidence packet so weekly runs continue with other financial providers.
 
 ## Workflow Role
 

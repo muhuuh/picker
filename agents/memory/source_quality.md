@@ -69,10 +69,10 @@ Operational memory about provider reliability, source behavior, and known gotcha
 - status: active
 - confidence: high
 - trigger/source: First real Codex-supervised weekly run over 10 holdings hit FMP HTTP 402 `Premium Query Parameter` responses.
-- lesson: FMP tier/subscription failures should be represented as explicit `subscription_unavailable` evidence packets, not missing provider-task errors. Financial review should treat these as coverage gaps and continue with other providers.
+- lesson: FMP tier/subscription, rate-limit, or credential-style failures should first retry the optional `FMP_API_KEY2` fallback when configured, then be represented as explicit unavailable evidence packets if both keys fail. Financial review should treat these as coverage gaps and continue with other providers.
 - use_when: FMP provider tasks, scheduled weekly runs, financial compare, and provider-quality reporting.
 - do_not_use_when: Suppressing real malformed responses, authentication failures, or schema regressions that need debugging.
-- evidence: `stock_research/providers/fmp.py`, `tests/test_fmp_provider.py`, `agents/runs/2026-05-16_weekly/quality_report.md`
+- evidence: `stock_research/providers/fmp.py`, `tests/test_fmp_provider.py`, `docs/descriptions/fmp_provider.md`, `agents/runs/2026-05-16_weekly/quality_report.md`
 - owner: financial-data specialist
 - next_review: 2026-06-16
 
@@ -97,10 +97,10 @@ Operational memory about provider reliability, source behavior, and known gotcha
 - status: active
 - confidence: high
 - trigger/source: First real Codex-supervised weekly run over 10 holdings hit Alpha Vantage daily rate-limit responses after the first batch.
-- lesson: Alpha Vantage rate-limit and premium/unavailable messages should be written as explicit `rate_limit_unavailable` evidence packets, not hard provider failures. This preserves run completeness while keeping valuation/analyst fields marked lower coverage when Alpha cannot answer.
+- lesson: Alpha Vantage rate-limit, premium/unavailable, or credential-style messages should first retry the optional `ALPHA_VANTAGE_API_KEY2` fallback when configured, then be written as explicit unavailable evidence packets if both keys fail. This preserves run completeness while keeping valuation/analyst fields marked lower coverage when Alpha cannot answer.
 - use_when: Alpha Vantage provider tasks, scheduled weekly runs, financial compare, and rate-limit planning.
 - do_not_use_when: Treating Alpha as complete when the unavailable packet says fields were not retrieved.
-- evidence: `stock_research/providers/alpha_vantage.py`, `tests/test_alpha_vantage_provider.py`, `agents/runs/2026-05-16_weekly/quality_report.md`
+- evidence: `stock_research/providers/alpha_vantage.py`, `tests/test_alpha_vantage_provider.py`, `docs/descriptions/alpha_vantage_provider.md`, `agents/runs/2026-05-16_weekly/quality_report.md`
 - owner: financial-data specialist
 - next_review: 2026-06-16
 

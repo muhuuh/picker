@@ -401,6 +401,11 @@ Use this file for information we should not lose across sessions.
   - evidence artifact path(s): `docs/descriptions/codex_supervised_workflow.md`, `stock_research/codex_review_pack.py`, `stock_research/scheduled_runner.py`, `C:\Users\valen\.codex\automations\biweekly-holdings-and-monitoring-research\automation.toml`, `C:\Users\valen\.codex\rules\default.rules`
   - status: active
 
+- 2026-05-16:
+  - decision/fact: FMP and Alpha Vantage support optional secondary API keys. `FMP_API_KEY2` and `ALPHA_VANTAGE_API_KEY2` are retried only after primary-key tier/subscription, quota/rate-limit, or credential-style unavailable responses. Run artifacts record sanitized primary/secondary attempt labels, not secret values; if both keys fail, explicit unavailable evidence packets keep the workflow running.
+  - evidence artifact path(s): `stock_research/providers/fmp.py`, `stock_research/providers/alpha_vantage.py`, `stock_research/provider_runner.py`, `tests/test_fmp_provider.py`, `tests/test_alpha_vantage_provider.py`, `docs/descriptions/fmp_provider.md`, `docs/descriptions/alpha_vantage_provider.md`
+  - status: active
+
 - 2026-05-11:
   - decision/fact: The OpenAI Agents SDK weekly path completed successfully after API credit was added and runtime quality gates were tightened. The validation command for AMZN/AAPL is `python -m stock_research run-weekly --write --today 2026-05-11 --execute-providers --execute-analysis --execute-orchestrator --orchestrator-timeout-seconds 900`.
   - evidence artifact path(s): `agents/runs/2026-05-16_weekly/orchestration_report.md`, `agents/runs/2026-05-16_weekly/agent_runtime_main_orchestrator.md`, `stock_research/agent_runtime/reports.py`, `tests/test_agent_runtime.py`

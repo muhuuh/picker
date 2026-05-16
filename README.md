@@ -205,7 +205,7 @@ python -m stock_research polygon company --ticker AAPL --run-id 2026-05-09_weekl
 python -m stock_research alpha-vantage company --ticker AAPL --run-id 2026-05-09_weekly
 ```
 
-FMP, Polygon/Massive, and Alpha Vantage require `FMP_API_KEY`, `POLYGON_API_KEY`, and `ALPHA_VANTAGE_API_KEY` respectively. `MASSIVE_API_KEY` is also accepted for Polygon/Massive.
+FMP, Polygon/Massive, and Alpha Vantage require `FMP_API_KEY`, `POLYGON_API_KEY`, and `ALPHA_VANTAGE_API_KEY` respectively. `MASSIVE_API_KEY` is also accepted for Polygon/Massive. `FMP_API_KEY2` and `ALPHA_VANTAGE_API_KEY2` are optional fallback keys; they are retried once only when the primary key hits a tier, quota/rate-limit, or credential-style unavailable response.
 
 Compare financial provider packets into one reconciliation packet:
 

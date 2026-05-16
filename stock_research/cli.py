@@ -70,8 +70,16 @@ from .providers.alpha_vantage import (
     build_alpha_vantage_company_packet,
     default_alpha_vantage_run_id,
     resolve_alpha_vantage_api_key,
+    resolve_alpha_vantage_fallback_api_key,
 )
-from .providers.fmp import FmpCompanyOptions, FmpError, build_fmp_company_packet, default_fmp_run_id, resolve_fmp_api_key
+from .providers.fmp import (
+    FmpCompanyOptions,
+    FmpError,
+    build_fmp_company_packet,
+    default_fmp_run_id,
+    resolve_fmp_api_key,
+    resolve_fmp_fallback_api_key,
+)
 from .providers.polygon_provider import (
     PolygonCompanyOptions,
     PolygonError,
@@ -283,7 +291,7 @@ def main(argv: list[str] | None = None) -> int:
     fmp_company.add_argument("--ticker", required=True)
     fmp_company.add_argument("--run-id", help="Run ID for output artifacts. Defaults to YYYY-MM-DD_manual-fmp.")
     fmp_company.add_argument("--include-statements", action="store_true", help="Also fetch TTM income, balance sheet, and cash flow statements.")
-    fmp_company.add_argument("--api-key", help="FMP API key. Or set FMP_API_KEY.")
+    fmp_company.add_argument("--api-key", help="FMP API key. Or set FMP_API_KEY. FMP_API_KEY2 is used as a fallback.")
     fmp_company.add_argument("--today", help="Override current date as YYYY-MM-DD.")
 
     polygon_parser = subparsers.add_parser("polygon", help="Polygon/Massive market-data provider tools.")
@@ -303,7 +311,7 @@ def main(argv: list[str] | None = None) -> int:
     alpha_company.add_argument("--ticker", required=True)
     alpha_company.add_argument("--run-id", help="Run ID for output artifacts. Defaults to YYYY-MM-DD_manual-alpha-vantage.")
     alpha_company.add_argument("--include-statements", action="store_true", help="Also fetch income, balance sheet, cash flow, and earnings endpoints.")
-    alpha_company.add_argument("--api-key", help="Alpha Vantage API key. Or set ALPHA_VANTAGE_API_KEY.")
+    alpha_company.add_argument("--api-key", help="Alpha Vantage API key. Or set ALPHA_VANTAGE_API_KEY. ALPHA_VANTAGE_API_KEY2 is used as a fallback.")
     alpha_company.add_argument("--today", help="Override current date as YYYY-MM-DD.")
 
     financial_parser = subparsers.add_parser("financial", help="Deterministic financial evidence analysis.")
@@ -884,9 +892,11 @@ def main(argv: list[str] | None = None) -> int:
             run_id = args.run_id or default_fmp_run_id(request_date)
             try:
                 api_key = resolve_fmp_api_key(args.api_key or get_config_value(state.root, "FMP_API_KEY") or get_config_value(state.root, "FINANCIAL_MODELING_PREP_API_KEY"))
+                fallback_api_key = resolve_fmp_fallback_api_key(get_config_value(state.root, "FMP_API_KEY2"))
                 packet, paths = build_fmp_company_packet(
                     options=FmpCompanyOptions(ticker=args.ticker, include_statements=args.include_statements),
                     api_key=api_key,
+                    fallback_api_key=fallback_api_key,
                     run_id=run_id,
                     root=state.root,
                     current_date=request_date,
@@ -922,9 +932,11 @@ def main(argv: list[str] | None = None) -> int:
             run_id = args.run_id or default_alpha_vantage_run_id(request_date)
             try:
                 api_key = resolve_alpha_vantage_api_key(args.api_key or get_config_value(state.root, "ALPHA_VANTAGE_API_KEY"))
+                fallback_api_key = resolve_alpha_vantage_fallback_api_key(get_config_value(state.root, "ALPHA_VANTAGE_API_KEY2"))
                 packet, paths = build_alpha_vantage_company_packet(
                     options=AlphaVantageCompanyOptions(ticker=args.ticker, include_statements=args.include_statements),
                     api_key=api_key,
+                    fallback_api_key=fallback_api_key,
                     run_id=run_id,
                     root=state.root,
                     current_date=request_date,

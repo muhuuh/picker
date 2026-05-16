@@ -34,6 +34,10 @@ def resolve_fmp_api_key(api_key: str | None = None) -> str:
     return value
 
 
+def resolve_fmp_fallback_api_key(api_key: str | None = None) -> str:
+    return (api_key or os.getenv("FMP_API_KEY2") or "").strip()
+
+
 def fetch_json(path: str, api_key: str, params: dict[str, Any] | None = None, timeout: int = 60) -> Any:
     query = {key: value for key, value in (params or {}).items() if value not in {"", None}}
     query["apikey"] = api_key
@@ -82,17 +86,44 @@ def build_fmp_company_packet(
     root: Path,
     current_date: date | None = None,
     fetcher: Callable[[FmpCompanyOptions, str], dict[str, Any]] = fetch_fmp_company_snapshot,
+    fallback_api_key: str | None = None,
 ) -> tuple[EvidencePacket, list[Path]]:
     today = current_date or date.today()
     ticker = options.ticker.upper()
+    attempts: list[dict[str, str]] = []
     try:
         snapshot = fetcher(options, api_key)
+        snapshot = annotate_credential_metadata(snapshot, api_key_label="primary", fallback_used=False, attempts=attempts)
     except FmpError as exc:
-        if not is_subscription_unavailable_error(exc):
+        if not is_fallback_eligible_error(exc):
             raise
-        snapshot = unavailable_snapshot(ticker, exc)
+        attempts.append(attempt_record("primary", exc, api_key, fallback_api_key))
+        secondary_key = normalize_fallback_key(api_key, fallback_api_key)
+        if secondary_key:
+            try:
+                snapshot = fetcher(options, secondary_key)
+                snapshot = annotate_credential_metadata(
+                    snapshot,
+                    api_key_label="secondary",
+                    fallback_used=True,
+                    attempts=attempts,
+                )
+            except FmpError as fallback_exc:
+                if not is_fallback_eligible_error(fallback_exc):
+                    raise
+                attempts.append(attempt_record("secondary", fallback_exc, api_key, fallback_api_key))
+                snapshot = unavailable_snapshot(ticker, fallback_exc, attempts=attempts, fallback_attempted=True)
+                snapshot["error"] = sanitize_error_text(fallback_exc, [api_key, fallback_api_key or ""])
+        else:
+            snapshot = unavailable_snapshot(ticker, exc, attempts=attempts, fallback_attempted=False)
+            snapshot["error"] = sanitize_error_text(exc, [api_key, fallback_api_key or ""])
         raw_path = write_raw_artifact(root, run_id, ticker, snapshot)
-        packet = fmp_unavailable_to_packet(ticker, snapshot, raw_path, today)
+        if is_unavailable_snapshot(snapshot):
+            packet = fmp_unavailable_to_packet(ticker, snapshot, raw_path, today)
+            packet_path = default_packet_path(root, run_id, packet)
+            write_packet(packet, packet_path)
+            return packet, [packet_path, raw_path]
+        packet = fmp_snapshot_to_packet(ticker, snapshot, raw_path, today, options.include_statements)
         packet_path = default_packet_path(root, run_id, packet)
         write_packet(packet, packet_path)
         return packet, [packet_path, raw_path]
@@ -105,17 +136,93 @@ def build_fmp_company_packet(
 
 
 def is_subscription_unavailable_error(error: Exception) -> bool:
+    return fmp_unavailable_error_type(error) == "subscription_unavailable"
+
+
+def is_fallback_eligible_error(error: Exception) -> bool:
+    return bool(fmp_unavailable_error_type(error))
+
+
+def fmp_unavailable_error_type(error: Exception) -> str:
     message = str(error).lower()
-    return "http 402" in message or "premium query parameter" in message or "subscription" in message
+    if "http 402" in message or "premium query parameter" in message or "subscription" in message or "premium" in message:
+        return "subscription_unavailable"
+    if "http 429" in message or "rate limit" in message or "too many requests" in message or "quota" in message:
+        return "rate_limit_unavailable"
+    if (
+        "http 401" in message
+        or "http 403" in message
+        or "unauthorized" in message
+        or "forbidden" in message
+        or "invalid api key" in message
+        or "invalid apikey" in message
+    ):
+        return "credential_unavailable"
+    return ""
 
 
-def unavailable_snapshot(ticker: str, error: Exception) -> dict[str, Any]:
+def unavailable_snapshot(
+    ticker: str,
+    error: Exception,
+    attempts: list[dict[str, str]] | None = None,
+    fallback_attempted: bool = False,
+) -> dict[str, Any]:
+    error_type = fmp_unavailable_error_type(error) or "provider_unavailable"
     return {
         "ticker": ticker.upper(),
-        "status": "subscription_unavailable",
+        "status": error_type,
         "provider": "fmp",
         "error": str(error),
+        "credential": {
+            "fallback_supported": True,
+            "fallback_attempted": fallback_attempted,
+            "final_status": error_type,
+            "attempts": attempts or [],
+        },
     }
+
+
+def normalize_fallback_key(primary_key: str, fallback_api_key: str | None) -> str:
+    secondary_key = (fallback_api_key or "").strip()
+    if not secondary_key or secondary_key == primary_key:
+        return ""
+    return secondary_key
+
+
+def attempt_record(label: str, error: Exception, primary_key: str, fallback_api_key: str | None) -> dict[str, str]:
+    return {
+        "api_key_label": label,
+        "error_type": fmp_unavailable_error_type(error) or "provider_unavailable",
+        "error": sanitize_error_text(error, [primary_key, fallback_api_key or ""]),
+    }
+
+
+def sanitize_error_text(error: Exception, secrets: list[str]) -> str:
+    text = str(error)
+    for secret in secrets:
+        if secret:
+            text = text.replace(secret, "[redacted]")
+    return text
+
+
+def annotate_credential_metadata(
+    snapshot: dict[str, Any],
+    api_key_label: str,
+    fallback_used: bool,
+    attempts: list[dict[str, str]],
+) -> dict[str, Any]:
+    result = dict(snapshot)
+    result["credential"] = {
+        "api_key_label": api_key_label,
+        "fallback_supported": True,
+        "fallback_used": fallback_used,
+        "prior_attempts": attempts,
+    }
+    return result
+
+
+def is_unavailable_snapshot(snapshot: dict[str, Any]) -> bool:
+    return str(snapshot.get("status", "")).endswith("_unavailable")
 
 
 def fmp_unavailable_to_packet(
@@ -125,33 +232,41 @@ def fmp_unavailable_to_packet(
     today: date,
 ) -> EvidencePacket:
     ticker_upper = ticker.upper()
-    source_id = "fmp_subscription_unavailable"
+    status = str(snapshot.get("status") or "subscription_unavailable")
+    source_id = f"fmp_{status}"
+    credential = snapshot.get("credential", {})
     source = Source(
         source_id=source_id,
         provider="fmp",
         source_type="market_data",
-        title=f"FMP unavailable for {ticker_upper} under current subscription",
+        title=f"FMP unavailable for {ticker_upper}",
         url=FMP_DOCS,
         publisher="Financial Modeling Prep",
         accessed_at=today.isoformat(),
         artifact_path=raw_path.as_posix(),
-        notes="The configured FMP key returned a subscription/tier limitation. This is a provider-coverage gap, not company evidence.",
+        notes="The configured FMP key(s) returned a tier, quota, or credential limitation. This is a provider-coverage gap, not company evidence.",
     )
     return new_packet(
         provider="fmp",
         subject_type="company",
         subject_id=ticker_upper,
-        time_window="subscription_unavailable",
+        time_window=status,
         current_date=today,
         sources=[source],
         claims=[
             Claim(
-                claim=f"FMP data was unavailable for {ticker_upper} under the current subscription.",
+                claim=f"FMP data was unavailable for {ticker_upper} after configured credential attempts.",
                 evidence=json.dumps(
                     {
                         "status": snapshot.get("status"),
                         "provider": "fmp",
-                        "error_type": "subscription_unavailable",
+                        "error_type": status,
+                        "fallback_attempted": credential.get("fallback_attempted", False),
+                        "attempt_labels": [
+                            attempt.get("api_key_label", "")
+                            for attempt in credential.get("attempts", [])
+                            if isinstance(attempt, dict)
+                        ],
                     },
                     sort_keys=True,
                 ),
@@ -162,10 +277,10 @@ def fmp_unavailable_to_packet(
             )
         ],
         unknowns=[
-            "FMP fundamentals were unavailable under the current subscription; rely on yfinance, Polygon/Massive, Alpha Vantage, SEC, and source-backed research for this run."
+            "FMP fundamentals were unavailable under the configured key(s); rely on yfinance, Polygon/Massive, Alpha Vantage, SEC, and source-backed research for this run."
         ],
         raw_artifact_path=raw_path.as_posix(),
-        notes="Unavailable-provider packet written so planned-provider quality gates distinguish subscription coverage gaps from missing execution.",
+        notes="Unavailable-provider packet written so planned-provider quality gates distinguish credential/tier/quota coverage gaps from missing execution.",
     )
 
 

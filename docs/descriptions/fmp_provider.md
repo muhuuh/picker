@@ -1,6 +1,6 @@
 # FMP Provider
 
-Last updated: 2026-05-04
+Last updated: 2026-05-16
 
 ## Purpose
 
@@ -46,9 +46,12 @@ With `--include-statements`:
 
 ```text
 FMP_API_KEY="..."
+FMP_API_KEY2="..." # optional fallback
 ```
 
 `FINANCIAL_MODELING_PREP_API_KEY` is also accepted.
+
+The provider tries `FMP_API_KEY` first. If FMP returns a tier/subscription, rate-limit, or credential-style failure, the workflow retries once with `FMP_API_KEY2` when configured. Secret values are never written to run artifacts; raw artifacts record only `primary`/`secondary` labels and sanitized error messages. If both keys fail, the provider still writes an explicit unavailable evidence packet so weekly runs continue with other financial providers.
 
 ## Workflow Role
 

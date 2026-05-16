@@ -1,4 +1,5 @@
 from datetime import date
+import json
 from pathlib import Path
 from tempfile import TemporaryDirectory
 import unittest
@@ -57,6 +58,56 @@ class AlphaVantageProviderTests(unittest.TestCase):
             self.assertEqual(len(paths), 2)
             self.assertTrue(validate_packet(packet).ok)
             self.assertIn("rate_limit_unavailable", packet.claims[0].evidence)
+
+    def test_fallback_key_is_used_after_rate_limit_unavailable(self):
+        calls = []
+
+        def fetcher(options, api_key):
+            calls.append(api_key)
+            if api_key == "primary":
+                raise AlphaVantageError("standard API rate limit is 25 requests per day")
+            return fake_snapshot()
+
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            packet, paths = build_alpha_vantage_company_packet(
+                options=AlphaVantageCompanyOptions(ticker="MU"),
+                api_key="primary",
+                fallback_api_key="secondary",
+                run_id="2026-05-16_weekly",
+                root=root,
+                current_date=date(2026, 5, 16),
+                fetcher=fetcher,
+            )
+
+            raw_snapshot = json.loads(paths[1].read_text(encoding="utf-8"))
+            self.assertEqual(calls, ["primary", "secondary"])
+            self.assertEqual(packet.time_window, "quote_overview_snapshot")
+            self.assertEqual(raw_snapshot["credential"]["api_key_label"], "secondary")
+            self.assertTrue(raw_snapshot["credential"]["fallback_used"])
+            self.assertEqual(raw_snapshot["credential"]["prior_attempts"][0]["api_key_label"], "primary")
+
+    def test_fallback_key_failure_writes_attempt_labels_without_secrets(self):
+        def fetcher(options, api_key):
+            raise AlphaVantageError(f"standard API rate limit reached for {api_key}")
+
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            packet, paths = build_alpha_vantage_company_packet(
+                options=AlphaVantageCompanyOptions(ticker="MU"),
+                api_key="primary-secret",
+                fallback_api_key="secondary-secret",
+                run_id="2026-05-16_weekly",
+                root=root,
+                current_date=date(2026, 5, 16),
+                fetcher=fetcher,
+            )
+
+            raw_text = paths[1].read_text(encoding="utf-8")
+            self.assertNotIn("primary-secret", raw_text)
+            self.assertNotIn("secondary-secret", raw_text)
+            self.assertEqual(packet.time_window, "rate_limit_unavailable")
+            self.assertIn('"attempt_labels": ["primary", "secondary"]', packet.claims[0].evidence)
 
 
 def fake_snapshot():

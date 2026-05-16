@@ -1,6 +1,6 @@
 # Setup
 
-Last updated: 2026-05-15
+Last updated: 2026-05-16
 
 ## Requirements
 
@@ -87,11 +87,15 @@ Market-data cross-check providers require keys when used:
 
 ```text
 FMP_API_KEY="..."
+FMP_API_KEY2="..." # optional fallback
 POLYGON_API_KEY="..."
 ALPHA_VANTAGE_API_KEY="..."
+ALPHA_VANTAGE_API_KEY2="..." # optional fallback
 ```
 
 `MASSIVE_API_KEY` is also accepted for Polygon/Massive.
+`FINANCIAL_MODELING_PREP_API_KEY` is also accepted as a primary FMP key.
+`FMP_API_KEY2` and `ALPHA_VANTAGE_API_KEY2` are optional fallback keys. They are only tried after the primary key returns a provider tier, quota/rate-limit, or credential-style unavailable response.
 
 Provider integrations planned later may use:
 
