@@ -25,9 +25,9 @@ def write_routing_test_repo(root: Path) -> None:
             [
                 "defaults:",
                 "  openai_strong: gpt-5.5",
-                "  openai_balanced: gpt-5.5",
-                "  openai_fast: gpt-5.5",
-                "  openai_nano: gpt-5.5",
+                "  openai_balanced: gpt-5.4-mini",
+                "  openai_fast: gpt-5.4-mini",
+                "  openai_nano: gpt-5.4-mini",
                 "  xai_grok_x_search: grok-4.3",
                 "  codex_manual_model: gpt-5.5",
                 "  codex_manual_reasoning: high",
@@ -74,7 +74,7 @@ class ModelRoutingTests(unittest.TestCase):
 
             route = resolve_model_for_route(root, "writer_specialist")
 
-        self.assertEqual(route.model, "gpt-5.5")
+        self.assertEqual(route.model, "gpt-5.4-mini")
         self.assertEqual(route.model_tier, "fast")
 
     def test_explicit_and_env_overrides_win_over_config(self):
@@ -91,6 +91,15 @@ class ModelRoutingTests(unittest.TestCase):
         self.assertEqual(explicit.source, "explicit")
         self.assertEqual(route_env.model, "route-env-model")
         self.assertEqual(tier_env.model, "fast-env-model")
+
+    def test_legacy_gpt_41_override_is_blocked(self):
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            write_routing_test_repo(root)
+
+            with patch.dict(os.environ, {"STOCK_RESEARCH_OPENAI_FAST_MODEL": "gpt-4.1-2025-04-14"}):
+                with self.assertRaisesRegex(ValueError, "blocked legacy model"):
+                    resolve_model_for_route(root, "writer_specialist")
 
     def test_xai_routes_use_grok_x_search_tier(self):
         with TemporaryDirectory() as temp_dir:
@@ -114,7 +123,7 @@ class ModelRoutingTests(unittest.TestCase):
 
         self.assertEqual(strong.model, "gpt-5.5")
         self.assertEqual(strong.source, "built_in")
-        self.assertEqual(fast.model, "gpt-5.5")
+        self.assertEqual(fast.model, "gpt-5.4-mini")
         self.assertEqual(fast.source, "built_in")
 
     def test_run_config_uses_route_when_no_explicit_model(self):

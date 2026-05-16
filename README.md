@@ -89,7 +89,7 @@ python -m stock_research run-weekly --write --execute-providers --execute-analys
 
 `--execute-orchestrator` requires `OPENAI_API_KEY`. It now runs per-ticker company-research fanout for current-holding and monitoring tickers before main orchestration. If provider or analysis tasks are still dry-run and the SDK proposes alerts or file updates, the scheduled run is marked `needs_review` so stale artifacts cannot look like fresh research. If live SDK execution times out or errors, it writes a blocked reviewable artifact plus `run_metrics.md` instead of silently failing.
 
-Model routing is explicit in `agents/model_routing.yaml`. OpenAI API routes currently default to `gpt-5.5` for quality-first autonomous synthesis; cheaper/faster models can be selected later through config or env overrides after validation. Grok/X routes use the configured xAI X-search tier. Codex app/automation is still preferred for manual repo execution, report review, prompt iteration, and file edits because it can use your Codex GPT-5.5 high environment outside the Python process.
+Model routing is explicit in `agents/model_routing.yaml`. OpenAI API strong routes use `gpt-5.5` for high-complexity synthesis; balanced/fast routes use `gpt-5.4-mini` to reduce routine SDK synthesis cost. Grok/X routes use the configured xAI X-search tier. Codex app/automation is still preferred for manual repo execution, report review, prompt iteration, and file edits because it can use your Codex GPT-5.5 high environment outside the Python process.
 
 Inspect the OpenAI Agents SDK runtime registry without making live model calls:
 

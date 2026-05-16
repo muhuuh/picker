@@ -62,9 +62,11 @@ Current code paths:
 Current model behavior:
 
 - SDK agent runs resolve their model through `stock_research/model_routing.py`.
-- The default strong and balanced OpenAI routes are `gpt-5.5`.
-- Fast/cheap routes use the configured fast tier. Current default is also `gpt-5.5` because the repo is quality-first until we deliberately select a cheaper confirmed model.
+- The default strong OpenAI route is `gpt-5.5`.
+- Balanced, fast, and nano OpenAI routes use `gpt-5.4-mini` to reduce routine autonomous API synthesis cost.
 - The CLI still accepts `--model` / `--orchestrator-model`, and explicit overrides win.
+- `gpt-4.1` and its 2025-04-14 snapshot are blocked by the model router even if an environment override tries to select them. Older dashboard usage for that model should be treated as pre-routing/legacy SDK usage, not current expected behavior.
+- There is no current official `gpt-5.5-mini` route in this repo; `gpt-5.4-mini` is the current lower-cost equivalent selected for non-complex API tasks.
 
 Current use:
 
@@ -78,7 +80,7 @@ Current use:
 Recommended routing:
 
 - Use strong model only for final synthesis, high-stakes thesis/risk synthesis, and complex opportunity assessment.
-- Use cheaper/faster model for source extraction, artifact summarization, quality review, writer proposal drafting, and memory writer review.
+- Use `gpt-5.4-mini` for source extraction, artifact summarization, quality review, writer proposal drafting, and memory writer review.
 - Keep deterministic Python as the default for validation, routing, gating, provider execution, file updates, and artifact hygiene.
 
 ### OpenAI API Direct Responses Call
@@ -208,9 +210,9 @@ Current shape:
 ```yaml
 defaults:
   openai_strong: gpt-5.5
-  openai_balanced: gpt-5.5
-  openai_fast: gpt-5.5
-  openai_nano: gpt-5.5
+  openai_balanced: gpt-5.4-mini
+  openai_fast: gpt-5.4-mini
+  openai_nano: gpt-5.4-mini
   xai_grok_x_search: grok-4.3
   codex_manual_model: gpt-5.5
   codex_manual_reasoning: high
@@ -258,6 +260,7 @@ Implemented code paths:
 - xAI/Grok provider-task and manual-market routing in manifests/runners
 - CLI inspection through `python -m stock_research model-routing show --route ROUTE_OR_TASK`
 - tests for strong/fast/xAI routes and override precedence
+- guard test that rejects legacy `gpt-4.1` overrides
 
 Override precedence:
 

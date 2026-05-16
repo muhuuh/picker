@@ -12,12 +12,19 @@ MODEL_ROUTING_PATH = Path("agents/model_routing.yaml")
 
 DEFAULTS: dict[str, str] = {
     "openai_strong": "gpt-5.5",
-    "openai_balanced": "gpt-5.5",
-    "openai_fast": "gpt-5.5",
-    "openai_nano": "gpt-5.5",
+    "openai_balanced": "gpt-5.4-mini",
+    "openai_fast": "gpt-5.4-mini",
+    "openai_nano": "gpt-5.4-mini",
     "xai_grok_x_search": "grok-4.3",
     "codex_manual_model": "gpt-5.5",
     "codex_manual_reasoning": "high",
+}
+
+BLOCKED_LEGACY_MODELS = {
+    "gpt-4.1",
+    "gpt-4.1-2025-04-14",
+    "gpt_4_1",
+    "gpt_4_1_2025_04_14",
 }
 
 DEFAULT_ROUTES: dict[str, dict[str, str]] = {
@@ -112,6 +119,7 @@ def resolve_model_for_route(
                 model = default_model_for_provider_tier(defaults, provider, tier)
                 source = "config" if config else "built_in"
 
+    validate_resolved_model(model, source)
     return ModelRoute(
         route_id=route_id,
         provider=provider,
@@ -171,6 +179,15 @@ def default_model_for_provider_tier(defaults: dict[str, str], provider: str, tie
         return defaults.get("xai_grok_x_search", DEFAULTS["xai_grok_x_search"])
     key = f"openai_{tier}"
     return defaults.get(key, defaults.get("openai_strong", DEFAULTS["openai_strong"]))
+
+
+def validate_resolved_model(model: str, source: str) -> None:
+    normalized = model.strip().lower().replace("-", "_")
+    if model.strip().lower() in BLOCKED_LEGACY_MODELS or normalized in BLOCKED_LEGACY_MODELS:
+        raise ValueError(
+            f"Resolved blocked legacy model `{model}` from {source}. "
+            "Use agents/model_routing.yaml or STOCK_RESEARCH_OPENAI_*_MODEL to select an approved GPT-5.x model."
+        )
 
 
 def route_env_name(route_id: str) -> str:

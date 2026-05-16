@@ -159,7 +159,7 @@ This is the clear task backlog for building the stock tracking and investment re
 - [x] Implement xAI/Grok X research tools.
   - Description: stock sentiment, industry sentiment, latest X news, and discovery support through Grok `x_search` using `XAI_API_KEY`. Manifest-driven artifacts use task-specific names and retry slow `x_search` responses once.
 - [x] Add initial model routing optimization.
-  - Description: `agents/model_routing.yaml` and `stock_research/model_routing.py` now route OpenAI SDK, memory-writer, and xAI/Grok X-search model choices by task complexity and provider need. Current default keeps `grok-4.3` for X.com-native sentiment/discovery and uses `gpt-5.5` for strong OpenAI API synthesis.
+  - Description: `agents/model_routing.yaml` and `stock_research/model_routing.py` now route OpenAI SDK, memory-writer, and xAI/Grok X-search model choices by task complexity and provider need. Current default keeps `grok-4.3` for X.com-native sentiment/discovery, uses `gpt-5.5` for strong OpenAI API synthesis, and uses `gpt-5.4-mini` for balanced/fast lower-complexity synthesis.
 - [ ] Tune Grok model routing after more live X-search output.
   - Description: evaluate whether any future faster Grok tier is good enough for low-priority/simple X scans while keeping the strongest Grok X-search model for holdings, user-requested research, candidate discovery, and complex sentiment synthesis.
 - [x] Implement market data tools.

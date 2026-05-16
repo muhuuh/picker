@@ -204,6 +204,7 @@
 - Grok/X evidence is social signal unless independently verified. Treat it as sentiment/community chatter, not standalone fact.
 - Do not reintroduce direct X.com API bearer-token search unless the user explicitly asks for that reversal.
 - Do not let `agents/memory/` become a duplicate investment database. Keep provider output in `agents/runs/`, company facts in stock files, and strategy in `strategy/`.
+- Codex app archived chats are stored outside the repo under `C:\Users\valen\.codex\archived_sessions`; active local chats live under `C:\Users\valen\.codex\sessions\YYYY\MM\DD` and are listed in `C:\Users\valen\.codex\session_index.jsonl`.
 
 ## Commands / Environment Notes
 

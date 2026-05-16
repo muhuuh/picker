@@ -566,10 +566,24 @@ Operational memory for workflow routing, orchestration, run ordering, and user c
 - status: active
 - confidence: high
 - trigger/source: User asked to optimize model routing and prefer Codex GPT-5.5 high where the Codex app can do the work without extra API spend.
-- lesson: Resolve autonomous API models through `agents/model_routing.yaml` and `stock_research/model_routing.py`. Current OpenAI API tiers default to `gpt-5.5` for quality-first synthesis; lower-cost overrides should be deliberate and validated. Use xAI/Grok only for X.com-native search/sentiment/discovery. In manual mode, prefer Codex app/automation with GPT-5.5 high for repo commands, report review, prompt iteration, synthesis critique, and file edits; repo Python cannot directly call the current Codex chat model internally.
+- lesson: Resolve autonomous API models through `agents/model_routing.yaml` and `stock_research/model_routing.py`. Current OpenAI API routing keeps `gpt-5.5` for strong/high-complexity synthesis and uses `gpt-5.4-mini` for balanced/fast lower-complexity synthesis to control cost. Use xAI/Grok only for X.com-native search/sentiment/discovery. In manual mode, prefer Codex app/automation with GPT-5.5 high for repo commands, report review, prompt iteration, synthesis critique, and file edits; repo Python cannot directly call the current Codex chat model internally.
 - use_when: Running SDK agents, memory writer review, xAI/Grok tasks, manual Codex research loops, scheduled API-mode synthesis, or changing model/cost policy.
 - do_not_use_when: Deterministic providers, validation, artifact hygiene, category state updates, human-review digest generation, or approval-gated writers can run without an LLM.
 - evidence: `agents/model_routing.yaml`, `stock_research/model_routing.py`, `docs/descriptions/model_routing_and_codex_usage.md`, `tests/test_model_routing.py`
+- owner: main orchestrator
+- next_review: 2026-06-15
+
+- id: orch-2026-05-15-block-legacy-gpt41
+- date: 2026-05-15
+- type: procedural
+- scope: orchestrator
+- status: active
+- confidence: high
+- trigger/source: User saw unexpected `gpt-4.1-2025-04-14` dashboard spend and asked to confirm it is removed before automation runs.
+- lesson: Do not allow current stock-research automation or SDK agents to fall back to `gpt-4.1`. All OpenAI API agent calls must resolve through model routing, and the router should reject legacy `gpt-4.1` model overrides instead of silently billing an old expensive model.
+- use_when: Running, debugging, or changing OpenAI Agents SDK routes, environment model overrides, or automation model policy.
+- do_not_use_when: Estimating historical dashboard charges from runs that happened before explicit model routing and legacy-model guards existed.
+- evidence: `stock_research/model_routing.py`, `tests/test_model_routing.py`, `docs/descriptions/model_routing_and_codex_usage.md`
 - owner: main orchestrator
 - next_review: 2026-06-15
 

@@ -316,3 +316,12 @@ run-weekly
   - Created current-holding company stub files for all 10 tickers.
   - Ticker assumptions to verify with user later if needed: `Ambarelly` -> AMBA / Ambarella Inc.; `Iren` -> NASDAQ IREN Limited; Kraken Robotics -> OTCQB KRKNF for US ticker compatibility, with primary Canadian listing TSX-V PNG.
   - Dry-run validation: repo has 10 current holdings, 0 monitoring rows, `run-weekly` plans 81 provider tasks and 50 analysis tasks for run id `2026-05-16_weekly`.
+- 2026-05-15 model-cost/legacy-model check:
+  - Active repo routes resolve OpenAI API calls to `gpt-5.5` and xAI calls to `grok-4.3`; no active source, `.env`, or current process env references `gpt-4.1`.
+  - Added router guard so `gpt-4.1` / `gpt-4.1-2025-04-14` overrides raise instead of silently running.
+  - Official OpenAI docs checked: `gpt-5.5` exists; no official `gpt-5.5-mini` route was found. Cheaper route candidates are `gpt-5.4-mini` or `gpt-5-mini` if we deliberately trade cost vs quality later.
+  - Current 10-holding dry run plans 81 provider tasks: 22 Exa, 11 xAI/Grok, 10 yfinance, 10 FMP, 10 Alpha Vantage, 9 Polygon/Massive, 9 SEC; and 50 analysis tasks.
+- 2026-05-15 model-cost optimization:
+  - User clarified that routine API synthesis should not use `gpt-5.5` everywhere and that there is no `gpt-5.5-mini`.
+  - Updated defaults: strong routes stay on `gpt-5.5`; balanced/fast/nano routes now use `gpt-5.4-mini`.
+  - Internal `fast` tier is just a repo route name, not OpenAI priority processing. We use standard processing unless explicitly changing API processing mode later.
