@@ -61,6 +61,8 @@ The initial market scope is US and Europe. The default recurring deep research c
   - human review queue: decisions or recommendations the system wants the user to approve.
 - Before responding to user research requests, read `docs/descriptions/repo_map.md` and `docs/descriptions/human_interaction_workflow.md` when present.
 - Prefer deterministic kickoff steps for recurring runs: load repo state, check planned tasks, gather latest filings/news/sentiment/market context, validate stale records, then pass structured results to the orchestrator.
+- For local Codex app automation, prefer Codex-supervised mode: run deterministic provider/analysis/finalization steps, read `agents/runs/{run_id}/codex_supervised_review_pack.md`, and let Codex GPT-5.5 high write the final human-facing synthesis/review. Do not add `--execute-orchestrator` to scheduled Codex automation unless the user explicitly asks for API-mode benchmarking or remote/headless simulation.
+- Preserve the API SDK workflow as an optional mode for remote workers, structured traces, specialist fanout debugging, and benchmarks. API mode is not the default local scheduled workflow.
 - Use the orchestrator for synthesis, prioritization, routing, and final recommendations.
 - Produce both tracked-stock change alerts and new-stock discovery alerts when candidates match the strategy.
 - Use specialist agents for bounded work: xAI/Grok X sentiment, industry sentiment, Exa/web search, SEC filing review, financial analysis, stock file updates, market discovery, strategy impact review, and quality control.
@@ -69,6 +71,7 @@ The initial market scope is US and Europe. The default recurring deep research c
 - Any buy/sell/position-size recommendation should be treated as research output for human review, not an automatic trade instruction.
 - Agent runs should update relevant scratchpads and plan files with what worked, what failed, useful prompts/tools, stale data risks, and next actions.
 - Agent runs should use `agents/memory/` for operational lessons and should not store raw provider output, secrets, or ordinary company facts there.
+- Codex-supervised runs must still preserve the learning loop: review run summary, quality report, memory reflection, memory update drafts, finalization, category state updates, artifact hygiene, and human-review digest; update scratchpads/backlog/memory when there is a durable operational lesson.
 - After run reflection/finalization proposes memory updates, convert them into reviewable drafts with `python -m stock_research memory draft-updates --run-id RUN_ID --write`, optionally review/refine them through `python -m stock_research memory writer-review --run-id RUN_ID --write`, and apply only approved ready drafts with `python -m stock_research memory apply-updates --run-id RUN_ID --proposal-id PROPOSAL_ID`.
 - The bounded LLM memory writer may propose accept/revise/reject decisions, but it must not directly edit `agents/memory/*.md`; memory writes must go through deterministic schema validation and `memory apply-updates`.
 

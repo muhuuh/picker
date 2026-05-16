@@ -17,6 +17,13 @@ defaults:
   codex_manual_reasoning: high
 
 runtime_modes:
+  codex_supervised_scheduled:
+    preferred: true
+    model: gpt-5.5
+    reasoning: high
+    use_for: local biweekly tracked-stock automation, final human-facing synthesis, report quality repair, memory and hygiene review
+    command: "C:\\Python313\\python.exe -m stock_research run-weekly --write --execute-providers --execute-analysis"
+    note: Python writes codex_supervised_review_pack.md; Codex app automation reads it and writes codex_supervised_review.md without OpenAI API SDK synthesis.
   manual_codex:
     preferred: true
     model: gpt-5.5

@@ -36,8 +36,14 @@ class ScheduledRunnerTests(unittest.TestCase):
             self.assertTrue((root / "agents/runs/2026-05-09_weekly/quality_report.md").exists())
             self.assertTrue((root / "agents/runs/2026-05-09_weekly/finalization.md").exists())
             self.assertTrue((root / "agents/runs/2026-05-09_weekly/memory_writer_review.md").exists())
+            self.assertTrue((root / "agents/runs/2026-05-09_weekly/codex_supervised_review_pack.md").exists())
             self.assertTrue((root / "agents/runs/2026-05-09_weekly/orchestration_report.md").exists())
             self.assertTrue((root / "agents/human_review_digest.md").exists())
+            pack_text = (root / "agents/runs/2026-05-09_weekly/codex_supervised_review_pack.md").read_text(encoding="utf-8")
+            self.assertIn("Codex-Supervised Review Pack", pack_text)
+            self.assertIn("Do not use API mode in the scheduled Codex-supervised automation", pack_text)
+            self.assertEqual(result.steps["codex_review_pack"]["expected_output_path"], "agents/runs/2026-05-09_weekly/codex_supervised_review.md")
+            self.assertIn("agents/runs/2026-05-09_weekly/codex_supervised_review_pack.md", result.steps["codex_review_pack"]["written_paths"])
             self.assertEqual(result.steps["human_review_digest"]["status"], "clear")
 
     def test_weekly_workflow_can_execute_orchestrator_with_injected_executor(self):

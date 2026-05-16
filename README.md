@@ -24,6 +24,7 @@ The current implementation is a deterministic Python foundation. It reads the re
 - `docs/descriptions/agent_memory_workflow.md`: memory read/write workflow and guardrails.
 - `docs/descriptions/llm_memory_writer.md`: bounded LLM memory writer workflow.
 - `docs/descriptions/scheduled_runner.md`: deterministic workflow wrapper and Codex app automation details.
+- `docs/descriptions/codex_supervised_workflow.md`: lower-cost Codex-supervised workflow and review pack contract.
 - `docs/descriptions/openai_agents_sdk_orchestration.md`: selected OpenAI Agents SDK runtime design.
 - `docs/descriptions/model_routing_and_codex_usage.md`: model routing, Codex app vs API boundary, and cost/quality policy.
 - `agents/model_routing.yaml`: current model tiers and route assignments.
@@ -87,7 +88,15 @@ python -m stock_research run-weekly --write --execute-orchestrator
 python -m stock_research run-weekly --write --execute-providers --execute-analysis --execute-orchestrator --orchestrator-timeout-seconds 300
 ```
 
-`--execute-orchestrator` requires `OPENAI_API_KEY`. It now runs per-ticker company-research fanout for current-holding and monitoring tickers before main orchestration. If provider or analysis tasks are still dry-run and the SDK proposes alerts or file updates, the scheduled run is marked `needs_review` so stale artifacts cannot look like fresh research. If live SDK execution times out or errors, it writes a blocked reviewable artifact plus `run_metrics.md` instead of silently failing.
+The default local scheduled path is Codex-supervised:
+
+```powershell
+C:\Python313\python.exe -m stock_research run-weekly --write --execute-providers --execute-analysis
+```
+
+That command gathers provider/analysis evidence, writes the final digest, opportunity assessments, memory/finalization artifacts, category state updates, human-review digest, and `agents/runs/{run_id}/codex_supervised_review_pack.md`. Codex app automation should then read the pack and write `agents/runs/{run_id}/codex_supervised_review.md` using Codex GPT-5.5 high.
+
+`--execute-orchestrator` is optional API SDK mode and requires `OPENAI_API_KEY`. It runs per-ticker company-research fanout for current-holding and monitoring tickers before main orchestration. Use it for remote/headless execution, SDK trace debugging, or benchmarking against Codex-supervised quality. If provider or analysis tasks are still dry-run and the SDK proposes alerts or file updates, the scheduled run is marked `needs_review` so stale artifacts cannot look like fresh research. If live SDK execution times out or errors, it writes a blocked reviewable artifact plus `run_metrics.md` instead of silently failing.
 
 Model routing is explicit in `agents/model_routing.yaml`. OpenAI API strong routes use `gpt-5.5` for high-complexity synthesis; balanced/fast routes use `gpt-5.4-mini` to reduce routine SDK synthesis cost. Grok/X routes use the configured xAI X-search tier. Codex app/automation is still preferred for manual repo execution, report review, prompt iteration, and file edits because it can use your Codex GPT-5.5 high environment outside the Python process.
 
@@ -303,7 +312,7 @@ Implemented:
 - bounded LLM memory writer prompt/review workflow for memory update drafts.
 - prompt-ready operational memory context for future specialist injection.
 - deterministic run finalization command for reflection, recurring-failure, and finalization artifacts.
-- deterministic weekly runner that chains manifest, provider tasks, analysis tasks, summary, quality report, memory finalization, memory-writer review, and optional SDK orchestration.
+- deterministic weekly runner that chains manifest, provider tasks, analysis tasks, summary, quality report, memory finalization, memory-writer review, final digest, human-review digest, Codex review pack, and optional SDK orchestration.
 - OpenAI Agents SDK runtime foundation: importable runtime package, main orchestrator builder, company-research sub-orchestrator, company-news specialist builder, company-search specialist builder, financial specialist builder, filing specialist builder, sentiment specialist builder, risk/thesis specialist builder, writer specialist builder, quality-review specialist builder, central registry, specialist-as-tool composition, typed context/output contracts, task-relevant memory injection, repo/memory inspection tools, prompt/spec files, and no-model-call smoke command.
 - Company-research SDK sub-orchestrator for one ticker, with evidence lanes for financials, company news, filings, sentiment, company search, risk/thesis impact, writer proposals, and quality review, plus financial, company-news, company-search, filing, sentiment, risk/thesis, writer, and quality-review specialist fanout.
 - Market-research SDK sub-orchestrator and manual runner for one industry/theme, with Exa industry/company discovery, Grok/X trend and rumor discovery, candidate discovery, quality-review specialist fanout, typed candidate leads, and discovery quality gates.
@@ -316,7 +325,8 @@ Implemented:
 - SDK local telemetry hooks for agent lifecycle, tool calls, LLM calls/usage when available, injected operational memory ids, and final-output reported memory ids.
 - SDK timeout/error handling that writes blocked reviewable outputs and feeds runtime failures into memory reflection.
 - function-first SDK fanout helper for independent agent tasks with per-task timeout, task-specific memory, partial-failure preservation, and aggregate metrics.
-- opt-in scheduled OpenAI Agents SDK orchestration through `run-weekly --write --execute-orchestrator`, with per-ticker company-research fanout for current/monitoring tickers and freshness gating for dry-run provider/analysis inputs.
+- default lower-cost Codex-supervised scheduled path through `run-weekly --write --execute-providers --execute-analysis`, where Codex reads `codex_supervised_review_pack.md` and writes `codex_supervised_review.md`.
+- opt-in OpenAI Agents SDK orchestration through `run-weekly --write --execute-orchestrator`, with per-ticker company-research fanout for current/monitoring tickers and freshness gating for dry-run provider/analysis inputs.
 - deterministic SDK proposal review bridge: `agent-runtime queue-proposals --write --queue-review`.
 - approval-gated SDK proposal writer: `agent-runtime apply-proposal --proposal-id ORP-0001 --write`.
 - low-risk company-file factual updater with run-end FYI summary.

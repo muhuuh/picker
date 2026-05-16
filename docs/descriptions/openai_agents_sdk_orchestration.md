@@ -1,12 +1,14 @@
 # OpenAI Agents SDK Orchestration Design
 
-Last updated: 2026-05-11
+Last updated: 2026-05-16
 
 ## Purpose
 
 This document defines how this repo should use OpenAI Agents SDK for LLM orchestration.
 
-The first SDK runtime foundation is implemented. It can build real SDK `Agent` objects, compose company-news, company-search, financial, filing, sentiment, risk/thesis, opportunity-assessment, writer, quality-review, Exa industry, Grok discovery, and candidate discovery specialists as tools for orchestrators, run no-model-call registry smoke checks, manually execute orchestrators over existing run artifacts, run portfolio-review and memory/evaluation packet synthesis, and run scheduled per-ticker company research plus main orchestration from the weekly wrapper behind an explicit `--execute-orchestrator` flag.
+The first SDK runtime foundation is implemented. It can build real SDK `Agent` objects, compose company-news, company-search, financial, filing, sentiment, risk/thesis, opportunity-assessment, writer, quality-review, Exa industry, Grok discovery, and candidate discovery specialists as tools for orchestrators, run no-model-call registry smoke checks, manually execute orchestrators over existing run artifacts, run portfolio-review and memory/evaluation packet synthesis, and run per-ticker company research plus main orchestration from the weekly wrapper behind an explicit `--execute-orchestrator` flag.
+
+Default local scheduled automation does not use this API SDK path. It uses Codex-supervised mode instead: `run-weekly --write --execute-providers --execute-analysis` writes deterministic artifacts plus `codex_supervised_review_pack.md`, and Codex GPT-5.5 high writes the final human-facing review. Use the SDK path for remote/headless execution, structured traces, fanout debugging, or benchmarking against Codex-supervised quality.
 
 Dedicated backlog: `docs/plans/openai_agents_sdk_orchestration_backlog.md`.
 
@@ -264,7 +266,7 @@ The SDK runtime passes the resolved model through `RunConfig.model`, which the O
 - `grok-4.3` through xAI for X.com-native sentiment, hype, rumors, niche lead generation, and latest X narrative shifts.
 - no LLM for deterministic providers, validation, artifact hygiene, category state updates, human-review digest generation, and approval-gated writers.
 
-Codex app/automation is the preferred manual-mode runner for repo commands, report review, prompt iteration, and file edits because it can use the user's Codex GPT-5.5 high environment. Python code cannot directly call the current Codex chat model internally, so unattended API-mode runs still need routed API models.
+Codex app/automation is the preferred manual and local scheduled runner for repo commands, report review, prompt iteration, final synthesis, and file edits because it can use the user's Codex GPT-5.5 high environment. Python code cannot directly call the current Codex chat model internally, so remote/headless API-mode runs still need routed API models.
 
 ## Guardrails
 
@@ -397,9 +399,17 @@ Implemented:
   - `python -m stock_research agent-runtime validate-output --run-id RUN_ID`
   - `python -m stock_research agent-runtime queue-proposals --run-id RUN_ID --write --queue-review`
   - `python -m stock_research agent-runtime apply-proposal --run-id RUN_ID --proposal-id ORP-0001 --write`
-- Scheduled opt-in:
+- Scheduled opt-in API mode:
   - `python -m stock_research run-weekly --write --execute-orchestrator`
   - `python -m stock_research run-weekly --write --execute-providers --execute-analysis --execute-orchestrator --orchestrator-timeout-seconds 300`
+
+Default Codex-supervised scheduled mode:
+
+```powershell
+C:\Python313\python.exe -m stock_research run-weekly --write --execute-providers --execute-analysis
+```
+
+Then Codex reads `agents/runs/{run_id}/codex_supervised_review_pack.md` and writes `agents/runs/{run_id}/codex_supervised_review.md`.
 
 Not implemented yet:
 

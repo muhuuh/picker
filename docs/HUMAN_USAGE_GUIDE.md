@@ -1,6 +1,6 @@
 # Human Usage Guide
 
-Last updated: 2026-05-15
+Last updated: 2026-05-16
 
 ## Short Version
 
@@ -24,6 +24,7 @@ Codex should read the repo context, run the relevant workflow, write durable art
 
 For weekly-style holding/watchlist research:
 
+- `codex_supervised_review.md` is the best first read after the scheduled Codex automation finishes. It is written by Codex after reading the deterministic review pack, final digest, opportunity assessments, quality report, memory/finalization artifacts, and human-review digest.
 - `final_digest.md` is the quick read. It summarizes each current holding and monitored stock from the latest run, including the most important opportunity view, financial facts, news, Grok/X pulse, bull/bear case, and links to deeper reports.
 - `reports/opportunity_assessment/{TICKER}_opportunity_assessment.md` is the main human-facing deep company report. Read this when the digest says a stock needs attention or when you want the full thesis, X/community narrative, valuation context, non-obvious angles, and next research checks.
 - `company_research/{TICKER}_company_research.md` is mostly an internal orchestration packet. It shows which specialist lanes ran or missed. You normally do not need to read it unless Codex points you there while debugging coverage.
@@ -192,16 +193,26 @@ Run the weekly research workflow manually for the current repo state. Use fresh 
 
 What Codex should do:
 
-- run the weekly workflow from the repo,
+- run the lower-cost Codex-supervised weekly workflow from the repo:
+
+```powershell
+C:\Python313\python.exe -m stock_research run-weekly --write --execute-providers --execute-analysis
+```
+
+- read the generated `agents/runs/{run_id}/codex_supervised_review_pack.md`,
+- write or update `agents/runs/{run_id}/codex_supervised_review.md`,
 - write reports under `agents/runs/{run_id}/`,
 - refresh the review digest,
 - summarize what changed and what you need to decide.
 
 Where to read:
 
-- start with `agents/runs/{run_id}/final_digest.md`,
+- start with `agents/runs/{run_id}/codex_supervised_review.md` when the Codex automation/manual run completed the supervised review step,
+- then read `agents/runs/{run_id}/final_digest.md` for the quick per-stock digest,
 - open `agents/runs/{run_id}/reports/opportunity_assessment/{TICKER}_opportunity_assessment.md` for any stock that matters,
 - use `agents/human_review_digest.md` for decisions and FYI update summaries.
+
+The API SDK workflow is still available when you explicitly ask for an API-mode benchmark or remote/headless simulation, but it is not the default Codex app workflow.
 
 ## Where Results Live
 
@@ -209,6 +220,7 @@ Use this simple map:
 
 | Need | Main place |
 | --- | --- |
+| Best first read after scheduled Codex automation | `agents/runs/{run_id}/codex_supervised_review.md` |
 | What needs my decision? | `agents/human_review_digest.md` |
 | Durable review queue | `agents/human_review_queue.md` |
 | Latest run outputs | `agents/runs/{run_id}/` |

@@ -130,7 +130,7 @@ STOCK_RESEARCH_OPENAI_FAST_MODEL="..."
 STOCK_RESEARCH_XAI_GROK_MODEL="..."
 ```
 
-Manual Codex mode is different from API mode. Codex app/automation can use your configured Codex GPT-5.5 high environment to run repo commands, inspect reports, improve prompts, and edit files. Python code in this repo cannot directly call the current Codex chat model internally; unattended SDK execution must use routed API models through `OPENAI_API_KEY`.
+Manual/Codex-supervised mode is different from API mode. Codex app/automation can use your configured Codex GPT-5.5 high environment to run repo commands, inspect reports, improve prompts, write final synthesis, and edit files. Python code in this repo cannot directly call the current Codex chat model internally; unattended SDK execution outside Codex must use routed API models through `OPENAI_API_KEY`.
 
 ## Codex App Automation
 
@@ -142,11 +142,13 @@ C:\Users\valen\.codex\automations\biweekly-holdings-and-monitoring-research\auto
 
 It runs every two weeks on Saturday at 08:00, starting 2026-05-16, from `C:\Users\valen\Documents\Code\stocks`.
 
-The automation command is intentionally exact:
+The automation command is intentionally exact and lower-cost:
 
 ```powershell
-C:\Python313\python.exe -m stock_research run-weekly --write --execute-providers --execute-analysis --execute-orchestrator --orchestrator-timeout-seconds 900
+C:\Python313\python.exe -m stock_research run-weekly --write --execute-providers --execute-analysis
 ```
+
+This is Codex-supervised mode. It intentionally omits `--execute-orchestrator`, writes `agents/runs/{run_id}/codex_supervised_review_pack.md`, and expects Codex app automation to write `agents/runs/{run_id}/codex_supervised_review.md` after reading the pack and linked artifacts.
 
 Codex automation sandbox rules live at:
 
@@ -157,10 +159,10 @@ C:\Users\valen\.codex\rules\default.rules
 Validate the rule before relying on the automation:
 
 ```powershell
-codex execpolicy check --pretty --rules C:\Users\valen\.codex\rules\default.rules -- C:\Python313\python.exe -m stock_research run-weekly --write --execute-providers --execute-analysis --execute-orchestrator --orchestrator-timeout-seconds 900
+codex execpolicy check --pretty --rules C:\Users\valen\.codex\rules\default.rules -- C:\Python313\python.exe -m stock_research run-weekly --write --execute-providers --execute-analysis
 ```
 
-Expected result: `decision: allow`. Keep this narrow; do not allow broad Git/network commands or arbitrary Python module execution for the automation.
+Expected result: `decision: allow`. Keep this narrow; do not allow broad Git/network commands or arbitrary Python module execution for the automation. The API SDK command with `--execute-orchestrator` remains a separate explicit benchmark/remote-mode path, not the default scheduled command.
 
 ## OpenAI Agents SDK Runtime
 
@@ -170,7 +172,7 @@ The main orchestrator currently exposes repo/memory inspection tools, `company_n
 
 When SDK execution writes metrics, `run_metrics.md` includes local hook telemetry for agent lifecycle, tool calls, LLM usage when available, injected operational memory ids, final-output reported memory ids, and runner-level timeout/error status. It does not log raw prompts or raw tool payloads. Post-run memory reflection reads those metrics and flags SDK timeouts/errors as reviewable learning-loop issues.
 
-`stock_research/agent_runtime/fanout.py` provides the code-level fanout helper for sub-orchestrators. It runs independent SDK agent tasks concurrently with task-specific memory, per-task timeout, and partial-failure preservation. Scheduled `run-weekly --write --execute-orchestrator` uses it for per-ticker company research.
+`stock_research/agent_runtime/fanout.py` provides the code-level fanout helper for sub-orchestrators. It runs independent SDK agent tasks concurrently with task-specific memory, per-task timeout, and partial-failure preservation. API mode `run-weekly --write --execute-orchestrator` uses it for per-ticker company research; default Codex-supervised scheduled mode skips this API call and lets Codex synthesize from the deterministic review pack.
 
 `company_research_orchestrator` is the first SDK sub-orchestrator. It can build a one-ticker company research packet, group evidence into financials/company-news/filings/sentiment/company-search/risk-thesis/writer/quality lanes, run financial, company-news, company-search, filing, sentiment, risk/thesis, writer, and quality-review specialist fanout, and preserve partial lanes as next-run tasks.
 
@@ -259,7 +261,7 @@ python -m stock_research agent-runtime apply-proposal --run-id 2026-05-09_weekly
 
 This command refuses open/rejected/missing review rows and only edits the proposal target company file.
 
-Run the SDK orchestrator from the weekly wrapper:
+Run the SDK orchestrator from the weekly wrapper only when you explicitly want API mode:
 
 ```powershell
 python -m stock_research run-weekly --write --execute-orchestrator
@@ -269,6 +271,8 @@ python -m stock_research run-weekly --write --execute-providers --execute-analys
 `--execute-orchestrator` requires `OPENAI_API_KEY` and `--write`. When provider or analysis tasks are dry-run, actionable SDK output is marked `needs_review` until fresh deterministic execution runs.
 
 When SDK orchestration is enabled, the weekly wrapper runs company-research fanout for all current-holding and monitoring tickers before the main orchestrator and writes per-ticker reports under `agents/runs/RUN_ID/company_research/`.
+
+For the default local Codex-supervised workflow, use `run-weekly --write --execute-providers --execute-analysis`, then have Codex read `codex_supervised_review_pack.md` and write `codex_supervised_review.md`.
 
 ## SEC EDGAR
 
@@ -427,6 +431,8 @@ python -m stock_research run-weekly --write
 python -m stock_research run-weekly --write --execute-providers --execute-analysis
 python -m stock_research run-weekly --write --execute-orchestrator
 ```
+
+The third command is the default Codex-supervised path. The fourth command is optional API SDK mode.
 
 Apply low-risk factual company-file updates from a completed opportunity-assessment run:
 

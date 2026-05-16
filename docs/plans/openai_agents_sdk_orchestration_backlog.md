@@ -232,8 +232,9 @@ Out of scope for the first slice:
   - Current progress: manual market-research runs, candidate-review runs, and SDK `agent-runtime run --write` now write run-local `human_review_digest_summary.md`.
 - [x] Add Saturday automation only after the SDK runtime can run safely and produce reviewable outputs.
   - Current progress: Codex app automation `biweekly-holdings-and-monitoring-research` is active. It runs every two weeks on Saturday at 08:00, starting 2026-05-16, from `C:\Users\valen\Documents\Code\stocks`.
-  - Current command: `C:\Python313\python.exe -m stock_research run-weekly --write --execute-providers --execute-analysis --execute-orchestrator --orchestrator-timeout-seconds 900`.
-  - Sandbox note: `C:\Users\valen\.codex\rules\default.rules` allowlists only this exact command and the equivalent PowerShell wrapper. `codex execpolicy check` returns `decision: allow` for the exact command; broad Git commands and arbitrary provider execution are not allowlisted.
+  - Current command: `C:\Python313\python.exe -m stock_research run-weekly --write --execute-providers --execute-analysis`.
+  - Current mode: Codex-supervised. Python writes deterministic artifacts and `codex_supervised_review_pack.md`; Codex GPT-5.5 high reads the pack and writes `codex_supervised_review.md`.
+  - Sandbox note: `C:\Users\valen\.codex\rules\default.rules` allowlists this exact command and the equivalent PowerShell wrapper. `codex execpolicy check` returns `decision: allow` for the exact command; broad Git commands and arbitrary provider execution are not allowlisted. The previous `--execute-orchestrator` command is now only an explicit API SDK benchmark/remote-mode path.
 - [x] Investigate scheduled main SDK connection failure and prompt/context size.
   - Resolution: after OpenAI API credit was added, scheduled `run-weekly --execute-orchestrator` reached the live model path and completed.
   - Follow-up fix: runtime quality gates were tightened so valid report artifact paths can back proposal `source_ids`, and direct trade-language checks no longer flag ordinary business text such as `Sell on Amazon`.
@@ -293,10 +294,12 @@ Out of scope for the first slice:
   - Explicit CLI model override should win.
   - Missing config should fall back to safe defaults.
   - xAI routes should resolve through the Grok X-search tier; live provider execution still requires `XAI_API_KEY`.
-- [ ] Evaluate Codex SDK / app automation usage later.
-  - Codex chat/automation should be the default manual improvement loop.
+- [x] Add Codex-supervised local automation mode.
+  - Codex chat/automation is now the default manual and local scheduled improvement loop.
+  - Default local command: `C:\Python313\python.exe -m stock_research run-weekly --write --execute-providers --execute-analysis`.
+  - Review contract: `agents/runs/{run_id}/codex_supervised_review_pack.md` tells Codex which reports, memory artifacts, human-review artifacts, and hygiene/state files to inspect before writing `agents/runs/{run_id}/codex_supervised_review.md`.
   - Do not mix Codex SDK into the core stock workflow until it is tested separately.
-  - Current policy: Codex app/automation can use GPT-5.5 high as the human-supervised runner for repo commands, report review, prompt iteration, and file edits; repo Python cannot directly call the current Codex chat model as an internal function.
+  - Current policy: Codex app/automation can use GPT-5.5 high as the human-supervised runner for repo commands, report review, prompt iteration, final synthesis, and file edits; repo Python cannot directly call the current Codex chat model as an internal function. API SDK mode remains available for remote/headless execution, structured traces, and benchmarking.
 
 ## Planned Runtime Diagram
 
@@ -334,13 +337,13 @@ The next build slice should be intentionally small:
 
 Success means the SDK runtime can consume existing deterministic artifacts, call one specialist as a tool, return a validated structured decision, and write auditable run artifacts without broad file writes.
 
-Current status: success for the first manual and scheduled opt-in runtime slices. The runtime can build the context, registry, main orchestrator, company-news specialist, company-search specialist, financial specialist, filing specialist, sentiment specialist, risk/thesis specialist, writer specialist, quality-review specialist, specialist-as-tool composition, trace metadata, task-relevant memory injection, no-model-call smoke output, a live manual `Runner.run(...)` execution over existing artifacts, saved output validation, scheduled per-ticker company-research fanout, and scheduled opt-in main orchestration through `run-weekly --write --execute-orchestrator`. The scheduled path now marks actionable SDK output from dry-run provider/analysis inputs as `needs_review`.
+Current status: success for the first manual and scheduled opt-in API runtime slices. The runtime can build the context, registry, main orchestrator, company-news specialist, company-search specialist, financial specialist, filing specialist, sentiment specialist, risk/thesis specialist, writer specialist, quality-review specialist, specialist-as-tool composition, trace metadata, task-relevant memory injection, no-model-call smoke output, a live manual `Runner.run(...)` execution over existing artifacts, saved output validation, per-ticker company-research fanout, and opt-in API main orchestration through `run-weekly --write --execute-orchestrator`. The API SDK path marks actionable SDK output from dry-run provider/analysis inputs as `needs_review`. Default local scheduled automation now uses Codex-supervised mode without `--execute-orchestrator`.
 
 Guarded provider/analysis tool status: `run_provider_tasks_guarded` and `run_analysis_tasks_guarded` are exposed to the main orchestrator as SDK function tools. They wrap importable Python runner functions directly, load the current manifest from runtime context, plan by default, and block live execution unless the context explicitly sets `dry_run=False` plus the matching execution permission.
 
 Local hook/telemetry status: SDK runtime now attaches local hooks that record agent lifecycle, LLM calls, tool calls, injected operational memory ids, and final-output reported memory ids into `run_metrics.md`. This gives the future memory/evaluation sub-orchestrator a repo-local audit trail without relying only on OpenAI hosted traces.
 
-Latest validation: `python -m stock_research run-weekly --write --today 2026-05-11 --execute-providers --execute-analysis --execute-orchestrator --orchestrator-timeout-seconds 900` completed successfully for AMZN/AAPL after OpenAI API credit was added and runtime quality gates were tightened. The clean run executed 19 provider tasks and 10 analysis tasks, produced 29 evidence packets, wrote final digest and opportunity assessment artifacts, completed company research for both tracked tickers, and ended with no deterministic or SDK quality findings.
+Latest API SDK validation: `python -m stock_research run-weekly --write --today 2026-05-11 --execute-providers --execute-analysis --execute-orchestrator --orchestrator-timeout-seconds 900` completed successfully for AMZN/AAPL after OpenAI API credit was added and runtime quality gates were tightened. The clean run executed 19 provider tasks and 10 analysis tasks, produced 29 evidence packets, wrote final digest and opportunity assessment artifacts, completed company research for both tracked tickers, and ended with no deterministic or SDK quality findings. This remains the benchmark/remote-mode path, not the default local scheduled path.
 
 Proposal bridge status: `python -m stock_research agent-runtime queue-proposals --run-id 2026-05-09_weekly --write --queue-review --today 2026-05-07` wrote `orchestrator_update_proposals.md` and duplicate-safe human-review queue rows HRQ-0002 and HRQ-0003. It does not edit company files.
 

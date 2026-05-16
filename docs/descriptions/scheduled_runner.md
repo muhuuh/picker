@@ -1,14 +1,14 @@
 # Scheduled Runner
 
-Last updated: 2026-05-15
+Last updated: 2026-05-16
 
 ## Purpose
 
-The scheduled runner is the deterministic tracked-stock workflow wrapper. The command is still named `run-weekly` because it builds weekly-style run artifacts, but the first Codex app automation runs it every two weeks. It chains the already-built repo loaders, manifest generation, provider task runner, analysis task runner, run summary, quality report, memory finalization, and bounded memory-writer review.
+The scheduled runner is the tracked-stock workflow wrapper. The command is still named `run-weekly` because it builds weekly-style run artifacts, but the first Codex app automation runs it every two weeks. It chains the already-built repo loaders, manifest generation, provider task runner, analysis task runner, run summary, quality report, memory finalization, bounded memory-writer review, company-file factual sync, category state updates, final digest, human-review digest, and Codex-supervised review pack.
 
 Implementation: `stock_research/scheduled_runner.py`.
 
-The runner is deterministic by default, but it can now optionally call OpenAI Agents SDK company-research fanout and the main orchestrator after deterministic finalization.
+The default local scheduled mode is Codex-supervised: Python gathers and validates evidence, then the Codex app reads the generated review pack and writes the final human-facing synthesis using the user's Codex GPT-5.5 high environment. The runner can still optionally call OpenAI Agents SDK company-research fanout and the main orchestrator when `--execute-orchestrator` is explicitly requested for API benchmarking, debugging, or remote/headless mode.
 
 The CLI command is only the scheduler/manual entrypoint. Internal workflow steps should call importable Python functions directly rather than shelling out to other CLI commands.
 
@@ -26,13 +26,13 @@ Automation file:
 C:\Users\valen\.codex\automations\biweekly-holdings-and-monitoring-research\automation.toml
 ```
 
-The automation must use the explicit Python executable and this exact command:
+The automation must use the explicit Python executable and this exact lower-cost Codex-supervised command:
 
 ```powershell
-C:\Python313\python.exe -m stock_research run-weekly --write --execute-providers --execute-analysis --execute-orchestrator --orchestrator-timeout-seconds 900
+C:\Python313\python.exe -m stock_research run-weekly --write --execute-providers --execute-analysis
 ```
 
-Do not change it to bare `python`. Do not add `git fetch`, `git pull`, `git checkout`, `git reset`, or other Git metadata writes to the automation.
+This intentionally omits `--execute-orchestrator`. Do not add API SDK orchestration unless the user explicitly asks for API-mode benchmarking/debugging or remote/headless simulation. Do not change it to bare `python`. Do not add `git fetch`, `git pull`, `git checkout`, `git reset`, or other Git metadata writes to the automation.
 
 Codex automation sandbox rules are stored at:
 
@@ -40,10 +40,10 @@ Codex automation sandbox rules are stored at:
 C:\Users\valen\.codex\rules\default.rules
 ```
 
-The rules intentionally allow only the exact stock workflow command above and the equivalent Windows PowerShell wrapper. Validate changes with:
+The rules intentionally allow only the exact Codex-supervised stock workflow command above and the equivalent Windows PowerShell wrapper. The older API SDK command remains allowlisted only as an explicit benchmark/remote-mode escape hatch. Validate the scheduled command with:
 
 ```powershell
-codex execpolicy check --pretty --rules C:\Users\valen\.codex\rules\default.rules -- C:\Python313\python.exe -m stock_research run-weekly --write --execute-providers --execute-analysis --execute-orchestrator --orchestrator-timeout-seconds 900
+codex execpolicy check --pretty --rules C:\Users\valen\.codex\rules\default.rules -- C:\Python313\python.exe -m stock_research run-weekly --write --execute-providers --execute-analysis
 ```
 
 The expected decision is `allow`. Broad Git commands and arbitrary `stock_research` provider execution should remain unallowlisted.
@@ -56,7 +56,7 @@ Dry-run the weekly workflow without writing artifacts or calling live APIs:
 python -m stock_research run-weekly
 ```
 
-Persist manifest, summaries, quality report, memory finalization, memory-writer review, and orchestration report:
+Persist manifest, summaries, quality report, memory finalization, memory-writer review, final digest, human-review digest, Codex review pack, and orchestration report:
 
 ```powershell
 python -m stock_research run-weekly --write
@@ -66,6 +66,18 @@ Execute live provider and analysis tasks:
 
 ```powershell
 python -m stock_research run-weekly --write --execute-providers --execute-analysis
+```
+
+This is the default Codex-supervised automation path. After it finishes, Codex should read:
+
+```text
+agents/runs/{run_id}/codex_supervised_review_pack.md
+```
+
+and then write:
+
+```text
+agents/runs/{run_id}/codex_supervised_review.md
 ```
 
 When live provider or analysis execution is enabled, the runner first cleans generated artifacts in the target run directory (`evidence_packets/`, `raw/`, `reports/`, and generated root report files). This keeps repeated manual smoke tests or reruns from double-counting stale evidence packets.
@@ -99,10 +111,12 @@ load repo state
   -> memory finalize-run
   -> memory writer-review
   -> SDK company-research fanout for current/monitoring tickers (only with --execute-orchestrator)
-  -> SDK orchestrator (only with --execute-orchestrator)
+  -> SDK portfolio/memory/main orchestrators (only with --execute-orchestrator)
   -> SDK proposal review bridge (only after successful SDK orchestrator output)
   -> final_digest
   -> human_review_digest
+  -> codex_supervised_review_pack
+  -> Codex app reads pack and writes codex_supervised_review.md
   -> orchestration_report
 ```
 
@@ -120,6 +134,9 @@ When `--write` is used:
 - `agents/runs/{run_id}/finalization.md`
 - `agents/runs/{run_id}/final_digest.md`
 - `agents/human_review_digest.md`
+- `agents/runs/{run_id}/codex_supervised_review_pack.md`
+- `agents/runs/{run_id}/codex_supervised_review_pack.json`
+- `agents/runs/{run_id}/codex_supervised_review.md` when Codex app automation completes the supervised review step
 - `agents/runs/{run_id}/company_research/{TICKER}_company_research.md` when `--execute-orchestrator` is used and tracked tickers exist
 - `agents/runs/{run_id}/company_research/{TICKER}_company_research_metrics.md` when company-research fanout writes metrics
 - `agents/runs/{run_id}/agent_runtime_main_orchestrator.md` when `--execute-orchestrator` is used
@@ -146,6 +163,11 @@ If the SDK orchestrator is enabled while provider or analysis tasks are dry-run,
 
 ## Current Boundary
 
+The default local orchestration boundary is now:
+
+- Codex-supervised scheduled mode: `C:\Python313\python.exe -m stock_research run-weekly --write --execute-providers --execute-analysis`, then Codex reads `codex_supervised_review_pack.md` and writes `codex_supervised_review.md`.
+- API SDK mode remains available for remote/headless execution, structured SDK traces, and benchmarking through `--execute-orchestrator`.
+
 The agent framework decision is resolved:
 
 - Selected framework: OpenAI Agents SDK.
@@ -156,7 +178,7 @@ Current SDK integration:
 
 - Manual SDK run: `python -m stock_research agent-runtime run --run-id RUN_ID --execute --write`.
 - Scheduled opt-in SDK run: `python -m stock_research run-weekly --write --execute-orchestrator`.
-- Fresh actionable research should normally use `--execute-providers --execute-analysis --execute-orchestrator`; otherwise SDK proposals are review-only.
+- Fresh actionable local Codex-supervised research should normally use `--execute-providers --execute-analysis` and then Codex should write the supervised review. Fresh API SDK benchmark/remote research should use `--execute-providers --execute-analysis --execute-orchestrator`; otherwise SDK proposals are review-only.
 - Scheduled SDK orchestration now includes per-ticker company-research fanout before the main orchestrator. Fanout task names include tickers as labels only; specialists are generic and reusable.
 - Repeated fresh runs are idempotent at the generated-artifact level because live execution cleans prior generated run artifacts before rebuilding them.
 - Successful SDK file update proposals are routed through `orchestrator_update_proposals.md` and duplicate-safe human-review queue rows before any company-file writer can apply them.

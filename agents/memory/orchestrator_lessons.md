@@ -1,6 +1,6 @@
 # Orchestrator Lessons
 
-Last updated: 2026-05-11
+Last updated: 2026-05-16
 
 Operational memory for workflow routing, orchestration, run ordering, and user corrections.
 
@@ -573,6 +573,20 @@ Operational memory for workflow routing, orchestration, run ordering, and user c
 - owner: main orchestrator
 - next_review: 2026-06-15
 
+- id: orch-2026-05-16-codex-supervised-default
+- date: 2026-05-16
+- type: procedural
+- scope: orchestrator
+- status: active
+- confidence: high
+- trigger/source: User chose the robust lower-cost Codex-supervised workflow for local scheduled/manual runs while preserving API SDK mode as a benchmark/remote path.
+- lesson: For local Codex app automation and manual Codex research loops, run deterministic provider/analysis/finalization first, write `codex_supervised_review_pack.md`, then let Codex GPT-5.5 high write `codex_supervised_review.md`. Do not add `--execute-orchestrator` to scheduled Codex automation unless the user explicitly asks for API-mode benchmarking, debugging, or remote/headless simulation.
+- use_when: Creating, reviewing, debugging, or updating local Codex automations; deciding whether a weekly/manual run should use OpenAI API SDK synthesis; explaining the cost/quality split between Codex-supervised and API modes.
+- do_not_use_when: Building a remote worker that cannot rely on the Codex app, collecting SDK trace/token metrics, or deliberately benchmarking SDK specialist fanout.
+- evidence: `docs/descriptions/codex_supervised_workflow.md`, `stock_research/codex_review_pack.py`, `stock_research/scheduled_runner.py`, `C:\Users\valen\.codex\automations\biweekly-holdings-and-monitoring-research\automation.toml`, `C:\Users\valen\.codex\rules\default.rules`
+- owner: main orchestrator
+- next_review: 2026-06-16
+
 - id: orch-2026-05-15-block-legacy-gpt41
 - date: 2026-05-15
 - type: procedural
@@ -593,8 +607,8 @@ Operational memory for workflow routing, orchestration, run ordering, and user c
 - scope: orchestrator
 - status: active
 - confidence: high
-- trigger/source: Codex app automation needs to run provider APIs and OpenAI SDK orchestration from a stricter automation sandbox.
-- lesson: For the biweekly tracked-stock automation, use the exact allowlisted command `C:\Python313\python.exe -m stock_research run-weekly --write --execute-providers --execute-analysis --execute-orchestrator --orchestrator-timeout-seconds 900`. Validate sandbox rules with `codex execpolicy check` before relying on the automation. Do not switch the automation to bare `python`, arbitrary module execution, or Git network/write commands.
+- trigger/source: Codex app automation needs to run provider APIs from a stricter automation sandbox.
+- lesson: For the biweekly tracked-stock Codex-supervised automation, use the exact allowlisted command `C:\Python313\python.exe -m stock_research run-weekly --write --execute-providers --execute-analysis`. Validate sandbox rules with `codex execpolicy check` before relying on the automation. Do not switch the automation to bare `python`, arbitrary module execution, Git network/write commands, or API SDK mode unless the user explicitly requests that benchmark/remote path.
 - use_when: Creating, reviewing, debugging, or updating Codex app automations for scheduled stock research.
 - do_not_use_when: Running manual Codex chat commands that do not need sandbox escape, or adding unrelated broad command permissions.
 - evidence: `C:\Users\valen\.codex\automations\biweekly-holdings-and-monitoring-research\automation.toml`, `C:\Users\valen\.codex\rules\default.rules`, `docs/descriptions/scheduled_runner.md`

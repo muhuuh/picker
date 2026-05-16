@@ -218,10 +218,11 @@ run-weekly
 - Current live output status: complete with zero quality findings.
 - Saved output validation command: `python -m stock_research agent-runtime validate-output --run-id 2026-05-09_weekly`.
 - Current runtime quality gates check summary/status, direct trade wording, valid memory ids, existing file targets, proposal source ids, and source artifact paths.
-- Scheduled SDK command: `python -m stock_research run-weekly --write --execute-orchestrator`.
-- Fresh scheduled SDK command: `python -m stock_research run-weekly --write --execute-providers --execute-analysis --execute-orchestrator`.
-- Codex app biweekly automation command: `C:\Python313\python.exe -m stock_research run-weekly --write --execute-providers --execute-analysis --execute-orchestrator --orchestrator-timeout-seconds 900`.
-- Codex execpolicy validation command: `codex execpolicy check --pretty --rules C:\Users\valen\.codex\rules\default.rules -- C:\Python313\python.exe -m stock_research run-weekly --write --execute-providers --execute-analysis --execute-orchestrator --orchestrator-timeout-seconds 900`.
+- Scheduled SDK command: `python -m stock_research run-weekly --write --execute-orchestrator` (API mode only).
+- Fresh scheduled SDK command: `python -m stock_research run-weekly --write --execute-providers --execute-analysis --execute-orchestrator` (API mode only).
+- Codex app biweekly automation command: `C:\Python313\python.exe -m stock_research run-weekly --write --execute-providers --execute-analysis`.
+- Codex execpolicy validation command: `codex execpolicy check --pretty --rules C:\Users\valen\.codex\rules\default.rules -- C:\Python313\python.exe -m stock_research run-weekly --write --execute-providers --execute-analysis`.
+- Codex-supervised run handoff: Python writes `agents/runs/{run_id}/codex_supervised_review_pack.md`; Codex GPT-5.5 high reads it and writes `agents/runs/{run_id}/codex_supervised_review.md`.
 - SDK timeout knobs:
   - `python -m stock_research agent-runtime run --run-id RUN_ID --execute --write --timeout-seconds 300`
   - `python -m stock_research run-weekly --write --execute-orchestrator --orchestrator-timeout-seconds 300`
@@ -325,3 +326,9 @@ run-weekly
   - User clarified that routine API synthesis should not use `gpt-5.5` everywhere and that there is no `gpt-5.5-mini`.
   - Updated defaults: strong routes stay on `gpt-5.5`; balanced/fast/nano routes now use `gpt-5.4-mini`.
   - Internal `fast` tier is just a repo route name, not OpenAI priority processing. We use standard processing unless explicitly changing API processing mode later.
+- 2026-05-16 Codex-supervised workflow implementation:
+  - Added `stock_research/codex_review_pack.py` and wired weekly runs to write `codex_supervised_review_pack.md/json`.
+  - Default scheduled automation now omits `--execute-orchestrator`; Codex app automation is the outer synthesis layer and should write `codex_supervised_review.md`.
+  - Updated `C:\Users\valen\.codex\automations\biweekly-holdings-and-monitoring-research\automation.toml` to run the exact lower-cost command and to instruct Codex to read the review pack, inspect final digest/opportunity reports/quality/memory/hygiene/HRQ, and fix poor outputs before finalizing.
+  - Updated `C:\Users\valen\.codex\rules\default.rules` with narrow allow rules for the lower-cost command. The old API SDK command remains only as an explicit benchmark/remote-mode allowance.
+  - Durable decision: Codex-supervised mode should preserve the same learning loop as API mode: run summary, quality report, memory reflection/drafts/review, finalization, category state updates, artifact hygiene, company-file factual sync, and human-review digest.

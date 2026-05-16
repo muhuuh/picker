@@ -382,18 +382,23 @@ Use this file for information we should not lose across sessions.
   - status: active
 
 - 2026-05-15:
-  - decision/fact: Model routing is explicit and centralized. `agents/model_routing.yaml` plus `stock_research/model_routing.py` route OpenAI SDK runs, bounded memory-writer review, and xAI/Grok X-search tasks by complexity and provider need. Strong/balanced OpenAI API routes default to `gpt-5.5`; manual Codex app/automation should use the user's Codex GPT-5.5 high environment for repo commands, report review, prompt iteration, synthesis critique, and edits where possible. Repo Python cannot directly call the current Codex chat model internally.
+  - decision/fact: Model routing is explicit and centralized. `agents/model_routing.yaml` plus `stock_research/model_routing.py` route OpenAI SDK runs, bounded memory-writer review, and xAI/Grok X-search tasks by complexity and provider need. Strong OpenAI API routes default to `gpt-5.5`; balanced/fast/nano API routes default to `gpt-5.4-mini`; manual Codex app/automation should use the user's Codex GPT-5.5 high environment for repo commands, report review, prompt iteration, synthesis critique, and edits where possible. Repo Python cannot directly call the current Codex chat model internally.
   - evidence artifact path(s): `agents/model_routing.yaml`, `stock_research/model_routing.py`, `stock_research/agent_runtime/runner.py`, `stock_research/memory_llm_writer.py`, `docs/descriptions/model_routing_and_codex_usage.md`, `tests/test_model_routing.py`
   - status: active
 
 - 2026-05-15:
-  - decision/fact: Codex app automation is configured for the tracked-stock workflow every two weeks on Saturday at 08:00, starting 2026-05-16. The automation uses GPT-5.5 high in the Codex app and runs the exact command `C:\Python313\python.exe -m stock_research run-weekly --write --execute-providers --execute-analysis --execute-orchestrator --orchestrator-timeout-seconds 900` from `C:\Users\valen\Documents\Code\stocks`.
-  - evidence artifact path(s): `C:\Users\valen\.codex\automations\biweekly-holdings-and-monitoring-research\automation.toml`, `docs/descriptions/scheduled_runner.md`, `docs/plans/openai_agents_sdk_orchestration_backlog.md`
+  - decision/fact: Codex app automation is configured for the tracked-stock workflow every two weeks on Saturday at 08:00, starting 2026-05-16. The automation uses GPT-5.5 high in the Codex app and runs the exact lower-cost Codex-supervised command `C:\Python313\python.exe -m stock_research run-weekly --write --execute-providers --execute-analysis` from `C:\Users\valen\Documents\Code\stocks`. It intentionally omits `--execute-orchestrator`; Codex reads `agents/runs/{run_id}/codex_supervised_review_pack.md` and writes `agents/runs/{run_id}/codex_supervised_review.md`.
+  - evidence artifact path(s): `C:\Users\valen\.codex\automations\biweekly-holdings-and-monitoring-research\automation.toml`, `docs/descriptions/codex_supervised_workflow.md`, `docs/descriptions/scheduled_runner.md`, `stock_research/codex_review_pack.py`, `stock_research/scheduled_runner.py`
   - status: active
 
 - 2026-05-15:
-  - decision/fact: Codex automation sandbox rules are required for this workflow because the automation needs network access to provider APIs and OpenAI orchestration. `C:\Users\valen\.codex\rules\default.rules` now allowlists only the exact stock `run-weekly` command and the equivalent PowerShell wrapper; broad Git commands and arbitrary `stock_research` provider commands are not allowlisted.
+  - decision/fact: Codex automation sandbox rules are required for this workflow because the automation needs network access to provider APIs. `C:\Users\valen\.codex\rules\default.rules` now allowlists the exact lower-cost Codex-supervised `run-weekly` command and the equivalent PowerShell wrapper; broad Git commands and arbitrary `stock_research` provider commands are not allowlisted. The older API SDK command is only an explicit benchmark/remote-mode path, not the scheduled default.
   - evidence artifact path(s): `C:\Users\valen\.codex\rules\default.rules`, `docs/descriptions/scheduled_runner.md`, `docs/scratchpads/openai_agents_sdk_orchestration_scratchpad.md`
+  - status: active
+
+- 2026-05-16:
+  - decision/fact: Local scheduled and manual Codex runs should prefer Codex-supervised mode over OpenAI API SDK synthesis to reduce API cost while preserving quality. Python still performs deterministic provider collection, analysis, quality, memory reflection, finalization, state updates, artifact hygiene, and review-pack generation; Codex GPT-5.5 high then performs the final holistic synthesis and updates repo memory/scratchpads/backlog when durable operational lessons appear. API SDK mode remains available for remote/headless execution, structured traces, specialist-fanout debugging, and quality benchmarking.
+  - evidence artifact path(s): `docs/descriptions/codex_supervised_workflow.md`, `stock_research/codex_review_pack.py`, `stock_research/scheduled_runner.py`, `C:\Users\valen\.codex\automations\biweekly-holdings-and-monitoring-research\automation.toml`, `C:\Users\valen\.codex\rules\default.rules`
   - status: active
 
 - 2026-05-11:

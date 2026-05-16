@@ -1,6 +1,6 @@
 # Model Routing And Codex Usage
 
-Last updated: 2026-05-15
+Last updated: 2026-05-16
 
 ## Purpose
 
@@ -94,7 +94,7 @@ Current code path:
 Current default model:
 
 - routed through `agents/model_routing.yaml` as `memory_writer`
-- current configured model: `gpt-5.5`
+- current configured model: `gpt-5.4-mini`
 
 Current use:
 
@@ -121,7 +121,7 @@ Current use:
 - manual research requests
 - interpreting generated reports
 - editing docs, prompts, plans, and tests
-- future Codex app automation for weekly/manual runs
+- biweekly Codex-supervised automation for tracked-stock runs
 
 Important boundary:
 
@@ -133,6 +133,7 @@ Important boundary:
 Recommended routing:
 
 - Use Codex chat/automation for interactive review, repo maintenance, prompt iteration, command execution, report review, and improvement loops.
+- Use Codex-supervised mode as the default local scheduled workflow: Python runs deterministic provider/analysis/finalization work, writes `codex_supervised_review_pack.md`, and Codex GPT-5.5 high writes `codex_supervised_review.md`.
 - Use Python deterministic commands for repeatable workflow steps.
 - Use OpenAI API only when an autonomous Python runtime needs LLM synthesis without a human/Codex chat in the loop.
 - Use xAI/Grok API where X.com search is required.
@@ -151,7 +152,7 @@ Recommended routing:
 | Grok discovery synthesis from raw output | SDK specialist / report formatter | medium-high | cheap/fast OpenAI if raw Grok is rich; strong OpenAI only if synthesis quality is poor |
 | Market research final report | deterministic formatter plus optional SDK | high | `gpt-5.5` for autonomous API mode; Codex GPT-5.5 high review loop for manual mode; Grok remains source provider |
 | Opportunity assessment | deterministic synthesis plus optional SDK specialist | high | `gpt-5.5` for live autonomous runs; Codex GPT-5.5 high review loop for manual runs |
-| Main orchestrator final synthesis | OpenAI Agents SDK | high | `gpt-5.5` |
+| Main orchestrator final synthesis | OpenAI Agents SDK / Codex-supervised review | high | Codex GPT-5.5 high for local scheduled/manual mode; `gpt-5.5` API only for autonomous API mode |
 | Portfolio review | SDK sub-orchestrator | medium | cheap/fast OpenAI or deterministic/Codex summary |
 | Memory/evaluation review | deterministic plus optional LLM | low-medium | cheap/fast OpenAI or deterministic only |
 | Memory writer review | direct OpenAI Responses API | low-medium | cheap/fast OpenAI |
@@ -160,6 +161,29 @@ Recommended routing:
 | Artifact hygiene/archive | deterministic Python | low | no LLM |
 
 ## Proposed Runtime Modes
+
+### Scheduled Codex-Supervised Mode
+
+Default for local biweekly automation.
+
+Flow:
+
+1. Codex app automation runs `C:\Python313\python.exe -m stock_research run-weekly --write --execute-providers --execute-analysis`.
+2. Provider APIs collect Exa/Grok/financial/filing evidence.
+3. Python writes deterministic reports, finalization, memory artifacts, category state updates, final digest, human-review digest, and `codex_supervised_review_pack.md`.
+4. Codex reads the pack and every linked required artifact.
+5. Codex writes `agents/runs/{run_id}/codex_supervised_review.md` and updates docs/scratchpads/memory when durable operational lessons are found.
+
+Cost posture:
+
+- Uses paid provider APIs where needed.
+- Skips OpenAI API SDK synthesis by default.
+- Uses already-paid Codex GPT-5.5 high for final human-facing synthesis and quality review.
+
+Quality posture:
+
+- Codex must fix or flag shallow, duplicated, truncated, stale, or non-actionable human-facing reports before finishing.
+- The review pack is the deterministic contract that preserves memory, hygiene, category state, and human-review behavior.
 
 ### Manual Codex Mode
 
@@ -181,7 +205,7 @@ Cost posture:
 
 ### Autonomous API Mode
 
-Best later for unattended scheduled runs.
+Best later for unattended remote/headless runs where the Codex app is not the outer orchestrator.
 
 Flow:
 
@@ -194,6 +218,7 @@ Cost posture:
 
 - Uses OpenAI API for autonomous synthesis.
 - Requires model routing config to control spend.
+- Remains useful as a benchmark against Codex-supervised quality and for SDK trace/debug work.
 
 ## Implemented Routing
 
@@ -273,6 +298,7 @@ Override precedence:
 Operational rule:
 
 - In manual Codex mode, prefer Codex app/automation with GPT-5.5 high for report review, prompt iteration, repo edits, and synthesis critique.
+- In scheduled Codex-supervised mode, do not add `--execute-orchestrator` unless the user asks for API benchmarking, debugging, or remote/headless simulation.
 - In autonomous API mode, use the routed OpenAI API model because Python must call an API model when no Codex chat is actively supervising.
 - Use Grok API only where X.com access is the edge.
 - Use no LLM for deterministic provider execution, validation, artifact hygiene, state updates, and human-review digest generation.

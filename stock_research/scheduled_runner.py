@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 import shutil
-from dataclasses import asdict, dataclass, field
+from dataclasses import asdict, dataclass, field, replace
 from datetime import date
 from pathlib import Path
 from typing import Any
@@ -29,6 +29,12 @@ from .category_state_updater import (
     CategoryStateUpdateResult,
     category_state_update_result_to_dict,
     update_category_state_files,
+)
+from .codex_review_pack import (
+    CodexReviewPack,
+    build_codex_review_pack,
+    codex_review_pack_to_dict,
+    write_codex_review_pack,
 )
 from .company_file_factual_update import (
     FactualUpdateResult,
@@ -125,6 +131,7 @@ def run_weekly_research_workflow(
     proposal_review_result: dict[str, Any] = {"status": "not_run"}
     weekly_digest: WeeklyDigest | None = None
     human_review_digest: HumanReviewDigest | None = None
+    codex_review_pack: CodexReviewPack | None = None
 
     if write:
         run_summary = build_run_summary(repo_root, run_id, today)
@@ -268,6 +275,13 @@ def run_weekly_research_workflow(
             write=True,
         )
         artifacts.extend(repo_root / path for path in category_state_updates.written_paths)
+        codex_review_pack = build_codex_review_pack(repo_root, run_id)
+        codex_review_pack_paths = write_codex_review_pack(repo_root, codex_review_pack)
+        artifacts.extend(codex_review_pack_paths)
+        codex_review_pack = replace(
+            codex_review_pack,
+            written_paths=[relative_to_root(repo_root, path).as_posix() for path in codex_review_pack_paths],
+        )
 
     result = ScheduledRunResult(
         run_id=run_id,
@@ -305,6 +319,7 @@ def run_weekly_research_workflow(
             proposal_review_result=proposal_review_result,
             weekly_digest=weekly_digest,
             human_review_digest=human_review_digest,
+            codex_review_pack=codex_review_pack,
         ),
         artifacts=[relative_to_root(repo_root, path).as_posix() for path in artifacts],
         next_actions=next_actions(
@@ -321,6 +336,7 @@ def run_weekly_research_workflow(
             orchestrator_result,
             weekly_digest,
             human_review_digest,
+            codex_review_pack,
         ),
     )
 
@@ -405,6 +421,7 @@ def build_steps(
     proposal_review_result: dict[str, Any],
     weekly_digest: WeeklyDigest | None,
     human_review_digest: HumanReviewDigest | None,
+    codex_review_pack: CodexReviewPack | None,
 ) -> dict[str, Any]:
     return {
         "manifest": {
@@ -436,10 +453,11 @@ def build_steps(
         "orchestrator_proposal_review": proposal_review_result,
         "final_digest": weekly_digest_to_dict(weekly_digest) if weekly_digest else {"status": "not_written"},
         "human_review_digest": human_review_digest_to_dict(human_review_digest) if human_review_digest else {"status": "not_written"},
+        "codex_review_pack": codex_review_pack_to_dict(codex_review_pack) if codex_review_pack else {"status": "not_written"},
         "framework_boundary": {
             "status": "resolved",
             "framework": "OpenAI Agents SDK",
-            "next_step": "Use `--execute-orchestrator` to opt into SDK orchestration after deterministic finalization.",
+            "next_step": "Default local scheduled mode is Codex-supervised review from `codex_supervised_review_pack.md`; use `--execute-orchestrator` only for API SDK benchmarking or remote/headless mode.",
         },
     }
 
@@ -458,6 +476,7 @@ def next_actions(
     orchestrator_result: dict[str, Any] | None = None,
     weekly_digest: WeeklyDigest | None = None,
     human_review_digest: HumanReviewDigest | None = None,
+    codex_review_pack: CodexReviewPack | None = None,
 ) -> list[str]:
     actions: list[str] = []
     if not write:
@@ -490,9 +509,9 @@ def next_actions(
     if category_state_updates and category_state_updates.status == "blocked":
         actions.append("Review blocked category-state updates before accepting stock-tracking state sync.")
     if not write:
-        actions.append("Use `--write --execute-orchestrator` after deterministic artifacts are ready to run SDK synthesis.")
+        actions.append("For the lower-cost Codex-supervised path, use `--write --execute-providers --execute-analysis`, then have Codex read the generated review pack.")
     elif not orchestrator_result or orchestrator_result.get("status") == "not_run":
-        actions.append("Use `--execute-orchestrator` to run OpenAI Agents SDK synthesis over the written artifacts.")
+        actions.append("OpenAI Agents SDK synthesis was not run. This is expected in Codex-supervised mode; use `--execute-orchestrator` only for API-mode benchmarking, debugging, or remote/headless execution.")
     elif orchestrator_result.get("status") == "error":
         actions.append("Review SDK orchestrator errors before treating synthesis as complete.")
     elif orchestrator_result.get("quality_findings"):
@@ -506,6 +525,10 @@ def next_actions(
     if human_review_digest and human_review_digest.open_item_count:
         actions.append(
             f"Review `agents/human_review_digest.md`: {human_review_digest.open_item_count} open item(s) need approve/reject/more-research/leave-open decisions."
+        )
+    if codex_review_pack:
+        actions.append(
+            f"Codex-supervised automation should read `agents/runs/{codex_review_pack.run_id}/codex_supervised_review_pack.md` and write `{codex_review_pack.expected_output_path}`."
         )
     return unique(actions)
 
@@ -715,6 +738,9 @@ GENERATED_RUN_ROOT_FILES = (
     "final_digest.json",
     "final_digest.md",
     "company_file_factual_updates.md",
+    "codex_supervised_review_pack.json",
+    "codex_supervised_review_pack.md",
+    "codex_supervised_review.md",
 )
 
 
@@ -768,6 +794,7 @@ def format_scheduled_run_report_markdown(result: ScheduledRunResult) -> str:
         f"- company_research: {result.steps['company_research'].get('status', 'not_run')} ({len(result.steps['company_research'].get('results', []))} ticker(s))",
         f"- final_digest: {result.steps['final_digest'].get('status', 'not_written')} ({result.steps['final_digest'].get('ticker_count', 0)} ticker(s))",
         f"- human_review_digest: {result.steps['human_review_digest'].get('status', 'not_written')} ({result.steps['human_review_digest'].get('open_item_count', 0)} open item(s))",
+        f"- codex_review_pack: {result.steps['codex_review_pack'].get('status', 'not_written')}",
         f"- agent_orchestrator: {result.steps['agent_orchestrator'].get('status', 'not_run')}",
         f"- orchestrator_proposal_review: {result.steps['orchestrator_proposal_review'].get('status', 'not_run')}",
         "",

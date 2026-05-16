@@ -62,6 +62,7 @@ This file tells Codex, the orchestrator, and future agents where to find and upd
 - `docs/descriptions/agent_memory_workflow.md`: operational memory read/write workflow.
 - `docs/descriptions/llm_memory_writer.md`: bounded LLM memory writer workflow over memory update drafts.
 - `docs/descriptions/scheduled_runner.md`: deterministic weekly workflow wrapper.
+- `docs/descriptions/codex_supervised_workflow.md`: lower-cost Codex-supervised workflow, review pack contract, and API SDK benchmark boundary.
 - `docs/descriptions/openai_agents_sdk_orchestration.md`: selected OpenAI Agents SDK runtime design.
 - `docs/descriptions/model_routing_and_codex_usage.md`: current LLM call sites, task complexity levels, and Codex app vs API runtime boundary.
 - `agents/model_routing.yaml`: repo-local model tiers and route assignments for OpenAI API, xAI/Grok, and Codex manual-mode guidance.
@@ -87,6 +88,8 @@ This file tells Codex, the orchestrator, and future agents where to find and upd
 - `agents/runs/`: future run artifacts.
   - Generated JSON/raw/evidence artifacts are local runtime output and ignored by Git.
   - Markdown run summaries, quality reports, reflections, and finalization reports are the reviewable artifacts.
+  - `agents/runs/{run_id}/codex_supervised_review_pack.md` is the deterministic handoff for local Codex app automation.
+  - `agents/runs/{run_id}/codex_supervised_review.md` is the final Codex-written human-facing synthesis when the scheduled/manual Codex-supervised path is used.
   - Long-lived active knowledge should be promoted into stock files, market research files, strategy files, or indexes; old run artifacts should be archiveable without losing discoverability.
 - `archive/research_index.md`: generated inventory of run markdown artifacts, classified as active, recent, review-blocked, archive candidates, or archived.
 - `archive/archive_move_report.md`: latest archive move report.
@@ -154,8 +157,8 @@ Use CLI commands for manual operation, scheduler entrypoints, validation, smoke 
 - `python -m stock_research run-summary --run-id RUN_ID --write`: write run_summary artifacts from run evidence.
 - `python -m stock_research quality-report --run-id RUN_ID --write`: write quality_report artifacts from run evidence.
 - `python -m stock_research run-weekly`: dry-run the deterministic weekly workflow wrapper.
-- `python -m stock_research run-weekly --write --execute-providers --execute-analysis`: execute and persist the deterministic weekly workflow without SDK synthesis.
-- `python -m stock_research run-weekly --write --execute-orchestrator --orchestrator-timeout-seconds 300`: opt into OpenAI Agents SDK synthesis over written run artifacts. Requires `OPENAI_API_KEY`; actionable output from dry-run provider/analysis inputs is marked `needs_review`.
+- `python -m stock_research run-weekly --write --execute-providers --execute-analysis`: execute and persist the default Codex-supervised weekly workflow. Codex should then read `agents/runs/{run_id}/codex_supervised_review_pack.md` and write `agents/runs/{run_id}/codex_supervised_review.md`.
+- `python -m stock_research run-weekly --write --execute-orchestrator --orchestrator-timeout-seconds 300`: optional API mode. Opt into OpenAI Agents SDK synthesis over written run artifacts. Requires `OPENAI_API_KEY`; actionable output from dry-run provider/analysis inputs is marked `needs_review`.
 - `python -m stock_research run-weekly --write --execute-providers --execute-analysis --execute-orchestrator --orchestrator-timeout-seconds 300`: execute fresh provider/analysis tasks and then run SDK synthesis.
 - `python -m stock_research agent-runtime list-agents`: list registered OpenAI Agents SDK orchestrators and specialists.
 - `python -m stock_research agent-runtime smoke --run-id RUN_ID`: build the SDK runtime context and main orchestrator without calling a live model.
@@ -205,6 +208,7 @@ Use CLI commands for manual operation, scheduler entrypoints, validation, smoke 
 - Human review should use `agents/human_review_digest.md` as the primary user-facing inbox. Portfolio review and memory/evaluation reports are deeper context for Codex, the main orchestrator, and human drill-down.
 - SDK specialist modules live under `stock_research/agent_runtime/specialists/`; current implemented specialists are `company_news_specialist`, `company_search_specialist`, `financial_specialist`, `filing_specialist`, `sentiment_specialist`, `risk_thesis_specialist`, `opportunity_assessment_specialist`, `writer_specialist`, `quality_reviewer_specialist`, `exa_industry_specialist`, `grok_discovery_specialist`, and `discovery_specialist`.
 - Live orchestration from `run-weekly` is available behind `--execute-orchestrator`; it is opt-in, freshness-gated, and writes per-ticker company-research artifacts under `agents/runs/{run_id}/company_research/`.
+- Local scheduled automation should use Codex-supervised mode by default and omit `--execute-orchestrator`; API SDK mode stays available for benchmark, debug, and remote/headless runs.
 - SDK output proposals are reviewable through `agents/runs/{run_id}/orchestrator_update_proposals.md` and `agents/human_review_queue.md`; company files are not edited by this bridge.
 - Approved SDK proposals can be applied only through `agent-runtime apply-proposal`, which refuses unapproved review rows and validates the target is an existing file under `stock_tracking/stock_info_files/`.
 
