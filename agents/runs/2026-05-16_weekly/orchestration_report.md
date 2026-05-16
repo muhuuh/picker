@@ -1,7 +1,7 @@
 # Orchestration Report: 2026-05-16_weekly
 
 Generated: 2026-05-16
-Status: needs_review
+Status: complete
 Mode: providers_execute, analysis_execute, memory_writer_deterministic, orchestrator_not_run
 
 ## Step Summary
@@ -15,9 +15,9 @@ Mode: providers_execute, analysis_execute, memory_writer_deterministic, orchestr
 - company_file_factual_updates: complete (10 item(s))
 - category_state_updates: complete (3 item(s))
 - company_research: not_run (0 ticker(s))
-- final_digest: needs_review (10 ticker(s))
+- final_digest: ready (10 ticker(s))
 - human_review_digest: needs_user_review (20 open item(s))
-- codex_review_pack: needs_review
+- codex_review_pack: ready
 - agent_orchestrator: not_run
 - orchestrator_proposal_review: not_run
 
@@ -46,20 +46,12 @@ Mode: providers_execute, analysis_execute, memory_writer_deterministic, orchestr
 - `agents/human_review_digest.md`
 - `agents/runs/2026-05-16_weekly/codex_supervised_review_pack.json`
 - `agents/runs/2026-05-16_weekly/codex_supervised_review_pack.md`
-- `agents/runs/2026-05-16_weekly/codex_supervised_review.md`
 
 ## Next Actions
 
 - No deterministic learning-loop issues found.
-- Company-file factual updates completed; review `company_file_factual_updates.md` only as FYI.
+- Review `company_file_factual_updates.md` for the FYI summary of factual company-file changes.
 - OpenAI Agents SDK synthesis was not run. This is expected in Codex-supervised mode; use `--execute-orchestrator` only for API-mode benchmarking, debugging, or remote/headless execution.
-- Review `agents/human_review_digest.md` for pending approval/reject/more-research decisions.
-- Resolve high-risk review gates for AVAV before updating the thesis.
-- Resolve high-risk review gates for AXTI before updating the thesis.
-- Resolve high-risk review gates for GOOGL before updating the thesis.
-- Resolve high-risk review gates for IREN before updating the thesis.
-- Resolve high-risk review gates for MU before updating the thesis.
-- Resolve high-risk review gates for OSS before updating the thesis.
-- Resolve high-risk review gates for TE before updating the thesis.
-- Review `agents/human_review_digest.md`: 20 open item(s) need approve/reject/more-research/leave-open decisions.
+- Review `agents/human_review_digest.md` for pending approve/reject/more-research decisions. These open items are normal asynchronous human decisions, not an automation failure.
+- KRKNF remains a legitimate partial financial review because OTC/single-provider coverage is limited.
 - Codex-supervised automation should read `agents/runs/2026-05-16_weekly/codex_supervised_review_pack.md` and write `agents/runs/2026-05-16_weekly/codex_supervised_review.md`.

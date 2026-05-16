@@ -1,30 +1,30 @@
 # Opportunity Assessment: NBIS
 
 Status: `ready_for_human_review`
-Opportunity view: `interesting`
-Opportunity score: **72/100**
+Opportunity view: `constructive_but_watch`
+Opportunity score: **68/100**
 Risk level: `medium`
 Confidence: `high`
 Thesis freshness: `fresh_recent_evidence`
 
 ## Verdict
 
-NBIS is interesting (72/100, medium risk, high confidence) because Strategic ecosystem signal: evidence cites Meta, Microsoft, NVIDIA, suggesting customer/partner leverage that may matter beyond the headline financial metrics. Main caveat: X bear/skeptic narrative: Adjusted net loss widened to $100M and operating loss stayed flat despite revenue surge; net income is almost entirely revaluation gains. X pulse: The X community is laser-focused on Nebius' post-earnings momentum: $399M Q1 revenue (684% YoY), AI cloud at 841% growth, fully sold-out capacity, and a new 1.2 GW Pennsylvania site pushing FY2026 guidance higher.
+NBIS is constructive_but_watch (68/100, medium risk, high confidence) because Strategic ecosystem signal: evidence cites OpenAI, Meta, Microsoft, NVIDIA, suggesting customer/partner leverage that may matter beyond the headline financial metrics. Main caveat: X bear/skeptic narrative: Capex intensity ($20-25 B in 2026) will keep free cash flow negative for years and risks dilution or debt overhang (@noisetoalpha). X pulse: X chatter on $NBIS surged after the May 13 earnings release, with the dominant view that Nebius has shifted from "speculative neocloud" to a credible AI-infrastructure utility that is sold out of capacity into 2026
 
 ### Why The Score Looks Like This
 
-- Score: 72/100; view=interesting; risk=medium; confidence=high.
+- Score: 68/100; view=constructive_but_watch; risk=medium; confidence=high.
 - +12 financial review is ready with core metrics available.
 - -8 valuation multiple is high enough to require stronger growth support.
 - +10 recent news/contents review is source-backed.
 - +4 Exa contents produced multiple material claims.
-- +4 Grok/X social signal leans positive.
 - -3 social signal includes rumor/speculation language.
+- +3 SEC filing lane is available for primary-source cross-checks.
 
 ## Investor Insight Report
 ### Executive Read
 
-NBIS: Communication Services / Internet Content & Information: Nebius Group NV (NBIS) reports a remarkable 684% revenue growth, driven by its AI business, while raising CapEx guidance. The social bull case centers on Capacity already contracted before build-out completes (3.5 GW now, 4 GW 2026 target) gives pricing power as GPUs remain scarce. Valuation: price $219.94, P/E 84.59x. X/community: The X community is laser-focused on Nebius' post-earnings momentum: $399M Q1 revenue (684% YoY), AI cloud at 841% growth, fully sold-out capacity, and a new 1.2 GW Pennsylvania site pushing FY2026 guidance higher. Under-discussed check: X under-discussed angle: Spot-market exposure on the ~$550M ARR base could drive near-term outperformance if GPU pricing keeps rising.
+NBIS: Communication Services / Internet Content & Information: Strategic ecosystem signal: evidence cites OpenAI, Meta, Microsoft, NVIDIA, suggesting customer/partner leverage that may matter beyond the headline financial metrics. The social bull case centers on Sold-out capacity through 2026 plus $46 B in contracted revenue from Meta and Microsoft gives visibility no other mid-tier player matches (@Kajiastic). Valuation: price $219.94, P/E 84.59x. X/community: X chatter on $NBIS surged after the May 13 earnings release, with the dominant view that Nebius has shifted from "speculative neocloud" to a credible AI-infrastructure utility that is sold out of capacity into 2026 and is now executing at hyperscale pace.
 
 ### Company / Industry Context
 
@@ -36,66 +36,63 @@ NBIS: Communication Services / Internet Content & Information: Nebius Group NV (
 
 ### Thesis, Trends, And What Changed
 
-- Core thesis: Communication Services / Internet Content & Information: Nebius Group NV (NBIS) reports a remarkable 684% revenue growth, driven by its AI business, while raising CapEx guidance. The social bull case centers on Capacity already contracted before build-out completes (3.5 GW now, 4 GW 2026 target) gives pricing power as GPUs remain scarce.
+- Core thesis: Communication Services / Internet Content & Information: Strategic ecosystem signal: evidence cites OpenAI, Meta, Microsoft, NVIDIA, suggesting customer/partner leverage that may matter beyond the headline financial metrics. The social bull case centers on Sold-out capacity through 2026 plus $46 B in contracted revenue from Meta and Microsoft gives visibility no other mid-tier player matches (@Kajiastic).
 - What changed recently:
   - Nebius Group N.V. (NASDAQ: NBIS), the AI cloud company, today announced its unaudited financial results for the first quarter ended March 31, 2026.
   - Nebius today also announced that it has secured up to 1.2 GW of power and land for a new, owned AI factory at a site in Pennsylvania.
   - The Company today also published founder and CEO Arkady Volozh's quarterly letter to shareholders, available on its investor relations website at https://nebius.com/investor-hub.
   - AMSTERDAM--(BUSINESS WIRE)--Nebius Group N.V. (NASDAQ: NBIS), the AI cloud company, today announced its unaudited financial results for the fourth quarter and full financial year ended December 31, 2025.
   - (2) Results include consolidated financial results of: Nebius, the core AI infrastructure business; Avride, an autonomous vehicle platform; and TripleTen, an edtech service.
-  - Nebius Group NV (NBIS) reports a remarkable 684% revenue growth, driven by its AI business, while raising CapEx guidance to support future expansion.
+  - ("Nebius Group" or the "Company"; NASDAQ: NBIS), a leading AI infrastructure company, today announced its intention to offer, subject to market and other conditions, $3.75 billion aggregate original principal amount of convertible senior notes, in two series: $2.0 billion aggregate original principal amount of convertible notes due 2031 (the "2031 Notes").
 - Tailwinds:
-  - Nebius Group NV (NBIS) reports a remarkable 684% revenue growth, driven by its AI business, while raising CapEx guidance to support future expansion.
-  - Strategic ecosystem signal: evidence cites Meta, Microsoft, NVIDIA, suggesting customer/partner leverage that may matter beyond the headline financial metrics.
-  - Capacity already contracted before build-out completes (3.5 GW now, 4 GW 2026 target) gives pricing power as GPUs remain scarce.
-  - Microsoft prepayment size (40% vs. CoreWeave's 15-25%) and tranche delivery prove enterprise-grade execution.
-  - Clickhouse stake alone worth $6-10B on top of $40B market cap while 2027 revenue hits $8B+.
+  - Strategic ecosystem signal: evidence cites OpenAI, Meta, Microsoft, NVIDIA, suggesting customer/partner leverage that may matter beyond the headline financial metrics.
+  - X bull narrative: Sold-out capacity through 2026 plus $46 B in contracted revenue from Meta and Microsoft gives visibility no other mid-tier player matches (@Kajiastic).
+  - X bull narrative: Eigen acquisition positions NBIS as low-cost inference provider for open-source models once proprietary workloads plateau (@oguzerkan).
+  - Power pipeline now >4 GW and 1.2 GW Pennsylvania site create a structural moat in the power-constrained AI era (@StbjergTro97997).
 - Headwinds / debate points:
-  - X bear/skeptic narrative: Adjusted net loss widened to $100M and operating loss stayed flat despite revenue surge; net income is almost entirely revaluation gains.
-  - X bear/skeptic narrative: Capex $2.47B/quarter and debt doubling create financing risk if GPU pricing normalizes.
-  - X bear/skeptic narrative: Receivables doubled to $1.48B, signaling revenue booked ahead of cash collection.
+  - X bear/skeptic narrative: Capex intensity ($20-25 B in 2026) will keep free cash flow negative for years and risks dilution or debt overhang (@noisetoalpha).
+  - X bear/skeptic narrative: Execution risk on physically connecting GPUs at the pace of demand; any delay in Pennsylvania or Finland sites kills the ARR trajectory.
+  - X bear/skeptic narrative: Valuation already prices in perfect execution; any slowdown in AI demand growth would punish the stock faster than peers because the multiple is infrastructure-embedded.
   - Grok/X scan includes rumor or speculation language; do not treat it as verified fact.
-  - Nebius Group NV (NBIS) reports a remarkable 684% revenue growth, driven by its AI business, while raising CapEx guidance to support future expansion.
   - Nebius Group NV (NBIS) has reported a record-breaking Q1 2026 earnings call, with over 3.5 gigawatts of power delivered, surpassing its previous target and aiming for at least 4 gigawatts by the end of the year. The company expanded its technology partnership with NVIDIA, achieving NVIDIA Exemplar Cloud status on multiple GPU generations.
 - Trend evolution:
-  - Fundamental trend: Nebius Group NV (NBIS) reports a remarkable 684% revenue growth, driven by its AI business, while raising CapEx guidance to support future expansion.
-  - Social trend: The X community is laser-focused on Nebius' post-earnings momentum: $399M Q1 revenue (684% YoY), AI cloud at 841% growth, fully sold-out capacity, and a new 1.2 GW Pennsylvania site pushing FY2026 guidance higher.
-  - Strategic ecosystem trend: Microsoft contract ($17.4B TCV, 9-tranche schedule) plus Meta and unnamed European/ME hyperscalers provide 46B contracted backlog. No custom silicon mentioned; leverage comes from preferred access to scarce GPUs via scale and the Token Factory software moat for alternative models.
+  - Social trend: X chatter on $NBIS surged after the May 13 earnings release, with the dominant view that Nebius has shifted from "speculative neocloud" to a credible AI-infrastructure utility that is sold out of capacity into 2026 and is now executing at hyperscale pace.
+  - Strategic ecosystem trend: Microsoft prepayment (40% of tranche) and Meta contract remain the two largest anchors; both are already live and sold out. Eigen adds open-source inference optimization; ClickHouse gives indirect OpenAI exposure.
 
 ### Expert / Community Split From X
 
-- X pulse: The X community is laser-focused on Nebius' post-earnings momentum: $399M Q1 revenue (684% YoY), AI cloud at 841% growth, fully sold-out capacity, and a new 1.2 GW Pennsylvania site pushing FY2026 guidance higher. In the last 14 days the tone shifted from pre-earnings skepticism to conviction that supply constraints are now the bottleneck, not demand, with whales rolling November/January 240-260 calls and Citi lifting its target to $287. This matters because the stock has already run +190% since early April yet analysts and option flow are treating the move as early relative to the $7-9B ARR target and 3.5 GW contracted pipeline.
+- X pulse: X chatter on $NBIS surged after the May 13 earnings release, with the dominant view that Nebius has shifted from "speculative neocloud" to a credible AI-infrastructure utility that is sold out of capacity into 2026 and is now executing at hyperscale pace. The last 14 days saw the narrative accelerate from pre-earnings speculation around the Eigen acquisition and Microsoft prepayments to post-earnings validation of 684% YoY revenue growth, 841% AI-cloud growth, and a jump in contracted power guidance to >4 GW.
 - Bullish camp:
-  - Capacity already contracted before build-out completes (3.5 GW now, 4 GW 2026 target) gives pricing power as GPUs remain scarce.
-  - Microsoft prepayment size (40% vs. CoreWeave's 15-25%) and tranche delivery prove enterprise-grade execution.
-  - Clickhouse stake alone worth $6-10B on top of $40B market cap while 2027 revenue hits $8B+.
-  - Token Factory software layer unlocks alternative/open-source models where hyperscalers cannot compete on economics.
+  - Sold-out capacity through 2026 plus $46 B in contracted revenue from Meta and Microsoft gives visibility no other mid-tier player matches (@Kajiastic).
+  - Eigen acquisition positions NBIS as low-cost inference provider for open-source models once proprietary workloads plateau (@oguzerkan).
+  - Power pipeline now >4 GW and 1.2 GW Pennsylvania site create a structural moat in the power-constrained AI era (@StbjergTro97997).
+  - ARR run-rate implying $600 M+ monthly adds through year-end if Microsoft tranche delivery stays on schedule (@Kajiastic).
 - Skeptical camp:
-  - Adjusted net loss widened to $100M and operating loss stayed flat despite revenue surge; net income is almost entirely revaluation gains.
-  - Capex $2.47B/quarter and debt doubling create financing risk if GPU pricing normalizes.
-  - Receivables doubled to $1.48B, signaling revenue booked ahead of cash collection.
-  - IREN has outperformed NBIS on 1-year returns, suggesting relative valuation risk.
+  - Capex intensity ($20-25 B in 2026) will keep free cash flow negative for years and risks dilution or debt overhang (@noisetoalpha).
+  - Execution risk on physically connecting GPUs at the pace of demand; any delay in Pennsylvania or Finland sites kills the ARR trajectory.
+  - Valuation already prices in perfect execution; any slowdown in AI demand growth would punish the stock faster than peers because the multiple is infrastructure-embedded.
 - Strategic partnerships / ecosystem leverage:
-  - Microsoft contract ($17.4B TCV, 9-tranche schedule) plus Meta and unnamed European/ME hyperscalers provide 46B contracted backlog. No custom silicon mentioned; leverage comes from preferred access to scarce GPUs via scale and the Token Factory software moat for alternative models.
-- Accounts/posts worth reviewing: @zen_tropy, @KennyZufall, @EndicottInvests, @StockOptionCole, @donaldjdean
-- Hype/noise: Discussion is predominantly technical and earnings-focused from accounts with consistent AI-infra track records; promotional calls exist but are outnumbered by detailed filings analysis and options flow. Low bot activity observed.
+  - Microsoft prepayment (40% of tranche) and Meta contract remain the two largest anchors; both are already live and sold out. Eigen adds open-source inference optimization; ClickHouse gives indirect OpenAI exposure.
+- Accounts/posts worth reviewing: @Kajiastic, @oguzerkan, @StbjergTro97997, @noisetoalpha, @Sandeman52, @lllspllc
+- Hype/noise: Discussion is technically informed among a core set of accounts but has become crowded with low-effort "$NBIS to the moon" posts after the earnings surge. Bot/promotional activity is moderate (copy-paste trading signals) but is easily filtered by focusing on accounts that cite ARR, power GW, or contract details rather than emojis.
 - Rumors / unverified claims:
-  - Speculation on $1,000/share by 2030 or "no execution risk" remains unverified-track actual GW online and adjusted net income trajectory in future quarters to falsify.
+  - Speculation that Nebius will announce a second European AI factory before Q2 earnings - verify via company press releases or 8-K.
+  - Claim that Microsoft is accelerating its tranche deliveries - check next earnings transcript or Microsoft 10-Q cloud spend footnotes.
 
 ### Non-obvious / under-discussed insights to verify
 
-- X under-discussed angle: Spot-market exposure on the ~$550M ARR base could drive near-term outperformance if GPU pricing keeps rising.
-- X under-discussed angle: Vineland, NJ 300 MW site (DataOne/Microsoft ties) is already under construction and not yet in most models.
-- X under-discussed angle: NVDA's Q1 13F shows a 214k-share Nebius position-rare direct endorsement from the GPU supplier itself.
-- X under-discussed angle: Europe/Middle East contracts in the 20-F diversify away from U.S. hyperscaler concentration risk.
-- Strategic AI ecosystem angle: Evidence-backed ecosystem leverage: evidence cites Meta, Microsoft, NVIDIA, suggesting customer/partner leverage that may matter beyond the headline financial metrics.
-- Nebius Group NV (NBIS) reports a remarkable 684% revenue growth, driven by its AI business, while raising CapEx guidance to support future expansion.
+- X under-discussed angle: Nebius is effectively becoming the "Walmart for inference tokens" by optimizing open-source models via Eigen, which could capture fragmented demand that big labs ignore once model scaling slows.
+- X under-discussed angle: OpenAI's move of logs to ClickHouse is a direct revenue read-through for NBIS's observability exposure and a signal that hyperscalers are defecting from Datadog on cost.
+- X under-discussed angle: The Pennsylvania factory announcement is asymmetric: it gives owned power rather than leased, flipping the usual GPU-colo model and potentially allowing higher margins on future agentic workloads.
+- Strategic AI ecosystem angle: Evidence-backed ecosystem leverage: evidence cites OpenAI, Meta, Microsoft, NVIDIA, suggesting customer/partner leverage that may matter beyond the headline financial metrics.
 - Strategic ecosystem signal: evidence cites NVIDIA, suggesting customer/partner leverage that may matter beyond the headline financial metrics.
+- Nebius Group NV (NBIS) has reported a record-breaking Q1 2026 earnings call, with over 3.5 gigawatts of power delivered, surpassing its previous target and aiming for at least 4 gigawatts by the end of the year. The company expanded its technology partnership with NVIDIA, achieving NVIDIA Exemplar Cloud status on multiple GPU generations.
+- X implication to verify: Signal | Evidence | Confidence | What would confirm | What would invalidate
 
 ### Valuation And Analyst Snapshot
 
 - Latest price: $219.94
-- Market cap: $56.15B
+- Market cap: $55.84B
 - P/E: 84.59x
 - Forward P/E: unknown
 - PEG: unknown
@@ -115,10 +112,10 @@ NBIS: Communication Services / Internet Content & Information: Nebius Group NV (
 
 | Dimension | Current read | Evidence | Follow-up |
 | --- | --- | --- | --- |
-| Growth / demand | Nebius Group NV (NBIS) reports a remarkable 684% revenue growth, driven by its AI business, while raising CapEx guidance to support future expansion. | Exa news + earnings/call excerpts | Check whether growth is broad-based or mostly one segment. |
-| Community / X sentiment | The X community is laser-focused on Nebius' post-earnings momentum: $399M Q1 revenue (684% YoY), AI cloud at 841% growth, fully sold-out capacity, and a new 1.2 GW Pennsylvania site pushing FY2026 guidance higher. | Grok/X social signal | Separate informed accounts from price-action chatter and spam. |
+| Growth / demand | Strategic ecosystem signal: evidence cites OpenAI, Meta, Microsoft, NVIDIA, suggesting customer/partner leverage that may matter beyond the headline financial metrics. | Exa news + earnings/call excerpts | Check whether growth is broad-based or mostly one segment. |
+| Community / X sentiment | X chatter on $NBIS surged after the May 13 earnings release, with the dominant view that Nebius has shifted from "speculative neocloud" to a credible AI-infrastructure utility that is sold out of capacity into 2026 and is now executing at hyperscale pace. | Grok/X social signal | Separate informed accounts from price-action chatter and spam. |
 | Valuation | price $219.94, P/E 84.59x | Financial providers / Alpha Vantage / FMP | Compare multiples and analyst target with growth durability. |
-| Non-obvious angle | X under-discussed angle: Spot-market exposure on the ~$550M ARR base could drive near-term outperformance if GPU pricing keeps rising. | Cross-read of Exa, Grok/X, and financials | Verify with primary source or higher-quality source before thesis update. |
+| Non-obvious angle | X under-discussed angle: Nebius is effectively becoming the "Walmart for inference tokens" by optimizing open-source models via Eigen, which could capture fragmented demand that big labs ignore once model scaling slows. | Cross-read of Exa, Grok/X, and financials | Verify with primary source or higher-quality source before thesis update. |
 | Primary-source coverage | Filings lane: available; news sources: 8. | SEC/Exa packets | Use filings for claims that affect valuation or risk. |
 
 ### Next research questions
@@ -128,10 +125,10 @@ NBIS: Communication Services / Internet Content & Information: Nebius Group NV (
 
 ## Actionable Follow-ups
 
-- Capacity ramp: evidence 1.2 GW PA site + 3.5 GW contracted with confidence High; confirm via Next earnings GW online; invalidate if Missed site timelines.
-- Microsoft prepayment: evidence 40% upfront in 20-F with confidence High; confirm via Continued tranche delivery; invalidate if Termination clause trigger.
-- Pricing power: evidence Spot ARR commentary + sold-out status with confidence Medium; confirm via Rising ASP in Q2; invalidate if GPU oversupply announcement.
-- Verify X rumor/speculation: Speculation on $1,000/share by 2030 or "no execution risk" remains unverified-track actual GW online and adjusted net income trajectory in future quarters to falsify.
+- Signal | Evidence | Confidence | What would confirm | What would invalidate
+- ARR trajectory | $1.25 B -> $1.9 B in Q1 | High | Q2 exit ARR ≥ $2.4 B | Q2 ARR < $2.1 B
+- Verify X rumor/speculation: Speculation that Nebius will announce a second European AI factory before Q2 earnings - verify via company press releases or 8-K.
+- Verify X rumor/speculation: Claim that Microsoft is accelerating its tranche deliveries - check next earnings transcript or Microsoft 10-Q cloud spend footnotes.
 
 ## Filing And Data Coverage
 
@@ -148,18 +145,18 @@ NBIS: Communication Services / Internet Content & Information: Nebius Group NV (
 
 ## Sources
 
-- alpha_vantage_rate_limit_unavailable: [Alpha Vantage unavailable for NBIS because of rate limit](https://www.alphavantage.co/documentation/)
+- alpha_vantage_rate_limit_unavailable: [Alpha Vantage unavailable for NBIS](https://www.alphavantage.co/documentation/)
 - nbis_company_news_input_packet: [Exa news packet for NBIS](C:/Users/valen/Documents/Code/stocks/agents/runs/2026-05-16_weekly/evidence_packets/2026-05-16_exa_company_nbis_exa_news_company_nbis.json)
 - nbis_company_news_specialist_report: [Company news specialist review for NBIS](C:/Users/valen/Documents/Code/stocks/agents/runs/2026-05-16_weekly/reports/company_news_specialist/NBIS_company_news_review.md)
 - exa_result_1_d7382251a7: [Nebius reports first quarter 2026 financial results](https://nebius.com/newsroom/nebius-reports-first-quarter-2026-financial-results)
 - exa_result_1_144b9259ab: [Nebius reports first quarter 2026 financial results](https://nebius.com/newsroom/nebius-reports-first-quarter-2026-financial-results)
 - exa_result_2_144b9259ab: [Nebius Reports Fourth Quarter and Full-Year 2025 Financial Results](https://www.businesswire.com/news/home/20260212534404/en/Nebius-Reports-Fourth-Quarter-and-Full-Year-2025-Financial-Results)
-- exa_result_3_144b9259ab: [Nebius Group NV (NBIS) Q1 2026 Earnings Call Highlights: Record](https://www.gurufocus.com/news/8860930/nebius-group-nv-nbis-q1-2026-earnings-call-highlights-record-revenue-surge-and-strategic-investments)
+- exa_result_3_144b9259ab: [Nebius Group Announces Proposed Private Offering of $3.75 Billion of Convertible Senior Notes](https://www.businesswire.com/news/home/20260317324208/en/Nebius-Group-Announces-Proposed-Private-Offering-of-%243.75-Billion-of-Convertible-Senior-Notes)
 - exa_result_1_5e71c7bca8: [Nebius](https://nebius.com/)
 - exa_result_2_5e71c7bca8: [Nebius Group](https://linkedin.com/company/nebius-group)
 - exa_result_3_5e71c7bca8: [Nebius Academy](https://academy.nebius.com/)
 - exa_result_2_d7382251a7: [Nebius Reports Fourth Quarter and Full-Year 2025 Financial Results](https://www.businesswire.com/news/home/20260212534404/en/Nebius-Reports-Fourth-Quarter-and-Full-Year-2025-Financial-Results)
-- exa_result_3_d7382251a7: [Nebius Group NV (NBIS) Q1 2026 Earnings Call Highlights: Record](https://www.gurufocus.com/news/8860930/nebius-group-nv-nbis-q1-2026-earnings-call-highlights-record-revenue-surge-and-strategic-investments)
+- exa_result_3_d7382251a7: [Nebius Group Announces Proposed Private Offering of $3.75 Billion of Convertible Senior Notes](https://www.businesswire.com/news/home/20260317324208/en/Nebius-Group-Announces-Proposed-Private-Offering-of-%243.75-Billion-of-Convertible-Senior-Notes)
 - run: `agents/runs/2026-05-16_weekly`
 
 ## Quality Findings
@@ -168,4 +165,4 @@ NBIS: Communication Services / Internet Content & Information: Nebius Group NV (
 
 ## Recommended Next Action
 
-- Next research decision: test whether the social bull case is fundamental or mostly momentum. Verify the bull claim (Capacity already contracted before build-out completes (3.5 GW now, 4 GW 2026 target) gives pricing power as GPUs remain scarce.) against filings/earnings and compare it with the main pushback (Adjusted net loss widened to $100M and operating loss stayed flat despite revenue surge; net income is almost entirely revaluation gains.).
+- Next research decision: test whether the social bull case is fundamental or mostly momentum. Verify the bull claim (Sold-out capacity through 2026 plus $46 B in contracted revenue from Meta and Microsoft gives visibility no other mid-tier player matches (@Kajiastic).) against filings/earnings and compare it with the main pushback (Capex intensity ($20-25 B in 2026) will keep free cash flow negative for years and risks dilution or debt overhang (@noisetoalpha).).

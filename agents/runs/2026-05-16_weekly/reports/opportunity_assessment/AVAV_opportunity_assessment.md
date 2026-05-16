@@ -1,30 +1,29 @@
 # Opportunity Assessment: AVAV
 
 Status: `ready_for_human_review`
-Opportunity view: `neutral`
-Opportunity score: **48/100**
-Risk level: `high`
-Confidence: `medium`
+Opportunity view: `interesting`
+Opportunity score: **76/100**
+Risk level: `medium`
+Confidence: `high`
 Thesis freshness: `fresh_recent_evidence`
 
 ## Verdict
 
-AVAV is neutral (48/100, high risk, medium confidence) because AeroVironment reported Q3 revenue of $408M, $2.1B of bookings over the first nine months, and record funded backlog of $1.1B. Main caveat: Financial review needs human review: Material conflicts or low-confidence core metrics need review before file updates.. X pulse: X chatter on $AVAV centers on near-term contract catalysts around LOCUST laser weapon systems and the Army's E-HEL program, with RBC's unchanged Outperform/$250 PT cited as the cleanest institutional anchor.
+AVAV is interesting (76/100, medium risk, high confidence) because AeroVironment reported Q3 revenue of $408M, $2.1B of bookings over the first nine months, and record funded backlog of $1.1B. Main caveat: X bear/skeptic narrative: Acquisition integration costs, margin pressure, and higher debt from expansion are still visible in the P&L and technical charts. X pulse: The X conversation on $AVAV has shifted from pure hype around Ukraine-era Switchblade usage to a more granular debate on post-BlueHalo integration, DAWG budget visibility, and whether management's refusal to cut R&D
 
 ### Why The Score Looks Like This
 
-- Score: 48/100; view=neutral; risk=high; confidence=medium.
-- -4 financial review has conflicts or review gates.
+- Score: 76/100; view=interesting; risk=medium; confidence=high.
+- +12 financial review is ready with core metrics available.
 - +10 recent news/contents review is source-backed.
 - +4 Exa contents produced multiple material claims.
-- -4 Grok/X social signal leans negative.
 - -3 social signal includes rumor/speculation language.
 - +3 SEC filing lane is available for primary-source cross-checks.
 
 ## Investor Insight Report
 ### Executive Read
 
-AVAV: Industrials / Aerospace & Defense: AeroVironment reported Q3 revenue of $408M, $2.1B of bookings over the first nine months, and record funded backlog of $1.1B. The social bull case centers on LOCUST LWS on mobile platforms creates first production laser program; @bennybigbull and @Wild_Bill32 flag simultaneous Army + enterprise contracts as near-term catalyst. Valuation: price $158.00, P/E 39.01x. X/community: X chatter on $AVAV centers on near-term contract catalysts around LOCUST laser weapon systems and the Army's E-HEL program, with RBC's unchanged Outperform/$250 PT cited as the cleanest institutional anchor. Under-discussed check: X under-discussed angle: Simultaneous Army E-HEL production contract + separate DoW 5-base pilot contract could create dual revenue streams not yet modeled.
+AVAV: Industrials / Aerospace & Defense: AeroVironment reported Q3 revenue of $408M, $2.1B of bookings over the first nine months, and record funded backlog of $1.1B. The social bull case centers on Switchblade 400 and JUMP 20-X are MOSA-native from day one, giving direct access to the $74-75B DAWG bucket where quantities (1k vs 5k units) are still flexible. Valuation: price $158.00, P/E 39.01x. X/community: The X conversation on $AVAV has shifted from pure hype around Ukraine-era Switchblade usage to a more granular debate on post-BlueHalo integration, DAWG budget visibility, and whether management's refusal to cut R&D for short-term margins will pay off in a $70B+ autonomous systems pool.
 
 ### Company / Industry Context
 
@@ -36,62 +35,66 @@ AVAV: Industrials / Aerospace & Defense: AeroVironment reported Q3 revenue of $4
 
 ### Thesis, Trends, And What Changed
 
-- Core thesis: Industrials / Aerospace & Defense: AeroVironment reported Q3 revenue of $408M, $2.1B of bookings over the first nine months, and record funded backlog of $1.1B. The social bull case centers on LOCUST LWS on mobile platforms creates first production laser program; @bennybigbull and @Wild_Bill32 flag simultaneous Army + enterprise contracts as near-term catalyst.
+- Core thesis: Industrials / Aerospace & Defense: AeroVironment reported Q3 revenue of $408M, $2.1B of bookings over the first nine months, and record funded backlog of $1.1B. The social bull case centers on Switchblade 400 and JUMP 20-X are MOSA-native from day one, giving direct access to the $74-75B DAWG bucket where quantities (1k vs 5k units) are still flexible.
 - What changed recently:
   - AeroVironment reported Q3 revenue of $408M, $2.1B of bookings over the first nine months, and record funded backlog of $1.1B.
-  - investments gains or losses, and equity method income or loss of between $2.75 and $3.10.
-  - The foregoing estimates are forward-looking and reflect management's view of current and future market conditions, subject to certain risks and
-  - contracts, changes in the timing and/or amount of government spending, react to changes in the demand for our products and services, activities of
-  - international operations into our ongoing business and compliance programs; reliance on sales to the U.S. government, including uncertainties in
-  - execute contracts for anticipated sales, perform under such contracts and other existing.
+  - Record second quarter revenue of $472.5 million up, 151% year-over-year; with BlueHalo contributing $245.1 million and legacy revenue of $227.4 million up 21% year-over year
+  - Revenue for the second quarter of fiscal 2026 was $472.5 million, an increase of 151% as compared to $188.5 million for the second quarter of fiscal 2025, due to higher product sales of $173.8 million and higher service revenue of $110.2 million.
+  - For fiscal year 2026, the Company now expects revenue of between $1.95 billion and $2.0 billion, net loss of between $(38) million and $(30) million, non-GAAP adjusted EBITDA of b.
+  - The Department of War (DoW) Test Resource Management Center (TRMC) has awarded AeroVironment ("AV") (NASDAQ: AVAV), the leader in all-domain defense technologies, a three-year, $43M contract to integrate its PANTHER (Phased Array Next-gen Telemetry Hypersonic Emitter Receiver) phased array antenna system on DoW SkyRange platforms.
+  - Bookings of $2.1 billion and book-to-bill funded backlog of $1.1 billion "While our third quarter results were impacted by revenue timing and adjustments in our Space business, demand for our unique solutions remains robust," said Wahid Nawabi, AeroVironment chairman, president and chief executive officer.
 - Tailwinds:
   - AeroVironment reported Q3 revenue of $408M, $2.1B of bookings over the first nine months, and record funded backlog of $1.1B.
-  - X bull narrative: Multi-billion backlog plus Ukraine-proven volume gives revenue visibility; @teamjayday and @NRiyaud98662 list AVAV in the "drone sector with clear future demand" bucket.
-  - LOCUST LWS on mobile platforms creates first production laser program; @bennybigbull and @Wild_Bill32 flag simultaneous Army + enterprise contracts as near-term catalyst.
-  - Secular DoD shift to attritable/autonomous systems + $1.5 T budget narrative favors AV's portfolio; @Wild_Bill32 ties counter-drone lasers directly to administration rhetoric.
+  - Record second quarter revenue of $472.5 million up, 151% year-over-year; with BlueHalo contributing $245.1 million and legacy revenue of $227.4 million up 21% year-over year
+  - Revenue for the second quarter of fiscal 2026 was $472.5 million, an increase of 151% as compared to $188.5 million for the second quarter of fiscal 2025, due to higher product sales of $173.8 million and higher service revenue of $110.2 million.
+  - For fiscal year 2026, the Company now expects revenue of between $1.95 billion and $2.0 billion, net loss of between $(38) million and $(30) million, non-GAAP adjusted EBITDA of b.
+  - Bookings of $2.1 billion and book-to-bill funded backlog of $1.1 billion "While our third quarter results were impacted by revenue timing and adjustments in our Space business, demand for our unique solutions remains robust," said Wahid Nawabi, AeroVironment chairman, president and chief executive officer.
+  - Switchblade 400 and JUMP 20-X are MOSA-native from day one, giving direct access to the $74-75B DAWG bucket where quantities (1k vs 5k units) are still flexible.
 - Headwinds / debate points:
-  - Financial review needs human review: Material conflicts or low-confidence core metrics need review before file updates..
-  - X bear/skeptic narrative: FY27 expectations may be inflated; RBC explicitly flags execution and budget visibility as short-term risks.
-  - X bear/skeptic narrative: Acquisition integration costs, margin pressure, and higher debt from expansion still weigh on the stock; @teamjayday calls the current chart a downtrend despite the story.
-  - X bear/skeptic narrative: Defense-sector volatility and possible tempered guide in 4Q could reset the multiple; @PubNasdaq notes "price has run fast."
+  - X bear/skeptic narrative: Acquisition integration costs, margin pressure, and higher debt from expansion are still visible in the P&L and technical charts.
+  - X bear/skeptic narrative: Stock remains in a clear downtrend with repeated rejections at higher-timeframe SMAs.
+  - X bear/skeptic narrative: European demand hype may be overstated; recession risk plus local-content mandates could cap follow-through.
   - Grok/X scan includes rumor or speculation language; do not treat it as verified fact.
-  - 1 contradiction(s) remain unresolved across evidence.
 - Trend evolution:
-  - Social trend: X chatter on $AVAV centers on near-term contract catalysts around LOCUST laser weapon systems and the Army's E-HEL program, with RBC's unchanged Outperform/$250 PT cited as the cleanest institutional anchor.
-  - Strategic ecosystem trend: AV's laser push sits inside the broader DoD counter-UAS ecosystem; no explicit AI/cloud/silicon partners named, but the Stryker/JLTV integration implies tight supplier relationships with major vehicle primes. Hidden optionality lies in exporting the same mobile laser kit to allies already flying Switchblade.
+  - Social trend: The X conversation on $AVAV has shifted from pure hype around Ukraine-era Switchblade usage to a more granular debate on post-BlueHalo integration, DAWG budget visibility, and whether management's refusal to cut R&D for short-term margins will pay off in a $70B+ autonomous systems pool.
+  - Strategic ecosystem trend: No new AI-model or cloud announcements surfaced. Core leverage remains the 55-nation installed base and 60+ third-party payload integrations on JUMP 20. Supplier dependencies are low (agile small-team model), but ERP migration to Oracle Fusion introduces a temporary single-point operational risk.
 
 ### Expert / Community Split From X
 
-- X pulse: X chatter on $AVAV centers on near-term contract catalysts around LOCUST laser weapon systems and the Army's E-HEL program, with RBC's unchanged Outperform/$250 PT cited as the cleanest institutional anchor. Discussion accelerated sharply after AV's own BofA fireside video dropped on May 15, shifting from generic "drone stock" noise to specific "on-the-move defeat" and simultaneous DoD/enterprise contract chatter. The narrative feels early rather than crowded-only a handful of accounts with real defense context are driving it, while spam signal accounts remain background static.
+- X pulse: The X conversation on $AVAV has shifted from pure hype around Ukraine-era Switchblade usage to a more granular debate on post-BlueHalo integration, DAWG budget visibility, and whether management's refusal to cut R&D for short-term margins will pay off in a $70B+ autonomous systems pool. In the last 14 days the dominant narrative moved from "stock in downtrend, avoid" (visible in chart posts) to "still undervalued relative to profitable growth and backlog" after BofA conference notes surfaced.
 - Bullish camp:
-  - LOCUST LWS on mobile platforms creates first production laser program; @bennybigbull and @Wild_Bill32 flag simultaneous Army + enterprise contracts as near-term catalyst.
-  - Multi-billion backlog plus Ukraine-proven volume gives revenue visibility; @teamjayday and @NRiyaud98662 list AVAV in the "drone sector with clear future demand" bucket.
-  - Secular DoD shift to attritable/autonomous systems + $1.5 T budget narrative favors AV's portfolio; @Wild_Bill32 ties counter-drone lasers directly to administration rhetoric.
+  - Switchblade 400 and JUMP 20-X are MOSA-native from day one, giving direct access to the $74-75B DAWG bucket where quantities (1k vs 5k units) are still flexible.
+  - 55,000+ installed base + 7/8 international program wins last year creates sticky revenue that peers cannot replicate quickly.
+  - LOCUST LWS integration onto Stryker/JLTV creates the first production-level vehicle-mounted laser program of record (E-HEL + DoW pilot) potentially locking in multi-year revenue.
+  - Management frustration with current multiple signals belief in re-rating once post-BlueHalo portfolio is understood.
+  - @BMSInvests and @Wild_Bill32 highlight simultaneous Army E-HEL and enterprise DoW contracts as asymmetric near-term catalysts.
 - Skeptical camp:
-  - FY27 expectations may be inflated; RBC explicitly flags execution and budget visibility as short-term risks.
-  - Acquisition integration costs, margin pressure, and higher debt from expansion still weigh on the stock; @teamjayday calls the current chart a downtrend despite the story.
-  - Defense-sector volatility and possible tempered guide in 4Q could reset the multiple; @PubNasdaq notes "price has run fast."
+  - Acquisition integration costs, margin pressure, and higher debt from expansion are still visible in the P&L and technical charts.
+  - Stock remains in a clear downtrend with repeated rejections at higher-timeframe SMAs.
+  - European demand hype may be overstated; recession risk plus local-content mandates could cap follow-through.
+  - @ALex28943 notes the stock halved from $300 to $150 despite ongoing conflicts, questioning whether defense spending has already been priced
+  - CFO Woodward's own admission that the multiple feels "really kind of undervalued" is read by skeptics as evidence that the market simply does not believe the growth story yet.
 - Strategic partnerships / ecosystem leverage:
-  - AV's laser push sits inside the broader DoD counter-UAS ecosystem; no explicit AI/cloud/silicon partners named, but the Stryker/JLTV integration implies tight supplier relationships with major vehicle primes. Hidden optionality lies in exporting the same mobile laser kit to allies already flying Switchblade.
-- Accounts/posts worth reviewing: @Wild_Bill32, @bennybigbull, @teamjayday, @NRiyaud98662, @PubNasdaq, @FloridaHokie20
-- Hype/noise: Discussion is mixed: core 5-6 accounts are technical or defense-context informed; the majority of recent $AVAV mentions are low-engagement spam signal accounts. Not yet bot-heavy or crowded.
+  - No new AI-model or cloud announcements surfaced. Core leverage remains the 55-nation installed base and 60+ third-party payload integrations on JUMP 20. Supplier dependencies are low (agile small-team model), but ERP migration to Oracle Fusion introduces a temporary single-point operational risk.
+- Accounts/posts worth reviewing: @BMSInvests, @Wild_Bill32, @ALex28943, @teamjayday, @aerovironment, @StocksDaily
+- Hype/noise: Discussion is moderately informed but increasingly promotional. Credible threads from holders dominate quality; generic "follow for picks" spam mentioning $AVAV alongside unrelated tickers floods Latest search results. Technical analysis (charts) and conference notes represent the informed core; bot activity appears low.
 - Rumors / unverified claims:
-  - "Contracts are coming soon for Locust" and "fireworks next week" remain speculation; verify via DoD contract awards database or AV's next earnings call guidance.
+  - Claim of "simultaneous" E-HEL award and DoW 5-base pilot remains unverified-watch official DoD announcements or next earnings call for confirmation. European demand "overinflated" comment is management view, not data; verify against actual ally procurement budgets once FY27 NDAA details emerge.
 
 ### Non-obvious / under-discussed insights to verify
 
-- X under-discussed angle: Simultaneous Army E-HEL production contract + separate DoW 5-base pilot contract could create dual revenue streams not yet modeled.
-- X under-discussed angle: LOCUST "on-the-move" capability on JLTV/Stryker reads through to broader ground-vehicle OEMs (Oshkosh, GD) as a hidden ecosystem play.
-- X under-discussed angle: BlueHalo acquisition integration risk is being under-weighted relative to the laser narrative-any slippage here directly hits near-term margins.
+- X under-discussed angle: AeroVironment is now the "poster child" for Oracle Fusion in A&D; successful Phase III rollout could become a competitive moat in systems integration that is invisible on product P&Ls.
+- X under-discussed angle: 60+ third-party payloads on JUMP 20 create an ecosystem lock-in effect that raises switching costs for customers far beyond the airframe itself.
+- X under-discussed angle: Nawabi's comment that competitors are copying the exact agile-R&D + pre-requirements model means AV's edge is execution speed, not IP-risk if budget dollars slow.
+- X under-discussed angle: International revenue historically up to 50% could see step-function gains even if Europe spends only 30-50% of pledged amounts because many allies have near-zero inventory in Group 1-3 UAS.
 - AeroVironment reported Q3 revenue of $408M, $2.1B of bookings over the first nine months, and record funded backlog of $1.1B.
-- Funded Backlog: Grew to $1.1 billion.
 - Bookings of $2.1 billion and book-to-bill funded backlog of $1.1 billion "While our third quarter results were impacted by revenue timing and adjustments in our Space business, demand for our unique solutions remains robust," said Wahid Nawabi, AeroVironment chairman, president and chief executive officer.
 - ● Record funded backlog of $1.1 billion
 
 ### Valuation And Analyst Snapshot
 
 - Latest price: $158.00
-- Market cap: $8.36B
+- Market cap: $8.00B
 - P/E: 39.01x
 - Forward P/E: unknown
 - PEG: unknown
@@ -112,24 +115,22 @@ AVAV: Industrials / Aerospace & Defense: AeroVironment reported Q3 revenue of $4
 | Dimension | Current read | Evidence | Follow-up |
 | --- | --- | --- | --- |
 | Growth / demand | AeroVironment reported Q3 revenue of $408M, $2.1B of bookings over the first nine months, and record funded backlog of $1.1B. | Exa news + earnings/call excerpts | Check whether growth is broad-based or mostly one segment. |
-| Community / X sentiment | X chatter on $AVAV centers on near-term contract catalysts around LOCUST laser weapon systems and the Army's E-HEL program, with RBC's unchanged Outperform/$250 PT cited as the cleanest institutional anchor. Discussion accelerated sharply after AV's own BofA fireside video dropped on May 15, shifting from generic "drone stock" noise to specific "on-the-move defeat" and simultaneous DoD/enterprise contract chatter. | Grok/X social signal | Separate informed accounts from price-action chatter and spam. |
+| Community / X sentiment | The X conversation on $AVAV has shifted from pure hype around Ukraine-era Switchblade usage to a more granular debate on post-BlueHalo integration, DAWG budget visibility, and whether management's refusal to cut R&D for short-term margins will pay off in a $70B+ autonomous systems pool. | Grok/X social signal | Separate informed accounts from price-action chatter and spam. |
 | Valuation | price $158.00, P/E 39.01x | Financial providers / Alpha Vantage / FMP | Compare multiples and analyst target with growth durability. |
-| Non-obvious angle | X under-discussed angle: Simultaneous Army E-HEL production contract + separate DoW 5-base pilot contract could create dual revenue streams not yet modeled. | Cross-read of Exa, Grok/X, and financials | Verify with primary source or higher-quality source before thesis update. |
+| Non-obvious angle | X under-discussed angle: AeroVironment is now the "poster child" for Oracle Fusion in A&D; successful Phase III rollout could become a competitive moat in systems integration that is invisible on product P&Ls. | Cross-read of Exa, Grok/X, and financials | Verify with primary source or higher-quality source before thesis update. |
 | Primary-source coverage | Filings lane: available; news sources: 8. | SEC/Exa packets | Use filings for claims that affect valuation or risk. |
 
 ### Next research questions
 
 - Is the X bull case supported by reported fundamentals, or is it mainly momentum around the ticker?
 - Which X claims are rumor/speculation and which can be verified through company sources or high-quality reporting?
-- Which financial provider conflict changes the investment thesis rather than only the metadata?
 
 ## Actionable Follow-ups
 
-- Resolve material financial provider conflict before updating company-file conclusions.
-- LOCUST/E-HEL catalyst: evidence AV BofA video + RBC note with confidence Medium; confirm via DoD contract award; invalidate if Delayed or canceled E-HEL.
-- FY27 stretch risk: evidence RBC explicit language with confidence High; confirm via Tempered 4Q guide; invalidate if Raised guide.
-- Backlog visibility: evidence @teamjayday financials read with confidence Medium; confirm via 10-Q backlog disclosure; invalidate if Backlog drawdown.
-- Verify X rumor/speculation: "Contracts are coming soon for Locust" and "fireworks next week" remain speculation; verify via DoD contract awards database or AV's next earnings call guidance.
+- DAWG budget visibility: evidence Nawabi quotes on flexible quantities with confidence Medium; confirm via Specific program awards in Q4 FY26; invalidate if Reconciliation bill delay.
+- MOSA product readiness: evidence P550, Switchblade 400, Mayhem 10 with confidence High; confirm via First MOSA-compliant contract win; invalidate if Competitor win on open standard.
+- Integration friction: evidence Oracle Fusion Phase III, margin pressure with confidence Medium; confirm via Margin expansion in next print; invalidate if Continued segment losses.
+- Verify X rumor/speculation: Claim of "simultaneous" E-HEL award and DoW 5-base pilot remains unverified-watch official DoD announcements or next earnings call for confirmation. European demand "overinflated" comment is management view, not data; verify against actual ally procurement budgets once FY27 NDAA details emerge.
 
 ## Filing And Data Coverage
 
@@ -146,18 +147,18 @@ AVAV: Industrials / Aerospace & Defense: AeroVironment reported Q3 revenue of $4
 
 ## Sources
 
-- alpha_vantage_rate_limit_unavailable: [Alpha Vantage unavailable for AVAV because of rate limit](https://www.alphavantage.co/documentation/)
+- alpha_vantage_rate_limit_unavailable: [Alpha Vantage unavailable for AVAV](https://www.alphavantage.co/documentation/)
 - avav_company_news_input_packet: [Exa news packet for AVAV](C:/Users/valen/Documents/Code/stocks/agents/runs/2026-05-16_weekly/evidence_packets/2026-05-16_exa_company_avav_exa_news_company_avav.json)
 - avav_company_news_specialist_report: [Company news specialist review for AVAV](C:/Users/valen/Documents/Code/stocks/agents/runs/2026-05-16_weekly/reports/company_news_specialist/AVAV_company_news_review.md)
 - exa_result_1_e90cba25fe: [AeroVironment Announces Fiscal 2026 Third Quarter Results - AeroVironment](https://www.avinc.com/2026/03/10/aerovironment-announces-fiscal-2026-third-quarter-results/)
 - exa_result_1_085eac8026: [AeroVironment Announces Fiscal 2026 Third Quarter Results - AeroVironment](https://www.avinc.com/2026/03/10/aerovironment-announces-fiscal-2026-third-quarter-results/)
-- exa_result_2_085eac8026: [investor.avinc.com](https://investor.avinc.com/static-files/70996011-d5a2-4034-9333-bd8224539dff)
-- exa_result_3_085eac8026: [AeroVironment Inc (AVAV) Q3 2026 Earnings Call Highlights: Record Revenue Growth and Strategic ...](https://finance.yahoo.com/news/aerovironment-inc-avav-q3-2026-030145043.html)
+- exa_result_2_085eac8026: [AeroVironment Announces Fiscal 2026 Second Quarter Results - AeroVironment](https://www.avinc.com/2025/12/09/aerovironment-announces-fiscal-2026-second-quarter-results/)
+- exa_result_3_085eac8026: [AV Awarded $43M DoW Contract to Integrate PANTHER Phased Array Antenna on SkyRange Platforms for Hypersonic Telemetry - AeroVironment](https://www.avinc.com/2026/05/12/av-awarded-43m-dow-contract-to-integrate-panther-phased-array-antenna-on-skyrange-platforms-for-hypersonic-telemetry/)
 - exa_result_1_d4f3e31447: [AV](https://avinc.com/)
 - exa_result_2_d4f3e31447: [AeroVironment](https://aerovironment.co/)
 - exa_result_3_d4f3e31447: [Telerob USA, Inc.](https://telerob.com/)
-- exa_result_2_e90cba25fe: [investor.avinc.com](https://investor.avinc.com/static-files/70996011-d5a2-4034-9333-bd8224539dff)
-- exa_result_3_e90cba25fe: [AeroVironment Inc (AVAV) Q3 2026 Earnings Call Highlights: Record Revenue Growth and Strategic ...](https://finance.yahoo.com/news/aerovironment-inc-avav-q3-2026-030145043.html)
+- exa_result_2_e90cba25fe: [AeroVironment Announces Fiscal 2026 Second Quarter Results - AeroVironment](https://www.avinc.com/2025/12/09/aerovironment-announces-fiscal-2026-second-quarter-results/)
+- exa_result_3_e90cba25fe: [AV Awarded $43M DoW Contract to Integrate PANTHER Phased Array Antenna on SkyRange Platforms for Hypersonic Telemetry - AeroVironment](https://www.avinc.com/2026/05/12/av-awarded-43m-dow-contract-to-integrate-panther-phased-array-antenna-on-skyrange-platforms-for-hypersonic-telemetry/)
 - run: `agents/runs/2026-05-16_weekly`
 
 ## Quality Findings
@@ -166,4 +167,4 @@ AVAV: Industrials / Aerospace & Defense: AeroVironment reported Q3 revenue of $4
 
 ## Recommended Next Action
 
-- Review blocking evidence gaps before updating the company thesis.
+- Next research decision: test whether the social bull case is fundamental or mostly momentum. Verify the bull claim (Switchblade 400 and JUMP 20-X are MOSA-native from day one, giving direct access to the $74-75B DAWG bucket where quantities (1k vs 5k units) are still flexible.) against filings/earnings and compare it with the main pushback (Acquisition integration costs, margin pressure, and higher debt from expansion are still visible in the P&L and technical charts.).

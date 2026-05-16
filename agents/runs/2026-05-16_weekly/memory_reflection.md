@@ -14,8 +14,8 @@ Generated: 2026-05-16
 - invalid_evidence_packets: 0
 - provider_packet_counts: {"alpha_vantage": 10, "company_news_specialist": 10, "exa": 32, "financial_compare": 10, "financial_data_specialist": 10, "fmp": 10, "opportunity_assessment_specialist": 10, "polygon": 9, "sec_edgar": 9, "xai_grok": 11, "yfinance": 10}
 - claims: 280
-- risks: 38
-- contradictions: 16
+- risks: 31
+- contradictions: 0
 - recommended_updates: 30
 - unknowns: 266
 - run_metrics_exists: False

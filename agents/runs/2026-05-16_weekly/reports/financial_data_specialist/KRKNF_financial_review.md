@@ -1,7 +1,7 @@
 # Financial Review: KRKNF
 
 Status: partial_review
-Reason: No material numeric conflicts found, but some core metrics are missing or taxonomy labels differ by provider.
+Reason: No material numeric conflicts found, but some core metrics are missing or non-thesis metadata/taxonomy labels differ by provider.
 
 ## Headline Metrics
 
@@ -26,4 +26,5 @@ Reason: No material numeric conflicts found, but some core metrics are missing o
 - conflicts: 0
 - material_conflicts: 0
 - taxonomy_conflicts: 0
+- metadata_conflicts: 0
 - recommended_company_file_action: Update available metrics, but preserve missing-core-metric notes for follow-up.

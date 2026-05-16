@@ -350,3 +350,24 @@ run-weekly
   - Added optional fallback keys `FMP_API_KEY2` and `ALPHA_VANTAGE_API_KEY2`.
   - Provider execution now tries the primary key first, retries the secondary key only on tier/subscription, rate-limit/quota, or credential-style unavailable errors, and writes sanitized attempt labels only.
   - If both keys fail, the workflow still writes explicit unavailable evidence packets so the automation can continue with the rest of the data sources.
+- 2026-05-16 biweekly Codex-supervised run at 14:21 Europe/Berlin:
+  - Ran the exact lower-cost automation command: `C:\Python313\python.exe -m stock_research run-weekly --write --execute-providers --execute-analysis`.
+  - The command returned nonzero because status was `needs_review`, but the workflow wrote the expected run artifacts for `2026-05-16_weekly`: 131 evidence packets, 0 deterministic quality findings, 10 opportunity assessments, final digest, HRQ digest, company-file factual sync, memory/finalization artifacts, archive proposals, and review pack.
+  - Wrote `agents/runs/2026-05-16_weekly/codex_supervised_review.md` as the final Codex synthesis.
+  - Main attention ranking: MU and AVAV strongest; IREN/NBIS are interesting but capex/debt execution-sensitive; AMBA/AXTI/KRKNF are constructive but need catalyst verification; GOOGL/OSS/TE need financial-review gates resolved before thesis updates.
+  - Open review surface remains `agents/human_review_digest.md` with 20 open items, including AMKR HRQ-0053 and older verification-only candidate baskets.
+  - Validation passed: human-facing markdown check for the Codex review, `memory validate`, and repo `validate --today 2026-05-16`.
+  - No durable operational memory update was needed; existing Codex-supervised/report-quality/provider-unavailable lessons cover the observed behavior.
+  - Follow-up implementation gap: reduce noisy peer extraction and distinguish metadata-only financial conflicts from thesis-relevant conflicts so routine runs do not stay `needs_review` for harmless exchange/name normalization.
+- 2026-05-16 manual review of latest automation result:
+  - Confirmed the latest run is operationally good, not blocked: provider tasks 81/81 executed, analysis tasks 50/50 executed, quality findings 0, finalization complete, memory reflection issues 0, and human-facing report-quality checks passed.
+  - `needs_review` currently means human/analyst review gates are open, not that the automation crashed. Main gates are GOOGL company-name normalization, OSS/TE exchange-code normalization, KRKNF single-provider/OTC coverage, plus 20 open HRQ rows.
+  - FMP/Alpha fallback logic was exercised: both keys were tried where primary failed, but provider plan limits still returned unavailable packets for most FMP names and all Alpha names. This is a coverage limitation, not a missing fallback implementation.
+- 2026-05-16 automation stabilization follow-up:
+  - Official provider docs were rechecked. FMP stable endpoints are `quote`, `profile`, `key-metrics-ttm`, and `ratios-ttm` with `symbol`; Alpha uses `GLOBAL_QUOTE` and `OVERVIEW` with `function`, `symbol`, and `apikey`.
+  - Live key smoke: FMP primary/secondary both work for AAPL/GOOGL. For AXTI/KRKNF, FMP blocks quote/TTM endpoints with 402 plan/ticker coverage but returns profile data. Alpha primary/secondary both returned Alpha standard daily/rate-limit messages, so params are correct but quota/plan is limiting.
+  - Implemented FMP partial endpoint preservation: usable profile data is kept as medium-confidence FMP evidence with endpoint-level unknowns, and blocked endpoints retry the secondary key before finalizing.
+  - Implemented financial metadata normalization: company-name/share-class differences and exchange aliases (`XNAS`/`NCM`, `XNYS`/`NYQ`) are metadata/watch items, not thesis blockers.
+  - Rebuilt downstream only from existing evidence: financial_compare, financial_review, opportunity_assessment, run_summary, quality_report, finalization, factual company-file sync, final_digest, HRQ digest, and Codex review pack. No broad provider rerun was needed.
+  - Current fixed run state: final digest `ready`, review pack `ready`, quality findings 0, scheduled status should be `complete` when no execution errors occur. KRKNF remains legitimately `partial_review` due OTC/single-provider coverage.
+  - Remaining: smaller/OTC names still need better forward valuation/analyst-target coverage and cleaner peer/excerpt synthesis.

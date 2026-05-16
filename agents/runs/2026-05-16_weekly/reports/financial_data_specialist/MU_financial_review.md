@@ -1,7 +1,7 @@
 # Financial Review: MU
 
-Status: needs_human_review
-Reason: Material conflicts or low-confidence core metrics need review before file updates.
+Status: ready_for_company_update
+Reason: Core metrics are available and no material provider conflicts were found.
 
 ## Headline Metrics
 
@@ -9,8 +9,8 @@ Reason: Material conflicts or low-confidence core metrics need review before fil
 | --- | --- | --- | --- |
 | company_name | Micron Technology, Inc. | medium | polygon |
 | latest_price | 724.7 | high | polygon, yfinance |
-| market_cap | 8.751e+11 | low | polygon, yfinance |
-| pe_ratio | 34.2 | medium | yfinance |
+| market_cap | 8.172e+11 | high | polygon, yfinance |
+| pe_ratio | 34.25 | medium | yfinance |
 | currency | usd | high | polygon, yfinance |
 | exchange | XNAS | high | polygon, yfinance |
 | sector | Technology | medium | yfinance |
@@ -19,17 +19,13 @@ Reason: Material conflicts or low-confidence core metrics need review before fil
 ## Review Notes
 
 - financial_compare packet: `agents/runs/2026-05-16_weekly/evidence_packets/2026-05-16_financial_compare_company_mu.json`
-- confidence_counts: {"high": 3, "low": 1, "medium": 11}
-- status_counts: {"conflict": 1, "consistent": 14}
+- confidence_counts: {"high": 4, "medium": 11}
+- status_counts: {"consistent": 15}
 - single_provider_metrics: company_name, fifty_two_week_high, fifty_two_week_low, industry, pe_ratio, previous_high, previous_low, previous_open, previous_volume, previous_vwap, sector
 - missing_core_metrics: none
-- low_confidence_core_metrics: market_cap
-- conflicts: 1
-- material_conflicts: 1
+- low_confidence_core_metrics: none
+- conflicts: 0
+- material_conflicts: 0
 - taxonomy_conflicts: 0
-
-## Provider Conflicts
-
-- market_cap: material; Relative spread exceeds 3% tolerance.
-  - values: {"polygon": 875132900916.51, "yfinance": 817223727111.8335}
-- recommended_company_file_action: Do not update financial conclusions until conflicts or low-confidence core metrics are reviewed.
+- metadata_conflicts: 0
+- recommended_company_file_action: Update the company file financial snapshot from the review packet.

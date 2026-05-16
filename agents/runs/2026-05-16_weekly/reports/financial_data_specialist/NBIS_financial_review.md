@@ -9,7 +9,7 @@ Reason: Core metrics are available and no material provider conflicts were found
 | --- | --- | --- | --- |
 | company_name | Nebius Group N.V. Class A Ordinary Shares | medium | polygon |
 | latest_price | 219.9 | high | polygon, yfinance |
-| market_cap | 5.615e+10 | high | polygon, yfinance |
+| market_cap | 5.584e+10 | high | polygon, yfinance |
 | pe_ratio | 84.59 | medium | yfinance |
 | currency | usd | high | polygon, yfinance |
 | exchange | XNAS | high | polygon, yfinance |
@@ -27,4 +27,5 @@ Reason: Core metrics are available and no material provider conflicts were found
 - conflicts: 0
 - material_conflicts: 0
 - taxonomy_conflicts: 0
+- metadata_conflicts: 0
 - recommended_company_file_action: Update the company file financial snapshot from the review packet.

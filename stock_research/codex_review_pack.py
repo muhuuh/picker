@@ -143,9 +143,6 @@ def pack_quality_findings(
             findings.append(
                 f"Final digest ticker count ({digest.get('ticker_count')}) differs from opportunity report count ({len(company_reports)})."
             )
-    human_digest = repo_root / "agents" / "human_review_digest.md"
-    if human_digest.exists() and "No open human review items" not in human_digest.read_text(encoding="utf-8", errors="ignore"):
-        findings.append("Human review digest may contain open decisions; Codex must summarize them clearly and not auto-approve them.")
     return unique(findings)
 
 

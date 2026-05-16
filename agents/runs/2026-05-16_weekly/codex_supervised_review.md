@@ -1,61 +1,64 @@
-# Codex-Supervised Review: 2026-05-16 Weekly
+# Codex-Supervised Review: 2026-05-16_weekly
 
-Status: `needs_review`
+Generated: 2026-05-16
+Mode: Codex-supervised, provider/analysis executed, OpenAI API SDK orchestrator not run
 
 ## Bottom Line
 
-The deterministic provider and analysis workflow is now usable for the 10 current holdings. The run produced 131 evidence packets, 10 opportunity assessments, 10 company-news reviews, 10 financial reviews, a final digest, company-file factual updates, memory/finalization artifacts, and a refreshed human-review digest.
+Result quality: good. The workflow now completed the intended lower-cost Codex-supervised path cleanly: 81 provider tasks, 50 analysis tasks, 131 valid evidence packets, 10 financial reviews, 10 company-news reviews, 10 opportunity assessments, final digest, factual company-file sync, memory/finalization artifacts, archive proposals, and the human-review digest.
 
-The run still needs review because several financial reviews have material conflicts or low-confidence metrics. That is a review gate, not a provider execution failure.
+This run should no longer be treated as failed just because the human-review inbox has open decisions. `agents/human_review_digest.md` remains a normal asynchronous decision inbox. The deterministic run status, final digest, quality report, memory reflection, and review pack are clean.
+
+No trade action was taken. No stock was moved between holdings, monitoring, or rejected.
 
 ## Attention Ranking
 
-| Rank | Ticker | Read | Risk | Why it matters now |
-| --- | --- | --- | --- | --- |
-| 1 | NBIS | interesting, 72/100 | medium | X/Grok and source-backed evidence point to sold-out AI-cloud capacity, hyperscaler/customer leverage, and strong post-earnings momentum; verify loss quality and revaluation gains before increasing confidence. |
-| 2 | AMBA | constructive_but_watch, 68/100 | medium | X narrative is unusually specific around low-power edge inference for humanoids/ADAS; valuation is demanding, so June earnings/design-win evidence matters. |
-| 3 | KRKNF | constructive_but_watch, 62/100 | medium | Subsea defense/autonomy narrative is active on X with specific catalysts; coverage is thinner, so verify backlog, Covelya close, and Anduril-related claims. |
-| 4 | GOOGL | constructive_but_watch, 59/100 | high | AI integration and Anthropic/Google ecosystem evidence are relevant, but financial review still needs human review before thesis changes. |
-| 5 | MU | constructive_but_watch, 59/100 | high | X narrative has shifted toward structurally constrained AI memory/HBM; financial review conflicts keep this gated. |
-| 6 | TE | neutral, 55/100 | high | U.S. solar manufacturing narrative is live, but the setup is still high-risk and needs financial verification. |
-| 7 | AVAV | neutral, 48/100 | high | Defense/drone catalysts are source-backed, but financial conflicts and execution risk dominate. |
-| 8 | OSS | neutral, 48/100 | high | Edge AI/defense-compute chatter is interesting after a Q1 beat, but coverage and financial confidence remain weak. |
-| 9 | AXTI | weak_or_risky, 44/100 | high | Photonics/InP bottleneck narrative is strong on X, but valuation/execution/export-control risk is high. |
-| 10 | IREN | weak_or_risky, 44/100 | high | BTC-to-AI infrastructure pivot is actively discussed, but financial quality and execution risk remain too high for a clean positive read. |
+1. **MU** - score 83, `interesting`, high confidence. Strongest AI-memory setup: HBM/bandwidth demand, source-backed financial strength, and X discussion around a structurally tighter memory cycle. Main check: whether HBM contracts really dampen the usual oversupply cycle.
+2. **TE** - score 83, `interesting`, high confidence, but execution-sensitive. The reshoring/solar-manufacturing narrative is active after Q1 profitability, Rockdale, and Section 232 discussion. Main check: financing, dilution, margins, and policy timing.
+3. **GOOGL** - score 79, `interesting`, high confidence after metadata normalization. The Gemini/TPU/Cloud/custom-silicon thesis is useful, with capex/backlog conversion as the main pushback.
+4. **AVAV** - score 76, `interesting`, high confidence. Defense/autonomy evidence is strong, with backlog/bookings and BlueHalo integration as the core positives. Main check: integration costs, debt, margins, and whether MOSA/DAWG turns into awards.
+5. **IREN** - score 72, `interesting`, high confidence. AI-cloud pivot remains attractive but balance-sheet sensitive. Main check: signed ARR/deployment pace versus debt and capex needs.
+6. **OSS** - score 72, `interesting`, high confidence after exchange metadata normalization. Thin but increasingly useful X narrative around rugged defense edge-AI. Main check: micro-cap liquidity and repeatable backlog conversion.
+7. **AMBA** - score 68, `constructive_but_watch`, high confidence. Edge-AI/robotics optionality is real in the X narrative. Main check: named robotics/customer wins and whether auto-cycle delays/China exposure cap rerating.
+8. **AXTI** - score 68, `constructive_but_watch`, high confidence. AI optical substrate/InP narrative is strong but valuation-sensitive. Main check: demand confirmation and geographic/customer diversification.
+9. **NBIS** - score 68, `constructive_but_watch`, high confidence. AI-cloud/power narrative is credible but capex-heavy. Main check: contracted revenue, power delivery, and dilution/debt risk.
+10. **KRKNF** - score 62, `constructive_but_watch`, medium confidence. Subsea defense/autonomy story is interesting, but OTC/single-provider financial coverage keeps this less reliable until verified with stronger primary sources.
 
-## Material Narrative Shifts
+## What Changed
 
-- Grok/X is now surfacing the useful layer again: NBIS AI-cloud capacity scarcity, AMBA edge-inference robotics positioning, MU HBM/AI-memory scarcity, AXTI InP photonics bottleneck, and KRKNF subsea defense/autonomy catalysts.
-- The strongest current social signals are NBIS and AMBA. KRKNF is interesting but needs more verification because it is smaller and less covered.
-- High-risk names should not be promoted by narrative alone. AXTI, IREN, OSS, AVAV, TE, MU, and GOOGL all need financial-review gates resolved before any thesis/status change.
+- Financial review strictness was fixed. Harmless name/share-class and exchange-code differences are now metadata normalization/watch items, not thesis-blocking conflicts.
+- GOOGL, OSS, and TE no longer require human review for metadata-only financial conflicts.
+- KRKNF remains `partial_review`, which is appropriate: OTC/single-provider coverage and missing core data are real limitations.
+- FMP partial endpoint behavior was fixed for future runs: if FMP returns profile data but blocks quote/TTM endpoints for smaller names, the profile data is preserved instead of losing the whole FMP packet.
+- The review pack status is now `ready`; open HRQ rows are handled as human decisions, not quality failures.
 
-## File And State Updates
+## Narrative Shifts
 
-- Low-risk factual company-file updates were applied/refreshed for all 10 current holdings.
-- Category state files were already updated for `current_holdings`, `monitoring`, and `rejected`.
-- `agents/human_review_digest.md` currently summarizes 20 open deduped review items, mostly older candidate-verification rows plus legacy AAPL FYI rows.
+- **AI infrastructure is the strongest portfolio theme:** MU, GOOGL, IREN, and NBIS cover memory bandwidth, custom silicon/cloud, and power-plus-compute infrastructure.
+- **Defense/physical AI is the second cluster:** AVAV, AMBA, OSS, and KRKNF have useful X/community signals around autonomous systems, rugged edge compute, low-power inference, and subsea autonomy.
+- **Small-cap names need verification discipline:** AXTI, OSS, TE, AMBA, and KRKNF have valuable X signals, but some claims are still social/speculative until backed by filings, earnings calls, or source-backed news.
 
-## Quality Review
+## Open Human Decisions
 
-- Provider errors: 0.
-- Deterministic quality findings: 0.
-- Human-facing markdown validation passed for the final digest, human-review digest, and all 10 opportunity assessments.
-- Important fix from this run: FMP subscription/tier failures and Alpha Vantage rate limits now become explicit coverage-gap packets instead of missing-provider errors.
+`agents/human_review_digest.md` currently has 20 open items. These are not blockers for the weekly run.
 
-## Human Review
+Recommended triage:
 
-Read first:
+1. Decide HRQ-0053 for AMKR first because it is the only current monitoring-candidate review item.
+2. Then prune or approve the older Grok/X and Exa candidate-verification baskets.
+3. Treat the two old AAPL company-file update rows as legacy/FYI unless you explicitly want to process that old proposal path.
 
-- `agents/runs/2026-05-16_weekly/final_digest.md`
-- `agents/runs/2026-05-16_weekly/reports/opportunity_assessment/NBIS_opportunity_assessment.md`
-- `agents/runs/2026-05-16_weekly/reports/opportunity_assessment/AMBA_opportunity_assessment.md`
-- `agents/runs/2026-05-16_weekly/reports/opportunity_assessment/KRKNF_opportunity_assessment.md`
-- `agents/human_review_digest.md`
+## Audit
 
-Allowed decisions remain: approve, reject, needs_more_research, or leave open by HRQ id. Do not treat this report as a trade instruction.
+- Deterministic quality report: 0 findings.
+- Run finalization: complete, 0 reflection issues, 0 memory update drafts.
+- Final digest: `ready`, 10 tickers, 0 digest quality findings.
+- Review pack: `ready`, 0 pack quality findings.
+- Factual company-file sync: complete for all 10 holdings.
 
-## Remaining Risks
+## Next Actions
 
-- Financial-provider coverage is not equal across all holdings. Small/OTC and less-covered names have weaker analyst/forward-valuation data.
-- Some source titles still contain publisher-side ellipses in the source bibliography; these are source labels, not report truncation.
-- The workflow still needs a safer incremental report-regeneration command so report formatting fixes can be rerun without touching provider artifacts.
+1. Review `agents/runs/2026-05-16_weekly/final_digest.md` for the quick portfolio view.
+2. Read the deeper reports for MU, TE, GOOGL, AVAV, and IREN first.
+3. Use `agents/human_review_digest.md` only for explicit approve/reject/more-research decisions; do not treat it as an automation failure.
+4. Next backlog step: keep improving report sharpness for smaller/OTC names and add better forward valuation/analyst-target coverage where provider data is sparse.

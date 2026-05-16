@@ -72,6 +72,24 @@ class FinancialSpecialistTests(unittest.TestCase):
             self.assertEqual(len(result.review["taxonomy_conflicts"]), 1)
             self.assertFalse(result.review["material_conflicts"])
 
+    def test_financial_review_marks_metadata_conflicts_partial_not_blocking(self):
+        with TemporaryDirectory() as temp_dir:
+            root = seed_repo(Path(temp_dir))
+            packet_path = write_compare_packet(root, conflicts=False, metadata_conflicts=True)
+
+            result = build_financial_specialist_packet(
+                ticker="AAPL",
+                run_id="2026-05-09_weekly",
+                root=root,
+                current_date=date(2026, 5, 4),
+                financial_compare_packet_path=packet_path,
+            )
+
+            self.assertEqual(result.review["status"], "partial_review")
+            self.assertEqual(len(result.review["metadata_conflicts"]), 1)
+            self.assertEqual(result.review["low_confidence_core_metrics"], [])
+            self.assertFalse(result.packet.recommended_updates[0].needs_human_review)
+
 
 def seed_repo(root: Path) -> Path:
     (root / "AGENTS.md").write_text("# AGENTS\n", encoding="utf-8")
@@ -80,7 +98,7 @@ def seed_repo(root: Path) -> Path:
     return root
 
 
-def write_compare_packet(root: Path, conflicts: bool, taxonomy_conflicts: bool = False) -> Path:
+def write_compare_packet(root: Path, conflicts: bool, taxonomy_conflicts: bool = False, metadata_conflicts: bool = False) -> Path:
     consensus = {
         "company_name": {"value": "Apple Inc.", "confidence": "high", "status": "consistent", "providers": ["fmp", "polygon"]},
         "latest_price": {"value": 280.14, "confidence": "high", "status": "consistent", "providers": ["fmp", "polygon"]},
@@ -108,6 +126,15 @@ def write_compare_packet(root: Path, conflicts: bool, taxonomy_conflicts: bool =
             "providers": ["fmp", "alpha_vantage"],
             "values": {"fmp": "Consumer Electronics", "alpha_vantage": "Technology Hardware"},
             "reason": "Provider values for industry disagree.",
+        }
+    if metadata_conflicts:
+        consensus["exchange"] = {
+            "value": "NASDAQ",
+            "confidence": "low",
+            "status": "conflict",
+            "providers": ["fmp", "polygon"],
+            "values": {"fmp": "NASDAQ", "polygon": "NCM"},
+            "reason": "Provider values for exchange disagree.",
         }
     packet = new_packet(
         provider="financial_compare",

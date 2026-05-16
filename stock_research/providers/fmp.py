@@ -15,6 +15,17 @@ from stock_research.evidence import Claim, EvidencePacket, Source, default_packe
 
 FMP_BASE_URL = "https://financialmodelingprep.com/stable"
 FMP_DOCS = "https://site.financialmodelingprep.com/developer/docs/stable"
+FMP_SNAPSHOT_ENDPOINTS = (
+    ("quote", "quote"),
+    ("profile", "profile"),
+    ("key_metrics_ttm", "key-metrics-ttm"),
+    ("ratios_ttm", "ratios-ttm"),
+)
+FMP_STATEMENT_ENDPOINTS = (
+    ("income_statement_ttm", "income-statement-ttm"),
+    ("balance_sheet_statement_ttm", "balance-sheet-statement-ttm"),
+    ("cash_flow_statement_ttm", "cash-flow-statement-ttm"),
+)
 
 
 class FmpError(RuntimeError):
@@ -65,17 +76,31 @@ def fetch_json(path: str, api_key: str, params: dict[str, Any] | None = None, ti
 
 def fetch_fmp_company_snapshot(options: FmpCompanyOptions, api_key: str) -> dict[str, Any]:
     ticker = options.ticker.upper()
-    snapshot: dict[str, Any] = {
-        "ticker": ticker,
-        "quote": fetch_json("quote", api_key, {"symbol": ticker}),
-        "profile": fetch_json("profile", api_key, {"symbol": ticker}),
-        "key_metrics_ttm": fetch_json("key-metrics-ttm", api_key, {"symbol": ticker}),
-        "ratios_ttm": fetch_json("ratios-ttm", api_key, {"symbol": ticker}),
-    }
+    snapshot: dict[str, Any] = {"ticker": ticker}
+    endpoint_errors: list[dict[str, str]] = []
+    endpoints = list(FMP_SNAPSHOT_ENDPOINTS)
     if options.include_statements:
-        snapshot["income_statement_ttm"] = fetch_json("income-statement-ttm", api_key, {"symbol": ticker})
-        snapshot["balance_sheet_statement_ttm"] = fetch_json("balance-sheet-statement-ttm", api_key, {"symbol": ticker})
-        snapshot["cash_flow_statement_ttm"] = fetch_json("cash-flow-statement-ttm", api_key, {"symbol": ticker})
+        endpoints.extend(FMP_STATEMENT_ENDPOINTS)
+    for key, path in endpoints:
+        try:
+            snapshot[key] = fetch_json(path, api_key, {"symbol": ticker})
+        except FmpError as exc:
+            if not is_fallback_eligible_error(exc):
+                raise
+            snapshot[key] = []
+            endpoint_errors.append(
+                {
+                    "endpoint": key,
+                    "path": path,
+                    "error_type": fmp_unavailable_error_type(exc) or "provider_unavailable",
+                    "error": sanitize_error_text(exc, [api_key]),
+                }
+            )
+    if endpoint_errors:
+        snapshot["endpoint_errors"] = endpoint_errors
+    if len(endpoint_errors) == len(endpoints):
+        first_error = endpoint_errors[0]["error"]
+        raise FmpError(f"FMP all configured snapshot endpoints unavailable for {ticker}: {first_error}")
     return snapshot
 
 
@@ -91,9 +116,28 @@ def build_fmp_company_packet(
     today = current_date or date.today()
     ticker = options.ticker.upper()
     attempts: list[dict[str, str]] = []
+    fallback_used_for_partial = False
     try:
         snapshot = fetcher(options, api_key)
-        snapshot = annotate_credential_metadata(snapshot, api_key_label="primary", fallback_used=False, attempts=attempts)
+        secondary_key = normalize_fallback_key(api_key, fallback_api_key)
+        if secondary_key and snapshot.get("endpoint_errors"):
+            attempts.extend(endpoint_attempt_records("primary", snapshot))
+            try:
+                fallback_snapshot = fetcher(options, secondary_key)
+                snapshot = merge_fmp_partial_snapshots(snapshot, fallback_snapshot)
+                fallback_used_for_partial = True
+                if fallback_snapshot.get("endpoint_errors"):
+                    attempts.extend(endpoint_attempt_records("secondary", fallback_snapshot))
+            except FmpError as fallback_exc:
+                if not is_fallback_eligible_error(fallback_exc):
+                    raise
+                attempts.append(attempt_record("secondary", fallback_exc, api_key, fallback_api_key))
+        snapshot = annotate_credential_metadata(
+            snapshot,
+            api_key_label="primary",
+            fallback_used=fallback_used_for_partial,
+            attempts=attempts,
+        )
     except FmpError as exc:
         if not is_fallback_eligible_error(exc):
             raise
@@ -197,6 +241,22 @@ def attempt_record(label: str, error: Exception, primary_key: str, fallback_api_
     }
 
 
+def endpoint_attempt_records(label: str, snapshot: dict[str, Any]) -> list[dict[str, str]]:
+    records: list[dict[str, str]] = []
+    for item in snapshot.get("endpoint_errors", []) or []:
+        if not isinstance(item, dict):
+            continue
+        records.append(
+            {
+                "api_key_label": label,
+                "endpoint": str(item.get("endpoint", "")),
+                "error_type": str(item.get("error_type", "provider_unavailable")),
+                "error": str(item.get("error", "")),
+            }
+        )
+    return records
+
+
 def sanitize_error_text(error: Exception, secrets: list[str]) -> str:
     text = str(error)
     for secret in secrets:
@@ -219,6 +279,43 @@ def annotate_credential_metadata(
         "prior_attempts": attempts,
     }
     return result
+
+
+def merge_fmp_partial_snapshots(primary: dict[str, Any], secondary: dict[str, Any]) -> dict[str, Any]:
+    result = dict(primary)
+    secondary_errors = {
+        str(error.get("endpoint", "")): error
+        for error in secondary.get("endpoint_errors", []) or []
+        if isinstance(error, dict)
+    }
+    remaining_errors: list[dict[str, str]] = []
+    for error in primary.get("endpoint_errors", []) or []:
+        if not isinstance(error, dict):
+            continue
+        endpoint = str(error.get("endpoint", ""))
+        fallback_value = secondary.get(endpoint)
+        if has_fmp_payload(fallback_value):
+            result[endpoint] = fallback_value
+            continue
+        merged_error = dict(error)
+        fallback_error = secondary_errors.get(endpoint)
+        if fallback_error:
+            merged_error["fallback_error_type"] = str(fallback_error.get("error_type", "provider_unavailable"))
+            merged_error["fallback_error"] = str(fallback_error.get("error", ""))
+        remaining_errors.append(merged_error)
+    if remaining_errors:
+        result["endpoint_errors"] = remaining_errors
+    else:
+        result.pop("endpoint_errors", None)
+    return result
+
+
+def has_fmp_payload(value: Any) -> bool:
+    if isinstance(value, list):
+        return bool(value)
+    if isinstance(value, dict):
+        return bool(value)
+    return value not in {"", None}
 
 
 def is_unavailable_snapshot(snapshot: dict[str, Any]) -> bool:
@@ -305,12 +402,30 @@ def fmp_snapshot_to_packet(
         notes="FMP stable API snapshot: quote, profile, TTM key metrics, TTM ratios, and optionally TTM statements.",
     )
     metrics = extract_fmp_metrics(snapshot)
+    endpoint_errors = [
+        error
+        for error in snapshot.get("endpoint_errors", []) or []
+        if isinstance(error, dict)
+    ]
     claims = [
         Claim(
             claim=f"FMP company market-data and fundamentals snapshot retrieved for {ticker_upper}.",
-            evidence=json.dumps(metrics, sort_keys=True),
+            evidence=json.dumps(
+                {
+                    **metrics,
+                    "endpoint_errors": [
+                        {
+                            "endpoint": error.get("endpoint", ""),
+                            "error_type": error.get("error_type", ""),
+                            "fallback_error_type": error.get("fallback_error_type", ""),
+                        }
+                        for error in endpoint_errors
+                    ],
+                },
+                sort_keys=True,
+            ),
             source_ids=[source_id],
-            confidence="high",
+            confidence="medium" if endpoint_errors else "high",
             impact="medium",
             novelty="new",
         )
@@ -327,6 +442,10 @@ def fmp_snapshot_to_packet(
             )
         )
     unknowns = [f"Missing FMP metric: {key}" for key, value in metrics.items() if value in {"", None}]
+    unknowns.extend(
+        f"FMP endpoint unavailable: {error.get('endpoint', '')} ({error.get('error_type', 'provider_unavailable')})"
+        for error in endpoint_errors
+    )
     return new_packet(
         provider="fmp",
         subject_type="company",

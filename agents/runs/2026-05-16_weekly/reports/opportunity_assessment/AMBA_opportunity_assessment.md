@@ -9,7 +9,7 @@ Thesis freshness: `fresh_recent_evidence`
 
 ## Verdict
 
-AMBA is constructive_but_watch (68/100, medium risk, high confidence) because Strategic ecosystem signal: evidence cites major customers, partners, or suppliers, suggesting customer/partner leverage that may matter beyond the headline financial metrics. Main caveat: X bear/skeptic narrative: Sparse but present: @matt2cents indirectly contrasts AMBA with higher-profile AI names like Cerebras and NVDA in a broader rotation discussion, implying relative underperformance risk. X pulse: The dominant X narrative positions $AMBA as the low-power edge-vision brain inside next-gen humanoid robots and ADAS, not another fading dashcam chip.
+AMBA is constructive_but_watch (68/100, medium risk, high confidence) because Revenue for the fourth quarter of fiscal 2026 was $100.9 million, up 20.1% from $84.0 million in the same period in fiscal 2025. For the fiscal year ended January 31, 2026, revenue was $390.7 million, up 37.2% from $284.9 million for the fiscal year ended January 31, 2025. Main caveat: X bear/skeptic narrative: Automotive design wins still convert on 18-36-month cycles while GAAP EPS remains negative (-$1.88 TTM); @globalstockflsh flags this explicitly. X pulse: X chatter on $AMBA has accelerated sharply since early May 2026, shifting from scattered robotics-basket mentions to focused debate on its edge-AI SoC positioning for physical AI.
 
 ### Why The Score Looks Like This
 
@@ -24,7 +24,7 @@ AMBA is constructive_but_watch (68/100, medium risk, high confidence) because St
 ## Investor Insight Report
 ### Executive Read
 
-AMBA: Technology / Semiconductor Equipment & Materials: quarterly revenue $100.9M, +20.1% YoY GAAP gross margin 58.4% vs 60.0% YoY. The social bull case centers on @MoMoMacro argues watts-per-TOPS is the gating constraint for battery-powered humanoids and that AMBA's edge-inference architecture directly solves it while NVDA cannot. @ScrooogeUncle lists AMBA inside a six-stock "Physical / Edge AI / Robotics" theme he views as still under-owned. Valuation: price $81.16, P/E 74.72x. X/community: The dominant X narrative positions $AMBA as the low-power edge-vision brain inside next-gen humanoid robots and ADAS, not another fading dashcam chip.
+AMBA: Technology / Semiconductor Equipment & Materials: quarterly revenue $100.9M, +20.1% YoY GAAP gross margin 58.4% vs 60.0% YoY. The social bull case centers on Low-power (5 W vs 500 W) edge inference solves the exact humanoid/robotics battery bottleneck that datacenter GPUs cannot; @MoMoMacro sized in on this thesis. Valuation: price $81.16, P/E 74.72x. X/community: X chatter on $AMBA has accelerated sharply since early May 2026, shifting from scattered robotics-basket mentions to focused debate on its edge-AI SoC positioning for physical AI. Under-discussed check: X under-discussed angle: DRAM-less design directly mitigates the current DRAM supply squeeze that inflates costs 2-4x for competitors; this is rarely quantified in generic AI-chip threads.
 
 ### Company / Industry Context
 
@@ -36,48 +36,54 @@ AMBA: Technology / Semiconductor Equipment & Materials: quarterly revenue $100.9
 
 ### Thesis, Trends, And What Changed
 
-- Core thesis: Technology / Semiconductor Equipment & Materials: quarterly revenue $100.9M, +20.1% YoY GAAP gross margin 58.4% vs 60.0% YoY. The social bull case centers on @MoMoMacro argues watts-per-TOPS is the gating constraint for battery-powered humanoids and that AMBA's edge-inference architecture directly solves it while NVDA cannot. @ScrooogeUncle lists AMBA inside a six-stock "Physical / Edge AI / Robotics" theme he views as still under-owned. @TinyToothDDS added the name to an active options basket, treating it as a high-conviction volatility play.
+- Core thesis: Technology / Semiconductor Equipment & Materials: quarterly revenue $100.9M, +20.1% YoY GAAP gross margin 58.4% vs 60.0% YoY. The social bull case centers on Low-power (5 W vs 500 W) edge inference solves the exact humanoid/robotics battery bottleneck that datacenter GPUs cannot; @MoMoMacro sized in on this thesis.
 - What changed recently:
-  - SANTA CLARA, Calif., May 04, 2026(GLOBE NEWSWIRE)-- Ambarella, Inc.(NASDAQ: AMBA), an edge AI semiconductor company, today announced it will hold its first quarter fiscal year 2027 earnings conference call on Thursday, May 28, 2026, at 1:30 p.m. (Pacific Time). The company will issue its earnings release after the market closes that same day.
-  - Ambarella says its installed base exceeds 42M AI SoCs across edge endpoint and infrastructure use cases, including security, vehicle safety, telematics, drones, autonomy, and emerging robotics.
   - SANTA CLARA, Calif., Feb. 26, 2026 (GLOBE NEWSWIRE) -- Ambarella, Inc. (NASDAQ: AMBA), an edge AI semiconductor company, today announced fourth quarter and full year fiscal 2026 financial results for the period ended January 31, 2026.
   - Revenue for the fourth quarter of fiscal 2026 was $100.9 million, up 20.1% from $84.0 million in the same period in fiscal 2025. For the fiscal year ended January 31, 2026, revenue was $390.7 million, up 37.2% from $284.9 million for the fiscal year ended January 31, 2025.
   - Gross margin under U.S. generally accepted accounting principles (GAAP) for the fourth quarter of fiscal 2026 was 58.4%, compared with 60.0% for the same period in fiscal 2025. For the fiscal year ended January 31, 2026, GAAP gross margin was 59.2%, compared with 60.5% for the fiscal year ended January 31, 2025.
+  - SANTA CLARA, Calif., May 04, 2026(GLOBE NEWSWIRE)-- Ambarella, Inc.(NASDAQ: AMBA), an edge AI semiconductor company, today announced it will hold its first quarter fiscal year 2027 earnings conference call on Thursday, May 28, 2026, at 1:30 p.m. (Pacific Time). The company will issue its earnings release after the market closes that same day.
+  - Ambarella says its installed base exceeds 42M AI SoCs across edge endpoint and infrastructure use cases, including security, vehicle safety, telematics, drones, autonomy, and emerging robotics.
   - Revenue is expected to be between $97.0 million and $103.0 million
 - Tailwinds:
   - Revenue for the fourth quarter of fiscal 2026 was $100.9 million, up 20.1% from $84.0 million in the same period in fiscal 2025. For the fiscal year ended January 31, 2026, revenue was $390.7 million, up 37.2% from $284.9 million for the fiscal year ended January 31, 2025.
   - Revenue is expected to be between $97.0 million and $103.0 million
-  - Strategic ecosystem signal: evidence cites major customers, partners, or suppliers, suggesting customer/partner leverage that may matter beyond the headline financial metrics.
-  - @MoMoMacro argues watts-per-TOPS is the gating constraint for battery-powered humanoids and that AMBA's edge-inference architecture directly solves it while NVDA cannot. @ScrooogeUncle lists AMBA inside a six-stock "Physical / Edge AI / Robotics" theme he views as still under-owned.
+  - Low-power (5 W vs 500 W) edge inference solves the exact humanoid/robotics battery bottleneck that datacenter GPUs cannot; @MoMoMacro sized in on this thesis.
+  - CVflow + DRAM-less architecture cuts BOM cost and latency, already qualified across warehouse robots, ADAS, drones, and security-@globalstockflsh rates it 9/10 with $12.9 B SAM projection.
+  - 37 % growth and 60 % gross margins with 80 % edge mix position it for re-acceleration once humanoid volumes scale from ~10 k to 50-100 k units by 2028; @vz921 opened $100 calls citing this.
 - Headwinds / debate points:
-  - X bear/skeptic narrative: Sparse but present: @matt2cents indirectly contrasts AMBA with higher-profile AI names like Cerebras and NVDA in a broader rotation discussion, implying relative underperformance risk. @ScrooogeUncle warns that many edge-AI names have already run hard and could become exit liquidity if the humanoid timeline slips.
+  - X bear/skeptic narrative: Automotive design wins still convert on 18-36-month cycles while GAAP EPS remains negative (-$1.88 TTM); @globalstockflsh flags this explicitly.
+  - X bear/skeptic narrative: ~30 % China exposure plus competition from Qualcomm, Mobileye, and NVIDIA Jetson in premium robotics keeps valuation capped at "consumer camera" multiple (~$3.6 B).
+  - X bear/skeptic narrative: Execution risk on new 5 nm ramp and lack of platform ownership-stock still well below 52-week high despite recent strength.
   - Grok/X scan includes rumor or speculation language; do not treat it as verified fact.
 - Trend evolution:
   - Fundamental trend: Gross margin under U.S. generally accepted accounting principles (GAAP) for the fourth quarter of fiscal 2026 was 58.4%, compared with 60.0% for the same period in fiscal 2025. For the fiscal year ended January 31, 2026, GAAP gross margin was 59.2%, compared with 60.5% for the fiscal year ended January 31, 2025.
-  - Social trend: The dominant X narrative positions $AMBA as the low-power edge-vision brain inside next-gen humanoid robots and ADAS, not another fading dashcam chip.
-  - Strategic ecosystem trend: No new cloud or model-partner announcements in the sampled posts. The leverage remains hidden in reference-design wins with unnamed humanoid platforms; the same CV/N1 silicon already qualified for ADAS gives it a fast-follower path into robotics without new silicon tape-outs.
+  - Social trend: X chatter on $AMBA has accelerated sharply since early May 2026, shifting from scattered robotics-basket mentions to focused debate on its edge-AI SoC positioning for physical AI.
+  - Strategic ecosystem trend: No single cloud or model partner named publicly; leverage instead comes from multi-vertical qualification (security, industrial, auto, drones) that de-risks robotics entry. Supplier angle: independence from high-bandwidth DRAM stacks gives cost and power edge versus Jetson-style solutions.
 
 ### Expert / Community Split From X
 
-- X pulse: The dominant X narrative positions $AMBA as the low-power edge-vision brain inside next-gen humanoid robots and ADAS, not another fading dashcam chip. In the last 14 days the conversation accelerated sharply after @MoMoMacro's May 15 thread framed AMBA's CV/N1 silicon as the only realistic on-body inference solution at 5 W versus NVDA's 500 W cluster GPUs; the post drew 415 views and 4 bookmarks within hours. Retail accounts such as @ScrooogeUncle and @TinyToothDDS are now explicitly tagging AMBA inside "Edge AI / Robotics" baskets alongside $CGNX and $MBLY, while @edge_of_power flagged the June earnings print as the next catalyst.
+- X pulse: X chatter on $AMBA has accelerated sharply since early May 2026, shifting from scattered robotics-basket mentions to focused debate on its edge-AI SoC positioning for physical AI. The narrative pivoted after Brett Adcock's humanoid livestream and multiple accounts highlighting low-power vision chips; volume and engagement jumped on posts from @MoMoMacro and @globalstockflsh. What changed: consensus now treats AMBA as the "brain inside the humanoid body" rather than a legacy camera-chip name, with fresh claims of CV7 reference designs and 5 nm ramp.
 - Bullish camp:
-  - @MoMoMacro argues watts-per-TOPS is the gating constraint for battery-powered humanoids and that AMBA's edge-inference architecture directly solves it while NVDA cannot. @ScrooogeUncle lists AMBA inside a six-stock "Physical / Edge AI / Robotics" theme he views as still under-owned.
+  - Low-power (5 W vs 500 W) edge inference solves the exact humanoid/robotics battery bottleneck that datacenter GPUs cannot; @MoMoMacro sized in on this thesis.
+  - CVflow + DRAM-less architecture cuts BOM cost and latency, already qualified across warehouse robots, ADAS, drones, and security-@globalstockflsh rates it 9/10 with $12.9 B SAM projection.
+  - 37 % growth and 60 % gross margins with 80 % edge mix position it for re-acceleration once humanoid volumes scale from ~10 k to 50-100 k units by 2028; @vz921 opened $100 calls citing this.
 - Skeptical camp:
-  - Sparse but present: @matt2cents indirectly contrasts AMBA with higher-profile AI names like Cerebras and NVDA in a broader rotation discussion, implying relative underperformance risk. @ScrooogeUncle warns that many edge-AI names have already run hard and could become exit liquidity if the humanoid timeline slips.
+  - Automotive design wins still convert on 18-36-month cycles while GAAP EPS remains negative (-$1.88 TTM); @globalstockflsh flags this explicitly.
+  - ~30 % China exposure plus competition from Qualcomm, Mobileye, and NVIDIA Jetson in premium robotics keeps valuation capped at "consumer camera" multiple (~$3.6 B).
+  - Execution risk on new 5 nm ramp and lack of platform ownership-stock still well below 52-week high despite recent strength.
 - Strategic partnerships / ecosystem leverage:
-  - No new cloud or model-partner announcements in the sampled posts. The leverage remains hidden in reference-design wins with unnamed humanoid platforms; the same CV/N1 silicon already qualified for ADAS gives it a fast-follower path into robotics without new silicon tape-outs.
-- Accounts/posts worth reviewing: @MoMoMacro, @ScrooogeUncle, @TinyToothDDS, @edge_of_power, @technowizard369, @matt2cents
-- Hype/noise: Discussion is technical and informed on the robotics angle, light on bots, still uncrowded. No obvious spam or paid-promotion signatures in the sampled threads; volume remains modest (hundreds of views per post).
+  - No single cloud or model partner named publicly; leverage instead comes from multi-vertical qualification (security, industrial, auto, drones) that de-risks robotics entry. Supplier angle: independence from high-bandwidth DRAM stacks gives cost and power edge versus Jetson-style solutions.
+- Accounts/posts worth reviewing: @MoMoMacro, @globalstockflsh, @vz921, @Chartradamus, @BullrunBaron
+- Hype/noise: Discussion is predominantly technical and informed among the core handles; low bot activity, minimal meme spam compared with mega-cap AI names. Still lightly crowded-most traffic remains in robotics-basket lists rather than standalone deep dives.
 - Rumors / unverified claims:
-  - The 10 k -> 50-100 k humanoid unit ramp is forward-looking speculation; verify via upcoming earnings commentary or any new OEM design-win footnotes. No unverified M&A or partnership rumors surfaced.
+  - Speculation that CV7 is "already in humanoid reference designs" circulates without named OEM confirmation; verify via future earnings commentary or customer press releases. Projected 2028 humanoid volume (50-100 k) is consensus modeling, not company guidance-cross-check against actual order backlog.
 
 ### Non-obvious / under-discussed insights to verify
 
-- X under-discussed angle: Humanoid volume of even 50 k units in 2028 would represent a 10x step-up from current security/ADAS sockets; the part sits inside the robot, not the training cluster, so gross-margin leverage is higher than a commodity sensor play.
-- Strategic AI ecosystem angle: Evidence-backed ecosystem leverage: evidence cites major customers, partners, or suppliers, suggesting customer/partner leverage that may matter beyond the headline financial metrics.
-- X implication to verify: Robotics design-win momentum: evidence @MoMoMacro thread + reference-design language with confidence Medium; confirm via Earnings call mentions specific humanoid OEM; invalidate if No new design-win commentary.
-- X implication to verify: Valuation re-rating catalyst: evidence Compressed multiple cited by @technowizard369 with confidence Low-Medium; confirm via June print beats + robotics pipeline language; invalidate if Miss + auto guidance cut.
-- X implication to verify: Basket rotation into edge AI: evidence @ScrooogeUncle & @TinyToothDDS holdings with confidence Medium; confirm via Rising mentions in robotics threads; invalidate if Continued underperformance vs $NVDA/$SMCI.
+- X under-discussed angle: DRAM-less design directly mitigates the current DRAM supply squeeze that inflates costs 2-4x for competitors; this is rarely quantified in generic AI-chip threads. Second-order read-through: every warehouse-robot or drone deployment using AMBA silicon creates a reference design moat for future humanoid wins.
+- X implication to verify: Edge-AI revenue mix: evidence 80 % cited across threads with confidence High; confirm via Q1 print shows continued 30 %+ growth; invalidate if Edge mix drops below 70 %.
+- X implication to verify: Humanoid design-win momentum: evidence Reference-design language with confidence Medium; confirm via Named OEM disclosure; invalidate if No robotics revenue call-out.
+- X implication to verify: Valuation re-rating: evidence Still priced as camera chip with confidence Medium; confirm via Break above $94 with volume; invalidate if Sustained China/auto drag.
 
 ### Valuation And Analyst Snapshot
 
@@ -103,9 +109,9 @@ AMBA: Technology / Semiconductor Equipment & Materials: quarterly revenue $100.9
 | Dimension | Current read | Evidence | Follow-up |
 | --- | --- | --- | --- |
 | Growth / demand | Revenue for the fourth quarter of fiscal 2026 was $100.9 million, up 20.1% from $84.0 million in the same period in fiscal 2025. For the fiscal year ended January 31, 2026, revenue was $390.7 million, up 37.2% from $284.9 million for the fiscal year ended January 31, 2025. | Exa news + earnings/call excerpts | Check whether growth is broad-based or mostly one segment. |
-| Community / X sentiment | The dominant X narrative positions $AMBA as the low-power edge-vision brain inside next-gen humanoid robots and ADAS, not another fading dashcam chip. In the last 14 days the conversation accelerated sharply after @MoMoMacro's May 15 thread framed AMBA's CV/N1 silicon as the only realistic on-body inference solution at 5 W versus NVDA's 500 W cluster GPUs; the post drew 415 views and 4 bookmarks within hours. | Grok/X social signal | Separate informed accounts from price-action chatter and spam. |
+| Community / X sentiment | X chatter on $AMBA has accelerated sharply since early May 2026, shifting from scattered robotics-basket mentions to focused debate on its edge-AI SoC positioning for physical AI. The narrative pivoted after Brett Adcock's humanoid livestream and multiple accounts highlighting low-power vision chips; volume and engagement jumped on posts from @MoMoMacro and @globalstockflsh. | Grok/X social signal | Separate informed accounts from price-action chatter and spam. |
 | Valuation | price $81.16, P/E 74.72x | Financial providers / Alpha Vantage / FMP | Compare multiples and analyst target with growth durability. |
-| Non-obvious angle | X under-discussed angle: Humanoid volume of even 50 k units in 2028 would represent a 10x step-up from current security/ADAS sockets; the part sits inside the robot, not the training cluster, so gross-margin leverage is higher than a commodity sensor play. | Cross-read of Exa, Grok/X, and financials | Verify with primary source or higher-quality source before thesis update. |
+| Non-obvious angle | X under-discussed angle: DRAM-less design directly mitigates the current DRAM supply squeeze that inflates costs 2-4x for competitors; this is rarely quantified in generic AI-chip threads. Second-order read-through: every warehouse-robot or drone deployment using AMBA silicon creates a reference design moat for future humanoid wins. | Cross-read of Exa, Grok/X, and financials | Verify with primary source or higher-quality source before thesis update. |
 | Primary-source coverage | Filings lane: available; news sources: 8. | SEC/Exa packets | Use filings for claims that affect valuation or risk. |
 
 ### Next research questions
@@ -115,10 +121,10 @@ AMBA: Technology / Semiconductor Equipment & Materials: quarterly revenue $100.9
 
 ## Actionable Follow-ups
 
-- Robotics design-win momentum: evidence @MoMoMacro thread + reference-design language with confidence Medium; confirm via Earnings call mentions specific humanoid OEM; invalidate if No new design-win commentary.
-- Valuation re-rating catalyst: evidence Compressed multiple cited by @technowizard369 with confidence Low-Medium; confirm via June print beats + robotics pipeline language; invalidate if Miss + auto guidance cut.
-- Basket rotation into edge AI: evidence @ScrooogeUncle & @TinyToothDDS holdings with confidence Medium; confirm via Rising mentions in robotics threads; invalidate if Continued underperformance vs $NVDA/$SMCI.
-- Verify X rumor/speculation: The 10 k -> 50-100 k humanoid unit ramp is forward-looking speculation; verify via upcoming earnings commentary or any new OEM design-win footnotes. No unverified M&A or partnership rumors surfaced.
+- Edge-AI revenue mix: evidence 80 % cited across threads with confidence High; confirm via Q1 print shows continued 30 %+ growth; invalidate if Edge mix drops below 70 %.
+- Humanoid design-win momentum: evidence Reference-design language with confidence Medium; confirm via Named OEM disclosure; invalidate if No robotics revenue call-out.
+- Valuation re-rating: evidence Still priced as camera chip with confidence Medium; confirm via Break above $94 with volume; invalidate if Sustained China/auto drag.
+- Verify X rumor/speculation: Speculation that CV7 is "already in humanoid reference designs" circulates without named OEM confirmation; verify via future earnings commentary or customer press releases. Projected 2028 humanoid volume (50-100 k) is consensus modeling, not company guidance-cross-check against actual order backlog.
 
 ## Filing And Data Coverage
 
@@ -135,17 +141,17 @@ AMBA: Technology / Semiconductor Equipment & Materials: quarterly revenue $100.9
 
 ## Sources
 
-- alpha_vantage_rate_limit_unavailable: [Alpha Vantage unavailable for AMBA because of rate limit](https://www.alphavantage.co/documentation/)
+- alpha_vantage_rate_limit_unavailable: [Alpha Vantage unavailable for AMBA](https://www.alphavantage.co/documentation/)
 - amba_company_news_input_packet: [Exa news packet for AMBA](C:/Users/valen/Documents/Code/stocks/agents/runs/2026-05-16_weekly/evidence_packets/2026-05-16_exa_company_amba_exa_news_company_amba.json)
 - amba_company_news_specialist_report: [Company news specialist review for AMBA](C:/Users/valen/Documents/Code/stocks/agents/runs/2026-05-16_weekly/reports/company_news_specialist/AMBA_company_news_review.md)
-- exa_result_1_bddb7cbed5: [Ambarella Announces First Quarter Fiscal Year 2027 Earnings Conference Call to be Held May 28, 2026](https://finance.yahoo.com/markets/stocks/articles/ambarella-announces-first-quarter-fiscal-090000383.html)
-- exa_result_1_a4cb9ef2e8: [Ambarella Announces First Quarter Fiscal Year 2027 Earnings Conference Call to be Held May 28, 2026](https://finance.yahoo.com/markets/stocks/articles/ambarella-announces-first-quarter-fiscal-090000383.html)
-- exa_result_2_a4cb9ef2e8: [Ambarella, Inc. Announces Fourth Quarter and Fiscal Year 2026 Financial Results | Ambarella Inc.](https://investor.ambarella.com/news-releases/news-release-details/ambarella-inc-announces-fourth-quarter-and-fiscal-year-2026)
+- exa_result_1_bddb7cbed5: [Ambarella, Inc. Announces Fourth Quarter and Fiscal Year 2026 Financial Results | Ambarella Inc.](https://investor.ambarella.com/news-releases/news-release-details/ambarella-inc-announces-fourth-quarter-and-fiscal-year-2026)
+- exa_result_1_a4cb9ef2e8: [Ambarella, Inc. Announces Fourth Quarter and Fiscal Year 2026 Financial Results | Ambarella Inc.](https://investor.ambarella.com/news-releases/news-release-details/ambarella-inc-announces-fourth-quarter-and-fiscal-year-2026)
+- exa_result_2_a4cb9ef2e8: [Ambarella Announces First Quarter Fiscal Year 2027 Earnings Conference Call to be Held May 28, 2026](https://finance.yahoo.com/markets/stocks/articles/ambarella-announces-first-quarter-fiscal-090000383.html)
 - exa_result_3_a4cb9ef2e8: [investor.ambarella.com](https://investor.ambarella.com/node/16926/pdf)
 - exa_result_1_a9da6b2a1b: [Ambarella Inc](https://ambarella.com/)
 - exa_result_2_a9da6b2a1b: [VisLab (an Ambarella Inc. company)](https://vislab.it/)
 - exa_result_3_a9da6b2a1b: [Leopard Imaging Inc.](https://leopardimaging.com/)
-- exa_result_2_bddb7cbed5: [Ambarella, Inc. Announces Fourth Quarter and Fiscal Year 2026 Financial Results | Ambarella Inc.](https://investor.ambarella.com/news-releases/news-release-details/ambarella-inc-announces-fourth-quarter-and-fiscal-year-2026)
+- exa_result_2_bddb7cbed5: [Ambarella Announces First Quarter Fiscal Year 2027 Earnings Conference Call to be Held May 28, 2026](https://finance.yahoo.com/markets/stocks/articles/ambarella-announces-first-quarter-fiscal-090000383.html)
 - exa_result_3_bddb7cbed5: [investor.ambarella.com](https://investor.ambarella.com/node/16926/pdf)
 - run: `agents/runs/2026-05-16_weekly`
 
@@ -155,4 +161,4 @@ AMBA: Technology / Semiconductor Equipment & Materials: quarterly revenue $100.9
 
 ## Recommended Next Action
 
-- Next research decision: test whether the social bull case is fundamental or mostly momentum. Verify the bull claim (@MoMoMacro argues watts-per-TOPS is the gating constraint for battery-powered humanoids and that AMBA's edge-inference architecture directly solves it while NVDA cannot. @ScrooogeUncle lists AMBA inside a six-stock "Physical / Edge AI / Robotics" theme he views as still under-owned.) against filings/earnings and compare it with the main pushback (Sparse but present: @matt2cents indirectly contrasts AMBA with higher-profile AI names like Cerebras and NVDA in a broader rotation discussion, implying relative underperformance risk. @ScrooogeUncle warns that many edge-AI names have already run hard and could become exit liquidity if the humanoid timeline slips.).
+- Next research decision: test whether the social bull case is fundamental or mostly momentum. Verify the bull claim (Low-power (5 W vs 500 W) edge inference solves the exact humanoid/robotics battery bottleneck that datacenter GPUs cannot; @MoMoMacro sized in on this thesis.) against filings/earnings and compare it with the main pushback (Automotive design wins still convert on 18-36-month cycles while GAAP EPS remains negative (-$1.88 TTM); @globalstockflsh flags this explicitly.).

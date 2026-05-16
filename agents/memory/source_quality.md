@@ -69,7 +69,7 @@ Operational memory about provider reliability, source behavior, and known gotcha
 - status: active
 - confidence: high
 - trigger/source: First real Codex-supervised weekly run over 10 holdings hit FMP HTTP 402 `Premium Query Parameter` responses.
-- lesson: FMP tier/subscription, rate-limit, or credential-style failures should first retry the optional `FMP_API_KEY2` fallback when configured, then be represented as explicit unavailable evidence packets if both keys fail. Financial review should treat these as coverage gaps and continue with other providers.
+- lesson: FMP tier/subscription, rate-limit, or credential-style failures should first retry the optional `FMP_API_KEY2` fallback when configured, then be represented as explicit unavailable evidence packets if both keys fail. If only some endpoints fail, preserve usable endpoint data such as `profile` and record endpoint-level unknowns instead of discarding the whole FMP packet. Financial review should treat these as coverage gaps and continue with other providers.
 - use_when: FMP provider tasks, scheduled weekly runs, financial compare, and provider-quality reporting.
 - do_not_use_when: Suppressing real malformed responses, authentication failures, or schema regressions that need debugging.
 - evidence: `stock_research/providers/fmp.py`, `tests/test_fmp_provider.py`, `docs/descriptions/fmp_provider.md`, `agents/runs/2026-05-16_weekly/quality_report.md`

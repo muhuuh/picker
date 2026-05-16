@@ -9,7 +9,7 @@ Reason: Core metrics are available and no material provider conflicts were found
 | --- | --- | --- | --- |
 | company_name | Ambarella, Inc. Ordinary Shares | medium | polygon |
 | latest_price | 81.16 | high | polygon, yfinance |
-| market_cap | 3.549e+09 | high | polygon, yfinance |
+| market_cap | 3.554e+09 | high | polygon, yfinance |
 | pe_ratio | 74.72 | medium | yfinance |
 | currency | usd | high | polygon, yfinance |
 | exchange | XNAS | high | polygon, yfinance |
@@ -27,4 +27,5 @@ Reason: Core metrics are available and no material provider conflicts were found
 - conflicts: 0
 - material_conflicts: 0
 - taxonomy_conflicts: 0
+- metadata_conflicts: 0
 - recommended_company_file_action: Update the company file financial snapshot from the review packet.

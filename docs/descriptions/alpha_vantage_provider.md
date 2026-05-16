@@ -55,3 +55,4 @@ Implementation note: the provider spaces Alpha Vantage requests and retries once
 - 2026-05-04: AAPL live smoke test passed after adding request spacing/retry.
 - Evidence packet: `agents/runs/2026-05-09_weekly/evidence_packets/2026-05-04_alpha_vantage_company_aapl.json`.
 - Raw artifact: `agents/runs/2026-05-09_weekly/raw/alpha_vantage/AAPL_snapshot.json`.
+- 2026-05-16: Official docs were rechecked for `GLOBAL_QUOTE` and `OVERVIEW`. The configured primary and secondary keys are present and the request shape is correct, but both returned Alpha Vantage standard daily/rate-limit messages during the smoke test. This should be treated as provider quota/coverage, not a malformed request.

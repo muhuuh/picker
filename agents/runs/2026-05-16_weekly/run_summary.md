@@ -10,8 +10,8 @@ Generated: 2026-05-16
 - financial_reviews: 10
 - company_news_reviews: 10
 - recommended_updates: 30
-- risks: 38
-- contradictions: 16
+- risks: 31
+- contradictions: 0
 - unknowns: 266
 
 ## Tracked Tickers
@@ -39,15 +39,15 @@ Generated: 2026-05-16
 | Ticker | Status | Report |
 | --- | --- | --- |
 | AMBA | ready_for_company_update | `` |
-| AVAV | needs_human_review | `` |
-| AXTI | needs_human_review | `` |
-| GOOGL | needs_human_review | `` |
-| IREN | needs_human_review | `` |
+| AVAV | ready_for_company_update | `` |
+| AXTI | ready_for_company_update | `` |
+| GOOGL | ready_for_company_update | `` |
+| IREN | ready_for_company_update | `` |
 | KRKNF | partial_review | `` |
-| MU | needs_human_review | `` |
+| MU | ready_for_company_update | `` |
 | NBIS | ready_for_company_update | `` |
-| OSS | needs_human_review | `` |
-| TE | needs_human_review | `` |
+| OSS | ready_for_company_update | `` |
+| TE | ready_for_company_update | `` |
 
 ## Company News Reviews
 
@@ -66,4 +66,4 @@ Generated: 2026-05-16
 
 ## Open Items
 
-- At least one financial review needs human review.
+- No deterministic open items found.

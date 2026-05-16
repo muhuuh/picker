@@ -13,6 +13,8 @@ from .repo import find_repo_root
 
 CORE_METRICS = ("company_name", "latest_price", "market_cap", "pe_ratio", "currency", "exchange", "sector", "industry")
 TAXONOMY_METRICS = {"sector", "industry"}
+METADATA_WATCH_METRICS = {"company_name", "exchange"}
+NON_MATERIAL_CONFLICT_METRICS = TAXONOMY_METRICS | METADATA_WATCH_METRICS
 HEADLINE_METRICS = (
     "company_name",
     "latest_price",
@@ -115,12 +117,14 @@ def build_financial_review(
 ) -> dict[str, Any]:
     conflicts = build_conflict_details(consensus)
     material_conflicts = [conflict for conflict in conflicts if conflict["material"]]
-    taxonomy_conflicts = [conflict for conflict in conflicts if not conflict["material"]]
+    taxonomy_conflicts = [conflict for conflict in conflicts if conflict["metric"] in TAXONOMY_METRICS]
+    metadata_conflicts = [conflict for conflict in conflicts if conflict["metric"] in METADATA_WATCH_METRICS]
+    non_material_conflicts = [conflict for conflict in conflicts if not conflict["material"]]
     missing_core = [metric for metric in CORE_METRICS if metric not in consensus]
     low_confidence_core = [
         metric
         for metric in CORE_METRICS
-        if metric in consensus and metric not in TAXONOMY_METRICS and consensus[metric].get("confidence") in {"low", "unknown"}
+        if metric in consensus and metric not in NON_MATERIAL_CONFLICT_METRICS and consensus[metric].get("confidence") in {"low", "unknown"}
     ]
     single_provider_metrics = [
         metric
@@ -138,9 +142,9 @@ def build_financial_review(
     if material_conflicts or low_confidence_core:
         status = "needs_human_review"
         status_reason = "Material conflicts or low-confidence core metrics need review before file updates."
-    elif missing_core or taxonomy_conflicts:
+    elif missing_core or non_material_conflicts:
         status = "partial_review"
-        status_reason = "No material numeric conflicts found, but some core metrics are missing or taxonomy labels differ by provider."
+        status_reason = "No material numeric conflicts found, but some core metrics are missing or non-thesis metadata/taxonomy labels differ by provider."
     else:
         status = "ready_for_company_update"
         status_reason = "Core metrics are available and no material provider conflicts were found."
@@ -159,6 +163,8 @@ def build_financial_review(
         "low_confidence_core_metrics": low_confidence_core,
         "material_conflicts": material_conflicts,
         "taxonomy_conflicts": taxonomy_conflicts,
+        "metadata_conflicts": metadata_conflicts,
+        "non_material_conflicts": non_material_conflicts,
         "unknowns": compare_packet.unknowns,
         "conflicts": conflicts,
         "needs_human_review": status == "needs_human_review",
@@ -184,7 +190,7 @@ def build_conflict_details(consensus: dict[str, dict[str, Any]]) -> list[dict[st
                 "metric": metric,
                 "values": result.get("values", {}),
                 "reason": result.get("reason", "Provider values disagree."),
-                "material": metric not in TAXONOMY_METRICS,
+                "material": metric not in NON_MATERIAL_CONFLICT_METRICS,
             }
         )
     return conflicts
@@ -236,6 +242,8 @@ def review_to_packet(
         "single_provider_metrics": review["single_provider_metrics"],
         "material_conflicts": review["material_conflicts"],
         "taxonomy_conflicts": review["taxonomy_conflicts"],
+        "metadata_conflicts": review["metadata_conflicts"],
+        "non_material_conflicts": review["non_material_conflicts"],
     }
     claims = [
         Claim(
@@ -295,13 +303,23 @@ def dedupe_strings(values: list[str]) -> list[str]:
 
 def build_review_risks(review: dict[str, Any], source_ids: list[str]) -> list[Risk]:
     risks: list[Risk] = []
-    if review["conflicts"]:
+    if review["material_conflicts"]:
         risks.append(
             Risk(
-                risk="Financial provider conflicts remain after deterministic comparison.",
-                evidence=json.dumps(review["conflicts"], sort_keys=True),
+                risk="Material financial provider conflicts remain after deterministic comparison.",
+                evidence=json.dumps(review["material_conflicts"], sort_keys=True),
                 source_ids=source_ids,
                 severity="medium",
+                time_horizon="current_review",
+            )
+        )
+    if review["non_material_conflicts"]:
+        risks.append(
+            Risk(
+                risk="Provider metadata or taxonomy labels differ; treat this as a file-normalization/watch item, not a thesis blocker.",
+                evidence=json.dumps(review["non_material_conflicts"], sort_keys=True),
+                source_ids=source_ids,
+                severity="low",
                 time_horizon="current_review",
             )
         )
@@ -369,10 +387,11 @@ def format_financial_review_markdown(root: Path, review: dict[str, Any]) -> str:
     lines.append(f"- conflicts: {len(review['conflicts'])}")
     lines.append(f"- material_conflicts: {len(review['material_conflicts'])}")
     lines.append(f"- taxonomy_conflicts: {len(review['taxonomy_conflicts'])}")
+    lines.append(f"- metadata_conflicts: {len(review['metadata_conflicts'])}")
     if review["conflicts"]:
         lines.extend(["", "## Provider Conflicts", ""])
         for conflict in review["conflicts"]:
-            materiality = "material" if conflict.get("material") else "taxonomy/watch"
+            materiality = "material" if conflict.get("material") else "metadata/taxonomy watch"
             lines.append(f"- {conflict.get('metric')}: {materiality}; {conflict.get('reason')}")
             lines.append(f"  - values: {json.dumps(conflict.get('values', {}), sort_keys=True)}")
     lines.append(f"- recommended_company_file_action: {review['recommended_company_file_action']}")

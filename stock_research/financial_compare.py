@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 from dataclasses import dataclass
 from datetime import date
 from pathlib import Path
@@ -46,6 +47,7 @@ PREFERRED_PROVIDERS = {
     "industry": ["fmp", "alpha_vantage", "yfinance"],
     "country": ["fmp", "alpha_vantage", "polygon"],
 }
+NON_MATERIAL_TEXT_CONFLICT_METRICS = {"company_name", "exchange", "sector", "industry"}
 PROVIDER_METRIC_MAP = {
     "yfinance": {
         "company_name": "company_name",
@@ -336,16 +338,52 @@ def relative_difference(minimum: float, maximum: float) -> float:
 def normalize_text_metric(metric: str, value: Any) -> str:
     text = str(value).strip().lower()
     if metric == "company_name":
-        for suffix in (".", ","):
-            text = text.replace(suffix, "")
+        text = normalize_company_name(text)
         return " ".join(text.split())
     if metric == "country" and text in {"us", "usa", "united states", "united states of america"}:
         return "united states"
-    if metric == "exchange" and text in {"xnas", "nasdaq", "nms", "ngm"}:
-        return "nasdaq"
+    if metric == "exchange":
+        return normalize_exchange(text)
     if metric == "currency":
         return text.upper()
     return " ".join(text.split())
+
+
+def normalize_company_name(text: str) -> str:
+    cleaned = text.replace("&", " and ")
+    for phrase in (
+        "class a common stock",
+        "class b common stock",
+        "class c common stock",
+        "common stock",
+        "ordinary shares",
+        "american depositary shares",
+        "american depository shares",
+        "american depositary receipt",
+        "american depository receipt",
+    ):
+        cleaned = cleaned.replace(phrase, " ")
+    cleaned = re.sub(r"\b(class|ordinary|shares?|ads|adr)\b", " ", cleaned)
+    cleaned = re.sub(r"[.,()]", " ", cleaned)
+    return " ".join(cleaned.split())
+
+
+def normalize_exchange(text: str) -> str:
+    cleaned = re.sub(r"[^a-z0-9]+", " ", text.lower()).strip()
+    compact = cleaned.replace(" ", "")
+    if compact in {"xnas", "nasdaq", "nms", "ngm", "ncm", "nasdaqgs", "nasdaqgm", "nasdaqcm"}:
+        return "nasdaq"
+    if cleaned in {"nasdaq capital market", "nasdaq global market", "nasdaq global select market"}:
+        return "nasdaq"
+    if compact in {"xnys", "nyse", "nyq"} or cleaned == "new york stock exchange":
+        return "nyse"
+    if compact in {"otcqb", "oqb"}:
+        return "otcqb"
+    if compact in {"otcqx", "oqx"}:
+        return "otcqx"
+    if compact in {"otc", "pinx", "pink"}:
+        return "otc"
+    return " ".join(cleaned.split())
 
 
 def comparison_to_packet(
@@ -369,12 +407,13 @@ def comparison_to_packet(
         if result["status"] != "non_numeric"
     }
     conflicts = comparison["conflicts"]
+    material_conflicts = [conflict for conflict in conflicts if is_material_financial_conflict(str(conflict.get("metric", "")))]
     claims = [
         Claim(
             claim=f"Financial data comparison completed for {ticker}.",
             evidence=json.dumps(consensus_summary, sort_keys=True),
             source_ids=source_ids,
-            confidence="high" if not conflicts else "medium",
+            confidence="high" if not material_conflicts else "medium",
             impact="medium",
             novelty="new",
         )
@@ -386,14 +425,14 @@ def comparison_to_packet(
             source_ids=source_ids_for_conflict(conflict, sources),
             suggested_action="Preserve the provider disagreement and avoid updating this metric without review.",
         )
-        for conflict in conflicts
+        for conflict in material_conflicts
     ]
     recommended_updates = [
         RecommendedUpdate(
             target_file="stock_tracking/stock_info_files/",
             update_type="company_file",
             summary=f"Update {ticker} financial snapshot with consensus metrics from financial_compare packet.",
-            needs_human_review=bool(conflicts),
+            needs_human_review=bool(material_conflicts),
             source_ids=source_ids,
         )
     ]
@@ -417,6 +456,10 @@ def source_ids_for_conflict(conflict: dict[str, Any], sources: list[Source]) -> 
     providers = set(conflict.get("values", {}).keys())
     ids = [source.source_id for source in sources if source.publisher in providers]
     return ids or [source.source_id for source in sources]
+
+
+def is_material_financial_conflict(metric: str) -> bool:
+    return metric not in NON_MATERIAL_TEXT_CONFLICT_METRICS
 
 
 def source_id_for_provider(provider: str) -> str:

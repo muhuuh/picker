@@ -288,3 +288,17 @@ After a weekly or manual run:
 - evidence: stock_research/artifact_hygiene.py, stock_research/run_finalization.py, stock_research/run_end_review.py, stock_research/category_state_updater.py, stock_research/report_quality.py, tests/test_artifact_hygiene.py, tests/test_category_state_updater.py, tests/test_run_end_review.py, tests/test_report_quality_golden.py
 - owner: orchestration quality
 - next_review: 2026-06-16
+
+- id: eval-2026-05-16-codex-run-status-stabilization
+- date: 2026-05-16
+- type: evaluation
+- scope: orchestrator
+- status: active
+- confidence: high
+- trigger/source: Follow-up review of the first real Codex-supervised automation run over 10 holdings.
+- lesson: Open human-review rows are normal asynchronous decisions and should not make the scheduled run or Codex review pack fail when provider execution, analysis execution, deterministic quality, finalization, and digest quality are clean. Metadata-only financial conflicts such as share-class company-name variants and exchange aliases should be partial/watch items, not thesis-blocking `needs_human_review` gates. Reserve `needs_review` for actual execution errors, skipped analysis, quality findings, material financial conflicts, missing coverage, blocked finalization, or SDK/runtime problems.
+- use_when: Reviewing scheduled run status, Codex-supervised automation output, financial-review gates, or user confusion about `needs_review`.
+- do_not_use_when: Suppressing real material numeric financial conflicts, missing provider coverage, or explicit human approval requirements for stock moves/thesis/strategy changes.
+- evidence: stock_research/scheduled_runner.py, stock_research/weekly_digest.py, stock_research/codex_review_pack.py, stock_research/financial_compare.py, stock_research/financial_specialist.py, tests/test_scheduled_runner.py, tests/test_financial_compare.py, tests/test_financial_specialist.py, tests/test_codex_review_pack.py, agents/runs/2026-05-16_weekly/codex_supervised_review.md
+- owner: orchestration quality
+- next_review: 2026-06-16

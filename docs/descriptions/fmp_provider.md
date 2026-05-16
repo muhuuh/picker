@@ -53,6 +53,8 @@ FMP_API_KEY2="..." # optional fallback
 
 The provider tries `FMP_API_KEY` first. If FMP returns a tier/subscription, rate-limit, or credential-style failure, the workflow retries once with `FMP_API_KEY2` when configured. Secret values are never written to run artifacts; raw artifacts record only `primary`/`secondary` labels and sanitized error messages. If both keys fail, the provider still writes an explicit unavailable evidence packet so weekly runs continue with other financial providers.
 
+Endpoint behavior is also partial-success aware. Some smaller or OTC tickers can return usable `profile` data while `quote` or TTM endpoints return FMP 402 plan/ticker-coverage responses. In that case the packet is still written as a medium-confidence FMP snapshot with endpoint-level unknowns instead of discarding the usable profile data. When a fallback key is configured, blocked endpoints are retried against the secondary key before the endpoint-level unknowns are finalized.
+
 ## Workflow Role
 
 FMP should be used in deterministic kickoff for current holdings, monitoring stocks, and human stock-research requests. It should also be callable by future financial-data specialists.
@@ -64,3 +66,4 @@ Use it to cross-check yfinance and to add TTM valuation/fundamental ratios befor
 - 2026-05-04: AAPL live smoke test passed.
 - Evidence packet: `agents/runs/2026-05-09_weekly/evidence_packets/2026-05-04_fmp_company_aapl.json`.
 - Raw artifact: `agents/runs/2026-05-09_weekly/raw/fmp/AAPL_snapshot.json`.
+- 2026-05-16: Official endpoint shape rechecked against FMP stable docs. Both configured keys worked for AAPL/GOOGL. AXTI/KRKNF returned FMP 402 on quote/TTM endpoints but returned profile data, which is now preserved as partial FMP evidence.

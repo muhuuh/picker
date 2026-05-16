@@ -1,6 +1,6 @@
 # Codex-Supervised Review Pack: 2026-05-16_weekly
 
-Status: needs_review
+Status: ready
 Expected Codex output: `agents/runs/2026-05-16_weekly/codex_supervised_review.md`
 
 ## Purpose
@@ -72,7 +72,7 @@ This pack is the deterministic handoff from Python to Codex app automation. The 
 
 ## Quality Findings To Resolve Or Explain
 
-- Human review digest may contain open decisions; Codex must summarize them clearly and not auto-approve them.
+- None detected by the deterministic review-pack builder.
 
 ## API Workflow Benchmark
 

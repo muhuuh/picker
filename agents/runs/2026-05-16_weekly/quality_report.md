@@ -11,7 +11,7 @@ Generated: 2026-05-16
 - high_findings: 0
 - medium_findings: 0
 - recommended_updates: 30
-- human_review_recommended_updates: 14
+- human_review_recommended_updates: 0
 
 ## Findings
 

@@ -1,30 +1,30 @@
 # Opportunity Assessment: IREN
 
 Status: `ready_for_human_review`
-Opportunity view: `weak_or_risky`
-Opportunity score: **44/100**
-Risk level: `high`
-Confidence: `medium`
+Opportunity view: `interesting`
+Opportunity score: **72/100**
+Risk level: `medium`
+Confidence: `high`
 Thesis freshness: `fresh_recent_evidence`
 
 ## Verdict
 
-IREN is weak_or_risky (44/100, high risk, medium confidence) because Strategic ecosystem signal: evidence cites NVIDIA, suggesting customer/partner leverage that may matter beyond the headline financial metrics. Main caveat: Financial review needs human review: Material conflicts or low-confidence core metrics need review before file updates.. X pulse: The X community frames $IREN as a BTC-to-AI infrastructure pivot story that is still early: BTC mining (77% of Q3 revenue per @moneyqubit) quietly funds GPU deployment while the $9.7B Microsoft contract and Mirantis.
+IREN is interesting (72/100, medium risk, high confidence) because Strategic ecosystem signal: evidence cites NVIDIA, suggesting customer/partner leverage that may matter beyond the headline financial metrics. Main caveat: X bear/skeptic narrative: $2.6B new debt load against still-unproven AI revenue ramp creates balance-sheet risk (multiple replies to @peterli34923561). X pulse: X chatter on $IREN has accelerated sharply since the May 7 NVIDIA partnership announcement and the May 11-12 $2.6B 1% convertible offering.
 
 ### Why The Score Looks Like This
 
-- Score: 44/100; view=weak_or_risky; risk=high; confidence=medium.
-- -4 financial review has conflicts or review gates.
+- Score: 72/100; view=interesting; risk=medium; confidence=high.
+- +12 financial review is ready with core metrics available.
 - -8 valuation multiple is high enough to require stronger growth support.
 - +10 recent news/contents review is source-backed.
 - +4 Exa contents produced multiple material claims.
+- +4 Grok/X social signal leans positive.
 - -3 social signal includes rumor/speculation language.
-- +3 SEC filing lane is available for primary-source cross-checks.
 
 ## Investor Insight Report
 ### Executive Read
 
-IREN: Financial Services / Capital Markets: Strategic ecosystem signal: evidence cites NVIDIA, suggesting customer/partner leverage that may matter beyond the headline financial metrics. The social bull case centers on BTC mining is the cash engine that funds AI capex without customer risk until deals close (@moneyqubit). Valuation: price $52.94, P/E 68.75x. X/community: The X community frames $IREN as a BTC-to-AI infrastructure pivot story that is still early: BTC mining (77% of Q3 revenue per @moneyqubit) quietly funds GPU deployment while the $9.7B Microsoft contract and Mirantis acquisition de-risk the software layer. Under-discussed check: X under-discussed angle: Mirantis employees accepting 100% stock signals belief in near-term price accretion, not just long-term story (@fremmseven).
+IREN: Financial Services / Capital Markets: Total revenue decreased to $184.7m (vs. Q1 FY26 $240.3m). The social bull case centers on Landmark $340M 5-year AI cloud contract plus NVIDIA equity option up to $2.1B; target $3.7B AI ARR by late 2026 (@peterli34923561). Valuation: price $52.94, P/E 68.75x. X/community: X chatter on $IREN has accelerated sharply since the May 7 NVIDIA partnership announcement and the May 11-12 $2.6B 1% convertible offering. Under-discussed check: X under-discussed angle: Sweetwater energization and global pipeline >5 GW are being cited as de-risking land/power scarcity, yet few are modeling the actual MW ramp timeline versus competitors waiting on ERCOT/grid queues.
 
 ### Company / Industry Context
 
@@ -36,73 +36,68 @@ IREN: Financial Services / Capital Markets: Strategic ecosystem signal: evidence
 
 ### Thesis, Trends, And What Changed
 
-- Core thesis: Financial Services / Capital Markets: Strategic ecosystem signal: evidence cites NVIDIA, suggesting customer/partner leverage that may matter beyond the headline financial metrics. The social bull case centers on BTC mining is the cash engine that funds AI capex without customer risk until deals close (@moneyqubit).
+- Core thesis: Financial Services / Capital Markets: Total revenue decreased to $184.7m (vs. Q1 FY26 $240.3m). The social bull case centers on Landmark $340M 5-year AI cloud contract plus NVIDIA equity option up to $2.1B; target $3.7B AI ARR by late 2026 (@peterli34923561).
 - What changed recently:
-  - Strategic ecosystem signal: evidence cites NVIDIA, suggesting customer/partner leverage that may matter beyond the headline financial metrics.
-  - Expansion to 1.2GW of AI Cloud Capacity In Build
-  - $3.4bn AI Cloud contract with NVIDIA
-  - year contract for air-cooled Blackwell GPUs
   - $3.6bn GPU Financing Secured for Microsoft Contract1
   - Together with Microsoft prepayment ($1.9bn) covers 95% of GPU-related capex
-- Tailwinds:
-  - X bull narrative: BTC mining is the cash engine that funds AI capex without customer risk until deals close (@moneyqubit).
+  - British Columbia AI Cloud expansion ongoing, with ~$0.4bn ARR now under contract for Prince George and remaining contract negotiations supporting >$0.5bn ARR3
   - Strategic ecosystem signal: evidence cites NVIDIA, suggesting customer/partner leverage that may matter beyond the headline financial metrics.
-  - Vertical-integration blueprint (design-build-operate liquid-cooled sites) compounds faster than outsourced players like Core Scientific (@fremmseven).
-  - Mirantis resolves the "no software" FUD and opens enterprise/Australia-Asia angle (@PlayBookTrades, @fremmseven).
+  - Total revenue decreased to $184.7m (vs. Q1 FY26 $240.3m)
+  - Net income (loss) of $(155.4)m (vs. Q1 FY26 $384.6m)
+- Tailwinds:
+  - Total revenue decreased to $184.7m (vs. Q1 FY26 $240.3m)
+  - X bull narrative: Most efficient Bitcoin miner plus massive AI backlog creates dual-levered upside to both BTC and AI growth (@Redpulse_News).
+  - Strategic ecosystem signal: evidence cites NVIDIA, suggesting customer/partner leverage that may matter beyond the headline financial metrics.
+  - NVIDIA is the clear anchor (May 7 DSX compatibility + potential $2.1B equity). Mentions of Microsoft appear only in passing and unverified. No custom-silicon or major hyperscaler anchor-tenant announcements yet.
+  - Landmark $340M 5-year AI cloud contract plus NVIDIA equity option up to $2.1B; target $3.7B AI ARR by late 2026 (@peterli34923561).
+  - Cheap 1% capital + abundant low-cost renewable power and land resources enable fastest scaling among pivoting miners (@peterli34923561).
 - Headwinds / debate points:
-  - Financial review needs human review: Material conflicts or low-confidence core metrics need review before file updates..
-  - X bear/skeptic narrative: Microsoft concentration (57%+ revenue) creates renegotiation or insourcing risk (@grkportfolio).
-  - X bear/skeptic narrative: Negative FCF (-$1.2B TTM) and upcoming ATM/convertible dilution will pressure the stock (@DebbieDoniger).
-  - X bear/skeptic narrative: No second hyperscaler deal yet despite "advanced negotiations" language; execution window narrowing (@AIBagger).
+  - X bear/skeptic narrative: $2.6B new debt load against still-unproven AI revenue ramp creates balance-sheet risk (multiple replies to @peterli34923561).
+  - X bear/skeptic narrative: Execution gap: "where's the deals?" after months of hype (@AIBagger).
+  - X bear/skeptic narrative: Valuation already prices in aggressive AI targets while BTC mining margins remain volatile.
   - Grok/X scan includes rumor or speculation language; do not treat it as verified fact.
-  - 1 contradiction(s) remain unresolved across evidence.
+  - Together with Microsoft prepayment ($1.9bn) covers 95% of GPU-related capex
 - Trend evolution:
   - Ecosystem trend: Strategic ecosystem signal: evidence cites NVIDIA, suggesting customer/partner leverage that may matter beyond the headline financial metrics.
-  - Social trend: The X community frames $IREN as a BTC-to-AI infrastructure pivot story that is still early: BTC mining (77% of Q3 revenue per @moneyqubit) quietly funds GPU deployment while the $9.7B Microsoft contract and Mirantis acquisition de-risk the software layer.
-  - Strategic ecosystem trend: Microsoft: $9.7B anchor, prepayments covering ~95% GPU capex, multi-year term.
-  - Strategic ecosystem trend: NVIDIA: five-year option for up to 30M shares at $70 (now ~14% OTM).
+  - Social trend: X chatter on $IREN has accelerated sharply since the May 7 NVIDIA partnership announcement and the May 11-12 $2.6B 1% convertible offering. The dominant narrative is "former Bitcoin miner now executing an AI cloud pivot with cheap capital and land/power advantages," with @peterli34923561 and @planA_thru_Z framing it as a multi-year hold that.
+  - Strategic ecosystem trend: NVIDIA is the clear anchor (May 7 DSX compatibility + potential $2.1B equity). Mentions of Microsoft appear only in passing and unverified. No custom-silicon or major hyperscaler anchor-tenant announcements yet.
 
 ### Expert / Community Split From X
 
-- X pulse: The X community frames $IREN as a BTC-to-AI infrastructure pivot story that is still early: BTC mining (77% of Q3 revenue per @moneyqubit) quietly funds GPU deployment while the $9.7B Microsoft contract and Mirantis acquisition de-risk the software layer. In the last 14 days the narrative accelerated around the May 5-6 Mirantis announcement and Sweetwater 1.4 GW energization, with @fremmseven and @PlayBookTrades noting the timing suggests earnings (May 7) could deliver a new deal or extension rather than just execution updates.
+- X pulse: X chatter on $IREN has accelerated sharply since the May 7 NVIDIA partnership announcement and the May 11-12 $2.6B 1% convertible offering. The dominant narrative is "former Bitcoin miner now executing an AI cloud pivot with cheap capital and land/power advantages," with @peterli34923561 and @planA_thru_Z framing it as a multi-year hold that finally broke out after two years of base-building. Momentum accounts like @StockOptionCole are lumping it with $APLD/$NBIS/$CRWV as the next leg in the power+compute rotation. Skeptics surfaced immediately, with @AIBagger questioning deal flow and execution visibility.
 - Bullish camp:
-  - BTC mining is the cash engine that funds AI capex without customer risk until deals close (@moneyqubit).
-  - Vertical-integration blueprint (design-build-operate liquid-cooled sites) compounds faster than outsourced players like Core Scientific (@fremmseven).
-  - Mirantis resolves the "no software" FUD and opens enterprise/Australia-Asia angle (@PlayBookTrades, @fremmseven).
-  - 4.5 GW+ power moat is the scarce input; only ~16% of capacity priced into $3.4B ARR guidance (@PeloSwing).
-  - Management track record: every 2023-2026 milestone hit exactly (@BlackPantherCap).
+  - Landmark $340M 5-year AI cloud contract plus NVIDIA equity option up to $2.1B; target $3.7B AI ARR by late 2026 (@peterli34923561).
+  - Most efficient Bitcoin miner plus massive AI backlog creates dual-levered upside to both BTC and AI growth (@Redpulse_News).
+  - Cheap 1% capital + abundant low-cost renewable power and land resources enable fastest scaling among pivoting miners (@peterli34923561).
+  - Stock still only 7 months into post-parabolic chop; patient longs expect next leg higher once execution lands (@planA_thru_Z).
 - Skeptical camp:
-  - Microsoft concentration (57%+ revenue) creates renegotiation or insourcing risk (@grkportfolio).
-  - Negative FCF (-$1.2B TTM) and upcoming ATM/convertible dilution will pressure the stock (@DebbieDoniger).
-  - No second hyperscaler deal yet despite "advanced negotiations" language; execution window narrowing (@AIBagger).
-  - High short interest (18%) and insider selling signal caution despite execution.
-  - Valuation still cheap only if AI capex stays insatiable; any pullback drops it to $25 zone.
+  - $2.6B new debt load against still-unproven AI revenue ramp creates balance-sheet risk (multiple replies to @peterli34923561).
+  - Execution gap: "where's the deals?" after months of hype (@AIBagger).
+  - Valuation already prices in aggressive AI targets while BTC mining margins remain volatile.
+  - Stock pulled back immediately after NVIDIA news, showing investors are weighing debt more than the headline partnership (@stakeandpaper).
 - Strategic partnerships / ecosystem leverage:
-  - Microsoft: $9.7B anchor, prepayments covering ~95% GPU capex, multi-year term.
-  - NVIDIA: five-year option for up to 30M shares at $70 (now ~14% OTM).
-  - Mirantis: software layer for NVIDIA AI Cloud Ready stacks, enables enterprise SLAs.
-  - No disclosed supplier dependencies beyond standard GPU/transformer lead times; hidden optionality sits in the remaining ~3.5 GW uncontracted power that can be monetized via spot AI Cloud or new customers once Sweetwater blueprint is proven.
-- Accounts/posts worth reviewing: @moneyqubit, @fremmseven, @PlayBookTrades, @planA_thru_Z, @PeloSwing, @BlackPantherCap
-- Hype/noise: Discussion is mostly informed and technical among core accounts, with promotional noise rising in replies (bot-like "follow for signals" spam). Not yet crowded-volume spikes are event-driven rather than meme-driven-and the technical layer (GW phasing, margin math, software FUD) dominates over pure hype.
+  - NVIDIA is the clear anchor (May 7 DSX compatibility + potential $2.1B equity). Mentions of Microsoft appear only in passing and unverified. No custom-silicon or major hyperscaler anchor-tenant announcements yet.
+- Accounts/posts worth reviewing: @peterli34923561, @planA_thru_Z, @StockOptionCole, @AIBagger, @Redpulse_News, @stakeandpaper
+- Hype/noise: Mix of informed long-term holders and momentum accounts; low bot activity visible. Technical discussion is light-mostly headline reaction rather than deep modeling of MW ramp or ARR bridge. Not yet crowded; still room for signal from accounts that track actual energization dates.
 - Rumors / unverified claims:
-  - "Second Microsoft extension or new hyperscaler deal at earnings" - speculation based on conservative cadence and announcement timing; verify via 8-K or earnings transcript.
-  - "Australia enterprise strategy announcement imminent" - inferred from ad spend; confirm with company filings or press releases.
-  - "Nebius valuation disconnect will force IREN rerate" - comparative narrative, check forward sales multiples on verified financials.
+  - "$3.7B AI cloud ARR by late 2026" and "global pipeline exceeding 5 GW" are targets, not contracts-verify against next earnings or 8-K.
+  - Zero-debt narrative is already outdated post-convertible; check latest balance sheet.
+  - Microsoft partnership floated without source-treat as speculation until primary confirmation.
 
 ### Non-obvious / under-discussed insights to verify
 
-- X under-discussed angle: Mirantis employees accepting 100% stock signals belief in near-term price accretion, not just long-term story (@fremmseven).
-- X under-discussed angle: Australia ad spend + roots could flip "foreign company" FUD into Asia-Pacific access moat, mirroring Nebius Europe angle.
-- X under-discussed angle: Closed-loop quality feedback from owning every nut-and-bolt of data-center construction creates a proprietary blueprint that competitors leasing construction cannot replicate.
-- X under-discussed angle: Sweetwater 2 GW phased installs (50 MW already live) de-risk the next 12 months more than headline GW numbers suggest.
+- X under-discussed angle: Sweetwater energization and global pipeline >5 GW are being cited as de-risking land/power scarcity, yet few are modeling the actual MW ramp timeline versus competitors waiting on ERCOT/grid queues.
+- X under-discussed angle: NVIDIA equity optionality is asymmetric: if exercised it becomes a major shareholder; if not, IREN still keeps the $340M contract-rare structure not widely stress-tested in discussion.
+- X under-discussed angle: Zero-debt claim circulating (@rashymagoo) directly contradicts the new convertible; this mismatch is a fast way to separate informed from echo-chamber accounts.
 - Strategic AI ecosystem angle: Evidence-backed ecosystem leverage: evidence cites NVIDIA, suggesting customer/partner leverage that may matter beyond the headline financial metrics.
-- Strategic ecosystem signal: evidence cites NVIDIA, suggesting customer/partner leverage that may matter beyond the headline financial metrics.
+- Strategic AI ecosystem angle: NVIDIA is the clear anchor (May 7 DSX compatibility + potential $2.1B equity). Mentions of Microsoft appear only in passing and unverified. No custom-silicon or major hyperscaler anchor-tenant announcements yet.
 - Together with Microsoft prepayment ($1.9bn) covers 95% of GPU-related capex
+- Strategic ecosystem signal: evidence cites NVIDIA, suggesting customer/partner leverage that may matter beyond the headline financial metrics.
 
 ### Valuation And Analyst Snapshot
 
 - Latest price: $52.94
-- Market cap: $20.87B
+- Market cap: $18.92B
 - P/E: 68.75x
 - Forward P/E: unknown
 - PEG: unknown
@@ -122,26 +117,24 @@ IREN: Financial Services / Capital Markets: Strategic ecosystem signal: evidence
 
 | Dimension | Current read | Evidence | Follow-up |
 | --- | --- | --- | --- |
-| Growth / demand | X bull narrative: BTC mining is the cash engine that funds AI capex without customer risk until deals close (@moneyqubit). | Exa news + earnings/call excerpts | Check whether growth is broad-based or mostly one segment. |
-| Community / X sentiment | The X community frames $IREN as a BTC-to-AI infrastructure pivot story that is still early: BTC mining (77% of Q3 revenue per @moneyqubit) quietly funds GPU deployment while the $9.7B Microsoft contract and Mirantis acquisition de-risk the software layer. | Grok/X social signal | Separate informed accounts from price-action chatter and spam. |
+| Growth / demand | Total revenue decreased to $184.7m (vs. Q1 FY26 $240.3m) | Exa news + earnings/call excerpts | Check whether growth is broad-based or mostly one segment. |
+| Community / X sentiment | X chatter on $IREN has accelerated sharply since the May 7 NVIDIA partnership announcement and the May 11-12 $2.6B 1% convertible offering. The dominant narrative is "former Bitcoin miner now executing an AI cloud pivot with cheap capital and land/power advantages," with @peterli34923561 and @planA_thru_Z framing it as a multi-year hold that finally broke out after two years of base-building. | Grok/X social signal | Separate informed accounts from price-action chatter and spam. |
 | Valuation | price $52.94, P/E 68.75x | Financial providers / Alpha Vantage / FMP | Compare multiples and analyst target with growth durability. |
-| Non-obvious angle | X under-discussed angle: Mirantis employees accepting 100% stock signals belief in near-term price accretion, not just long-term story (@fremmseven). | Cross-read of Exa, Grok/X, and financials | Verify with primary source or higher-quality source before thesis update. |
+| Non-obvious angle | X under-discussed angle: Sweetwater energization and global pipeline >5 GW are being cited as de-risking land/power scarcity, yet few are modeling the actual MW ramp timeline versus competitors waiting on ERCOT/grid queues. | Cross-read of Exa, Grok/X, and financials | Verify with primary source or higher-quality source before thesis update. |
 | Primary-source coverage | Filings lane: available; news sources: 8. | SEC/Exa packets | Use filings for claims that affect valuation or risk. |
 
 ### Next research questions
 
 - Is the X bull case supported by reported fundamentals, or is it mainly momentum around the ticker?
 - Which X claims are rumor/speculation and which can be verified through company sources or high-quality reporting?
-- Which financial provider conflict changes the investment thesis rather than only the metadata?
 
 ## Actionable Follow-ups
 
-- Resolve material financial provider conflict before updating company-file conclusions.
-- BTC funds AI transition: evidence Q3 split + management comments with confidence High; confirm via Continued mining cash flow; invalidate if Mining revenue collapse.
-- Software gap closed: evidence Mirantis 100% stock deal with confidence Medium; confirm via Post-close integration KPIs; invalidate if Customer churn post-deal.
-- Power moat pricing: evidence 4.5 GW secured vs $3.4B ARR guidance with confidence Medium; confirm via New contract on unpriced GW; invalidate if Capex overrun >$500M.
-- Verify X rumor/speculation: "Second Microsoft extension or new hyperscaler deal at earnings" - speculation based on conservative cadence and announcement timing; verify via 8-K or earnings transcript.
-- Verify X rumor/speculation: "Australia enterprise strategy announcement imminent" - inferred from ad spend; confirm with company filings or press releases.
+- NVIDIA equity option: evidence May 7 announcement with confidence Medium; confirm via 8-K or 13D filing; invalidate if No follow-through in 90 days.
+- $3.7B ARR target: evidence Repeated by bulls with confidence Low; confirm via Signed hyperscaler deals; invalidate if Miss on Q4 guidance.
+- Cheap capital advantage: evidence 1% convertible closed with confidence High; confirm via Next 10-Q shows deployment; invalidate if Higher coupon on future raises.
+- Verify X rumor/speculation: "$3.7B AI cloud ARR by late 2026" and "global pipeline exceeding 5 GW" are targets, not contracts-verify against next earnings or 8-K.
+- Verify X rumor/speculation: Zero-debt narrative is already outdated post-convertible; check latest balance sheet.
 
 ## Filing And Data Coverage
 
@@ -158,18 +151,18 @@ IREN: Financial Services / Capital Markets: Strategic ecosystem signal: evidence
 
 ## Sources
 
-- alpha_vantage_rate_limit_unavailable: [Alpha Vantage unavailable for IREN because of rate limit](https://www.alphavantage.co/documentation/)
+- alpha_vantage_rate_limit_unavailable: [Alpha Vantage unavailable for IREN](https://www.alphavantage.co/documentation/)
 - iren_company_news_input_packet: [Exa news packet for IREN](C:/Users/valen/Documents/Code/stocks/agents/runs/2026-05-16_weekly/evidence_packets/2026-05-16_exa_company_iren_exa_news_company_iren.json)
 - iren_company_news_specialist_report: [Company news specialist review for IREN](C:/Users/valen/Documents/Code/stocks/agents/runs/2026-05-16_weekly/reports/company_news_specialist/IREN_company_news_review.md)
-- exa_result_1_4e4ef34c78: [IREN Business Update and Q3 FY26 Results](https://www.globenewswire.com/news-release/2026/05/07/3290719/0/en/IREN-Business-Update-and-Q3-FY26-Results.html)
-- exa_result_1_221476575b: [IREN Business Update and Q3 FY26 Results](https://www.globenewswire.com/news-release/2026/05/07/3290719/0/en/IREN-Business-Update-and-Q3-FY26-Results.html)
+- exa_result_1_4e4ef34c78: [IREN Reports Q2 FY26 Results | IREN](https://iren.gcs-web.com/news-releases/news-release-details/iren-reports-q2-fy26-results)
+- exa_result_1_221476575b: [IREN Reports Q2 FY26 Results | IREN](https://iren.gcs-web.com/news-releases/news-release-details/iren-reports-q2-fy26-results)
 - exa_result_2_221476575b: [Ef20073131 ex99 1.htm](https://www.sec.gov/Archives/edgar/data/1878848/000114036126020669/ef20073131_ex99-1.htm)
-- exa_result_3_221476575b: [IREN Reports Q2 FY26 Results | IREN](https://iren.gcs-web.com/news-releases/news-release-details/iren-reports-q2-fy26-results)
+- exa_result_3_221476575b: [irenreportsq3fy26results](https://www.sec.gov/Archives/edgar/data/1878848/000187884826000025/irenreportsq3fy26results.htm)
 - exa_result_1_2bc6338046: [IREN](https://iren.com/)
 - exa_result_2_2bc6338046: [Gruppo Iren](https://gruppoiren.it/)
 - exa_result_3_2bc6338046: [Iren Emilia S.p.A.](https://irenemilia.it/)
 - exa_result_2_4e4ef34c78: [Ef20073131 ex99 1.htm](https://www.sec.gov/Archives/edgar/data/1878848/000114036126020669/ef20073131_ex99-1.htm)
-- exa_result_3_4e4ef34c78: [IREN Reports Q2 FY26 Results | IREN](https://iren.gcs-web.com/news-releases/news-release-details/iren-reports-q2-fy26-results)
+- exa_result_3_4e4ef34c78: [irenreportsq3fy26results](https://www.sec.gov/Archives/edgar/data/1878848/000187884826000025/irenreportsq3fy26results.htm)
 - run: `agents/runs/2026-05-16_weekly`
 
 ## Quality Findings
@@ -178,4 +171,4 @@ IREN: Financial Services / Capital Markets: Strategic ecosystem signal: evidence
 
 ## Recommended Next Action
 
-- Review blocking evidence gaps before updating the company thesis.
+- Next research decision: test whether the social bull case is fundamental or mostly momentum. Verify the bull claim (Landmark $340M 5-year AI cloud contract plus NVIDIA equity option up to $2.1B; target $3.7B AI ARR by late 2026 (@peterli34923561).) against filings/earnings and compare it with the main pushback ($2.6B new debt load against still-unproven AI revenue ramp creates balance-sheet risk (multiple replies to @peterli34923561).).

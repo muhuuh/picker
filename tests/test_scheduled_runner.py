@@ -7,7 +7,8 @@ import unittest
 from stock_research.agent_runtime.fanout import AgentFanoutItemResult, AgentFanoutResult
 from stock_research.agent_runtime.outputs import OrchestratorDecision
 from stock_research.agent_runtime.runner import AgentRuntimeResult
-from stock_research.scheduled_runner import run_weekly_research_workflow
+from stock_research.scheduled_runner import determine_status, run_weekly_research_workflow
+from stock_research.weekly_digest import WeeklyDigest
 
 
 class ScheduledRunnerTests(unittest.TestCase):
@@ -177,6 +178,28 @@ class ScheduledRunnerTests(unittest.TestCase):
             self.assertEqual(result.steps["company_research"]["tickers"], ["AAPL"])
             self.assertTrue(report_path.exists())
             self.assertTrue(report_path in paths)
+
+    def test_open_human_review_digest_does_not_make_run_fail(self):
+        digest = WeeklyDigest(
+            run_id="2026-05-09_weekly",
+            status="needs_review",
+            ticker_count=1,
+            open_review_count=20,
+            tickers=[],
+            next_actions=["Review human-review digest."],
+            quality_findings=[],
+        )
+
+        status = determine_status(
+            write=True,
+            provider_result={"errors": []},
+            analysis_result={"errors": [], "skipped": []},
+            quality_report=None,
+            finalization=None,
+            weekly_digest=digest,
+        )
+
+        self.assertEqual(status, "complete")
 
 
 def seed_repo(root: Path, monitoring_rows: list[str] | None = None) -> Path:

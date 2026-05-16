@@ -14,7 +14,7 @@ Reason: Company-news scan and contents follow-up produced source-backed developm
 | Google Search queries hit an ‘all time high’ last quarter | The Verge | theverge.com | 2026-04-29T20:28:11.000Z | https://www.theverge.com/tech/920815/google-alphabet-q1-2026-earnings-sundar-pichai |
 | Alphabet's stock climbs as Google Cloud revenue runs rampant, growing 63% - SiliconANGLE | siliconangle.com | 2026-04-30T01:25:32.000Z | https://siliconangle.com/2026/04/29/alphabets-stock-climbs-google-cloud-revenue-runs-rampant-growing-63/ |
 | Alphabet 2026 Q1 Earnings Call | youtube.com | 2026-04-29T21:35:43.000Z | https://www.youtube.com/watch?v=LPJoiDiVkTI |
-| Alphabet (GOOGL) Q1 2026 Earnings Call Transcript | The Motley Fool | fool.com | 2026-04-29T23:20:30.000Z | https://www.fool.com/earnings/call-transcripts/2026/04/29/alphabet-googl-q1-2026-earnings-call-transcript/ |
+| EX-99.1 | sec.gov | unknown | https://www.sec.gov/Archives/edgar/data/1652044/000119312525161225/d21412dex991.htm |
 
 ## Material Claims
 
@@ -35,7 +35,7 @@ Reason: Company-news scan and contents follow-up produced source-backed developm
 ## Contents Claims
 
 - Exa content excerpt from Document (medium, medium)
-  - Evidence: MOUNTAIN VIEW, Calif. - April 29, 2026 - Alphabet Inc. (NASDAQ: GOOG, GOOGL) today announced financial results for the quarter ended March 31, 2026. •Consolidated Alphabet revenues increased 22%, or 19% in constant currency, to $109.9 billion, reflecting strong performance across the business and our 11th consecutive quarter of double-digit growth.
+  - Evidence: MOUNTAIN VIEW, Calif. - April 29, 2026 - Alphabet Inc. (NASDAQ: GOOG, GOOGL) today announced financial results for the quarter ended March 31, 2026. -Consolidated Alphabet revenues increased 22%, or 19% in constant currency, to $109.9 billion, reflecting strong performance across the business and our 11th consecutive quarter of double-digit growth.
 - Exa content excerpt from Alphabet (GOOGL) Q1 2026 earnings (medium, medium)
   - Evidence: Alphabet (GOOGL) Q1 2026 earnings - Alphabet beat Wall Street expectations for first-quarter revenue. - Google Cloud topped $20 billion, growing 63% over last year. - The company also updated its full-year capital expenditure range to as much as $190 billion. Alphabet reported first-quarter earnings after the bell Wednesday, showing revenue that topped expectations boosted by its surging cloud business. Shares climbed following the report.
 - Exa content excerpt from Alphabet's first-quarter profit soars as Google's big AI bets help push stock to new highs - ABC News (medium, medium)

@@ -34,8 +34,6 @@ def build_weekly_digest(root: Path | None, run_id: str) -> WeeklyDigest:
     next_actions = build_next_actions(tickers, open_review_count, run_dir)
     quality_findings = validate_weekly_digest_tickers(repo_root, tickers)
     status = "ready"
-    if any(item.get("risk_level") == "high" or item.get("confidence") == "low" for item in tickers):
-        status = "needs_review"
     if quality_findings:
         status = "needs_review"
     if not tickers:

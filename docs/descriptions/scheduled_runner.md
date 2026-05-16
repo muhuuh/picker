@@ -156,8 +156,10 @@ Manual market-research reports use the same investor-usefulness standard. They s
 ## Status Semantics
 
 - `dry_run`: no files were written.
-- `complete`: written run completed without deterministic quality findings, provider errors, analysis errors/skips, memory finalization issues, or SDK quality/freshness findings.
-- `needs_review`: provider errors, analysis errors/skips, quality findings, finalization issues, SDK errors, company-research fanout errors/partial results, SDK quality findings, or actionable SDK output from dry-run provider/analysis inputs exist.
+- `complete`: written run completed without deterministic quality findings, provider errors, analysis errors/skips, memory finalization issues, SDK quality/freshness findings, or digest quality findings. Open human-review digest rows do not by themselves make the run fail; they are normal asynchronous decisions.
+- `needs_review`: provider errors, analysis errors/skips, quality findings, finalization issues, SDK errors, company-research fanout errors/partial results, SDK quality findings, digest quality findings, or actionable SDK output from dry-run provider/analysis inputs exist.
+
+Financial-review metadata normalization should not make the whole scheduled run fail. Name/share-class differences such as `Alphabet Inc.` vs `Alphabet Inc. Class A Common Stock`, and exchange aliases such as `XNAS`/`NCM` or `XNYS`/`NYQ`, are metadata/watch items unless they expose a real thesis-relevant financial conflict. True missing coverage, material numeric disagreement, and low-confidence core financial metrics still need review.
 
 If the SDK orchestrator is enabled while provider or analysis tasks are dry-run, it receives that execution-mode context in its prompt. If it still produces ready/actionable alerts or file update proposals, the runner appends a freshness finding and marks the scheduled run `needs_review`.
 

@@ -3,9 +3,10 @@ import json
 from pathlib import Path
 from tempfile import TemporaryDirectory
 import unittest
+from unittest.mock import patch
 
 from stock_research.evidence import read_packet, validate_packet
-from stock_research.providers.fmp import FmpCompanyOptions, FmpError, build_fmp_company_packet, extract_fmp_metrics
+from stock_research.providers.fmp import FmpCompanyOptions, FmpError, build_fmp_company_packet, extract_fmp_metrics, fetch_fmp_company_snapshot
 
 
 class FmpProviderTests(unittest.TestCase):
@@ -105,6 +106,20 @@ class FmpProviderTests(unittest.TestCase):
             self.assertNotIn("secondary-secret", raw_text)
             self.assertEqual(packet.time_window, "subscription_unavailable")
             self.assertIn('"attempt_labels": ["primary", "secondary"]', packet.claims[0].evidence)
+
+    def test_partial_endpoint_success_is_preserved(self):
+        def fake_fetch_json(path, api_key, params, timeout=60):
+            if path == "profile":
+                return [{"companyName": "AXT Inc.", "exchangeShortName": "NASDAQ", "currency": "USD"}]
+            raise FmpError("FMP request failed with HTTP 402: Premium Query Parameter")
+
+        with patch("stock_research.providers.fmp.fetch_json", fake_fetch_json):
+            snapshot = fetch_fmp_company_snapshot(FmpCompanyOptions(ticker="AXTI"), "test")
+
+        metrics = extract_fmp_metrics(snapshot)
+        self.assertEqual(metrics["company_name"], "AXT Inc.")
+        self.assertEqual(metrics["exchange"], "NASDAQ")
+        self.assertEqual(snapshot["endpoint_errors"][0]["error_type"], "subscription_unavailable")
 
 
 def fake_snapshot():

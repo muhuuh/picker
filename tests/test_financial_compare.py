@@ -48,6 +48,23 @@ class FinancialCompareTests(unittest.TestCase):
         self.assertEqual(comparison["consensus"]["market_cap"]["status"], "conflict")
         self.assertEqual(comparison["conflicts"][0]["metric"], "market_cap")
 
+    def test_text_normalization_handles_share_class_and_exchange_aliases(self):
+        from stock_research.financial_compare import FinancialObservation
+
+        comparison = compare_observations(
+            [
+                FinancialObservation("company_name", "fmp", "Alphabet Inc.", "fmp_packet"),
+                FinancialObservation("company_name", "polygon", "Alphabet Inc. Class A Common Stock", "polygon_packet"),
+                FinancialObservation("exchange", "polygon", "XNAS", "polygon_packet"),
+                FinancialObservation("exchange", "yfinance", "NCM", "yfinance_packet"),
+                FinancialObservation("exchange", "alpha_vantage", "NASDAQ Capital Market", "alpha_packet"),
+            ]
+        )
+
+        self.assertEqual(comparison["consensus"]["company_name"]["status"], "consistent")
+        self.assertEqual(comparison["consensus"]["exchange"]["status"], "consistent")
+        self.assertEqual(comparison["conflicts"], [])
+
 
 def write_input_packet(root: Path, run_id: str, provider: str, metrics: dict):
     packet = new_packet(

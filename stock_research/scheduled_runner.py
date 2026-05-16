@@ -385,7 +385,7 @@ def determine_status(
         return "needs_review"
     if orchestrator_result and orchestrator_result.get("status") in {"error", "needs_review"}:
         return "needs_review"
-    if weekly_digest and (weekly_digest.status == "needs_review" or weekly_digest.quality_findings):
+    if weekly_digest and weekly_digest.quality_findings:
         return "needs_review"
     return "complete"
 

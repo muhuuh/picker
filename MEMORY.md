@@ -406,6 +406,11 @@ Use this file for information we should not lose across sessions.
   - evidence artifact path(s): `stock_research/providers/fmp.py`, `stock_research/providers/alpha_vantage.py`, `stock_research/provider_runner.py`, `tests/test_fmp_provider.py`, `tests/test_alpha_vantage_provider.py`, `docs/descriptions/fmp_provider.md`, `docs/descriptions/alpha_vantage_provider.md`
   - status: active
 
+- 2026-05-16:
+  - decision/fact: Open human-review rows are normal asynchronous decisions and should not by themselves make the Codex-supervised scheduled workflow fail. Financial metadata-only differences such as share-class name variants and exchange aliases are metadata/watch items, not thesis-blocking financial conflicts. FMP partial endpoint success should be preserved when profile data is available but quote/TTM endpoints are blocked by plan/ticker coverage.
+  - evidence artifact path(s): `stock_research/scheduled_runner.py`, `stock_research/weekly_digest.py`, `stock_research/codex_review_pack.py`, `stock_research/financial_compare.py`, `stock_research/financial_specialist.py`, `stock_research/providers/fmp.py`, `docs/descriptions/scheduled_runner.md`, `docs/descriptions/codex_supervised_workflow.md`, `docs/descriptions/fmp_provider.md`, `agents/runs/2026-05-16_weekly/codex_supervised_review.md`
+  - status: active
+
 - 2026-05-11:
   - decision/fact: The OpenAI Agents SDK weekly path completed successfully after API credit was added and runtime quality gates were tightened. The validation command for AMZN/AAPL is `python -m stock_research run-weekly --write --today 2026-05-11 --execute-providers --execute-analysis --execute-orchestrator --orchestrator-timeout-seconds 900`.
   - evidence artifact path(s): `agents/runs/2026-05-16_weekly/orchestration_report.md`, `agents/runs/2026-05-16_weekly/agent_runtime_main_orchestrator.md`, `stock_research/agent_runtime/reports.py`, `tests/test_agent_runtime.py`

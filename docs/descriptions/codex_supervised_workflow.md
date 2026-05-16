@@ -142,3 +142,5 @@ Codex-supervised mode should meet or exceed API SDK mode for human-facing qualit
 - clear next decisions for the human.
 
 2026-05-16 postmortem result: the first real Codex-supervised run exposed lazy SDK import gaps, stale API-mode artifact cleanup gaps, FMP/Alpha provider-unavailable handling gaps, and weak report-quality gates. The fixed baseline is a 10-holding run with 131 evidence packets, 0 provider errors, 0 deterministic quality findings, deduped HRQ counts, explicit provider coverage-gap packets, and human-facing markdown validation over the final digest, HRQ digest, Codex review, and opportunity reports.
+
+2026-05-16 stabilization update: open rows in `agents/human_review_digest.md` are no longer treated as automation failure by the scheduled runner or review-pack status. They remain normal human decisions. Financial metadata normalization was also tightened so harmless company-name/share-class differences and exchange aliases do not create thesis-blocking financial review gates. FMP partial endpoint success is preserved for smaller names when profile data is available but quote/TTM endpoints are blocked by plan coverage.
