@@ -1,6 +1,6 @@
 # AMBA Ambarella Inc.
 
-Last updated: 2026-05-16
+Last updated: 2026-05-17
 
 ## Company Snapshot
 
@@ -26,17 +26,17 @@ Last updated: 2026-05-16
 
 ## Current Opinion
 
-- Summary: Current holding added for the first biweekly automation run. Durable thesis pending fresh provider, filing, news, sentiment, and opportunity-assessment evidence.
-- Confidence: low
+- Summary: Current holding with credible low-power edge-vision optionality for robotics/physical AI, but humanoid demand is not yet proven by named design wins or revenue call-outs.
+- Confidence: medium
 - Current decision: hold for research review
-- What would change our mind: Fresh evidence that materially changes the thesis, risk profile, valuation, or competitive position.
+- What would change our mind: named robotics/humanoid OEM wins, accelerating edge-AI revenue mix, or evidence that NVIDIA/Qualcomm/Mobileye ecosystems are crowding AMBA out of the platform layer.
 
 ## Thesis
 
-- Why this company is interesting: TODO after provider-backed research.
-- What must be true: TODO after provider-backed research.
-- Main upside drivers: TODO after provider-backed research.
-- Main downside risks: TODO after provider-backed research.
+- Why this company is interesting: AMBA has low-power computer-vision and edge-inference silicon that can fit drones, security, ADAS, industrial automation, and potentially robotics/humanoids.
+- What must be true: edge AI revenue must continue growing, design wins must convert, and robotics/humanoid optionality must become concrete customer demand.
+- Main upside drivers: CV-series/CVflow low-power vision efficiency, robotics/physical-AI sentiment shift, edge AI mix, and possible named OEM wins.
+- Main downside risks: slow auto design-win cycles, negative earnings, China exposure, and stronger ecosystems from NVIDIA, Qualcomm, Mobileye, or custom ASICs.
 
 ## Filings
 
@@ -64,30 +64,43 @@ Last updated: 2026-05-16
 
 ## Sentiment
 
-- X via xAI/Grok / community sentiment:
-- News sentiment:
-- Analyst / expert tone:
-- Noise caveats:
+- X via xAI/Grok / community sentiment: improving around robotics/humanoid and physical-AI use cases, but still early and partly speculative.
+- News sentiment: constructive on edge AI product positioning and FY2026 growth.
+- Analyst / expert tone: needs proof through named design wins and revenue contribution, not only technical fit.
+- Noise caveats: humanoid/robotics is upside optionality until customer/program evidence appears.
 
 ## Risks and Red Flags
 
-- Accounting:
+- Accounting: GAAP profitability and margin trend need monitoring.
 - Balance sheet:
-- Competition:
-- Regulation / legal:
+- Competition: NVIDIA Jetson/Thor, Qualcomm robotics, Mobileye, TI/NXP/Lattice, and custom ASICs.
+- Regulation / legal: China exposure and export/technology restrictions.
 - Customer concentration:
-- Cyclicality:
+- Cyclicality: auto/security/industrial chip cycles.
 - Governance:
-- Other:
+- Other: lack of named humanoid OEM wins means the strongest social narrative is not yet proven.
 
 ## Open Questions
 
 - Confirm the user meant Ambarella Inc. for the input spelling "Ambarelly".
-- What is the current investor thesis after fresh financial, Exa, SEC, and Grok/X review?
+- Will AMBA's robotics/humanoid edge-vision narrative convert into named design wins or revenue call-outs?
 
 ## Next Actions
 
 - [ ] Run through the biweekly tracked-stock workflow and review the opportunity assessment.
+- [ ] Verify whether AMBA discloses named robotics/humanoid design wins or revenue call-outs in the next report/call.
+- [ ] Compare AMBA's low-power edge-vision positioning against NVIDIA Jetson/Thor, Qualcomm robotics, Mobileye, and custom ASIC paths.
+
+## Follow-up Research Notes
+
+### 2026-05-17 User Follow-up Research
+
+- X/Grok sentiment shift toward AMBA as a robotics/humanoid/physical-AI vision chip name is real but still early and narrow. Treat it as upside optionality, not base-case revenue proof.
+- AMBA has credible technical fit because robotics, drones, security, ADAS, and industrial automation need low-power, real-time vision and edge inference. CV-series/CVflow positioning maps to that need.
+- Public evidence is still thin on named humanoid OEM design wins. The humanoid angle should remain a verification question until AMBA discloses customer programs, revenue call-outs, or named design wins.
+- Likely meaningful humanoid/robotics demand timing is 2027-2028+ if platforms move from pilots to production. Near-term thesis should still track auto, security, drones, industrial edge AI, and existing design wins.
+- Main competitors include NVIDIA Jetson/Thor, Qualcomm robotics platforms, Mobileye/auto silicon, TI/NXP/Lattice, and custom ASIC approaches. AMBA's edge is low-power vision efficiency; its risk is weaker software/platform ecosystem versus larger players.
+- Source report: `agents/runs/2026-05-17_followup_user_questions/follow_up_research_report.md`.
 
 ## Source Log
 
@@ -101,6 +114,8 @@ Last updated: 2026-05-16
 | 2026-05-15 | yfinance metadata check | local provider lookup | Used only for initial ticker/company metadata. |
 | 2026-05-15 | Public ticker verification | https://stockanalysis.com/stocks/amba/ | Verified NASDAQ ticker AMBA. |
 | 2026-05-16 | AUTOFACT-2026-05-16_weekly-AMBA | internal artifact | Low-risk factual sync from opportunity assessment; no thesis/status/trade decision changed. | [agents/runs/2026-05-16_weekly/reports/opportunity_assessment/AMBA_opportunity_assessment.md](agents/runs/2026-05-16_weekly/reports/opportunity_assessment/AMBA_opportunity_assessment.md) |
+| 2026-05-17 | User follow-up research | internal artifact plus Exa/Grok evidence | Clarified robotics/humanoid sentiment shift, technical fit, competitor set, timing, and design-win proof gap. | [agents/runs/2026-05-17_followup_user_questions/follow_up_research_report.md](agents/runs/2026-05-17_followup_user_questions/follow_up_research_report.md) |
+| 2026-05-17 | Web research redo | official/web sources | Rechecked robotics/humanoid/physical-AI thesis and confirmed credible product fit but missing named design-win proof. | [agents/runs/2026-05-17_followup_user_questions/follow_up_web_research_redo.md](agents/runs/2026-05-17_followup_user_questions/follow_up_web_research_redo.md) |
 
 ## Change Log
 
@@ -112,6 +127,8 @@ Last updated: 2026-05-16
 | --- | --- | --- | --- |
 | 2026-05-15 | Codex | Created company file from user-confirmed holding list. | User input; yfinance metadata check |
 | 2026-05-16 | Codex factual update writer | Applied AUTOFACT-2026-05-16_weekly-AMBA: synced factual assessment, financial, news, social, and watch-item summaries. | [agents/runs/2026-05-16_weekly/reports/opportunity_assessment/AMBA_opportunity_assessment.md](agents/runs/2026-05-16_weekly/reports/opportunity_assessment/AMBA_opportunity_assessment.md) |
+| 2026-05-17 | Codex | Added user follow-up findings on AMBA's edge-vision robotics optionality, missing named humanoid design-win proof, timing, and competitors. | [agents/runs/2026-05-17_followup_user_questions/follow_up_research_report.md](agents/runs/2026-05-17_followup_user_questions/follow_up_research_report.md) |
+| 2026-05-17 | Codex | Added persisted source-backed web redo as supporting evidence for future runs. | [agents/runs/2026-05-17_followup_user_questions/follow_up_web_research_redo.md](agents/runs/2026-05-17_followup_user_questions/follow_up_web_research_redo.md) |
 
 ## Automated Factual Updates
 

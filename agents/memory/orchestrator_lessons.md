@@ -1,6 +1,6 @@
 # Orchestrator Lessons
 
-Last updated: 2026-05-16
+Last updated: 2026-05-17
 
 Operational memory for workflow routing, orchestration, run ordering, and user corrections.
 
@@ -642,3 +642,17 @@ Operational memory for workflow routing, orchestration, run ordering, and user c
 - evidence: `stock_research/report_quality.py`, `stock_research/report_formatting.py`, `tests/test_report_quality_golden.py`, `agents/runs/2026-05-16_weekly/reports/opportunity_assessment/AMBA_opportunity_assessment.md`
 - owner: quality reviewer
 - next_review: 2026-06-16
+
+- id: orch-2026-05-17-persist-web-research-before-synthesis
+- date: 2026-05-17
+- type: procedural
+- scope: orchestrator
+- status: active
+- confidence: high
+- trigger/source: User correction after transient native web-search findings were lost during context compaction.
+- lesson: For manual follow-up research that uses native web search, persist source-backed findings into a run artifact before continuing long synthesis or code work. Then link that artifact from relevant company files so future runs consume durable evidence instead of relying on chat context.
+- use_when: Running Codex-supervised follow-up research, native web research, Exa/Grok verification, or any multi-company manual investigation likely to span many tool calls.
+- do_not_use_when: Tiny one-source lookups that are immediately answered without creating repo state.
+- evidence: `agents/runs/2026-05-17_followup_user_questions/follow_up_web_research_redo.md`, `stock_tracking/stock_info_files/current_holdings/TE.md`, `stock_tracking/stock_info_files/current_holdings/IREN.md`, `stock_tracking/stock_info_files/current_holdings/AXTI.md`, `stock_tracking/stock_info_files/current_holdings/AMBA.md`, `stock_tracking/stock_info_files/current_holdings/AVAV.md`, `stock_tracking/stock_info_files/current_holdings/KRKNF.md`, `stock_tracking/stock_info_files/current_holdings/OSS.md`
+- owner: main orchestrator
+- next_review: 2026-06-17

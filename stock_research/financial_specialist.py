@@ -15,6 +15,7 @@ CORE_METRICS = ("company_name", "latest_price", "market_cap", "pe_ratio", "curre
 TAXONOMY_METRICS = {"sector", "industry"}
 METADATA_WATCH_METRICS = {"company_name", "exchange"}
 NON_MATERIAL_CONFLICT_METRICS = TAXONOMY_METRICS | METADATA_WATCH_METRICS
+VALUATION_METRICS = {"latest_price", "market_cap", "pe_ratio", "forward_pe", "price_to_sales_ttm", "ev_to_ebitda_ttm", "fifty_two_week_low", "fifty_two_week_high"}
 HEADLINE_METRICS = (
     "company_name",
     "latest_price",
@@ -131,6 +132,7 @@ def build_financial_review(
         for metric, result in consensus.items()
         if len(result.get("providers", [])) == 1
     ]
+    valuation_sanity_warnings = collect_valuation_sanity_warnings(consensus)
     confidence_counts: dict[str, int] = {}
     status_counts: dict[str, int] = {}
     for result in consensus.values():
@@ -139,7 +141,10 @@ def build_financial_review(
         confidence_counts[confidence] = confidence_counts.get(confidence, 0) + 1
         status_counts[status] = status_counts.get(status, 0) + 1
 
-    if material_conflicts or low_confidence_core:
+    if valuation_sanity_warnings:
+        status = "needs_human_review"
+        status_reason = "Valuation sanity warnings require cross-provider verification before using headline price, market cap, or P/E conclusions."
+    elif material_conflicts or low_confidence_core:
         status = "needs_human_review"
         status_reason = "Material conflicts or low-confidence core metrics need review before file updates."
     elif missing_core or non_material_conflicts:
@@ -159,6 +164,7 @@ def build_financial_review(
         "confidence_counts": confidence_counts,
         "status_counts": status_counts,
         "single_provider_metrics": single_provider_metrics,
+        "valuation_sanity_warnings": valuation_sanity_warnings,
         "missing_core_metrics": missing_core,
         "low_confidence_core_metrics": low_confidence_core,
         "material_conflicts": material_conflicts,
@@ -178,6 +184,20 @@ def recommended_company_file_action(status: str) -> str:
     if status == "partial_review":
         return "Update available metrics, but preserve missing-core-metric notes for follow-up."
     return "Do not update financial conclusions until conflicts or low-confidence core metrics are reviewed."
+
+
+def collect_valuation_sanity_warnings(consensus: dict[str, dict[str, Any]]) -> list[str]:
+    warnings: list[str] = []
+    seen: set[str] = set()
+    for metric, result in consensus.items():
+        if metric not in VALUATION_METRICS:
+            continue
+        for warning in result.get("sanity_warnings", []) or []:
+            text = str(warning).strip()
+            if text and text not in seen:
+                seen.add(text)
+                warnings.append(text)
+    return warnings
 
 
 def build_conflict_details(consensus: dict[str, dict[str, Any]]) -> list[dict[str, Any]]:
@@ -240,6 +260,7 @@ def review_to_packet(
         "status_counts": review["status_counts"],
         "missing_core_metrics": review["missing_core_metrics"],
         "single_provider_metrics": review["single_provider_metrics"],
+        "valuation_sanity_warnings": review.get("valuation_sanity_warnings", []),
         "material_conflicts": review["material_conflicts"],
         "taxonomy_conflicts": review["taxonomy_conflicts"],
         "metadata_conflicts": review["metadata_conflicts"],
@@ -308,6 +329,16 @@ def build_review_risks(review: dict[str, Any], source_ids: list[str]) -> list[Ri
             Risk(
                 risk="Material financial provider conflicts remain after deterministic comparison.",
                 evidence=json.dumps(review["material_conflicts"], sort_keys=True),
+                source_ids=source_ids,
+                severity="medium",
+                time_horizon="current_review",
+            )
+        )
+    if review.get("valuation_sanity_warnings"):
+        risks.append(
+            Risk(
+                risk="Valuation sanity warnings require cross-provider verification before using headline price, market-cap, or P/E conclusions.",
+                evidence=json.dumps(review["valuation_sanity_warnings"], sort_keys=True),
                 source_ids=source_ids,
                 severity="medium",
                 time_horizon="current_review",
@@ -382,6 +413,7 @@ def format_financial_review_markdown(root: Path, review: dict[str, Any]) -> str:
     lines.append(f"- confidence_counts: {json.dumps(review['confidence_counts'], sort_keys=True)}")
     lines.append(f"- status_counts: {json.dumps(review['status_counts'], sort_keys=True)}")
     lines.append(f"- single_provider_metrics: {', '.join(review['single_provider_metrics']) or 'none'}")
+    lines.append(f"- valuation_sanity_warnings: {len(review.get('valuation_sanity_warnings', []))}")
     lines.append(f"- missing_core_metrics: {', '.join(review['missing_core_metrics']) or 'none'}")
     lines.append(f"- low_confidence_core_metrics: {', '.join(review['low_confidence_core_metrics']) or 'none'}")
     lines.append(f"- conflicts: {len(review['conflicts'])}")
@@ -394,6 +426,9 @@ def format_financial_review_markdown(root: Path, review: dict[str, Any]) -> str:
             materiality = "material" if conflict.get("material") else "metadata/taxonomy watch"
             lines.append(f"- {conflict.get('metric')}: {materiality}; {conflict.get('reason')}")
             lines.append(f"  - values: {json.dumps(conflict.get('values', {}), sort_keys=True)}")
+    if review.get("valuation_sanity_warnings"):
+        lines.extend(["", "## Valuation Sanity Warnings", ""])
+        lines.extend(f"- {warning}" for warning in review["valuation_sanity_warnings"])
     lines.append(f"- recommended_company_file_action: {review['recommended_company_file_action']}")
     return "\n".join(lines).rstrip() + "\n"
 

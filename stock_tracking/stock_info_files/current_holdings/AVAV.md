@@ -1,6 +1,6 @@
 # AVAV AeroVironment Inc.
 
-Last updated: 2026-05-16
+Last updated: 2026-05-17
 
 ## Company Snapshot
 
@@ -26,17 +26,17 @@ Last updated: 2026-05-16
 
 ## Current Opinion
 
-- Summary: Current holding added for the first biweekly automation run. Durable thesis pending fresh provider, filing, news, sentiment, and opportunity-assessment evidence.
-- Confidence: low
+- Summary: Current holding with fresh defense-autonomy catalysts. The thesis should now include recent contracts, BlueHalo integration, DAWG/autonomous warfare budget exposure, and margin/integration execution risk.
+- Confidence: medium
 - Current decision: hold for research review
-- What would change our mind: Fresh evidence that materially changes the thesis, risk profile, valuation, or competitive position.
+- What would change our mind: budget delays, weak BlueHalo integration, margin pressure, debt concerns, or competitor wins that reduce AVAV's access to drone/C-UAS/autonomy programs.
 
 ## Thesis
 
-- Why this company is interesting: TODO after provider-backed research.
-- What must be true: TODO after provider-backed research.
-- Main upside drivers: TODO after provider-backed research.
-- Main downside risks: TODO after provider-backed research.
+- Why this company is interesting: AVAV has fielded unmanned systems and a broader post-BlueHalo defense-tech portfolio across drones, C-UAS, autonomy, cyber, directed energy, and hypersonic telemetry support.
+- What must be true: defense autonomy budgets must convert into awards, BlueHalo must integrate without margin damage, and backlog/bookings must translate into profitable growth.
+- Main upside drivers: PANTHER/SkyRange award, JUMP 20-X, LASSO/Switchblade 400, DAWG/autonomous warfare budget, international UAS demand, and BlueHalo synergies.
+- Main downside risks: integration costs, procurement timing, margin/debt pressure, budget delays, and stock volatility.
 
 ## Filings
 
@@ -64,29 +64,43 @@ Last updated: 2026-05-16
 
 ## Sentiment
 
-- X via xAI/Grok / community sentiment:
-- News sentiment:
-- Analyst / expert tone:
-- Noise caveats:
+- X via xAI/Grok / community sentiment: mixed-to-constructive; attention has moved from stale quarterly prints toward BlueHalo, DAWG, Switchblade/JUMP 20-X, and autonomy-budget optionality.
+- News sentiment: constructive after recent contract/catalyst flow.
+- Analyst / expert tone: upside appears linked to defense drone/C-UAS budget growth, backlog, and BlueHalo rather than only old financial reports.
+- Noise caveats: budget and contract timing can shift; analyst targets need cross-checking against margin/integration risk.
 
 ## Risks and Red Flags
 
-- Accounting:
-- Balance sheet:
-- Competition:
-- Regulation / legal:
-- Customer concentration:
-- Cyclicality:
+- Accounting: watch margin quality and segment reporting after BlueHalo.
+- Balance sheet: debt and integration costs after expansion.
+- Competition: other drone, C-UAS, loitering munition, and defense-autonomy providers.
+- Regulation / legal: defense procurement, export controls, and budget timing.
+- Customer concentration: government/defense program concentration.
+- Cyclicality: defense budget cycles and contract timing.
 - Governance:
-- Other:
+- Other: prior report was too stale; future runs should prioritize current contracts and program catalysts.
 
 ## Open Questions
 
-- What is the current investor thesis after fresh financial, Exa, SEC, and Grok/X review?
+- Do recent AVAV defense-autonomy contracts and BlueHalo synergies convert into profitable growth without margin/debt disappointment?
 
 ## Next Actions
 
 - [ ] Run through the biweekly tracked-stock workflow and review the opportunity assessment.
+- [ ] Rebuild AVAV thesis around current contracts, BlueHalo integration, DAWG/autonomy budget, and backlog instead of only older Q2/Q3 financials.
+- [ ] Verify next earnings/guidance for margin impact from BlueHalo integration and defense-program timing.
+
+## Follow-up Research Notes
+
+### 2026-05-17 User Follow-up Research
+
+- Prior AVAV opportunity output was too stale/financial-heavy. Fresh research found current catalysts beyond Q2/Q3 results.
+- Current positives include a $43M three-year DoD/Test Resource Management Center contract to integrate PANTHER phased-array antennas on SkyRange Range Hawks for hypersonic telemetry.
+- Fresh context also includes Navy selection for COCO ISR services using JUMP 20-X Group 3 VTOL UAS and Army prototype work around LASSO/Switchblade 400 in the AV_Halo C2 ecosystem.
+- BlueHalo integration is strategically important because it broadens AVAV into autonomous systems, counter-UAS, cyber, directed energy, hypersonics telemetry, and broader defense technology.
+- Analyst upside appears tied to drone/counter-drone budget growth, DAWG/autonomous warfare spending visibility, backlog, international unmanned systems demand, and BlueHalo synergies, not just old quarterly reporting.
+- Key risks remain BlueHalo integration, margin/debt execution, defense procurement timing, and stock volatility if budget headlines or margins disappoint.
+- Source report: `agents/runs/2026-05-17_followup_user_questions/follow_up_research_report.md`.
 
 ## Source Log
 
@@ -99,6 +113,8 @@ Last updated: 2026-05-16
 | 2026-05-15 | User input | Codex chat | User confirmed current holding. |
 | 2026-05-15 | yfinance metadata check | local provider lookup | Used only for initial ticker/company metadata. |
 | 2026-05-16 | AUTOFACT-2026-05-16_weekly-AVAV | internal artifact | Low-risk factual sync from opportunity assessment; no thesis/status/trade decision changed. | [agents/runs/2026-05-16_weekly/reports/opportunity_assessment/AVAV_opportunity_assessment.md](agents/runs/2026-05-16_weekly/reports/opportunity_assessment/AVAV_opportunity_assessment.md) |
+| 2026-05-17 | User follow-up research | internal artifact plus Exa/Grok evidence | Added current contract/catalyst picture including PANTHER/SkyRange, JUMP 20-X, LASSO/Switchblade 400, BlueHalo, and DAWG/autonomy budget context. | [agents/runs/2026-05-17_followup_user_questions/follow_up_research_report.md](agents/runs/2026-05-17_followup_user_questions/follow_up_research_report.md) |
+| 2026-05-17 | Web research redo | official/web sources | Rechecked fiscal-period labeling, BlueHalo/backlog context, and defense-autonomy thesis so future reports do not read as stale calendar-quarter analysis. | [agents/runs/2026-05-17_followup_user_questions/follow_up_web_research_redo.md](agents/runs/2026-05-17_followup_user_questions/follow_up_web_research_redo.md) |
 
 ## Change Log
 
@@ -110,6 +126,8 @@ Last updated: 2026-05-16
 | --- | --- | --- | --- |
 | 2026-05-15 | Codex | Created company file from user-confirmed holding list. | User input; yfinance metadata check |
 | 2026-05-16 | Codex factual update writer | Applied AUTOFACT-2026-05-16_weekly-AVAV: synced factual assessment, financial, news, social, and watch-item summaries. | [agents/runs/2026-05-16_weekly/reports/opportunity_assessment/AVAV_opportunity_assessment.md](agents/runs/2026-05-16_weekly/reports/opportunity_assessment/AVAV_opportunity_assessment.md) |
+| 2026-05-17 | Codex | Added follow-up findings that AVAV's current thesis should include fresh contract wins, BlueHalo integration, DAWG/autonomous systems budget, and margin/integration risks. | [agents/runs/2026-05-17_followup_user_questions/follow_up_research_report.md](agents/runs/2026-05-17_followup_user_questions/follow_up_research_report.md) |
+| 2026-05-17 | Codex | Added persisted source-backed web redo as supporting evidence for future runs. | [agents/runs/2026-05-17_followup_user_questions/follow_up_web_research_redo.md](agents/runs/2026-05-17_followup_user_questions/follow_up_web_research_redo.md) |
 
 ## Automated Factual Updates
 

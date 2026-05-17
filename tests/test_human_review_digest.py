@@ -49,6 +49,19 @@ class HumanReviewDigestTests(unittest.TestCase):
         self.assertEqual(digest.category_counts["candidate_verification_grok"], 1)
         self.assertIn("Monitoring Candidate Reviews", markdown)
         self.assertIn("Approve adding to monitoring, request more research, or reject/ignore.", markdown)
+        self.assertIn("largest U.S.-headquartered OSAT", markdown)
+
+    def test_digest_loads_candidate_review_context(self):
+        with TemporaryDirectory() as temp_dir:
+            root = write_review_digest_scaffold(Path(temp_dir))
+
+            digest = build_human_review_digest(root=root, current_date=date(2026, 5, 11))
+            markdown = format_human_review_digest(digest)
+
+        self.assertIn("Grok/X lead: approval only starts verification", markdown)
+        self.assertIn("Why it surfaced: Utility-scale storage discussion with high X hype", markdown)
+        self.assertIn("Verification candidate: approval starts company/news/financial checks", markdown)
+        self.assertIn("Relevant Exa result: ADS-TEC Energy", markdown)
 
     def test_digest_keeps_newest_duplicate_candidate_row(self):
         with TemporaryDirectory() as temp_dir:
@@ -112,6 +125,37 @@ def write_review_digest_scaffold(root: Path) -> Path:
     (root / "AGENTS.md").write_text("# Test agents\n", encoding="utf-8")
     (root / "stock_tracking").mkdir(parents=True)
     (root / "agents").mkdir(parents=True)
+    candidate_dir = root / "agents" / "runs" / "2026-05-10_manual-market" / "market_research"
+    candidate_dir.mkdir(parents=True)
+    (candidate_dir / "candidate_review.md").write_text(
+        "\n".join(
+            [
+                "# Candidate Review",
+                "",
+                "| Group ID | Candidate | Evidence state | Decision options | Priority | Why it surfaced | Source IDs |",
+                "| --- | --- | --- | --- | --- | --- | --- |",
+                "| CRG-0001 | FLNC (FLNC) | channels=grok; verification=grok_only; hype=high; cooldown=not_rejected | Approve follow-up verification, reject, or leave open. | medium | Utility-scale storage discussion with high X hype. | xai_x_source_1 |",
+                "| CRG-0002 | ADS-TEC Energy (ADSE) | channels=exa; verification=exa_only; hype=unknown; cooldown=not_rejected | Approve follow-up company and financial verification. | medium | Relevant Exa result: ADS-TEC Energy. | exa_result_1 |",
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    new_candidate_dir = root / "agents" / "runs" / "2026-05-12_manual-market" / "market_research"
+    new_candidate_dir.mkdir(parents=True)
+    (new_candidate_dir / "candidate_review.md").write_text(
+        "\n".join(
+            [
+                "# Candidate Review",
+                "",
+                "| Group ID | Candidate | Evidence state | Decision options | Priority | Why it surfaced | Source IDs |",
+                "| --- | --- | --- | --- | --- | --- | --- |",
+                "| CRG-0001 | Amkor Technology, Inc. (AMKR) | channels=exa, grok; verification=verified; hype=unknown; cooldown=not_rejected | Approve adding this candidate to monitoring, or request more research first. | medium | Amkor is the largest U.S.-headquartered OSAT and a scaled advanced-packaging candidate. | exa_result_1, xai_x_source_1 |",
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
     (root / "agents" / "human_review_queue.md").write_text(
         "\n".join(
             [

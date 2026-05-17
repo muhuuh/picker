@@ -1,6 +1,6 @@
 # Human Review Operating Model
 
-Last updated: 2026-05-16
+Last updated: 2026-05-17
 
 ## Goal
 
@@ -48,6 +48,10 @@ The user should not need to read every report after every run. The normal path i
 3. Use linked deeper reports when a decision needs context.
 4. Tell Codex the decisions in natural language.
 5. Codex records the decisions with the deterministic decision writer.
+
+The user should not approve or reject a ticker from the digest based only on a ticker symbol. A candidate-review row must include a concise reason, verification state, and a link to the candidate review, market report, or verification result. If the digest does not provide enough context, the correct response is `needs_more_research` or `leave_open`, and the workflow should improve the digest/context rather than asking the user to guess.
+
+Current implementation: `python -m stock_research human-review digest --write` loads the linked `candidate_review.md` group for candidate rows and summarizes candidate/group, evidence state, why it surfaced, expected decision, and the evidence link. Stale or legacy open rows that do not have useful decision context should be marked `superseded`, not left in the user-facing digest.
 
 The digest should explain the difference between review categories:
 

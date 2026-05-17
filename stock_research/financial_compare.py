@@ -35,6 +35,8 @@ NUMERIC_METRICS = {
     "price_to_book_ratio": 0.05,
     "previous_volume": 0.10,
     "previous_vwap": 0.02,
+    "fifty_two_week_low": 0.02,
+    "fifty_two_week_high": 0.02,
 }
 PREFERRED_PROVIDERS = {
     "latest_price": ["polygon", "fmp", "alpha_vantage", "yfinance"],
@@ -48,6 +50,9 @@ PREFERRED_PROVIDERS = {
     "country": ["fmp", "alpha_vantage", "polygon"],
 }
 NON_MATERIAL_TEXT_CONFLICT_METRICS = {"company_name", "exchange", "sector", "industry"}
+TRUSTED_VALUATION_PROVIDERS = {"fmp", "alpha_vantage"}
+MARKET_PRICE_PROVIDERS = {"polygon", "yfinance"}
+VALUATION_SANITY_METRICS = {"latest_price", "market_cap", "pe_ratio", "fifty_two_week_low", "fifty_two_week_high"}
 PROVIDER_METRIC_MAP = {
     "yfinance": {
         "company_name": "company_name",
@@ -239,11 +244,15 @@ def compare_observations(observations: list[FinancialObservation]) -> dict[str, 
         if result["status"] == "conflict":
             conflicts.append({"metric": metric, "values": result["values"], "reason": result["reason"]})
 
+    valuation_sanity_warnings = apply_valuation_sanity_checks(consensus)
+    unknowns.extend(f"Valuation sanity warning: {warning}" for warning in valuation_sanity_warnings)
+
     return {
         "consensus": consensus,
         "conflicts": conflicts,
         "unknowns": unknowns,
         "provider_count": len({observation.provider for observation in observations}),
+        "valuation_sanity_warnings": valuation_sanity_warnings,
     }
 
 
@@ -335,6 +344,94 @@ def relative_difference(minimum: float, maximum: float) -> float:
     return abs(maximum - minimum) / denominator
 
 
+def apply_valuation_sanity_checks(consensus: dict[str, Any]) -> list[str]:
+    """Flag valuation snapshots that look internally plausible but still unsafe to trust."""
+
+    latest = result_number(consensus, "latest_price")
+    low = result_number(consensus, "fifty_two_week_low")
+    high = result_number(consensus, "fifty_two_week_high")
+    pe_result = consensus.get("pe_ratio") or {}
+    headline_providers = providers_for_metrics(consensus, ["latest_price", "market_cap", "pe_ratio"])
+    trusted_coverage = bool(headline_providers & TRUSTED_VALUATION_PROVIDERS)
+    market_only_coverage = bool(headline_providers) and headline_providers <= MARKET_PRICE_PROVIDERS
+    warnings: list[str] = []
+
+    extreme_range = False
+    if low is not None and high is not None and low > 0 and high > low:
+        range_multiple = high / low
+        if range_multiple >= 20:
+            extreme_range = True
+            warnings.append(
+                f"52-week range is unusually wide ({range_multiple:.1f}x from low to high); check for split, corporate-action, ticker, or stale-data issues before using valuation metrics."
+            )
+
+    outside_range = False
+    if latest is not None and high is not None and high > 0 and latest > high * 1.15:
+        outside_range = True
+        warnings.append(
+            f"Latest price {latest:.4g} is more than 15% above the recorded 52-week high {high:.4g}; verify price and range before using valuation metrics."
+        )
+    if latest is not None and low is not None and low > 0 and latest < low * 0.85:
+        outside_range = True
+        warnings.append(
+            f"Latest price {latest:.4g} is more than 15% below the recorded 52-week low {low:.4g}; verify price and range before using valuation metrics."
+        )
+
+    single_provider_pe = pe_result.get("value") not in {"", None} and len(pe_result.get("providers", [])) <= 1
+    if market_only_coverage and (extreme_range or outside_range):
+        warnings.append(
+            "Headline valuation coverage comes only from market-price providers (Polygon/yfinance) without FMP or Alpha Vantage cross-check; treat price, market cap, and P/E as verification-needed."
+        )
+    if single_provider_pe and (extreme_range or outside_range):
+        warnings.append("P/E ratio is single-provider while the valuation snapshot has weak or suspicious coverage; do not treat the multiple as clean consensus.")
+
+    warnings = dedupe_preserve_order(warnings)
+    if not warnings:
+        return []
+
+    severe = outside_range or (extreme_range and not trusted_coverage)
+    for metric in VALUATION_SANITY_METRICS:
+        add_sanity_warnings(consensus, metric, warnings, severe=severe)
+    return warnings
+
+
+def result_number(consensus: dict[str, Any], metric: str) -> float | None:
+    result = consensus.get(metric)
+    if not isinstance(result, dict):
+        return None
+    return to_float(result.get("value"))
+
+
+def providers_for_metrics(consensus: dict[str, Any], metrics: list[str]) -> set[str]:
+    providers: set[str] = set()
+    for metric in metrics:
+        result = consensus.get(metric)
+        if isinstance(result, dict):
+            providers.update(str(provider) for provider in result.get("providers", []) if provider)
+    return providers
+
+
+def add_sanity_warnings(consensus: dict[str, Any], metric: str, warnings: list[str], severe: bool) -> None:
+    result = consensus.get(metric)
+    if not isinstance(result, dict):
+        return
+    existing = list(result.get("sanity_warnings") or [])
+    result["sanity_warnings"] = dedupe_preserve_order([*existing, *warnings])
+    if severe and result.get("confidence") != "low":
+        result["confidence"] = "low"
+        result["reason"] = f"{result.get('reason', '').rstrip()} Valuation sanity warning requires cross-provider verification.".strip()
+
+
+def dedupe_preserve_order(values: list[str]) -> list[str]:
+    result: list[str] = []
+    seen: set[str] = set()
+    for value in values:
+        if value and value not in seen:
+            seen.add(value)
+            result.append(value)
+    return result
+
+
 def normalize_text_metric(metric: str, value: Any) -> str:
     text = str(value).strip().lower()
     if metric == "company_name":
@@ -402,18 +499,20 @@ def comparison_to_packet(
             "providers": result["providers"],
             "values": result.get("values", {}),
             "reason": result.get("reason", ""),
+            "sanity_warnings": result.get("sanity_warnings", []),
         }
         for metric, result in comparison["consensus"].items()
         if result["status"] != "non_numeric"
     }
     conflicts = comparison["conflicts"]
     material_conflicts = [conflict for conflict in conflicts if is_material_financial_conflict(str(conflict.get("metric", "")))]
+    valuation_sanity_warnings = list(comparison.get("valuation_sanity_warnings") or [])
     claims = [
         Claim(
             claim=f"Financial data comparison completed for {ticker}.",
             evidence=json.dumps(consensus_summary, sort_keys=True),
             source_ids=source_ids,
-            confidence="high" if not material_conflicts else "medium",
+            confidence="high" if not material_conflicts and not valuation_sanity_warnings else "medium",
             impact="medium",
             novelty="new",
         )
@@ -432,7 +531,7 @@ def comparison_to_packet(
             target_file="stock_tracking/stock_info_files/",
             update_type="company_file",
             summary=f"Update {ticker} financial snapshot with consensus metrics from financial_compare packet.",
-            needs_human_review=bool(material_conflicts),
+            needs_human_review=bool(material_conflicts or valuation_sanity_warnings),
             source_ids=source_ids,
         )
     ]

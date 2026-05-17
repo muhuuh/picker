@@ -62,8 +62,29 @@ class CompanyFileFactualUpdateTests(unittest.TestCase):
             text = (root / "stock_tracking/stock_info_files/current_holdings/AMZN.md").read_text(encoding="utf-8")
             self.assertNotIn("AUTOFACT-2026-05-16_weekly-AMZN", text)
 
+    def test_financial_snapshot_warns_when_valuation_needs_verification(self):
+        with TemporaryDirectory() as temp_dir:
+            root = seed_repo(
+                Path(temp_dir),
+                valuation_warnings=[
+                    "52-week range is unusually wide; check for split, corporate-action, ticker, or stale-data issues before using valuation metrics."
+                ],
+            )
 
-def seed_repo(root: Path, quality_findings: list[str] | None = None) -> Path:
+            result = build_company_file_factual_updates(
+                root=root,
+                run_id="2026-05-16_weekly",
+                current_date=date(2026, 5, 16),
+                write=True,
+            )
+
+            self.assertEqual(result.status, "complete")
+            company_text = (root / "stock_tracking/stock_info_files/current_holdings/AMZN.md").read_text(encoding="utf-8")
+            self.assertIn("valuation needs verification before using headline price/market cap/P/E", company_text)
+            self.assertIn("sanity warning: 52-week range is unusually wide", company_text)
+
+
+def seed_repo(root: Path, quality_findings: list[str] | None = None, valuation_warnings: list[str] | None = None) -> Path:
     (root / "AGENTS.md").write_text("# AGENTS\n", encoding="utf-8")
     (root / "stock_tracking/current_holdings").mkdir(parents=True)
     (root / "stock_tracking/monitoring").mkdir(parents=True)
@@ -119,6 +140,7 @@ def seed_repo(root: Path, quality_findings: list[str] | None = None) -> Path:
             "operating_margin_ttm": "13.1%",
             "analyst_target_price": 255,
             "analyst_target_implied_upside": "16%",
+            "valuation_sanity_warnings": valuation_warnings or [],
         },
         "news_snapshot": {"material_developments": ["AWS +28% YoY", "Anthropic investment remains strategically relevant"]},
         "social_snapshot": {

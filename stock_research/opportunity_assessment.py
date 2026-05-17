@@ -209,6 +209,8 @@ def summarize_financials(review: dict[str, Any]) -> dict[str, Any]:
         "taxonomy_conflict_count": len(review.get("taxonomy_conflicts") or []),
         "missing_core_metrics": list(review.get("missing_core_metrics") or []),
         "single_provider_metric_count": len(review.get("single_provider_metrics") or []),
+        "valuation_sanity_warnings": list(review.get("valuation_sanity_warnings") or []),
+        "valuation_sanity_warning_count": len(review.get("valuation_sanity_warnings") or []),
     }
 
 
@@ -736,6 +738,9 @@ def score_opportunity(
     elif int(financial.get("taxonomy_conflict_count") or 0):
         score -= 1
         factors.append("-1 provider taxonomy labels differ, but this is a watch item rather than a thesis blocker.")
+    if int(financial.get("valuation_sanity_warning_count") or 0):
+        score -= 6
+        factors.append("-6 valuation snapshot has sanity warnings and needs cross-provider verification before use.")
     if not factors:
         factors.append("Neutral score: evidence coverage exists but did not trigger strong positive or negative factors.")
     return max(0, min(100, score)), factors
@@ -758,7 +763,7 @@ def classify_risk(
 ) -> str:
     if financial.get("material_conflict_count") or news.get("contradiction_count"):
         return "high"
-    if score < 45 or social.get("rumor_flag") or filings.get("status") == "missing":
+    if score < 45 or social.get("rumor_flag") or filings.get("status") == "missing" or financial.get("valuation_sanity_warning_count"):
         return "medium"
     return "low"
 
@@ -789,6 +794,8 @@ def classify_confidence(
     filings: dict[str, Any],
 ) -> str:
     required = {"financial_data_specialist", "company_news_specialist", "xai_grok", "sec_edgar"}
+    if financial.get("valuation_sanity_warning_count"):
+        return "medium" if {"financial_data_specialist", "company_news_specialist"}.issubset(providers) else "low"
     if required.issubset(providers) and not financial.get("conflict_count") and news.get("contents_claim_count"):
         return "high"
     if {"financial_data_specialist", "company_news_specialist"}.issubset(providers):
@@ -829,6 +836,8 @@ def build_negatives(
     negatives: list[str] = []
     if financial.get("status") == "needs_human_review":
         negatives.append(f"Financial review needs human review: {financial.get('reason') or 'unresolved financial gate'}.")
+    for warning in financial.get("valuation_sanity_warnings", [])[:2]:
+        negatives.append(f"Valuation sanity check: {warning}")
     for claim_text in social.get("bearish_claims", [])[:3]:
         negatives.append(f"X bear/skeptic narrative: {claim_text}")
     if numeric(financial.get("free_cash_flow_per_share_ttm")) and numeric(financial.get("free_cash_flow_per_share_ttm")) < 0:
@@ -854,6 +863,8 @@ def build_watch_items(
     packets: list[EvidencePacket],
 ) -> list[str]:
     items: list[str] = []
+    for warning in financial.get("valuation_sanity_warnings", [])[:2]:
+        items.append(f"Verify valuation snapshot before using it in thesis work: {warning}")
     if financial.get("material_conflict_count"):
         items.append("Resolve material financial provider conflict before updating company-file conclusions.")
     for implication in social.get("investor_implications", [])[:3]:
@@ -877,6 +888,8 @@ def build_data_quality_notes(financial: dict[str, Any], news: dict[str, Any]) ->
         notes.append("Provider industry labels differ; keep this as internal classification hygiene, not an investment risk.")
     if financial.get("single_provider_metric_count"):
         notes.append("Some financial metrics are single-provider; use them as directional until cross-provider coverage improves.")
+    if financial.get("valuation_sanity_warnings"):
+        notes.append("Valuation sanity checks flagged the headline snapshot; do not use price, market cap, or P/E as clean consensus until cross-provider verification is complete.")
     if news.get("remaining_content_follow_up_count"):
         notes.append("Some Exa URLs remain unextracted; schedule contents follow-up as an internal run-quality task.")
     return notes
@@ -952,6 +965,7 @@ def build_valuation_snapshot(financial: dict[str, Any]) -> dict[str, Any]:
         "profit_margin": financial.get("profit_margin"),
         "operating_margin_ttm": financial.get("operating_margin_ttm"),
         "free_cash_flow_per_share_ttm": financial.get("free_cash_flow_per_share_ttm"),
+        "valuation_sanity_warnings": list(financial.get("valuation_sanity_warnings") or []),
     }
 
 
@@ -1309,7 +1323,7 @@ def build_next_research_questions(financial: dict[str, Any], news: dict[str, Any
 
 def build_executive_read(ticker: str, thesis: dict[str, Any], valuation: dict[str, Any], community: dict[str, Any], non_obvious: list[str]) -> str:
     thesis_text = compact_text(strip_citations_and_markdown(str(thesis.get("core_thesis") or "Evidence is incomplete.")), 500)
-    valuation_text = valuation_sentence(valuation)
+    valuation_text = "needs verification before using headline price/market-cap/P/E" if valuation.get("valuation_sanity_warnings") else valuation_sentence(valuation)
     community_text = normalize_sentence_fragment(compact_text(first_sentence(strip_citations_and_markdown(str(community.get("x_pulse", "")))), 300))
     non_obvious_text = compact_text(first_or_default(non_obvious, "No strong non-obvious angle was extracted."), 360)
     return compact_text(
@@ -1820,6 +1834,9 @@ def format_investor_insight_markdown(insight: dict[str, Any]) -> list[str]:
 
     valuation = insight.get("valuation_snapshot") or {}
     lines.extend(["", "### Valuation And Analyst Snapshot", ""])
+    if valuation.get("valuation_sanity_warnings"):
+        lines.append("- Valuation sanity: needs cross-provider verification before using headline price, market cap, P/E, or target-gap conclusions.")
+        lines.extend(f"- Warning: {format_report_item(item, 500)}" for item in valuation.get("valuation_sanity_warnings", [])[:4])
     valuation_rows = [
         ("Latest price", "latest_price"),
         ("Market cap", "market_cap"),
@@ -1896,6 +1913,7 @@ def format_financial_snapshot_lines(financial: dict[str, Any]) -> list[str]:
         "quarterly_earnings_growth_yoy",
         "material_conflict_count",
         "taxonomy_conflict_count",
+        "valuation_sanity_warning_count",
     ]
     lines: list[str] = []
     for key in ordered_keys:
@@ -1908,6 +1926,8 @@ def format_financial_snapshot_lines(financial: dict[str, Any]) -> list[str]:
             lines.append(f"- {key}: {format_percent(value) if value is not None else 'unknown'}")
         else:
             lines.append(f"- {key}: {format_financial_value(key, value)}")
+    for warning in financial.get("valuation_sanity_warnings", [])[:4]:
+        lines.append(f"- valuation_sanity_warning: {format_report_item(warning, 500)}")
     ratings = financial.get("analyst_rating_counts") or {}
     rating_text = ", ".join(f"{key.replace('_', ' ')} {value}" for key, value in ratings.items() if value is not None)
     if rating_text:

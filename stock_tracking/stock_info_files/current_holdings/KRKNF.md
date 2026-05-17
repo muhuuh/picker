@@ -1,6 +1,6 @@
 # KRKNF Kraken Robotics Inc.
 
-Last updated: 2026-05-16
+Last updated: 2026-05-17
 
 ## Company Snapshot
 
@@ -26,17 +26,17 @@ Last updated: 2026-05-16
 
 ## Current Opinion
 
-- Summary: Current holding added for the first biweekly automation run. Durable thesis pending fresh provider, filing, news, sentiment, and opportunity-assessment evidence.
-- Confidence: low
+- Summary: Current holding with attractive subsea autonomy/UUV optionality. Recent orders support demand, but the thesis needs verification of Anduril/Ghost Shark exposure, Covelya integration, and institutional/liquidity improvement.
+- Confidence: medium
 - Current decision: hold for research review
-- What would change our mind: Fresh evidence that materially changes the thesis, risk profile, valuation, or competitive position.
+- What would change our mind: weak order follow-through, delayed Covelya integration, no evidence of material UUV program exposure, margin deterioration, or liquidity/coverage issues that prevent reliable monitoring.
 
 ## Thesis
 
-- Why this company is interesting: TODO after provider-backed research.
-- What must be true: TODO after provider-backed research.
-- Main upside drivers: TODO after provider-backed research.
-- Main downside risks: TODO after provider-backed research.
+- Why this company is interesting: Kraken supplies enabling subsea autonomy technology, including SAS, SeaPower batteries, KATFISH, and maritime robotics capability.
+- What must be true: naval/UUV demand must keep expanding, Kraken must convert orders into profitable revenue, and major program exposure such as Anduril/Ghost Shark must become material.
+- Main upside drivers: CAD 28M/CAD 24M recent orders, underwater-drone/UUV demand, mine countermeasures, seabed infrastructure protection, Covelya/Sonardyne acquisition, and allied defense spending.
+- Main downside risks: OTC liquidity, thinner provider coverage, acquisition integration, customer/program concentration, and unverified scale of Anduril/Ghost Shark exposure.
 
 ## Filings
 
@@ -64,30 +64,44 @@ Last updated: 2026-05-16
 
 ## Sentiment
 
-- X via xAI/Grok / community sentiment:
-- News sentiment:
-- Analyst / expert tone:
-- Noise caveats:
+- X via xAI/Grok / community sentiment: positive around an underwater-drone/UUV supercycle and Kraken's battery/sonar positioning, but some claims need order-size verification.
+- News sentiment: constructive after CAD 28M and CAD 24M order announcements plus Covelya/SEFINE context.
+- Analyst / expert tone: needs better OTC/Canada coverage and forward valuation context.
+- Noise caveats: "supercycle" is a market narrative, not a single confirmed event.
 
 ## Risks and Red Flags
 
-- Accounting:
-- Balance sheet:
-- Competition:
-- Regulation / legal:
-- Customer concentration:
-- Cyclicality:
+- Accounting: verify reported CAD revenue/order flow against Canadian filings and releases.
+- Balance sheet: acquisition funding/integration effects need monitoring.
+- Competition: other UUV, sonar, maritime autonomy, and defense primes.
+- Regulation / legal: defense procurement/export and allied navy program timing.
+- Customer concentration: large defense customers/programs may create lumpiness.
+- Cyclicality: defense order timing and maritime capex cycles.
 - Governance:
-- Other:
+- Other: OTC ticker/Canadian primary listing creates provider coverage and liquidity limitations.
 
 ## Open Questions
 
 - Confirm whether the user prefers the OTCQB ticker `KRKNF` or the TSX-V primary listing `PNG`.
-- What is the current investor thesis after fresh financial, Exa, SEC, and Grok/X review?
+- Does the UUV/subsea autonomy order cycle become large enough to materially scale KRKNF revenue and backlog?
 
 ## Next Actions
 
 - [ ] Run through the biweekly tracked-stock workflow and review the opportunity assessment.
+- [ ] Verify Anduril/Ghost Shark exposure size, order timing, backlog contribution, and whether new UUV programs convert into material revenue.
+- [ ] Track Covelya/Sonardyne integration, Q1 2026 results, and any TSX/liquidity developments.
+
+## Follow-up Research Notes
+
+### 2026-05-17 User Follow-up Research
+
+- The underwater-drone "supercycle" is a useful market narrative, not a single official event. It combines naval UUV demand, mine countermeasures, seabed infrastructure protection, autonomous subsea surveillance, longer-endurance batteries, and Anduril/Ghost Shark-style program visibility.
+- Latest order flow supports the thesis: CAD 28M in SeaPower battery and Kraken SAS orders across five clients including two new customers, plus earlier CAD 24M defense orders across more than 10 customers/five countries.
+- Kraken is positioned through synthetic aperture sonar, SeaPower batteries, KATFISH, subsea imaging, and maritime robotics. These are enabling technologies for UUVs and unmanned maritime systems.
+- The Covelya/Sonardyne acquisition can broaden maritime capability and distribution if integrated well.
+- Risks: OTC liquidity, Canada/foreign filing coverage gaps, customer/program concentration, acquisition integration, and need to verify actual Anduril/Ghost Shark order scale.
+- Near-term checkpoints: Covelya close/integration, Q1 2026 earnings, follow-through orders from NATO/US/allied defense customers, and any disclosure quantifying Anduril or major UUV program exposure.
+- Source report: `agents/runs/2026-05-17_followup_user_questions/follow_up_research_report.md`.
 
 ## Source Log
 
@@ -101,6 +115,8 @@ Last updated: 2026-05-16
 | 2026-05-15 | yfinance metadata check | local provider lookup | Used only for initial ticker/company metadata. |
 | 2026-05-15 | Kraken Robotics release | https://www.krakenrobotics.com/news-releases/kraken-robotics-announces-35-million-in-seapower-battery-sales/ | Confirmed TSX-V PNG and OTCQB KRKNF listing references. |
 | 2026-05-16 | AUTOFACT-2026-05-16_weekly-KRKNF | internal artifact | Low-risk factual sync from opportunity assessment; no thesis/status/trade decision changed. | [agents/runs/2026-05-16_weekly/reports/opportunity_assessment/KRKNF_opportunity_assessment.md](agents/runs/2026-05-16_weekly/reports/opportunity_assessment/KRKNF_opportunity_assessment.md) |
+| 2026-05-17 | User follow-up research | internal artifact plus Exa/Grok evidence | Clarified UUV supercycle thesis, latest CAD 28M/CAD 24M orders, Kraken technology positioning, Covelya context, and verification risks. | [agents/runs/2026-05-17_followup_user_questions/follow_up_research_report.md](agents/runs/2026-05-17_followup_user_questions/follow_up_research_report.md) |
+| 2026-05-17 | Web research redo | official/web sources | Rechecked underwater-autonomy supercycle framing, order flow, defense/offshore demand drivers, and Kraken positioning. | [agents/runs/2026-05-17_followup_user_questions/follow_up_web_research_redo.md](agents/runs/2026-05-17_followup_user_questions/follow_up_web_research_redo.md) |
 
 ## Change Log
 
@@ -112,6 +128,8 @@ Last updated: 2026-05-16
 | --- | --- | --- | --- |
 | 2026-05-15 | Codex | Created company file from user-confirmed holding list. | User input; yfinance metadata check |
 | 2026-05-16 | Codex factual update writer | Applied AUTOFACT-2026-05-16_weekly-KRKNF: synced factual assessment, financial, news, social, and watch-item summaries. | [agents/runs/2026-05-16_weekly/reports/opportunity_assessment/KRKNF_opportunity_assessment.md](agents/runs/2026-05-16_weekly/reports/opportunity_assessment/KRKNF_opportunity_assessment.md) |
+| 2026-05-17 | Codex | Added user follow-up findings on underwater-drone/UUV demand, latest orders, technology fit, Covelya optionality, and verification risks. | [agents/runs/2026-05-17_followup_user_questions/follow_up_research_report.md](agents/runs/2026-05-17_followup_user_questions/follow_up_research_report.md) |
+| 2026-05-17 | Codex | Added persisted source-backed web redo as supporting evidence for future runs. | [agents/runs/2026-05-17_followup_user_questions/follow_up_web_research_redo.md](agents/runs/2026-05-17_followup_user_questions/follow_up_web_research_redo.md) |
 
 ## Automated Factual Updates
 

@@ -1,6 +1,6 @@
 # Artifact Lifecycle And Hygiene
 
-Last updated: 2026-05-16
+Last updated: 2026-05-17
 
 ## Goal
 
@@ -24,6 +24,8 @@ Active truth should live in:
 - `agents/human_review_digest.md`
 
 Run artifacts under `agents/runs/` are evidence and audit history. They are useful, but they should not become the primary place to find current investment state.
+
+Manual follow-up research reports under `agents/runs/{run_id}/` are evidence artifacts. They should not become a second memory system. Durable company facts, thesis changes, risks, and source-backed corrections must be promoted into the relevant company file, category state, market-research file, or strategy file. Operational lessons from the follow-up belong in `agents/memory/`; raw provider output and temporary reasoning notes stay in the run folder and can later be archived/indexed.
 
 ## Current Implementation
 
@@ -125,6 +127,7 @@ Keep:
 
 - final digests,
 - opportunity assessments for active holdings/monitoring names,
+- follow-up reports that are linked from active company files and still relevant to open questions,
 - market reports tied to active priorities,
 - candidate verification results,
 - memory/reflection summaries,

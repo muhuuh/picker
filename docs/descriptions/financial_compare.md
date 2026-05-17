@@ -1,6 +1,6 @@
 # Financial Compare
 
-Last updated: 2026-05-04
+Last updated: 2026-05-17
 
 ## Purpose
 
@@ -58,8 +58,11 @@ agents/runs/{run_id}/evidence_packets/{date}_financial_compare_company_{ticker}.
 - Compare numeric values with metric-specific tolerances.
 - Normalize harmless text differences such as casing, exchange aliases, country aliases, and company-name punctuation.
 - Keep provider disagreements as contradictions instead of hiding them.
+- Run valuation sanity checks before downstream reporting. If headline valuation data relies only on market-price providers such as Polygon/yfinance and shows warning signs such as an extreme 52-week range, price/range mismatch, or single-provider P/E, the comparison downgrades affected valuation metrics and writes explicit `valuation_sanity_warnings`.
 - Mark missing metrics in `unknowns`.
-- Recommend company-file updates, with human review required only when material conflicts remain.
+- Recommend company-file updates, with human review required when material conflicts or valuation sanity warnings remain.
+
+Valuation sanity warnings are especially important for small-cap, OTC, foreign, and thinly covered tickers. They do not prove the provider data is wrong, but they prevent the system from treating price, market cap, P/E, or target-gap fields as clean consensus until FMP, Alpha Vantage, filings, company IR, or another trusted source cross-checks them.
 
 ## Workflow Role
 

@@ -31,6 +31,15 @@
 - Full provider-task validation surfaced and fixed an Exa/Grok artifact naming issue: same-subject provider tasks now use task-specific packet/raw names.
 - The current AAPL weekly validation run finalization is `complete` with zero deterministic quality findings and zero reflection issues.
 - AAPL company-news review status is `ready_for_company_update`; it is a workflow validation artifact and should not be treated as an investment recommendation.
+- 2026-05-17: Fresh user-follow-up research ran for TE, IREN, AXTI, AMBA, AVAV, KRKNF, and OSS using Grok/X plus Exa. Interim findings are preserved in `agents/runs/2026-05-17_followup_user_questions/follow_up_research_working_notes.md` before final report/company-file updates.
+- 2026-05-17: Follow-up research found one important correction: AXTI should not be framed as simply avoiding 6-inch InP; current evidence says AXTI is actively scaling/ramping 6-inch. The older "competitors may fail at 6-inch and shift back to AXTI 4-inch" angle is unverified and needs company-file correction.
+- 2026-05-17: Smaller/OTC holdings still need stronger valuation sanity checks. AXTI surfaced suspicious financial snapshot values in prior reports, so valuation conclusions should require cross-provider confirmation.
+- 2026-05-17: Final follow-up report was written to `agents/runs/2026-05-17_followup_user_questions/follow_up_research_report.md`. TE, IREN, AXTI, AMBA, AVAV, KRKNF, and OSS company files now have dated follow-up notes plus updated top-level thesis/opinion context.
+- 2026-05-17: Cross-provider valuation sanity checks are now implemented in code. Extreme 52-week ranges, price/range mismatches, market-price-only coverage, and single-provider P/E can downgrade valuation metric confidence and surface explicit warnings in financial reviews, opportunity assessments, and company-file factual updates.
+- 2026-05-17: Follow-up run artifacts are drill-down evidence, not active memory. Durable company conclusions should live in company files; operational lessons live in `agents/memory/`; old run artifacts can be indexed/archived after their conclusions are promoted.
+- 2026-05-17: HRQ candidate rows still need better human ergonomics. The user should not approve/reject random ticker symbols; candidate digest rows need mini-thesis context or should be left open/marked `needs_more_research`.
+- 2026-05-17: Redid the lost native web research and persisted it immediately in `agents/runs/2026-05-17_followup_user_questions/follow_up_web_research_redo.md`; linked it from TE, IREN, AXTI, AMBA, AVAV, KRKNF, and OSS company files.
+- 2026-05-17: Human review digest now loads linked candidate-review context and stale/non-actionable open HRQ rows were marked `superseded`, reducing the live digest from 20 rows to 6 contextual rows.
 
 ## Open Questions
 
@@ -40,12 +49,15 @@
 
 - Decide whether to keep AAPL as a real monitored stock or replace it with the user's actual watchlist.
 - Add Exa contents follow-up for high-value company-news URLs before deeper AAPL thesis/company-file updates.
+- Regenerate a weekly/company report for AXTI or another small-cap example to confirm the new valuation sanity warnings appear in the final human-facing output when provider coverage is suspicious.
+- Continue improving candidate-review evidence quality for newly generated rows; the digest now has contextual rows, but source candidate-review files should keep improving the reason-to-care and risk/check fields.
 
 ## Risks / Gotchas
 
 - AAPL is currently a workflow validation seed, not an investment recommendation.
 - Keep detailed financial reasoning in the company file and evidence artifacts, not only in the CSV row.
 - Current run evidence count includes older provider smoke packets in the same run folder; future clean runs should use a fresh run id for cleaner metrics.
+- Grok/X follow-up findings are valuable for sentiment and hidden angles but remain social signals until verified with Exa, company IR, filings, or financial-provider evidence.
 
 ## Commands / Environment Notes
 

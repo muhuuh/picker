@@ -90,6 +90,26 @@ class FinancialSpecialistTests(unittest.TestCase):
             self.assertEqual(result.review["low_confidence_core_metrics"], [])
             self.assertFalse(result.packet.recommended_updates[0].needs_human_review)
 
+    def test_financial_review_blocks_valuation_sanity_warnings(self):
+        with TemporaryDirectory() as temp_dir:
+            root = seed_repo(Path(temp_dir))
+            packet_path = write_compare_packet(root, conflicts=False, valuation_warnings=True)
+
+            result = build_financial_specialist_packet(
+                ticker="AAPL",
+                run_id="2026-05-09_weekly",
+                root=root,
+                current_date=date(2026, 5, 4),
+                financial_compare_packet_path=packet_path,
+            )
+
+            self.assertEqual(result.review["status"], "needs_human_review")
+            self.assertTrue(result.review["valuation_sanity_warnings"])
+            self.assertTrue(result.packet.recommended_updates[0].needs_human_review)
+            self.assertTrue(any("Valuation sanity warnings" in risk.risk for risk in result.packet.risks))
+            report = result.paths[2].read_text(encoding="utf-8")
+            self.assertIn("## Valuation Sanity Warnings", report)
+
 
 def seed_repo(root: Path) -> Path:
     (root / "AGENTS.md").write_text("# AGENTS\n", encoding="utf-8")
@@ -98,7 +118,13 @@ def seed_repo(root: Path) -> Path:
     return root
 
 
-def write_compare_packet(root: Path, conflicts: bool, taxonomy_conflicts: bool = False, metadata_conflicts: bool = False) -> Path:
+def write_compare_packet(
+    root: Path,
+    conflicts: bool,
+    taxonomy_conflicts: bool = False,
+    metadata_conflicts: bool = False,
+    valuation_warnings: bool = False,
+) -> Path:
     consensus = {
         "company_name": {"value": "Apple Inc.", "confidence": "high", "status": "consistent", "providers": ["fmp", "polygon"]},
         "latest_price": {"value": 280.14, "confidence": "high", "status": "consistent", "providers": ["fmp", "polygon"]},
@@ -136,6 +162,11 @@ def write_compare_packet(root: Path, conflicts: bool, taxonomy_conflicts: bool =
             "values": {"fmp": "NASDAQ", "polygon": "NCM"},
             "reason": "Provider values for exchange disagree.",
         }
+    if valuation_warnings:
+        warning = "52-week range is unusually wide; check for split, corporate-action, ticker, or stale-data issues before using valuation metrics."
+        for metric in ("latest_price", "market_cap", "pe_ratio"):
+            consensus[metric]["confidence"] = "low"
+            consensus[metric]["sanity_warnings"] = [warning]
     packet = new_packet(
         provider="financial_compare",
         subject_type="company",

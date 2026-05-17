@@ -276,6 +276,9 @@ def build_factual_rows(
 
 def format_financial_snapshot(financial: dict[str, Any]) -> str:
     parts = []
+    warnings = [str(item).strip() for item in financial.get("valuation_sanity_warnings", []) if str(item).strip()]
+    if warnings:
+        parts.append("valuation needs verification before using headline price/market cap/P/E")
     for label, key in [
         ("price", "latest_price"),
         ("market cap", "market_cap"),
@@ -290,6 +293,8 @@ def format_financial_snapshot(financial: dict[str, Any]) -> str:
         if value in ("", None):
             continue
         parts.append(f"{label}: {format_value(value, percent=key in PERCENT_FIELDS)}")
+    for warning in warnings[:2]:
+        parts.append(f"sanity warning: {clean_cell(warning)}")
     return "; ".join(parts)
 
 

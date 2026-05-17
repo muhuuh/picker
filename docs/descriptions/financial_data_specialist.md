@@ -1,6 +1,6 @@
 # Financial Data Specialist
 
-Last updated: 2026-05-04
+Last updated: 2026-05-17
 
 ## Purpose
 
@@ -50,7 +50,7 @@ agents/runs/{run_id}/reports/financial_data_specialist/{TICKER}_financial_review
 
 - `ready_for_company_update`: core metrics are present and no material provider conflicts were found.
 - `partial_review`: no material conflicts were found, but core metrics are missing.
-- `needs_human_review`: provider conflicts or low-confidence core metrics remain.
+- `needs_human_review`: provider conflicts, low-confidence core metrics, or valuation sanity warnings remain.
 
 Core metrics:
 
@@ -80,4 +80,5 @@ Weekly manifests now plan `financial_review` analysis tasks after matching `fina
 - Do not treat social/news providers as financial comparison inputs.
 - Do not hide provider conflicts.
 - Single-provider metrics can be useful, but should be marked as lower-confidence context.
+- Valuation sanity warnings from `financial_compare` block clean financial conclusions until price, market cap, P/E, and range data are cross-checked through trusted providers or primary/company sources.
 - `needs_human_review` means no financial conclusion should be updated automatically.

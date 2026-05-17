@@ -132,6 +132,20 @@ Operational memory about provider reliability, source behavior, and known gotcha
 - owner: financial-data specialist
 - next_review: 2026-08-01
 
+- id: source-2026-05-17-small-cap-valuation-sanity
+- date: 2026-05-17
+- type: source_quality
+- scope: financial
+- status: active
+- confidence: high
+- trigger/source: User follow-up research on AXTI found suspicious price/market-cap/P/E values in the prior opportunity assessment.
+- lesson: Small-cap, OTC, foreign, and thinly covered tickers need explicit cross-provider sanity checks before valuation fields are used in human-facing conclusions. If price, market cap, P/E, forward P/E, or analyst target values look inconsistent with ticker identity or company scale, mark valuation as lower-confidence and create a verification task instead of presenting the snapshot as clean.
+- use_when: Financial compare, opportunity assessment, weekly digest, company-file factual updates, and smaller/OTC-name research.
+- do_not_use_when: Suppressing a confirmed primary-source financial metric; preserve the metric with source and explain why it is trusted.
+- evidence: `agents/runs/2026-05-17_followup_user_questions/follow_up_research_report.md`, `stock_tracking/stock_info_files/current_holdings/AXTI.md`
+- owner: financial-data specialist
+- next_review: 2026-06-17
+
 ## Source Hierarchy Status
 
 - Financial source-of-truth hierarchy is still open.

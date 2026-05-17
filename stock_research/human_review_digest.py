@@ -54,7 +54,7 @@ def build_human_review_digest(
     status_filter = {value.lower() for value in (statuses or OPEN_REVIEW_STATUSES)}
     rows = load_first_table(repo_root / "agents" / "human_review_queue.md")
     items = [
-        build_digest_item(row)
+        build_digest_item(row, root=repo_root)
         for row in rows
         if normalize_ascii(row.get("Status", "")).lower() in status_filter
     ]
@@ -92,12 +92,13 @@ def build_human_review_digest(
     return digest
 
 
-def build_digest_item(row: dict[str, str]) -> HumanReviewDigestItem:
+def build_digest_item(row: dict[str, str], *, root: Path | None = None) -> HumanReviewDigestItem:
     item = normalize_ascii(row.get("Item", ""))
     decision = normalize_ascii(row.get("Decision Needed", ""))
     notes = normalize_ascii(row.get("Notes", ""))
     evidence = normalize_ascii(row.get("Evidence / Run Link", ""))
     category = classify_review_category(item, decision, evidence, notes)
+    candidate_context = load_candidate_review_context(root, evidence) if root else {}
     return HumanReviewDigestItem(
         review_id=normalize_ascii(row.get("ID", "")),
         date_added=normalize_ascii(row.get("Date Added", "")),
@@ -110,7 +111,7 @@ def build_digest_item(row: dict[str, str]) -> HumanReviewDigestItem:
         verification_status=extract_verification(notes),
         evidence_link=evidence,
         notes=truncate(notes, 260),
-        context=build_review_context(category, item, decision, notes, evidence),
+        context=build_review_context(category, item, decision, notes, evidence, candidate_context),
     )
 
 
@@ -212,8 +213,23 @@ def suggest_action(category: str, item: str, decision: str, notes: str) -> str:
     return "Approve, reject, or request more research."
 
 
-def build_review_context(category: str, item: str, decision: str, notes: str, evidence: str) -> str:
+def build_review_context(
+    category: str,
+    item: str,
+    decision: str,
+    notes: str,
+    evidence: str,
+    candidate_context: dict[str, str] | None = None,
+) -> str:
     base = strip_dead_source_id_tail(notes or decision or item)
+    if category.startswith("candidate_") and candidate_context:
+        return build_candidate_context(category, candidate_context, fallback=base)
+    if category.startswith("candidate_") and "candidate_review.md" in evidence.lower():
+        return truncate(
+            "Context could not be loaded from the linked candidate review. Do not decide from ticker symbols alone; mark needs_more_research or leave open until a candidate thesis is available. "
+            + base,
+            760,
+        )
     if category == "candidate_monitoring_review":
         prefix = "Read the linked candidate group and market report first; approval means this source-backed lead may enter the monitoring approval path."
     elif category == "candidate_verification_grok":
@@ -227,6 +243,88 @@ def build_review_context(category: str, item: str, decision: str, notes: str, ev
     else:
         prefix = "Review the linked evidence before deciding."
     return truncate(f"{prefix} {base}", 520)
+
+
+def load_candidate_review_context(root: Path | None, evidence_link: str) -> dict[str, str]:
+    if root is None or "candidate_review.md" not in evidence_link.lower():
+        return {}
+    parsed = parse_markdown_evidence_link(evidence_link)
+    if parsed is None:
+        return {}
+    relative_path, anchor = parsed
+    review_path = root / relative_path
+    if not review_path.exists():
+        return {}
+    try:
+        rows = load_first_table(review_path)
+    except OSError:
+        return {}
+    target_id = normalize_ascii(anchor).upper()
+    for row in rows:
+        group_id = normalize_ascii(row.get("Group ID", "")).upper()
+        review_id = normalize_ascii(row.get("Review Item ID", "")).upper()
+        if target_id and target_id in {group_id, review_id}:
+            return {normalize_ascii(key): normalize_ascii(value) for key, value in row.items()}
+    return {}
+
+
+def parse_markdown_evidence_link(value: str) -> tuple[Path, str] | None:
+    cleaned = normalize_ascii(value).strip().strip("`")
+    match = re.search(r"([A-Za-z0-9_./\\-]+candidate_review\.md)(?:#([A-Za-z0-9_-]+))?", cleaned)
+    if not match:
+        return None
+    relative = Path(match.group(1).replace("\\", "/"))
+    anchor = match.group(2) or ""
+    return relative, anchor
+
+
+def build_candidate_context(category: str, candidate_context: dict[str, str], *, fallback: str) -> str:
+    candidate = candidate_context.get("Candidate", "")
+    evidence_state = candidate_context.get("Evidence state", "")
+    if not evidence_state:
+        channels = candidate_context.get("Channels", "")
+        verification = candidate_context.get("Verification", "")
+        hype = candidate_context.get("Hype", "")
+        cooldown = candidate_context.get("Cooldown", "")
+        pieces = [
+            f"channels={channels}" if channels else "",
+            f"verification={verification}" if verification else "",
+            f"hype={hype}" if hype else "",
+            f"cooldown={cooldown}" if cooldown else "",
+        ]
+        evidence_state = "; ".join(piece for piece in pieces if piece)
+    decision_options = candidate_context.get("Decision options", "") or candidate_context.get("Decision Kind", "")
+    why = (
+        candidate_context.get("Why it surfaced", "")
+        or candidate_context.get("Why surfaced", "")
+        or fallback
+    )
+    why = strip_dead_source_id_tail(why)
+    if category == "candidate_monitoring_review":
+        action_prefix = "Monitoring-review candidate: approval starts the monitoring-addition path after evidence review."
+    elif category == "candidate_verification_grok":
+        action_prefix = "Grok/X lead: approval only starts verification; it does not add the stock to monitoring."
+    else:
+        action_prefix = "Verification candidate: approval starts company/news/financial checks before any monitoring decision."
+    parts = [action_prefix]
+    if candidate:
+        parts.append(format_sentence("Candidate/group", candidate))
+    if evidence_state:
+        parts.append(format_sentence("Evidence state", evidence_state))
+    if why:
+        parts.append(format_sentence("Why it surfaced", why))
+    if decision_options:
+        parts.append(format_sentence("Decision expected", decision_options))
+    parts.append("Use the evidence link for source ids and the full market report before approving.")
+    return truncate(" ".join(parts), 900)
+
+
+def format_sentence(label: str, value: str) -> str:
+    cleaned = normalize_ascii(value).strip()
+    if not cleaned:
+        return ""
+    terminal = "" if cleaned[-1] in ".!?" else "."
+    return f"{label}: {cleaned}{terminal}"
 
 
 def strip_dead_source_id_tail(value: str) -> str:

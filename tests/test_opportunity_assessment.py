@@ -61,6 +61,21 @@ class OpportunityAssessmentTests(unittest.TestCase):
         self.assertNotIn("sentiment_label", markdown)
         self.assertNotIn("Extract remaining high-value Exa", markdown)
 
+    def test_valuation_sanity_warnings_are_visible_in_human_report(self):
+        assessment = full_report_assessment()
+        assessment["financial_snapshot"]["valuation_sanity_warning_count"] = 1
+        assessment["financial_snapshot"]["valuation_sanity_warnings"] = [
+            "52-week range is unusually wide; check for split, corporate-action, ticker, or stale-data issues before using valuation metrics."
+        ]
+        assessment["investor_insight_report"]["valuation_snapshot"]["valuation_sanity_warnings"] = list(
+            assessment["financial_snapshot"]["valuation_sanity_warnings"]
+        )
+
+        markdown = format_opportunity_assessment_markdown(Path("."), "2026-05-16_weekly", assessment)
+
+        self.assertIn("Valuation sanity: needs cross-provider verification", markdown)
+        self.assertIn("52-week range is unusually wide", markdown)
+
     def test_development_extraction_rejects_truncated_markdown_fragments(self):
         evidence = """
 ## Earnings call

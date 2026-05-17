@@ -65,6 +65,28 @@ class FinancialCompareTests(unittest.TestCase):
         self.assertEqual(comparison["consensus"]["exchange"]["status"], "consistent")
         self.assertEqual(comparison["conflicts"], [])
 
+    def test_small_cap_valuation_sanity_flags_market_only_extreme_range(self):
+        from stock_research.financial_compare import FinancialObservation
+
+        comparison = compare_observations(
+            [
+                FinancialObservation("latest_price", "polygon", 123.78, "polygon_packet"),
+                FinancialObservation("latest_price", "yfinance", 123.78, "yfinance_packet"),
+                FinancialObservation("market_cap", "polygon", 8098081715.52, "polygon_packet"),
+                FinancialObservation("market_cap", "yfinance", 8098081715.52, "yfinance_packet"),
+                FinancialObservation("pe_ratio", "yfinance", 164.60107, "yfinance_packet"),
+                FinancialObservation("fifty_two_week_low", "yfinance", 1.38, "yfinance_packet"),
+                FinancialObservation("fifty_two_week_high", "yfinance", 134.0, "yfinance_packet"),
+            ]
+        )
+
+        warnings = comparison["valuation_sanity_warnings"]
+        self.assertTrue(any("52-week range is unusually wide" in warning for warning in warnings))
+        self.assertTrue(any("market-price providers" in warning for warning in warnings))
+        self.assertEqual(comparison["consensus"]["latest_price"]["confidence"], "low")
+        self.assertEqual(comparison["consensus"]["market_cap"]["confidence"], "low")
+        self.assertIn("sanity_warnings", comparison["consensus"]["pe_ratio"])
+
 
 def write_input_packet(root: Path, run_id: str, provider: str, metrics: dict):
     packet = new_packet(
