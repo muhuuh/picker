@@ -206,6 +206,8 @@ def format_weekly_digest_markdown(digest: WeeklyDigest) -> str:
                 "",
             ]
         )
+        seen_claims: set[str] = set()
+        remember_digest_text(str(item["summary"]), seen_claims)
         for key, value in item["financial_snapshot"].items():
             lines.append(f"- {key}: {format_financial_value(key, value)}")
         lines.extend(["", "### News / Trends / Sentiment", ""])
@@ -213,32 +215,57 @@ def format_weekly_digest_markdown(digest: WeeklyDigest) -> str:
         social = item["social_snapshot"]
         filing = item["filing_snapshot"]
         if news.get("material_developments"):
-            lines.append("- Source-backed developments:")
-            for development in news["material_developments"][:3]:
+            development_lines: list[str] = []
+            for development in news["material_developments"][:4]:
                 claim_text = development.get("claim") if isinstance(development, dict) else str(development)
-                lines.append(f"  - {digest_text(claim_text, 700)}")
+                append_digest_item(development_lines, f"For {item['ticker']}, {claim_text}", seen_claims, prefix="  - ", max_length=700)
+            if development_lines:
+                lines.append("- Source-backed developments:")
+                lines.extend(development_lines)
+            else:
+                lines.append("- Source-backed developments: covered by the summary above.")
         else:
             lines.append("- Source-backed developments: none extracted.")
-        lines.append(f"- Grok/X pulse: {digest_text(social.get('x_pulse') or social['sentiment'], 700)}")
+        append_digest_item(lines, social.get("x_pulse") or social["sentiment"], seen_claims, prefix="- Grok/X pulse: ", max_length=700)
         if social.get("bullish_claims"):
-            lines.append("- X bull case:")
-            lines.extend(f"  - {digest_text(value, 700)}" for value in social["bullish_claims"][:2])
+            bull_lines: list[str] = []
+            for value in social["bullish_claims"][:3]:
+                append_digest_item(bull_lines, f"For {item['ticker']}, {value}", seen_claims, prefix="  - ", max_length=700)
+            if bull_lines:
+                lines.append("- X bull case:")
+                lines.extend(bull_lines)
         if social.get("bearish_claims"):
-            lines.append("- X bear/skeptic case:")
-            lines.extend(f"  - {digest_text(value, 700)}" for value in social["bearish_claims"][:2])
+            bear_lines: list[str] = []
+            for value in social["bearish_claims"][:3]:
+                append_digest_item(bear_lines, f"For {item['ticker']}, {value}", seen_claims, prefix="  - ", max_length=700)
+            if bear_lines:
+                lines.append("- X bear/skeptic case:")
+                lines.extend(bear_lines)
         if social.get("notable_accounts"):
             lines.append(f"- Accounts/posts to review: {', '.join(social['notable_accounts'][:5])}")
         if social.get("hype_noise"):
-            lines.append(f"- Hype/noise: {digest_text(social['hype_noise'], 700)}")
+            append_digest_item(lines, social["hype_noise"], seen_claims, prefix="- Hype/noise: ", max_length=700)
         lines.append(f"- Filing coverage: {filing['status']} ({filing['packet_count']} packet(s))")
         lines.extend(["", "### Positives", ""])
-        lines.extend(f"- {digest_text(value, 700)}" for value in item["top_positives"])
+        for value in item["top_positives"]:
+            append_digest_item(lines, f"For {item['ticker']}, {value}", seen_claims, prefix="- ", max_length=700)
+        if lines[-1] == "":
+            lines.append(f"- For {item['ticker']}, no distinct positive item beyond the expert opinion and news sections above.")
         lines.extend(["", "### Risks / Cautions", ""])
-        lines.extend(f"- {digest_text(value, 700)}" for value in item["top_negatives"])
+        for value in item["top_negatives"]:
+            append_digest_item(lines, f"For {item['ticker']}, {value}", seen_claims, prefix="- ", max_length=700)
+        if lines[-1] == "":
+            lines.append(f"- For {item['ticker']}, no distinct risk item beyond the caveats above.")
         lines.extend(["", "### Next Research Checks", ""])
         user_checks = [value for value in item["watch_items"] if not str(value).startswith("Extract remaining high-value Exa")]
-        lines.extend(f"- {digest_text(value, 700)}" for value in (user_checks or ["No high-priority human research check surfaced in this digest."]))
-        lines.extend(["", "### Recommended Next Action", "", f"- {item['recommended_next_action']}", ""])
+        for value in (user_checks or ["No high-priority human research check surfaced in this digest."]):
+            append_digest_item(lines, f"For {item['ticker']}, {value}", seen_claims, prefix="- ", max_length=700)
+        lines.extend(["", "### Recommended Next Action", ""])
+        appended_before = len(lines)
+        append_digest_item(lines, item["recommended_next_action"], seen_claims, prefix="- ", max_length=700)
+        if len(lines) == appended_before:
+            lines.append(f"- For {item['ticker']}, use the linked opportunity report for non-repeated next-action details.")
+        lines.append("")
     lines.extend(["## Run-Level Next Actions", ""])
     if digest.next_actions:
         lines.extend(f"- {item}" for item in digest.next_actions)
@@ -347,4 +374,45 @@ def format_value(value: Any) -> str:
 def digest_text(value: Any, limit: int) -> str:
     text = re.sub(r"\[\[\d+\]\]\([^)]+\)", "", str(value))
     text = re.sub(r"(?<!\w)\[(\d+)\](?!\w)", "", text)
-    return compact_complete_text(text, limit)
+    return compact_complete_text(" ".join(text.split()), limit)
+
+
+def append_digest_item(lines: list[str], value: Any, seen: set[str], *, prefix: str, max_length: int) -> None:
+    text = digest_text(value, max_length)
+    if not text:
+        return
+    key = digest_claim_key(text)
+    if key and digest_duplicate(key, seen):
+        return
+    if key:
+        seen.add(key)
+    remember_digest_text(text, seen)
+    lines.append(f"{prefix}{text}")
+
+
+def remember_digest_text(value: str, seen: set[str]) -> None:
+    for sentence in re.split(r"(?<=[.!?])\s+", digest_text(value, 1200)):
+        key = digest_claim_key(sentence)
+        if key and len(key.split()) >= 8:
+            seen.add(key)
+
+
+def digest_claim_key(value: str) -> str:
+    normalized = value.lower()
+    normalized = re.sub(r"[^a-z0-9]+", " ", normalized)
+    return " ".join(normalized.split())
+
+
+def digest_duplicate(key: str, seen: set[str]) -> bool:
+    compact = key[:140]
+    key_words = set(key.split())
+    for previous in seen:
+        previous_compact = previous[:140]
+        if compact == previous_compact or compact in previous or previous_compact in key:
+            return True
+        previous_words = set(previous.split())
+        if len(key_words) >= 8 and len(previous_words) >= 8:
+            overlap = len(key_words & previous_words) / max(len(key_words), len(previous_words))
+            if overlap >= 0.82:
+                return True
+    return False

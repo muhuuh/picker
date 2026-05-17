@@ -27,7 +27,7 @@ class HumanReviewDigestTests(unittest.TestCase):
         self.assertEqual(digest.category_counts["candidate_verification"], 1)
         self.assertIn("Company File Updates / FYI", markdown)
         self.assertIn("Grok/X Candidate Verification", markdown)
-        self.assertIn("Approve follow-up verification, reject/ignore, or leave open. Do not promote yet.", markdown)
+        self.assertIn("Verify, reject, or leave open.", markdown)
         self.assertNotIn("HRQ-0004", markdown)
 
     def test_digest_separates_verified_monitoring_candidates_from_grok_verification(self):

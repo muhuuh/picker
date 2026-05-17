@@ -49,6 +49,7 @@ DEFAULT_ROUTES: dict[str, dict[str, str]] = {
     "xai_stock_sentiment": {"provider": "xai", "model_tier": "grok_x_search", "complexity": "high"},
     "xai_industry_discovery": {"provider": "xai", "model_tier": "grok_x_search", "complexity": "high"},
     "xai_latest_news": {"provider": "xai", "model_tier": "grok_x_search", "complexity": "medium_high"},
+    "xai_company_deep_dive": {"provider": "xai", "model_tier": "grok_x_search", "complexity": "medium_high"},
 }
 
 TASK_ROUTE_ALIASES: tuple[tuple[str, str], ...] = (

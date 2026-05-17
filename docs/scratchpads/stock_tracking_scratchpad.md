@@ -40,10 +40,19 @@
 - 2026-05-17: HRQ candidate rows still need better human ergonomics. The user should not approve/reject random ticker symbols; candidate digest rows need mini-thesis context or should be left open/marked `needs_more_research`.
 - 2026-05-17: Redid the lost native web research and persisted it immediately in `agents/runs/2026-05-17_followup_user_questions/follow_up_web_research_redo.md`; linked it from TE, IREN, AXTI, AMBA, AVAV, KRKNF, and OSS company files.
 - 2026-05-17: Human review digest now loads linked candidate-review context and stale/non-actionable open HRQ rows were marked `superseded`, reducing the live digest from 20 rows to 6 contextual rows.
+- 2026-05-17: Google Sheet `new_stock_overview` is accessible via the Google Drive plugin. It has one tab, `Sheet1`, with headers: Date, Name, Ticker, Industry, Mcap, Forward PE, Forecast, Score, available, action, Comment.
+- 2026-05-17: Proposed sheet journey fits the repo if treated as a lightweight pre-intake/inbox for user-discovered stocks. The durable workflow should still sync selected rows into repo artifacts before validation, verification, or monitoring promotion.
+- 2026-05-17: Implemented the quick Sheet intake bridge. Sheet `action=research` rows can be passed to `python -m stock_research sheet-intake selected-rows --rows-json rows.json --write --queue-review`; this writes intake/candidate-review artifacts and optional HRQ rows, but does not add monitoring/holdings/rejected state.
+- 2026-05-17: Live Sheet headers now include Source / link, Processing status, Repo link, and Last checked. Final dropdown model: Score=A+/A/A-/B+/B/B-/C+/C/C-/D+/D/D-, available=yes/no, action=research/add to monitoring/buy candidate/bought/ignore/rejected, and processing status=not processed/in research/done/needs fix. Blank action means no repo processing.
+- 2026-05-17: Candidate follow-up now parses both older detailed candidate-review tables and current compact Evidence state tables, so Sheet-created candidate reviews can produce verification manifests.
+- 2026-05-17: Live Sheet round-trip verified with ASTS and SIVE sample rows from the user's pasted report. Writing rows, reading values/validation metadata, updating processing status/Last checked, and reading updates back all worked through the Google Sheets connector.
+- 2026-05-17: CLI dry-run verified action semantics: a `research` row is selected for intake, while a blank-action row is skipped.
+- 2026-05-17: Final live Sheet read-back verified pragmatic dropdowns: action=research/add to monitoring/buy candidate/bought/ignore/rejected; Processing status=not processed/in research/done/needs fix; Score preserves B+.
 
 ## Open Questions
 
 - Whether AAPL should remain as a real monitoring stock after workflow validation or be replaced by the user's actual watchlist.
+- Whether repeated Sheet processing becomes annoying enough to justify a helper; current decision is to use Codex connector reads/writes first.
 
 ## Next Steps
 
@@ -51,6 +60,7 @@
 - Add Exa contents follow-up for high-value company-news URLs before deeper AAPL thesis/company-file updates.
 - Regenerate a weekly/company report for AXTI or another small-cap example to confirm the new valuation sanity warnings appear in the final human-facing output when provider coverage is suspicious.
 - Continue improving candidate-review evidence quality for newly generated rows; the digest now has contextual rows, but source candidate-review files should keep improving the reason-to-care and risk/check fields.
+- Run the first real Sheet-to-repo processing pass with actual `action=research` rows, then decide whether a helper is needed.
 
 ## Risks / Gotchas
 
@@ -58,6 +68,10 @@
 - Keep detailed financial reasoning in the company file and evidence artifacts, not only in the CSV row.
 - Current run evidence count includes older provider smoke packets in the same run folder; future clean runs should use a fresh run id for cleaner metrics.
 - Grok/X follow-up findings are valuable for sentiment and hidden angles but remain social signals until verified with Exa, company IR, filings, or financial-provider evidence.
+- Do not make the Google Sheet the source of truth for monitored holdings. It should stay quick capture; repo CSVs, company files, run artifacts, and human-review queue remain durable state.
+- Sheet-added financial metrics are useful for triage but should be refreshed and source-backed before they affect research conclusions.
+- `action=buy candidate` is only a triage label. It is not a buy instruction and should not bypass verification or human approval.
+- `action=add to monitoring` is an outcome after research/approval, not the trigger for Codex to run research. The trigger is `research`.
 
 ## Commands / Environment Notes
 
@@ -65,3 +79,4 @@
 - AAPL workflow validation command: `python -m stock_research analysis-tasks --manifest agents\runs\2026-05-09_weekly\manifest.json --execute --today 2026-05-04`.
 - Full validation commands: `python -m stock_research provider-tasks --manifest agents\runs\2026-05-09_weekly\manifest.json --execute --today 2026-05-04`, then `run-summary`, `quality-report`, and `memory finalize-run`.
 - Company news validation command: `python -m stock_research analysis-tasks --manifest agents\runs\2026-05-09_weekly\manifest.json --execute --task-id company_news_review_aapl --today 2026-05-04`.
+- Sheet intake command: `python -m stock_research sheet-intake selected-rows --rows-json rows.json --write --queue-review`.

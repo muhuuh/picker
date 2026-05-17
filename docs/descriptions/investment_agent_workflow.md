@@ -236,8 +236,9 @@ Current implementation status:
 
 - Implemented: repo state loader, CSV schema validator, stock-info file indexer, human input queue loader, research priorities loader, human review queue loader, stale-data scanner, rejected-stock cooldown summary, weekly manifest generator.
 - Implemented: deterministic request classifier, human input queue appender, request router, human review queue writer, and manual run manifest creation.
-- Implemented providers: SEC EDGAR submissions and optional companyfacts evidence packet writer, yfinance market-data snapshots, FMP market-data/fundamentals snapshots, Polygon/Massive U.S. ticker/OHLC snapshots, Alpha Vantage quote/overview snapshots, Exa search/contents evidence packet writers, and xAI Grok x_search evidence packet writers.
+- Implemented providers: SEC EDGAR submissions and optional companyfacts evidence packet writer, yfinance market-data snapshots, FMP market-data/fundamentals snapshots, Polygon/Massive U.S. ticker/OHLC snapshots, Alpha Vantage quote/overview snapshots, Exa search/contents evidence packet writers, xAI Grok `x_search` evidence packet writers, and auxiliary xAI Grok `web_search` company deep-dive evidence packet writers.
 - Implemented: weekly manifests now include deterministic provider tasks and post-provider `analysis_tasks` for financial comparison plus financial-data specialist review. `provider-tasks` and `analysis-tasks` can dry-run or explicitly execute those manifest tasks.
+- Implemented: per-ticker human synthesis packs under `reports/human_synthesis/`. These are the Codex app handoff for writing final reports from first principles; opportunity assessment markdown is now treated as an audit/evidence artifact, not the final reader experience.
 - Implemented: deterministic weekly workflow wrapper through `python -m stock_research run-weekly`.
 - Implemented: OpenAI Agents SDK runtime foundation, company-research sub-orchestrator, market-research sub-orchestrator, portfolio-review sub-orchestrator, memory/evaluation sub-orchestrator, main aggregation packet, and a manual market-research runner for industry/theme discovery with Exa, Grok/X, candidate lead extraction, and discovery quality gates.
 - Pending: macro providers, OS/app scheduled execution, and deeper live prompt iteration across real manual examples.
@@ -268,6 +269,7 @@ Exa specialist tool selection:
 xAI Grok specialist tool selection:
 
 - Stock sentiment specialist should use Grok `x_search` for representative recent posts, sentiment, news reactions, and cited X posts.
+- Company deep-dive gap checks may use Grok `web_search` for current business context, latest news, analyst-context gaps, and research checks. Treat this lane as auxiliary until material facts are verified by Exa contents, filings, company sources, or financial providers.
 - Industry sentiment specialist should use Grok `x_search` against topic prompts; discovered tickers require Exa/company validation before they become candidates.
 - Grok/X evidence must stay labeled as social sentiment and should not be treated as verified fact.
 
@@ -329,6 +331,7 @@ Keep file writing separate from research:
 - CSV updater: validates schema and updates overview rows.
 - Strategy impact updater: proposes strategy changes, but should require human approval for major changes.
 - Quality reviewer: checks citations, stale data, contradictions, malformed CSV, and overconfident claims.
+- Human synthesis pack writer: gathers the deterministic opportunity audit report, raw Grok/X, auxiliary Grok web, company-news, financial, filing, and company-file context into a compact instruction pack for Codex app final-report synthesis.
 
 ## Proposed Flow
 

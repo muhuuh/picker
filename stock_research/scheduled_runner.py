@@ -26,6 +26,11 @@ from .company_file_factual_update import (
 )
 from .manifest import build_weekly_manifest, write_manifest
 from .human_review_digest import HumanReviewDigest, build_human_review_digest, human_review_digest_to_dict
+from .human_synthesis_pack import (
+    HumanSynthesisPackResult,
+    build_human_synthesis_packs,
+    human_synthesis_pack_result_to_dict,
+)
 from .memory import relative_to_root
 from .memory_llm_writer import (
     MemoryWriterReview,
@@ -117,34 +122,12 @@ def run_weekly_research_workflow(
     proposal_review_result: dict[str, Any] = {"status": "not_run"}
     weekly_digest: WeeklyDigest | None = None
     human_review_digest: HumanReviewDigest | None = None
+    human_synthesis_packs: HumanSynthesisPackResult | None = None
     codex_review_pack: CodexReviewPack | None = None
 
     if write:
         run_summary = build_run_summary(repo_root, run_id, today)
         artifacts.extend(write_run_summary(repo_root, run_summary))
-
-        quality_report = build_quality_report(repo_root, run_id, today)
-        artifacts.extend(write_quality_report(repo_root, quality_report))
-
-        finalization, finalization_paths = finalize_run(
-            root=repo_root,
-            run_id=run_id,
-            current_date=today,
-            recurring_threshold=recurring_threshold,
-        )
-        artifacts.extend(finalization_paths)
-
-        memory_writer_review, memory_writer_paths = build_memory_writer_review(
-            root=repo_root,
-            run_id=run_id,
-            current_date=today,
-            execute=execute_memory_writer,
-            model=memory_writer_model,
-            update_drafts=update_memory_drafts,
-            responder=memory_writer_responder,
-            write_artifacts=True,
-        )
-        artifacts.extend(memory_writer_paths)
 
         if execute_analysis and (repo_root / "agents" / "runs" / run_id / "raw" / "opportunity_assessment").exists():
             company_file_factual_updates = build_company_file_factual_updates(
@@ -271,6 +254,8 @@ def run_weekly_research_workflow(
 
         weekly_digest = build_weekly_digest(repo_root, run_id)
         artifacts.extend(write_weekly_digest(repo_root, weekly_digest))
+        human_synthesis_packs = build_human_synthesis_packs(repo_root, run_id, current_date=today, write=True)
+        artifacts.extend(repo_root / path for path in human_synthesis_packs.written_paths)
         human_review_digest = build_human_review_digest(root=repo_root, current_date=today, write=True)
         artifacts.extend(repo_root / path for path in human_review_digest.written_paths)
         category_state_updates = update_category_state_files(
@@ -280,6 +265,30 @@ def run_weekly_research_workflow(
             write=True,
         )
         artifacts.extend(repo_root / path for path in category_state_updates.written_paths)
+
+        quality_report = build_quality_report(repo_root, run_id, today)
+        artifacts.extend(write_quality_report(repo_root, quality_report))
+
+        finalization, finalization_paths = finalize_run(
+            root=repo_root,
+            run_id=run_id,
+            current_date=today,
+            recurring_threshold=recurring_threshold,
+        )
+        artifacts.extend(finalization_paths)
+
+        memory_writer_review, memory_writer_paths = build_memory_writer_review(
+            root=repo_root,
+            run_id=run_id,
+            current_date=today,
+            execute=execute_memory_writer,
+            model=memory_writer_model,
+            update_drafts=update_memory_drafts,
+            responder=memory_writer_responder,
+            write_artifacts=True,
+        )
+        artifacts.extend(memory_writer_paths)
+
         codex_review_pack = build_codex_review_pack(repo_root, run_id)
         codex_review_pack_paths = write_codex_review_pack(repo_root, codex_review_pack)
         artifacts.extend(codex_review_pack_paths)
@@ -323,6 +332,7 @@ def run_weekly_research_workflow(
             category_state_updates=category_state_updates,
             proposal_review_result=proposal_review_result,
             weekly_digest=weekly_digest,
+            human_synthesis_packs=human_synthesis_packs,
             human_review_digest=human_review_digest,
             codex_review_pack=codex_review_pack,
         ),
@@ -340,6 +350,7 @@ def run_weekly_research_workflow(
             category_state_updates,
             orchestrator_result,
             weekly_digest,
+            human_synthesis_packs,
             human_review_digest,
             codex_review_pack,
         ),
@@ -425,6 +436,7 @@ def build_steps(
     category_state_updates: CategoryStateUpdateResult | None,
     proposal_review_result: dict[str, Any],
     weekly_digest: WeeklyDigest | None,
+    human_synthesis_packs: HumanSynthesisPackResult | None,
     human_review_digest: HumanReviewDigest | None,
     codex_review_pack: CodexReviewPack | None,
 ) -> dict[str, Any]:
@@ -457,6 +469,11 @@ def build_steps(
         "agent_orchestrator": orchestrator_result,
         "orchestrator_proposal_review": proposal_review_result,
         "final_digest": weekly_digest_to_dict(weekly_digest) if weekly_digest else {"status": "not_written"},
+        "human_synthesis_packs": (
+            human_synthesis_pack_result_to_dict(human_synthesis_packs)
+            if human_synthesis_packs
+            else {"status": "not_written"}
+        ),
         "human_review_digest": human_review_digest_to_dict(human_review_digest) if human_review_digest else {"status": "not_written"},
         "codex_review_pack": codex_review_pack_to_dict(codex_review_pack) if codex_review_pack else {"status": "not_written"},
         "framework_boundary": {
@@ -480,6 +497,7 @@ def next_actions(
     category_state_updates: CategoryStateUpdateResult | None = None,
     orchestrator_result: dict[str, Any] | None = None,
     weekly_digest: WeeklyDigest | None = None,
+    human_synthesis_packs: HumanSynthesisPackResult | None = None,
     human_review_digest: HumanReviewDigest | None = None,
     codex_review_pack: CodexReviewPack | None = None,
 ) -> list[str]:
@@ -516,7 +534,7 @@ def next_actions(
     if not write:
         actions.append("For the lower-cost Codex-supervised path, use `--write --execute-providers --execute-analysis`, then have Codex read the generated review pack.")
     elif not orchestrator_result or orchestrator_result.get("status") == "not_run":
-        actions.append("OpenAI Agents SDK synthesis was not run. This is expected in Codex-supervised mode; use `--execute-orchestrator` only for API-mode benchmarking, debugging, or remote/headless execution.")
+        actions.append("Codex app synthesis remains the next step in Codex-supervised mode; use `--execute-orchestrator` only for API-mode debugging or remote/headless fallback.")
     elif orchestrator_result.get("status") == "error":
         actions.append("Review SDK orchestrator errors before treating synthesis as complete.")
     elif orchestrator_result.get("quality_findings"):
@@ -527,13 +545,15 @@ def next_actions(
         actions.append("Review SDK orchestrator quality findings and tighten prompts/tools before accepting synthesis.")
     if weekly_digest and weekly_digest.next_actions:
         actions.extend(weekly_digest.next_actions)
+    if human_synthesis_packs and human_synthesis_packs.quality_findings:
+        actions.append("Review `reports/human_synthesis/*_synthesis_pack.md`; final report inputs still have coverage or verification gaps.")
     if human_review_digest and human_review_digest.open_item_count:
         actions.append(
             f"Review `agents/human_review_digest.md`: {human_review_digest.open_item_count} open item(s) need approve/reject/more-research/leave-open decisions."
         )
     if codex_review_pack:
         actions.append(
-            f"Codex-supervised automation should read `agents/runs/{codex_review_pack.run_id}/codex_supervised_review_pack.md` and write `{codex_review_pack.expected_output_path}`."
+            f"Codex-supervised automation should read `agents/runs/{codex_review_pack.run_id}/codex_supervised_review_pack.md`, write `{codex_review_pack.expected_output_path}`, and refresh every `reports/human_synthesis/*_final_human_report.md` target."
         )
     return unique(actions)
 
@@ -862,6 +882,7 @@ def format_scheduled_run_report_markdown(result: ScheduledRunResult) -> str:
         f"- category_state_updates: {result.steps['category_state_updates'].get('status', 'not_run')} ({len(result.steps['category_state_updates'].get('items', []))} item(s))",
         f"- company_research: {result.steps['company_research'].get('status', 'not_run')} ({len(result.steps['company_research'].get('results', []))} ticker(s))",
         f"- final_digest: {result.steps['final_digest'].get('status', 'not_written')} ({result.steps['final_digest'].get('ticker_count', 0)} ticker(s))",
+        f"- human_synthesis_packs: {result.steps['human_synthesis_packs'].get('status', 'not_written')} ({len(result.steps['human_synthesis_packs'].get('packs', []))} pack(s))",
         f"- human_review_digest: {result.steps['human_review_digest'].get('status', 'not_written')} ({result.steps['human_review_digest'].get('open_item_count', 0)} open item(s))",
         f"- codex_review_pack: {result.steps['codex_review_pack'].get('status', 'not_written')}",
         f"- agent_orchestrator: {result.steps['agent_orchestrator'].get('status', 'not_run')}",

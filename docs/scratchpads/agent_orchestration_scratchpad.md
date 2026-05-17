@@ -55,6 +55,10 @@
 
 ## Key Decisions and Why
 
+- 2026-05-17: Human report quality work should prioritize first-principles synthesis and cross-section de-duplication before adding more provider calls, because AMBA/KRKNF raw artifacts already contain stronger evidence than the final report reading experience shows.
+- 2026-05-17: Add a Grok `web_search` deep-dive path as auxiliary gap-filling for business context, latest news, analyst context, and research checks; material facts from that path still need Exa/filing/financial-provider verification.
+- 2026-05-17: Use `docs/plans/human_report_quality_improvement_plan.md` to track this multi-step report-quality effort.
+- 2026-05-17: Implemented cross-section de-duplication in opportunity reports and final digest, added repeated-long-claim quality checks, regenerated the 2026-05-16 reports, and reached zero human-report quality findings for that run.
 - 2026-04-30: Proposed deterministic-first workflow because recurring stock tracking needs predictable coverage before open-ended agent judgment.
 - 2026-04-30: Proposed separate writer specialists so research agents do not make broad, hard-to-review file edits.
 - 2026-04-30: Proposed run artifacts plus agent memory so future runs can learn from bad sources, failed prompts, and repeated routing mistakes.
@@ -177,9 +181,12 @@
 - What changes need human approval before file writes?
 - Detailed SDK runtime implementation choices: first specialist-as-tool target, default model split, session usage, and local trace artifact format.
 - Exact implementation shape for Codex chat request classification and manual run triggering.
+- Exact fallback mechanics if a future remote/headless run explicitly cannot use Codex app supervision.
 
 ## Next Steps
 
+- On the next fresh scheduled run, verify same-run Grok web artifacts are present in synthesis packs and have Codex app write every `*_final_human_report.md` target.
+- Keep final report writing Codex-app-supervised by default; API/OpenRouter is only a remote/headless fallback or SDK-debug path.
 - Review updated `docs/descriptions/investment_agent_workflow.md` and `docs/plans/investment_agent_backlog.md` with the user if needed.
 - Next implementation work should follow `docs/plans/openai_agents_sdk_orchestration_backlog.md`: add a focused OpenAI Agents SDK runtime foundation around the existing deterministic artifacts.
 - Learning-loop gap still pending inside LLM orchestration: automatic injection of memory context into actual specialist prompts after a framework is chosen.
@@ -208,6 +215,12 @@
 
 ## Commands / Environment Notes
 
+- AMBA Grok web smoke command succeeded: `python -m stock_research xai web-search --ticker AMBA --company-name "Ambarella" --subject-type company --subject-id AMBA --run-id 2026-05-17_amba-report-quality --today 2026-05-17`.
+- Human synthesis pack command: `python -m stock_research human-report synthesis-pack --run-id RUN_ID --write`.
+- AMBA comparison result: deterministic de-dup helps, but the best human read was the Codex first-principles synthesis over deterministic evidence plus Grok/X and Grok web. Treat opportunity assessments as audit/evidence and write final reports from synthesis packs.
+- AMBA final human report test artifact: `agents/runs/2026-05-16_weekly/reports/human_synthesis/AMBA_final_human_report.md`; it passed `validate_human_facing_markdown`, and final human reports are now included in run quality reports.
+- User clarified on 2026-05-17 that this is not an API-vs-Codex quality decision: Codex app GPT-5.5 high is the primary final-report writer; OpenRouter/API is only fallback for explicit headless/remote cases.
+- Full 2026-05-16 final-report layer is present: all ten `reports/human_synthesis/*_final_human_report.md` files exist, pass `validate_human_facing_markdown`, and `quality_report.md` has zero findings.
 - `rg --files` failed with Access denied in this environment; PowerShell `Get-ChildItem` worked.
 - Current repo path: `C:\Users\valen\Documents\Code\stocks`.
 - SEC live smoke test output packet: `agents/runs/2026-05-09_weekly/evidence_packets/2026-05-03_sec_edgar_company_aapl.json`.

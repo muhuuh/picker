@@ -1,24 +1,27 @@
 # xAI Grok Provider
 
-Last updated: 2026-05-12
+Last updated: 2026-05-17
 
 ## Purpose
 
-xAI Grok is the provider for X-based social sentiment, latest X news, and community narrative research.
+xAI Grok is the provider for X-based social sentiment, latest X news, community narrative research, and auxiliary web deep-dive context.
 
 Implementation: `stock_research/providers/xai_grok.py`.
 
 ## Official Sources Reviewed
 
 - xAI tools overview: https://docs.x.ai/developers/tools/overview
+- xAI Web Search tool: https://docs.x.ai/developers/tools/web-search
 - xAI X Search tool: https://docs.x.ai/developers/tools/x-search
 - xAI citations: https://docs.x.ai/developers/tools/citations
 
-Rechecked on 2026-05-10 before market-discovery specialist work.
+Rechecked on 2026-05-17 before adding the auxiliary web-search path.
 
 ## Correct Design
 
-Use `XAI_API_KEY` with Grok and the built-in `x_search` tool.
+Use `XAI_API_KEY` with Grok and the built-in `x_search` tool for X-native work.
+
+Use Grok `web_search` for auxiliary company deep dives when the workflow needs current business context, latest web news, analyst-context gaps, and research checks similar to a human analyst briefing.
 
 Do not use the direct X.com / Twitter API v2 recent search/counts endpoints for this repo.
 
@@ -39,8 +42,16 @@ No `X_BEARER_TOKEN` is needed for this design.
 
 ## Current Tool
 
+X sentiment:
+
 ```powershell
 python -m stock_research xai x-search --ticker AMD --company-name "Advanced Micro Devices" --subject-type company --subject-id AMD --run-id 2026-05-09_weekly
+```
+
+Company web deep dive:
+
+```powershell
+python -m stock_research xai web-search --ticker AMBA --company-name "Ambarella" --subject-type company --subject-id AMBA --run-id 2026-05-17_manual-xai
 ```
 
 Industry/theme sentiment:
@@ -66,11 +77,14 @@ Useful options:
 
 Official xAI docs currently list these `x_search` parameters: `allowed_x_handles`, `excluded_x_handles`, `from_date`, `to_date`, `enable_image_understanding`, and `enable_video_understanding`. Allowed/excluded handle filters are mutually exclusive and each supports up to 10 handles.
 
+Official xAI docs currently list these `web_search` parameters: `allowed_domains`, `excluded_domains`, and `enable_image_understanding`. Allowed/excluded domain filters are mutually exclusive and each supports up to 5 domains. xAI docs state Web Search runs on the Responses API and can search/browse current web pages.
+
 ## Weekly Manifest Usage
 
 Weekly manifests should plan `xai_grok` provider tasks by default:
 
 - current holdings and monitoring stocks: Grok `x_search` stock sentiment;
+- current holdings and monitoring stocks: Grok `web_search` company deep-dive context as an auxiliary gap-filling lane;
 - research priorities: Grok `x_search` industry/theme sentiment;
 - human stock/industry/theme requests: routed to Grok `x_search`.
 
@@ -81,6 +95,7 @@ Discovery-specific usage:
 - Prompt Grok to surface niche companies, emerging tickers, credible accounts/posts, rumors, hype cycles, skepticism, and verification tasks.
 - Company and industry prompts must ask for investor-grade sections, not just a sentiment label: X/community pulse, trend evolution, verified facts, bull narratives, bear/skeptical narratives, non-obvious angles, notable accounts/posts, hype/noise/rumors, candidate follow-up, and an investor scorecard.
 - Treat results as social signal and lead generation only.
+- Treat `web_search` results as auxiliary context, not a source of truth. Use them to spot missing business/industry/news/analyst details, then verify material claims through Exa contents, filings, company sources, and financial providers.
 
 Inspect planned xAI tasks:
 
@@ -106,7 +121,7 @@ When Grok runs from manifest provider tasks, `artifact_id` is the manifest task 
 
 Long run ids, subject ids, and manifest task ids are compacted with a stable hash in packet filenames so Windows path length does not break evidence packet writes.
 
-Human-facing report writers should use the full raw Grok artifact when available. Evidence packet claims may be truncated for compact storage, but market and opportunity reports need the full Grok sections so X pulse, bull/bear narratives, candidate follow-up, and scorecards are not lost.
+Human-facing report writers should use the full raw Grok artifact when available. Evidence packet claims may be truncated for compact storage, but market and opportunity reports need the full Grok sections so X pulse, bull/bear narratives, candidate follow-up, scorecards, and auxiliary web deep-dive sections are not lost.
 
 Live smoke test status:
 

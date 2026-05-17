@@ -17,6 +17,7 @@ The current implementation is a deterministic Python foundation. It reads the re
 - `docs/HUMAN_USAGE_GUIDE.md`: concise human guide for using this repo through Codex chat.
 - `docs/descriptions/repo_map.md`: where to find and update each kind of information.
 - `docs/descriptions/human_interaction_workflow.md`: how user chat input becomes repo state.
+- `docs/descriptions/google_sheet_stock_intake.md`: Google Sheet quick stock inbox and selected-row repo bridge.
 - `docs/descriptions/human_review_operating_model.md`: how digest-first asynchronous human review and future notifications should work.
 - `docs/plans/human_research_requests.md`: proactive user request queue.
 - `agents/human_review_queue.md`: system-generated items needing user approval.
@@ -76,6 +77,7 @@ Write deterministic run summary and quality report artifacts:
 ```powershell
 python -m stock_research run-summary --run-id 2026-05-09_weekly --write
 python -m stock_research quality-report --run-id 2026-05-09_weekly --write
+python -m stock_research human-report synthesis-pack --run-id 2026-05-09_weekly --write
 ```
 
 Run the deterministic weekly workflow wrapper:
@@ -94,11 +96,11 @@ The default local scheduled path is Codex-supervised:
 C:\Python313\python.exe -m stock_research run-weekly --write --execute-providers --execute-analysis
 ```
 
-That command gathers provider/analysis evidence, writes the final digest, opportunity assessments, memory/finalization artifacts, category state updates, human-review digest, and `agents/runs/{run_id}/codex_supervised_review_pack.md`. Codex app automation should then read the pack and write `agents/runs/{run_id}/codex_supervised_review.md` using Codex GPT-5.5 high.
+That command gathers provider/analysis evidence, writes the deterministic quick digest, deterministic opportunity audit reports, human synthesis packs, memory/finalization artifacts, category state updates, human-review digest, and `agents/runs/{run_id}/codex_supervised_review_pack.md`. Codex app automation should then read the pack and write `agents/runs/{run_id}/codex_supervised_review.md` using Codex GPT-5.5 high, plus one `agents/runs/{run_id}/reports/human_synthesis/{TICKER}_final_human_report.md` for every synthesis pack. Those final human reports are the reader-facing per-ticker company/opportunity reports; the opportunity assessments remain audit trails.
 
-`--execute-orchestrator` is optional API SDK mode and requires `OPENAI_API_KEY`. It runs per-ticker company-research fanout for current-holding and monitoring tickers before main orchestration. Use it for remote/headless execution, SDK trace debugging, or benchmarking against Codex-supervised quality. If provider or analysis tasks are still dry-run and the SDK proposes alerts or file updates, the scheduled run is marked `needs_review` so stale artifacts cannot look like fresh research. If live SDK execution times out or errors, it writes a blocked reviewable artifact plus `run_metrics.md` instead of silently failing.
+`--execute-orchestrator` is optional API SDK mode and requires `OPENAI_API_KEY`. It runs per-ticker company-research fanout for current-holding and monitoring tickers before main orchestration. Use it for remote/headless fallback or SDK trace debugging, not as the default quality writer. If provider or analysis tasks are still dry-run and the SDK proposes alerts or file updates, the scheduled run is marked `needs_review` so stale artifacts cannot look like fresh research. If live SDK execution times out or errors, it writes a blocked reviewable artifact plus `run_metrics.md` instead of silently failing.
 
-Model routing is explicit in `agents/model_routing.yaml`. OpenAI API strong routes use `gpt-5.5` for high-complexity synthesis; balanced/fast routes use `gpt-5.4-mini` to reduce routine SDK synthesis cost. Grok/X routes use the configured xAI X-search tier. Codex app/automation is still preferred for manual repo execution, report review, prompt iteration, and file edits because it can use your Codex GPT-5.5 high environment outside the Python process.
+Model routing is explicit in `agents/model_routing.yaml`. OpenAI API strong routes use `gpt-5.5` for high-complexity synthesis; balanced/fast routes use `gpt-5.4-mini` to reduce routine SDK synthesis cost. Grok routes use the configured xAI tier for X-search and auxiliary web-search deep dives. Codex app/automation is still preferred for manual repo execution, report review, prompt iteration, and file edits because it can use your Codex GPT-5.5 high environment outside the Python process.
 
 Inspect the OpenAI Agents SDK runtime registry without making live model calls:
 
@@ -129,6 +131,15 @@ python -m stock_research human-review decide --set HRQ-0004=approved --note "Run
 ```
 
 This creates a manual manifest with Exa context, Exa company discovery, and Grok/X discovery lanes. With `--write`, it writes a reviewable market report and ignored candidate-lead JSON. Discovery gates keep Grok-only leads as verification tasks, enforce rejected-stock cooldowns, and require source ids plus verification labels. `candidate-review` groups duplicate/share-class leads and repeated Grok/X multi-ticker baskets, writes a review artifact, and can append duplicate-safe human-review queue rows without adding stocks to monitoring. Regenerated candidate-review rows for the same run supersede stale open rows. `human-review digest` writes a concise open-review summary to `agents/human_review_digest.md`, including the allowed human decisions: approve, reject, mark needs more research, or leave open. `human-review decide` records your approve/reject/more-research decisions in the queue and refreshes the digest; it does not run verification or edit stock files. `candidate-followup` only processes approved candidate-review rows and writes verification tasks. After the provider/analysis tasks run, `candidate-verification-result` consolidates provider coverage, specialist statuses, findings, and next actions. `candidate-promote` is the final approval-gated writer: it only adds a monitoring CSV row and company file when the HRQ row is approved, the candidate is a `monitoring_candidate`, and required verification artifacts exist.
+
+Process rows from the quick Google Sheet stock inbox after you explicitly mark them `action=research`:
+
+```powershell
+python -m stock_research sheet-intake selected-rows --rows-json rows.json --write --queue-review
+python -m stock_research sheet-intake selected-rows --rows-json rows.json --write --queue-review --approve-verification --write-verification-plan
+```
+
+The first command creates Sheet intake and candidate-review artifacts, with optional human-review queue rows. The second command also marks the just-created review rows approved for verification and writes a verification plan, so use it only when the user explicitly asked Codex to run verification planning. Neither command adds stocks to monitoring, holdings, or rejected state.
 
 Human review is digest-first. The user normally reviews `agents/human_review_digest.md` through Codex chat; portfolio review, memory/evaluation, candidate review, and proposal reports are deeper context. Future email/app notifications should summarize the digest, not act as approvals.
 
@@ -243,6 +254,12 @@ Run Grok x_search into social evidence packets:
 python -m stock_research xai x-search --ticker AMD --company-name "Advanced Micro Devices" --subject-type company --subject-id AMD --run-id 2026-05-09_weekly
 ```
 
+Run Grok web_search into auxiliary company deep-dive packets:
+
+```powershell
+python -m stock_research xai web-search --ticker AMBA --company-name "Ambarella" --subject-type company --subject-id AMBA --run-id 2026-05-17_manual-xai
+```
+
 xAI/Grok requires `XAI_API_KEY` in `.env` or `--api-key`.
 
 Add a request to the human input queue:
@@ -317,6 +334,7 @@ Implemented:
 - Company-research SDK sub-orchestrator for one ticker, with evidence lanes for financials, company news, filings, sentiment, company search, risk/thesis impact, writer proposals, and quality review, plus financial, company-news, company-search, filing, sentiment, risk/thesis, writer, and quality-review specialist fanout.
 - Market-research SDK sub-orchestrator and manual runner for one industry/theme, with Exa industry/company discovery, Grok/X trend and rumor discovery, candidate discovery, quality-review specialist fanout, typed candidate leads, and discovery quality gates.
 - Candidate verification result reporting after approved follow-up provider/analysis tasks.
+- Google Sheet quick stock intake bridge for rows explicitly marked `action=research`.
 - Portfolio-review SDK sub-orchestrator for holdings/monitoring/rejected buckets, human-review items, and candidate verification results.
 - Memory/evaluation SDK sub-orchestrator for run metrics, quality reports, memory reflection, recurring failures, memory update drafts, memory writer review, and finalization.
 - Main orchestrator aggregation packet that maps company, market, portfolio, memory/evaluation, candidate verification, and human-review artifacts before final synthesis.
@@ -345,7 +363,7 @@ Implemented:
 - deterministic company-news specialist review layer.
 - automatic Exa contents follow-up for company-news reviews.
 - Exa search and contents provider tools.
-- xAI Grok x_search provider tools.
+- xAI Grok x_search and web_search provider tools.
 - structured operational agent memory under `agents/memory/`.
 
 Not implemented yet:
@@ -353,4 +371,5 @@ Not implemented yet:
 - macro provider integrations,
 - scheduled market-research fanout,
 - OS/app scheduled execution,
-- immediate research runs.
+- immediate research runs,
+- direct live Google Sheet row fetch/status write-back helpers inside the Python CLI.

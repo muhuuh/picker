@@ -1,6 +1,6 @@
 # Human Interaction Workflow
 
-Last updated: 2026-05-15
+Last updated: 2026-05-17
 
 ## Goal
 
@@ -54,6 +54,38 @@ Current routing behavior:
 - stock status move: creates a human review item instead of moving the stock automatically.
 
 Human review details are defined in `docs/descriptions/human_review_operating_model.md`.
+
+## Quick Google Sheet Stock Intake
+
+The Google Sheet `new_stock_overview` is the fast capture surface for stocks the user comes across outside the repo:
+
+```text
+https://docs.google.com/spreadsheets/d/16S9NXkIi4IH6fPHe3DMpxvtjknzzRIjyxW2XjJp6Jr0/edit
+```
+
+Detailed behavior is defined in `docs/descriptions/google_sheet_stock_intake.md`.
+
+The Sheet is a pre-intake inbox, not durable portfolio state. The user can ask Codex chat to fill a row from a pasted paragraph plus web search. The row should stay concise: basic company fields, user's `Score`, broker `available`, `action`, source link, and a short `Comment`.
+
+The user reviews the Sheet every one or two weeks and sets `action=research` only on rows that should enter repo validation. Codex should process those rows only after an explicit user request; no background automation should watch the Sheet and start research on its own.
+
+Use this bridge for selected rows:
+
+```powershell
+python -m stock_research sheet-intake selected-rows --rows-json rows.json --write --queue-review
+```
+
+Meaningful Sheet `action` values:
+
+- blank: keep the idea in the Sheet only.
+- `research`: explicitly selected for repo candidate review/verification planning.
+- `add to monitoring`: final decision to track after research/approval.
+- `buy candidate`: high interest, not a trade instruction.
+- `bought`: user confirms it belongs in current holdings.
+- `ignore`: do not pursue.
+- `rejected`: researched and rejected; preserve cooldown logic in repo state when applicable.
+
+After research, Codex should update `action` with the outcome and keep `Processing status` simple: `not processed`, `in research`, `done`, or `needs fix`.
 
 ## Two Separate Queues
 

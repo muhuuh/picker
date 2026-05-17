@@ -296,6 +296,13 @@ def fake_ready_orchestrator_executor(context, prompt: str, model: str | None):
             ],
         }
     json_path.write_text(json.dumps(final_output), encoding="utf-8")
+    (context.run_dir / "run_metrics.md").write_text(
+        "# Run Metrics\n\n"
+        "| metric | status | started_at | ended_at | detail |\n"
+        "| --- | --- | --- | --- | --- |\n"
+        "| agent_run:main_orchestrator | complete | 2026-05-05T00:00:00+00:00 | 2026-05-05T00:00:01+00:00 | fake ready result |\n",
+        encoding="utf-8",
+    )
     return AgentRuntimeResult(
         agent_id="main_orchestrator",
         final_output=final_output,
@@ -322,6 +329,13 @@ def fake_ready_no_action_orchestrator_executor(context, prompt: str, model: str 
             "sources": [],
         }
     json_path.write_text(json.dumps(final_output), encoding="utf-8")
+    (context.run_dir / "run_metrics.md").write_text(
+        "# Run Metrics\n\n"
+        "| metric | status | started_at | ended_at | detail |\n"
+        "| --- | --- | --- | --- | --- |\n"
+        "| agent_run:main_orchestrator | complete | 2026-05-05T00:00:00+00:00 | 2026-05-05T00:00:01+00:00 | fake ready result |\n",
+        encoding="utf-8",
+    )
     return AgentRuntimeResult(
         agent_id="main_orchestrator",
         final_output=final_output,

@@ -9,7 +9,7 @@ Thesis freshness: `fresh_recent_evidence`
 
 ## Verdict
 
-NBIS is constructive_but_watch (68/100, medium risk, high confidence) because Strategic ecosystem signal: evidence cites OpenAI, Meta, Microsoft, NVIDIA, suggesting customer/partner leverage that may matter beyond the headline financial metrics. Main caveat: X bear/skeptic narrative: Capex intensity ($20-25 B in 2026) will keep free cash flow negative for years and risks dilution or debt overhang (@noisetoalpha). X pulse: X chatter on $NBIS surged after the May 13 earnings release, with the dominant view that Nebius has shifted from "speculative neocloud" to a credible AI-infrastructure utility that is sold out of capacity into 2026
+NBIS is constructive_but_watch (68/100, medium risk, high confidence). NBIS main positive driver: technology or product-positioning evidence, strategic ecosystem/customer leverage evidence. NBIS main caveat: profitability or cash-conversion evidence, execution or competitive risk. NBIS Grok/X adds 4 bull theme(s) and 3 skeptic theme(s) for verification.
 
 ### Why The Score Looks Like This
 
@@ -24,9 +24,9 @@ NBIS is constructive_but_watch (68/100, medium risk, high confidence) because St
 ## Investor Insight Report
 ### Executive Read
 
-NBIS: Communication Services / Internet Content & Information: Strategic ecosystem signal: evidence cites OpenAI, Meta, Microsoft, NVIDIA, suggesting customer/partner leverage that may matter beyond the headline financial metrics. The social bull case centers on Sold-out capacity through 2026 plus $46 B in contracted revenue from Meta and Microsoft gives visibility no other mid-tier player matches (@Kajiastic). Valuation: price $219.94, P/E 84.59x. X/community: X chatter on $NBIS surged after the May 13 earnings release, with the dominant view that Nebius has shifted from "speculative neocloud" to a credible AI-infrastructure utility that is sold out of capacity into 2026 and is now executing at hyperscale pace.
+NBIS: technology or product-positioning evidence, strategic ecosystem/customer leverage evidence. Valuation context: price $219.94, P/E 84.59x. X/community evidence adds 4 bull theme(s) and 3 skeptic theme(s), so the key job is to verify which social claims are supported by filings, news, and financials. Main extra check: 7 under-discussed angle(s) to verify.
 
-### Company / Industry Context
+### Business, Technology, And Industry Context
 
 - What it does: The Nebius AI Cloud brings powerful full-stack infrastructure for AI developers and practitioners across startups, enterprises and science institutes to build and deploy generative AI applications and rapidly deliver scientific breakthroughs by training and running ML models within a secure, high-performance, and cost-optimized cloud environment.
 - Sector / industry: Communication Services / Internet Content & Information
@@ -36,43 +36,31 @@ NBIS: Communication Services / Internet Content & Information: Strategic ecosyst
 
 ### Thesis, Trends, And What Changed
 
-- Core thesis: Communication Services / Internet Content & Information: Strategic ecosystem signal: evidence cites OpenAI, Meta, Microsoft, NVIDIA, suggesting customer/partner leverage that may matter beyond the headline financial metrics. The social bull case centers on Sold-out capacity through 2026 plus $46 B in contracted revenue from Meta and Microsoft gives visibility no other mid-tier player matches (@Kajiastic).
+- Core thesis: Communication Services / Internet Content & Information: Strategic ecosystem signal: evidence cites OpenAI, Meta, Microsoft, NVIDIA, suggesting customer/partner leverage that may matter beyond the headline financial metrics. X adds a separate narrative layer that should be checked against fundamentals, not treated as proof.
 - What changed recently:
   - Nebius Group N.V. (NASDAQ: NBIS), the AI cloud company, today announced its unaudited financial results for the first quarter ended March 31, 2026.
   - Nebius today also announced that it has secured up to 1.2 GW of power and land for a new, owned AI factory at a site in Pennsylvania.
   - The Company today also published founder and CEO Arkady Volozh's quarterly letter to shareholders, available on its investor relations website at https://nebius.com/investor-hub.
   - AMSTERDAM--(BUSINESS WIRE)--Nebius Group N.V. (NASDAQ: NBIS), the AI cloud company, today announced its unaudited financial results for the fourth quarter and full financial year ended December 31, 2025.
-  - (2) Results include consolidated financial results of: Nebius, the core AI infrastructure business; Avride, an autonomous vehicle platform; and TripleTen, an edtech service.
-  - ("Nebius Group" or the "Company"; NASDAQ: NBIS), a leading AI infrastructure company, today announced its intention to offer, subject to market and other conditions, $3.75 billion aggregate original principal amount of convertible senior notes, in two series: $2.0 billion aggregate original principal amount of convertible notes due 2031 (the "2031 Notes").
+  - (2) Results include consolidated financial results of: Nebius, the core AI infrastructure business; Avride, an autonomous vehicle platform; and TripleTen, an edtech service. In Q2 2025 following the completion of the investment transaction in Toloka, an AI development platform, Nebius ceased to hold majority voting power in Toloka and no longer includes Toloka's results in Nebius' consolidated financial statements and reports its stake as equity method investment.
 - Tailwinds:
-  - Strategic ecosystem signal: evidence cites OpenAI, Meta, Microsoft, NVIDIA, suggesting customer/partner leverage that may matter beyond the headline financial metrics.
   - X bull narrative: Sold-out capacity through 2026 plus $46 B in contracted revenue from Meta and Microsoft gives visibility no other mid-tier player matches (@Kajiastic).
   - X bull narrative: Eigen acquisition positions NBIS as low-cost inference provider for open-source models once proprietary workloads plateau (@oguzerkan).
-  - Power pipeline now >4 GW and 1.2 GW Pennsylvania site create a structural moat in the power-constrained AI era (@StbjergTro97997).
 - Headwinds / debate points:
   - X bear/skeptic narrative: Capex intensity ($20-25 B in 2026) will keep free cash flow negative for years and risks dilution or debt overhang (@noisetoalpha).
   - X bear/skeptic narrative: Execution risk on physically connecting GPUs at the pace of demand; any delay in Pennsylvania or Finland sites kills the ARR trajectory.
   - X bear/skeptic narrative: Valuation already prices in perfect execution; any slowdown in AI demand growth would punish the stock faster than peers because the multiple is infrastructure-embedded.
   - Grok/X scan includes rumor or speculation language; do not treat it as verified fact.
-  - Nebius Group NV (NBIS) has reported a record-breaking Q1 2026 earnings call, with over 3.5 gigawatts of power delivered, surpassing its previous target and aiming for at least 4 gigawatts by the end of the year. The company expanded its technology partnership with NVIDIA, achieving NVIDIA Exemplar Cloud status on multiple GPU generations.
+  - Nebius Group NV (NBIS) has reported a record-breaking Q1 2026 earnings call, with over 3.5 gigawatts of power delivered, surpassing its previous target and aiming for at least 4 gigawatts by the end of the year. The company expanded its technology partnership with NVIDIA, achieving NVIDIA Exemplar Cloud status on multiple GPU generations. It also raised its 2026 CapEx guidance to between $20 billion and $25 billion, reflecting strong demand and future capacity investments.
 - Trend evolution:
-  - Social trend: X chatter on $NBIS surged after the May 13 earnings release, with the dominant view that Nebius has shifted from "speculative neocloud" to a credible AI-infrastructure utility that is sold out of capacity into 2026 and is now executing at hyperscale pace.
-  - Strategic ecosystem trend: Microsoft prepayment (40% of tranche) and Meta contract remain the two largest anchors; both are already live and sold out. Eigen adds open-source inference optimization; ClickHouse gives indirect OpenAI exposure.
+  - Strategic ecosystem trend: Microsoft prepayment (40% of tranche) and Meta contract remain the two largest anchors; both are already live and sold out. Eigen adds open-source inference optimization; ClickHouse gives indirect OpenAI exposure. No major custom-silicon or supplier-dependency red flags yet, but the 1.2 GW Pennsylvania site introduces new land/power optionality that could be monetized via JV or sale-leaseback if capital markets tighten.
 
 ### Expert / Community Split From X
 
 - X pulse: X chatter on $NBIS surged after the May 13 earnings release, with the dominant view that Nebius has shifted from "speculative neocloud" to a credible AI-infrastructure utility that is sold out of capacity into 2026 and is now executing at hyperscale pace. The last 14 days saw the narrative accelerate from pre-earnings speculation around the Eigen acquisition and Microsoft prepayments to post-earnings validation of 684% YoY revenue growth, 841% AI-cloud growth, and a jump in contracted power guidance to >4 GW.
 - Bullish camp:
-  - Sold-out capacity through 2026 plus $46 B in contracted revenue from Meta and Microsoft gives visibility no other mid-tier player matches (@Kajiastic).
-  - Eigen acquisition positions NBIS as low-cost inference provider for open-source models once proprietary workloads plateau (@oguzerkan).
   - Power pipeline now >4 GW and 1.2 GW Pennsylvania site create a structural moat in the power-constrained AI era (@StbjergTro97997).
   - ARR run-rate implying $600 M+ monthly adds through year-end if Microsoft tranche delivery stays on schedule (@Kajiastic).
-- Skeptical camp:
-  - Capex intensity ($20-25 B in 2026) will keep free cash flow negative for years and risks dilution or debt overhang (@noisetoalpha).
-  - Execution risk on physically connecting GPUs at the pace of demand; any delay in Pennsylvania or Finland sites kills the ARR trajectory.
-  - Valuation already prices in perfect execution; any slowdown in AI demand growth would punish the stock faster than peers because the multiple is infrastructure-embedded.
-- Strategic partnerships / ecosystem leverage:
-  - Microsoft prepayment (40% of tranche) and Meta contract remain the two largest anchors; both are already live and sold out. Eigen adds open-source inference optimization; ClickHouse gives indirect OpenAI exposure.
 - Accounts/posts worth reviewing: @Kajiastic, @oguzerkan, @StbjergTro97997, @noisetoalpha, @Sandeman52, @lllspllc
 - Hype/noise: Discussion is technically informed among a core set of accounts but has become crowded with low-effort "$NBIS to the moon" posts after the earnings surge. Bot/promotional activity is moderate (copy-paste trading signals) but is easily filtered by focusing on accounts that cite ARR, power GW, or contract details rather than emojis.
 - Rumors / unverified claims:
@@ -86,8 +74,6 @@ NBIS: Communication Services / Internet Content & Information: Strategic ecosyst
 - X under-discussed angle: The Pennsylvania factory announcement is asymmetric: it gives owned power rather than leased, flipping the usual GPU-colo model and potentially allowing higher margins on future agentic workloads.
 - Strategic AI ecosystem angle: Evidence-backed ecosystem leverage: evidence cites OpenAI, Meta, Microsoft, NVIDIA, suggesting customer/partner leverage that may matter beyond the headline financial metrics.
 - Strategic ecosystem signal: evidence cites NVIDIA, suggesting customer/partner leverage that may matter beyond the headline financial metrics.
-- Nebius Group NV (NBIS) has reported a record-breaking Q1 2026 earnings call, with over 3.5 gigawatts of power delivered, surpassing its previous target and aiming for at least 4 gigawatts by the end of the year. The company expanded its technology partnership with NVIDIA, achieving NVIDIA Exemplar Cloud status on multiple GPU generations.
-- X implication to verify: Signal | Evidence | Confidence | What would confirm | What would invalidate
 
 ### Valuation And Analyst Snapshot
 
@@ -112,10 +98,10 @@ NBIS: Communication Services / Internet Content & Information: Strategic ecosyst
 
 | Dimension | Current read | Evidence | Follow-up |
 | --- | --- | --- | --- |
-| Growth / demand | Strategic ecosystem signal: evidence cites OpenAI, Meta, Microsoft, NVIDIA, suggesting customer/partner leverage that may matter beyond the headline financial metrics. | Exa news + earnings/call excerpts | Check whether growth is broad-based or mostly one segment. |
-| Community / X sentiment | X chatter on $NBIS surged after the May 13 earnings release, with the dominant view that Nebius has shifted from "speculative neocloud" to a credible AI-infrastructure utility that is sold out of capacity into 2026 and is now executing at hyperscale pace. | Grok/X social signal | Separate informed accounts from price-action chatter and spam. |
+| Growth / demand | 6 source-backed recent development(s) and 3 extracted tailwind(s) need ranking by thesis impact. | Exa news + earnings/call excerpts | Check whether growth is broad-based or mostly one segment. |
+| Community / X sentiment | mixed_social_signal with 4 bull theme(s) and 3 skeptic theme(s); use the X section for the actual narratives. | Grok/X social signal | Separate informed accounts from price-action chatter and spam. |
 | Valuation | price $219.94, P/E 84.59x | Financial providers / Alpha Vantage / FMP | Compare multiples and analyst target with growth durability. |
-| Non-obvious angle | X under-discussed angle: Nebius is effectively becoming the "Walmart for inference tokens" by optimizing open-source models via Eigen, which could capture fragmented demand that big labs ignore once model scaling slows. | Cross-read of Exa, Grok/X, and financials | Verify with primary source or higher-quality source before thesis update. |
+| Non-obvious angle | 7 under-discussed angle(s) extracted; verify only those that would change the thesis or next research decision. | Cross-read of Exa, Grok/X, and financials | Verify with primary source or higher-quality source before thesis update. |
 | Primary-source coverage | Filings lane: available; news sources: 8. | SEC/Exa packets | Use filings for claims that affect valuation or risk. |
 
 ### Next research questions
@@ -127,8 +113,6 @@ NBIS: Communication Services / Internet Content & Information: Strategic ecosyst
 
 - Signal | Evidence | Confidence | What would confirm | What would invalidate
 - ARR trajectory | $1.25 B -> $1.9 B in Q1 | High | Q2 exit ARR ≥ $2.4 B | Q2 ARR < $2.1 B
-- Verify X rumor/speculation: Speculation that Nebius will announce a second European AI factory before Q2 earnings - verify via company press releases or 8-K.
-- Verify X rumor/speculation: Claim that Microsoft is accelerating its tranche deliveries - check next earnings transcript or Microsoft 10-Q cloud spend footnotes.
 
 ## Filing And Data Coverage
 

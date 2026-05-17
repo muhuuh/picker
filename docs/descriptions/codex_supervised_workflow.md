@@ -1,6 +1,6 @@
 # Codex-Supervised Workflow
 
-Last updated: 2026-05-16
+Last updated: 2026-05-17
 
 ## Purpose
 
@@ -12,9 +12,9 @@ Python still cannot call the current Codex chat model internally. The direction 
 Codex app automation
   -> runs deterministic Python commands
   -> Python gathers Exa, Grok/xAI, SEC, yfinance, FMP, Polygon/Massive, Alpha Vantage evidence
-  -> Python writes reports, memory/finalization artifacts, state updates, and a Codex review pack
-  -> Codex reads the pack and linked artifacts
-  -> Codex writes the final human-facing synthesis and updates docs/memory/scratchpads when useful
+  -> Python writes evidence/audit reports, human synthesis packs, memory/finalization artifacts, state updates, and a Codex review pack
+  -> Codex reads the pack, synthesis packs, and linked artifacts
+  -> Codex writes the final human-facing synthesis from first principles and updates docs/memory/scratchpads when useful
 ```
 
 ## Default Scheduled Command
@@ -27,7 +27,7 @@ C:\Python313\python.exe -m stock_research run-weekly --write --execute-providers
 
 This intentionally omits `--execute-orchestrator`.
 
-Do not add `--execute-orchestrator` to the scheduled Codex-supervised automation unless the user explicitly asks for API-mode benchmarking or remote/headless simulation.
+Do not add `--execute-orchestrator` to the scheduled Codex-supervised automation unless the user explicitly asks for remote/headless fallback or SDK debugging.
 
 ## Review Pack Contract
 
@@ -43,7 +43,8 @@ The review pack is the handoff contract from deterministic Python to Codex. Code
 The pack points Codex to:
 
 - `final_digest.md`
-- all `reports/opportunity_assessment/*_opportunity_assessment.md`
+- all `reports/human_synthesis/*_synthesis_pack.md`
+- all `reports/opportunity_assessment/*_opportunity_assessment.md` as deterministic audit/evidence reports, not final prose
 - `quality_report.md`
 - `run_summary.md`
 - `finalization.md`
@@ -57,7 +58,16 @@ Codex should then write:
 
 ```text
 agents/runs/{run_id}/codex_supervised_review.md
+agents/runs/{run_id}/reports/human_synthesis/{TICKER}_final_human_report.md for every human synthesis pack
 ```
+
+Reader-facing artifact contract:
+
+- `codex_supervised_review.md` is the crafted run-level final digest/review written by Codex app.
+- `reports/human_synthesis/*_final_human_report.md` are the crafted per-ticker company/opportunity reports written by Codex app.
+- `final_digest.md` is a deterministic quick-read source map that must remain readable and quality-gated, but it is not the only final narrative.
+- `reports/opportunity_assessment/*_opportunity_assessment.md` are deterministic audit/evidence reports.
+- `reports/financial_data_specialist/` and `reports/company_news_specialist/` are specialist input reports; Codex should read them, not paste them.
 
 ## Required Codex Review Behavior
 
@@ -76,6 +86,8 @@ The Codex final review must be more useful than a status summary. It should incl
 - next actions.
 
 Codex should actively inspect output quality. If reports are truncated, duplicated, stale, shallow, missing X/community insight, or not actionable, Codex should fix the relevant prompt/formatter/code and regenerate the affected report before finishing.
+
+Per-ticker opportunity assessments are not the final reading experience. They are audit artifacts that preserve score factors, evidence lanes, and source coverage. The final human-facing report must be written from a human synthesis pack by the Codex app so the output has a coherent storyline, explains why each fact matters, separates verified facts from Grok/X social narrative and auxiliary Grok web context, and avoids over-compressed bullets that are technically accurate but not useful.
 
 For the 2026-05-16 real-holdings run, this quality check must include explicit scans for mojibake/encoding artifacts, dead citation markers, dead bracketed source ids, visible truncation, duplicate report sections, and dangling excerpt tails. Passing provider execution is not enough to call the run good.
 
@@ -119,19 +131,18 @@ The OpenAI Agents SDK workflow remains available:
 C:\Python313\python.exe -m stock_research run-weekly --write --execute-providers --execute-analysis --execute-orchestrator --orchestrator-timeout-seconds 900
 ```
 
-Use API SDK mode for:
+Use API SDK mode only for:
 
 - remote/headless workers without Codex app automation,
 - structured SDK traces and token metrics,
-- benchmarking Codex-supervised output against API specialists,
 - debugging specialist fanout,
 - testing the formal Agents SDK architecture.
 
 Do not use API SDK mode as the default local scheduled workflow because it adds OpenAI API synthesis cost where Codex app automation can provide higher-quality supervised synthesis through the subscription.
 
-## Quality Benchmark
+## Quality Standard
 
-Codex-supervised mode should meet or exceed API SDK mode for human-facing quality. The benchmark is not speed; the benchmark is:
+Codex-supervised mode is the primary quality path for local scheduled and manual runs. The API path is a fallback/debug route, not the target writer. The quality standard is:
 
 - actionable investor insight,
 - strong X/Grok/community synthesis,

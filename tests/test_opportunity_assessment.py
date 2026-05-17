@@ -89,6 +89,16 @@ Kraken announced 2025 revenue of CAD 102 million and gross margin of 62%, with 2
         self.assertFalse(any("026 ##" in item for item in items))
         self.assertFalse(any(item.endswith("(up.") for item in items))
 
+    def test_development_extraction_rejects_broken_press_release_quote(self):
+        evidence = """
+"We're pleased to our work with SEFINE at-sea demonstration," said Bernard Mills.
+Kraken announced approximately $28 million in new SeaPower battery and Synthetic Aperture Sonar orders for five clients.
+"""
+        items = extract_development_items(evidence)
+
+        self.assertTrue(any("$28 million" in item for item in items))
+        self.assertFalse(any("pleased to our work" in item for item in items))
+
 
 def base_assessment() -> dict:
     return {

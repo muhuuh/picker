@@ -9,7 +9,7 @@ Thesis freshness: `fresh_recent_evidence`
 
 ## Verdict
 
-KRKNF is constructive_but_watch (62/100, medium risk, medium confidence) because Kraken's current release confirms previously announced preliminary 2025 results and 2026 guidance, so the main update is validation of the revenue/gross-margin trajectory rather than a new standalone catalyst. Main caveat: X bear/skeptic narrative: OTC liquidity and 35-39% drawdown signal limited institutional sponsorship. X pulse: The X narrative on $KRKNF has accelerated sharply in the last 10-12 days around the stock's 35-39% pullback from March highs near $8.13.
+KRKNF is constructive_but_watch (62/100, medium risk, medium confidence). KRKNF main positive driver: technology or product-positioning evidence, valuation risk. KRKNF main caveat: X bear/skeptic narrative: OTC liquidity and 35-39% drawdown signal limited institutional sponsorship.. KRKNF Grok/X adds 5 bull theme(s) and 5 skeptic theme(s) for verification.
 
 ### Why The Score Looks Like This
 
@@ -24,9 +24,9 @@ KRKNF is constructive_but_watch (62/100, medium risk, medium confidence) because
 ## Investor Insight Report
 ### Executive Read
 
-KRKNF: Technology / Scientific & Technical Instruments: Kraken's current release confirms previously announced preliminary 2025 results and 2026 guidance, so the main update. The social bull case centers on Anduril supply-chain leverage: Kraken batteries and sonars already shipping for Ghost Shark UUVs; any production ramp at Anduril becomes automatic volume for KRKNF. Valuation: price $5.30, P/E 527.00x. X/community: The X narrative on $KRKNF has accelerated sharply in the last 10-12 days around the stock's 35-39% pullback from March highs near $8.13. Under-discussed check: X under-discussed angle: 30+ UUV platforms now carrying Kraken tech creates a de-facto standards position; future programs (not just Anduril) face integration friction if they switch suppliers.
+KRKNF: source-backed growth/demand evidence, technology or product-positioning evidence. Valuation context: price $5.30, P/E 527.00x. X/community evidence adds 5 bull theme(s) and 5 skeptic theme(s), so the key job is to verify which social claims are supported by filings, news, and financials. Main extra check: 7 under-discussed angle(s) to verify.
 
-### Company / Industry Context
+### Business, Technology, And Industry Context
 
 - What it does: Kraken Robotics Inc. is a marine technology company engaged in the design, development and marketing of advanced sensors for Unmanned Underwater Vehicles used in military and commercial applications. We are recognized as world leading innovators of Synthetic Aperture Sonar (SAS), a revolutionary underwater imaging technology that dramatically improves seabed surveys by providing ultra-high resolution imagery at superior coverage rates.
 - Sector / industry: Technology / Scientific & Technical Instruments
@@ -36,20 +36,13 @@ KRKNF: Technology / Scientific & Technical Instruments: Kraken's current release
 
 ### Thesis, Trends, And What Changed
 
-- Core thesis: Technology / Scientific & Technical Instruments: Kraken's current release confirms previously announced preliminary 2025 results and 2026 guidance, so the main update. The social bull case centers on Anduril supply-chain leverage: Kraken batteries and sonars already shipping for Ghost Shark UUVs; any production ramp at Anduril becomes automatic volume for KRKNF.
+- Core thesis: Technology / Scientific & Technical Instruments: Kraken's current release confirms previously announced preliminary 2025 results and 2026 guidance, so the main update. X adds a separate narrative layer that should be checked against fundamentals, not treated as proof.
 - What changed recently:
-  - "We're pleased to continue our work with SEFINE following a successful at-sea demonstration earlier this year," said Bernard Mills, Executive Vice President of Defence at Kraken Robotics.
+  - As part of the agreement, Kraken will work with SISAM to integrate KATFISH into its mission planning software and develop automatic target recognition (ATR) capabilities for Kraken Synthetic Aperture Sonar.
   - Kraken's current release confirms previously announced preliminary 2025 results and 2026 guidance, so the main update is validation of the revenue/gross-margin trajectory rather than a new standalone catalyst.
+  - Kraken Robotics Announces $28 Million in SeaPower Battery and Kraken SAS Orders
   - Kraken Robotics Inc. ("Kraken" or the "Company") (TSX-V: PNG, OTCQB: KRKNF) announces approximately $28 million in new orders to five clients including two new customers for its SeaPower batteries and Synthetic Aperture Sonar (SAS).
-  - "We're pleased to our work with SEFINE at-sea demonstration ," said Bernard Mills, Executive Vice President of Defence at Kraken Robotics.
   - Kraken reported record 2025 revenue of CAD 102M, 12% YoY growth, and gross margin expansion to 62%, with battery/SAS demand and subsea services as the main drivers.
-  - Kraken Robotics Inc. ("Kraken" or the "Company") (TSX-V: PNG, OTCQB: KRKNF) announces approximately $24 million in new orders to over 10 customers across five countries, including three new defence customers. The orders are for Kraken's SeaPower batteries, KATFISH towed synthetic aperture sonar (SAS), and Kraken SAS.
-- Tailwinds:
-  - Kraken's current release confirms previously announced preliminary 2025 results and 2026 guidance, so the main update is validation of the revenue/gross-margin trajectory rather than a new standalone catalyst.
-  - Kraken reported record 2025 revenue of CAD 102M, 12% YoY growth, and gross margin expansion to 62%, with battery/SAS demand and subsea services as the main drivers.
-  - Anduril supply-chain leverage: Kraken batteries and sonars already shipping for Ghost Shark UUVs; any production ramp at Anduril becomes automatic volume for KRKNF.
-  - Covelya + SEFINE combo opens UK/EU + Turkish subsea defense spend that was previously inaccessible.
-  - Guidance implies ~65% YoY revenue growth; current price embeds none of that or the post-Covelya uplift.
 - Headwinds / debate points:
   - X bear/skeptic narrative: OTC liquidity and 35-39% drawdown signal limited institutional sponsorship.
   - X bear/skeptic narrative: Anduril exposure is real but still small relative to overall revenue; any single-program delay hits hard.
@@ -57,10 +50,7 @@ KRKNF: Technology / Scientific & Technical Instruments: Kraken's current release
   - Grok/X scan includes rumor or speculation language; do not treat it as verified fact.
   - SEC filing lane is missing, so primary-source filing coverage is incomplete.
 - Trend evolution:
-  - Fundamental trend: Kraken's current release confirms previously announced preliminary 2025 results and 2026 guidance, so the main update is validation of the revenue/gross-margin trajectory rather than a new standalone catalyst.
-  - Fundamental trend: Kraken reported record 2025 revenue of CAD 102M, 12% YoY growth, and gross margin expansion to 62%, with battery/SAS demand and subsea services as the main drivers.
-  - Social trend: The X narrative on $KRKNF has accelerated sharply in the last 10-12 days around the stock's 35-39% pullback from March highs near $8.13.
-  - Strategic ecosystem trend: Primary leverage is through Anduril (Ghost Shark/Dive-LD/Dive-XL programs) for batteries and sonar. Covelya acquisition adds UK/EU regulatory access and existing subsea customer base. SEFINE MOU is the first concrete non-US defense partnership.
+  - Strategic ecosystem trend: Primary leverage is through Anduril (Ghost Shark/Dive-LD/Dive-XL programs) for batteries and sonar. Covelya acquisition adds UK/EU regulatory access and existing subsea customer base. SEFINE MOU is the first concrete non-US defense partnership. No public cloud or AI-model partnerships disclosed; supplier dependencies are minimal because Kraken designs its own SAS and SeaPower batteries.
 
 ### Expert / Community Split From X
 
@@ -70,15 +60,9 @@ KRKNF: Technology / Scientific & Technical Instruments: Kraken's current release
   - Covelya + SEFINE combo opens UK/EU + Turkish subsea defense spend that was previously inaccessible.
   - Guidance implies ~65% YoY revenue growth; current price embeds none of that or the post-Covelya uplift.
   - Subsea defense is "quietly becoming a real theme" with sonar, batteries, and autonomy all in one platform.
-  - Credible voices: @mattpurdy89 (automation engineer/investor), @johhnyWalkerAZ (long-term thematic holder), @yiannisz (special-sits track record).
 - Skeptical camp:
-  - OTC liquidity and 35-39% drawdown signal limited institutional sponsorship.
-  - Anduril exposure is real but still small relative to overall revenue; any single-program delay hits hard.
-  - Execution risk on Covelya close and TSX uplisting-both have been "pending" without firm dates.
   - Short-term chart looks ugly; no catalyst until May 28 earnings.
   - Skeptical tone mostly comes from portfolio rotation comments (e.g., @rw_burns preferring $NBIS) rather than outright shorts.
-- Strategic partnerships / ecosystem leverage:
-  - Primary leverage is through Anduril (Ghost Shark/Dive-LD/Dive-XL programs) for batteries and sonar. Covelya acquisition adds UK/EU regulatory access and existing subsea customer base. SEFINE MOU is the first concrete non-US defense partnership.
 - Accounts/posts worth reviewing: @mattpurdy89, @johhnyWalkerAZ, @yiannisz, @rw_burns, @EhrmantrautCap_, @TorreGiorgio94
 - Hype/noise: Discussion is low-volume but technical and informed-mostly chart setups, order-flow references, and catalyst timelines. Minimal bot activity or spam; no meme-stock language or "to the moon" without specifics. Still early and uncrowded.
 - Rumors / unverified claims:
@@ -91,8 +75,6 @@ KRKNF: Technology / Scientific & Technical Instruments: Kraken's current release
 - X under-discussed angle: Turkish MOU with SEFINE could be the first visible non-NATO/Anduril customer win, testing whether Kraken can win outside the US ecosystem.
 - X under-discussed angle: AI capex bottlenecks (photonics/memory) are indirectly bullish because they starve surface/air programs and push budget toward subsea autonomy where Kraken already has hardware.
 - X implication to verify: Anduril volume ramp: evidence Battery/sonar orders + platform count with confidence Medium; confirm via Q1 call quantifies Anduril % of backlog; invalidate if No mention or flat sequential orders.
-- X implication to verify: Covelya close timing: evidence June 30 target with confidence High; confirm via Closing announcement pre-June 30; invalidate if Extension or termination.
-- X implication to verify: Subsea defense theme: evidence SEFINE MOU + $28 M orders with confidence Medium; confirm via Additional non-US contract wins; invalidate if No follow-through orders.
 
 ### Valuation And Analyst Snapshot
 
@@ -117,10 +99,10 @@ KRKNF: Technology / Scientific & Technical Instruments: Kraken's current release
 
 | Dimension | Current read | Evidence | Follow-up |
 | --- | --- | --- | --- |
-| Growth / demand | Kraken's current release confirms previously announced preliminary 2025 results and 2026 guidance, so the main update is validation of the revenue/gross-margin trajectory rather than a new standalone catalyst. | Exa news + earnings/call excerpts | Check whether growth is broad-based or mostly one segment. |
-| Community / X sentiment | The X narrative on $KRKNF has accelerated sharply in the last 10-12 days around the stock's 35-39% pullback from March highs near $8.13. Retail defense and robotics investors are treating the dip as a re-entry into a subsea autonomy play tied to Anduril's Ghost Shark UUV program, with fresh $28 M battery/sonar orders and a SEFINE MOU for KATFISH/SAS integration cited repeatedly. | Grok/X social signal | Separate informed accounts from price-action chatter and spam. |
+| Growth / demand | 6 source-backed recent development(s) and 2 extracted tailwind(s) need ranking by thesis impact. | Exa news + earnings/call excerpts | Check whether growth is broad-based or mostly one segment. |
+| Community / X sentiment | positive_social_signal with 5 bull theme(s) and 5 skeptic theme(s); use the X section for the actual narratives. | Grok/X social signal | Separate informed accounts from price-action chatter and spam. |
 | Valuation | price $5.30, P/E 527.00x | Financial providers / Alpha Vantage / FMP | Compare multiples and analyst target with growth durability. |
-| Non-obvious angle | X under-discussed angle: 30+ UUV platforms now carrying Kraken tech creates a de-facto standards position; future programs (not just Anduril) face integration friction if they switch suppliers. | Cross-read of Exa, Grok/X, and financials | Verify with primary source or higher-quality source before thesis update. |
+| Non-obvious angle | 7 under-discussed angle(s) extracted; verify only those that would change the thesis or next research decision. | Cross-read of Exa, Grok/X, and financials | Verify with primary source or higher-quality source before thesis update. |
 | Primary-source coverage | Filings lane: missing; news sources: 8. | SEC/Exa packets | Use filings for claims that affect valuation or risk. |
 
 ### Next research questions
@@ -130,10 +112,8 @@ KRKNF: Technology / Scientific & Technical Instruments: Kraken's current release
 
 ## Actionable Follow-ups
 
-- Anduril volume ramp: evidence Battery/sonar orders + platform count with confidence Medium; confirm via Q1 call quantifies Anduril % of backlog; invalidate if No mention or flat sequential orders.
 - Covelya close timing: evidence June 30 target with confidence High; confirm via Closing announcement pre-June 30; invalidate if Extension or termination.
 - Subsea defense theme: evidence SEFINE MOU + $28 M orders with confidence Medium; confirm via Additional non-US contract wins; invalidate if No follow-through orders.
-- Verify X rumor/speculation: "Anduril wins for Dive-LD/Dive-XL" is repeated but unconfirmed beyond existing Ghost Shark supply. Verify via Anduril press releases or Kraken's next earnings call. "Large US defense firm" customer (mentioned May 13) also un-named-check Q1 backlog commentary for identity or size.
 - Run or inspect SEC filing coverage for primary-source validation.
 
 ## Filing And Data Coverage
@@ -169,4 +149,4 @@ KRKNF: Technology / Scientific & Technical Instruments: Kraken's current release
 
 ## Recommended Next Action
 
-- Next research decision: test whether the social bull case is fundamental or mostly momentum. Verify the bull claim (Anduril supply-chain leverage: Kraken batteries and sonars already shipping for Ghost Shark UUVs; any production ramp at Anduril becomes automatic volume for KRKNF.) against filings/earnings and compare it with the main pushback (OTC liquidity and 35-39% drawdown signal limited institutional sponsorship.).
+- Use the non-repeated follow-up checks above as the next review path.

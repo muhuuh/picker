@@ -1,6 +1,6 @@
 # Human Usage Guide
 
-Last updated: 2026-05-16
+Last updated: 2026-05-17
 
 ## Short Version
 
@@ -44,6 +44,14 @@ For candidate verification:
 - After verification, Codex should summarize the result and recommend `add to monitoring`, `reject`, or `needs_more_research`.
 - Adding to monitoring is a separate approved step and creates/updates `stock_tracking/monitoring/monitoring.csv` plus a company file.
 
+For quick stock intake:
+
+- Use the Google Sheet `new_stock_overview` as the fast place to capture stocks you come across.
+- Ask Codex to fill one Sheet row from a pasted paragraph or source link.
+- Review the Sheet every one or two weeks and set `action=research` only for rows you want Codex to process.
+- Codex should process those marked rows only when you explicitly ask it. Nothing should auto-run from a Sheet edit.
+- After research, use `action=add to monitoring`, `bought`, `ignore`, or `rejected` to show the final routing.
+
 
 ```mermaid
 flowchart TD
@@ -68,6 +76,30 @@ flowchart TD
 ```
 
 ## What To Ask Codex
+
+### 0. Capture A Stock Idea In The Sheet
+
+Ask:
+
+```text
+Add this stock idea to the Google Sheet. Score it B, available yes. Fill missing basics with web search and keep the comment short: [paste paragraph/link]
+```
+
+What Codex should do:
+
+- fill a new row in `new_stock_overview`,
+- keep `Comment` to a few skim-friendly sentences,
+- use `Score` as your personal interest grade,
+- use `available` only for broker availability,
+- leave `action` blank unless you already want it queued for research.
+
+When you later want rows processed, set `action=research` in the Sheet and ask:
+
+```text
+Process the rows in the Sheet marked action=research and create candidate review items.
+```
+
+Codex should turn those rows into repo candidate-review artifacts. It should not add them to monitoring, holdings, or rejected state without a separate decision.
 
 ### 1. Research Specific Stocks
 
@@ -232,6 +264,7 @@ Use this simple map:
 | Industry/theme research | `market_research/industries/`, `market_research/themes/` |
 | Strategy and priorities | `strategy/` |
 | Your proactive requests | `docs/plans/human_research_requests.md` |
+| Quick stock idea inbox | Google Sheet `new_stock_overview` |
 | Archived artifact index | `archive/research_index.md` |
 
 ## Normal Human Workflow
@@ -275,6 +308,7 @@ Add humanoid robotics as a recurring research theme and explain which files you 
 ## Practical Rules
 
 - Tell Codex whether you want immediate research or just to add something for future tracking.
+- For quick ideas, use the Sheet first; set `action=research` only when you want Codex to process selected rows.
 - Do not manually inspect every report unless you want detail. Start with the chat summary and `agents/human_review_digest.md`.
 - Use HRQ IDs when making decisions.
 - Do not approve vague batches if you are unsure. Ask Codex to explain the evidence for specific HRQ items.

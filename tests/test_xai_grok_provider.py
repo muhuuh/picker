@@ -10,6 +10,7 @@ from stock_research.providers.xai_grok import (
     XaiXSearchOptions,
     build_xai_x_search_packet,
     build_xai_x_search_payload,
+    company_deep_dive_prompt,
     stock_sentiment_prompt,
 )
 
@@ -43,6 +44,22 @@ class XaiGrokProviderTests(unittest.TestCase):
                     excluded_x_handles=("intel",),
                 )
             )
+
+    def test_payload_supports_web_search_with_domain_filters(self):
+        payload = build_xai_x_search_payload(
+            XaiXSearchOptions(
+                prompt=company_deep_dive_prompt("AMBA", "Ambarella"),
+                subject_type="company",
+                subject_id="AMBA",
+                research_kind="company_deep_dive",
+                tool_type="web_search",
+                allowed_domains=("ambarella.com", "sec.gov"),
+            )
+        )
+
+        self.assertEqual(payload["tools"][0]["type"], "web_search")
+        self.assertEqual(payload["tools"][0]["filters"]["allowed_domains"], ["ambarella.com", "sec.gov"])
+        self.assertIn("Business & Technology Overview", payload["input"][0]["content"])
 
     def test_build_packet_writes_valid_artifacts(self):
         with TemporaryDirectory() as temp_dir:

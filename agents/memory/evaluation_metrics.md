@@ -302,3 +302,45 @@ After a weekly or manual run:
 - evidence: stock_research/scheduled_runner.py, stock_research/weekly_digest.py, stock_research/codex_review_pack.py, stock_research/financial_compare.py, stock_research/financial_specialist.py, tests/test_scheduled_runner.py, tests/test_financial_compare.py, tests/test_financial_specialist.py, tests/test_codex_review_pack.py, agents/runs/2026-05-16_weekly/codex_supervised_review.md
 - owner: orchestration quality
 - next_review: 2026-06-16
+
+- id: eval-2026-05-17-human-report-dedup-gate
+- date: 2026-05-17
+- type: evaluation
+- scope: writer
+- status: active
+- confidence: medium
+- trigger/source: User review of AMBA/KRKNF opportunity reports and Grok PDF comparison on 2026-05-17
+- lesson: Human-facing opportunity reports and final digests must be checked for repeated long claims across sections; repeated source-backed, X, table, follow-up, and next-action language makes the report feel like pasted sub-reports even when raw evidence is strong.
+- use_when: Before finalizing opportunity assessments, weekly final digests, Codex-supervised reviews, or report-quality gates.
+- do_not_use_when: Evaluating raw provider artifacts that are intentionally redundant for traceability.
+- evidence: stock_research/report_quality.py; stock_research/opportunity_assessment.py; stock_research/weekly_digest.py; agents/runs/2026-05-16_weekly/quality_report.md; docs/plans/human_report_quality_improvement_plan.md
+- owner: report_quality
+- next_review: 2026-06-14
+
+- id: eval-2026-05-17-for-human-facing-opportunity-reports-determinist
+- date: 2026-05-17
+- type: evaluation
+- scope: orchestrator
+- status: active
+- confidence: high
+- trigger/source: 2026-05-17 AMBA report-quality comparison
+- lesson: For human-facing opportunity reports, deterministic de-duplication is only a gate. The final report should be written from a synthesis pack by Codex app GPT-5.5 high from first principles; deterministic opportunity markdown should remain audit/evidence.
+- use_when: Reviewing scheduled run output, opportunity assessment quality, Codex-supervised synthesis, or final digest readability.
+- do_not_use_when: Building low-level provider evidence packets or deterministic source/audit checks where prose quality is not the goal.
+- evidence: agents/runs/2026-05-17_amba-report-quality/reports/AMBA_report_quality_comparison.md; stock_research/human_synthesis_pack.py
+- owner: codex
+- next_review: 2026-06-17
+
+- id: eval-2026-05-17-codex-app-final-report-primary
+- date: 2026-05-17
+- type: evaluation
+- scope: orchestrator
+- status: active
+- confidence: high
+- trigger/source: User correction on 2026-05-17 that Codex app is the already-decided final-report writer
+- lesson: Codex app GPT-5.5 high is the primary writer for final run-level reviews and per-ticker human reports from synthesis packs. API/OpenRouter GPT-5.5 should be treated only as remote/headless fallback or SDK-debug infrastructure, not as a competing quality route to test before using Codex app.
+- use_when: Reviewing Codex-supervised scheduled runs, final digest/report quality, human synthesis packs, or model-routing decisions for final human reports.
+- do_not_use_when: Running remote/headless jobs where Codex app supervision is unavailable and an explicit API fallback is requested.
+- evidence: docs/descriptions/codex_supervised_workflow.md; stock_research/codex_review_pack.py; stock_research/scheduled_runner.py; agents/runs/2026-05-16_weekly/reports/human_synthesis/AMBA_final_human_report.md
+- owner: codex
+- next_review: 2026-06-17

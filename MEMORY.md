@@ -351,6 +351,11 @@ Use this file for information we should not lose across sessions.
   - evidence artifact path(s): `stock_research/opportunity_assessment.py`, `stock_research/weekly_digest.py`, `tests/test_opportunity_assessment.py`, `agents/runs/2026-05-16_weekly/reports/opportunity_assessment/AMZN_opportunity_assessment.md`, `agents/runs/2026-05-16_weekly/final_digest.md`
   - status: active
 
+- 2026-05-17:
+  - decision/fact: Human-facing opportunity assessments and final digests should be written as a de-duplicated reader narrative, not as repeated pasted sub-report fragments. The deterministic formatter now suppresses repeated long claims across sections, the run quality report scans human markdown for repeated long claims, and new manifests include an auxiliary Grok `web_search` company deep-dive lane for current business/news/analyst context that still requires verification through Exa, filings, company sources, or financial providers.
+  - evidence artifact path(s): `stock_research/opportunity_assessment.py`, `stock_research/weekly_digest.py`, `stock_research/report_quality.py`, `stock_research/quality_report.py`, `stock_research/providers/xai_grok.py`, `docs/plans/human_report_quality_improvement_plan.md`, `agents/runs/2026-05-16_weekly/quality_report.md`
+  - status: active
+
 - 2026-05-15:
   - decision/fact: The AMZN opportunity-assessment structure and detail level is accepted as the current target for human-facing company reports. Final digests should stay concise as quick-read summaries with links to deeper opportunity assessments. Company research packets are primarily internal lane/coverage artifacts.
   - evidence artifact path(s): `agents/runs/2026-05-16_weekly/reports/opportunity_assessment/AMZN_opportunity_assessment.md`, `agents/runs/2026-05-16_weekly/final_digest.md`, `docs/HUMAN_USAGE_GUIDE.md`
@@ -399,6 +404,21 @@ Use this file for information we should not lose across sessions.
 - 2026-05-16:
   - decision/fact: Local scheduled and manual Codex runs should prefer Codex-supervised mode over OpenAI API SDK synthesis to reduce API cost while preserving quality. Python still performs deterministic provider collection, analysis, quality, memory reflection, finalization, state updates, artifact hygiene, and review-pack generation; Codex GPT-5.5 high then performs the final holistic synthesis and updates repo memory/scratchpads/backlog when durable operational lessons appear. API SDK mode remains available for remote/headless execution, structured traces, specialist-fanout debugging, and quality benchmarking.
   - evidence artifact path(s): `docs/descriptions/codex_supervised_workflow.md`, `stock_research/codex_review_pack.py`, `stock_research/scheduled_runner.py`, `C:\Users\valen\.codex\automations\biweekly-holdings-and-monitoring-research\automation.toml`, `C:\Users\valen\.codex\rules\default.rules`
+  - status: active
+
+- 2026-05-17:
+  - decision/fact: Deterministic opportunity assessments are audit/evidence artifacts, not the final per-ticker reading experience. Final human-facing company reports should be written from `reports/human_synthesis/*_synthesis_pack.md` by Codex app GPT-5.5 high from first principles, using Grok/X as social signal and Grok web as auxiliary context until verified.
+  - evidence artifact path(s): `stock_research/human_synthesis_pack.py`, `stock_research/codex_review_pack.py`, `docs/descriptions/codex_supervised_workflow.md`, `agents/runs/2026-05-17_amba-report-quality/reports/AMBA_report_quality_comparison.md`, `agents/runs/2026-05-17_amba-report-quality/reports/AMBA_codex_synthesis_report.md`
+  - status: active
+
+- 2026-05-17:
+  - decision/fact: Codex app GPT-5.5 high is the primary writer for final human-facing run reviews and per-ticker final reports. OpenRouter/API GPT-5.5 is only a remote/headless fallback or SDK-debug path, not a competing quality route to test before using Codex app.
+  - evidence artifact path(s): `docs/descriptions/codex_supervised_workflow.md`, `stock_research/codex_review_pack.py`, `stock_research/scheduled_runner.py`, `agents/runs/2026-05-16_weekly/reports/human_synthesis/AMBA_final_human_report.md`
+  - status: active
+
+- 2026-05-17:
+  - decision/fact: Google Sheet `new_stock_overview` is the quick stock idea inbox. It is not durable portfolio state and must not auto-trigger research; the user marks rows with `action=research` and explicitly asks Codex to process them through the `sheet-intake selected-rows` bridge before candidate verification or monitoring decisions. Blank `action` means no repo processing, while `add to monitoring`, `bought`, `ignore`, and `rejected` are post-research outcomes. The Sheet `Processing status` dropdown is only for simple process state: `not processed`, `in research`, `done`, or `needs fix`.
+  - evidence artifact path(s): `docs/descriptions/google_sheet_stock_intake.md`, `stock_research/sheet_intake.py`, `tests/test_sheet_intake.py`, `https://docs.google.com/spreadsheets/d/16S9NXkIi4IH6fPHe3DMpxvtjknzzRIjyxW2XjJp6Jr0/edit`
   - status: active
 
 - 2026-05-16:

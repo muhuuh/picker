@@ -219,7 +219,7 @@ def execute_provider_task(root: Path, task: dict[str, Any], current_date: date |
         )
         return packet_result(packet.packet_id, paths)
 
-    if provider == "xai_grok" and tool == "x_search":
+    if provider == "xai_grok" and tool in {"x_search", "web_search"}:
         api_key = resolve_xai_api_key(get_config_value(root, "XAI_API_KEY"))
         model_route = xai_route_for_task(task)
         packet, paths = build_xai_x_search_packet(
@@ -229,10 +229,13 @@ def execute_provider_task(root: Path, task: dict[str, Any], current_date: date |
                 subject_id=str(task["subject_id"]),
                 research_kind=str(args.get("research_kind", "x_sentiment")),
                 model=str(args.get("model") or resolve_model_for_route(root, model_route).model),
+                tool_type=tool,
                 from_date=str(args.get("from_date", "")),
                 to_date=str(args.get("to_date", "")),
                 allowed_x_handles=tuple(args.get("allowed_x_handles", [])),
                 excluded_x_handles=tuple(args.get("excluded_x_handles", [])),
+                allowed_domains=tuple(args.get("allowed_domains", [])),
+                excluded_domains=tuple(args.get("excluded_domains", [])),
                 enable_image_understanding=bool(args.get("enable_image_understanding", False)),
                 enable_video_understanding=bool(args.get("enable_video_understanding", False)),
                 artifact_id=str(task.get("id", "")),
@@ -257,8 +260,10 @@ def xai_route_for_task(task: dict[str, Any]) -> str:
         args = {}
     research_kind = str(args.get("research_kind", "")).strip().lower()
     subject_type = str(task.get("subject_type", "")).strip().lower()
-    if research_kind == "stock_sentiment" or subject_type == "company":
-        return "xai_stock_sentiment"
+    if research_kind == "company_deep_dive":
+        return "xai_company_deep_dive"
     if research_kind == "latest_news":
         return "xai_latest_news"
+    if research_kind == "stock_sentiment" or subject_type == "company":
+        return "xai_stock_sentiment"
     return "xai_industry_discovery"

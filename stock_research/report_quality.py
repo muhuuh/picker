@@ -25,8 +25,58 @@ def validate_human_facing_markdown(text: str) -> list[str]:
     duplicates = sorted({heading for heading in headings if headings.count(heading) > 1})
     if duplicates:
         findings.append(f"Duplicate top-level sections found: {', '.join(duplicates)}.")
+    repeated = repeated_long_claims(text)
+    if repeated:
+        findings.append(f"Repeated long claims found: {'; '.join(repeated[:3])}.")
     if "Grok/X social signal:" in text and not re.search(r"\b(Bullish|Bearish|X pulse|Community pulse|Expert / Community)", text):
         findings.append("Status-only Grok/X social signal found without narrative context.")
     if re.search(r"\b(run|provider|lane)\s+status\b", text, flags=re.IGNORECASE) and "## Audit" not in text:
         findings.append("Internal workflow status appears outside an audit section.")
     return findings
+
+
+def repeated_long_claims(text: str) -> list[str]:
+    seen: dict[str, str] = {}
+    repeated: list[str] = []
+    for claim in iter_report_claims(text):
+        key = normalize_claim(claim)
+        if len(key.split()) < 12:
+            continue
+        if key in seen and seen[key] not in repeated:
+            repeated.append(seen[key])
+            continue
+        seen[key] = claim
+    return repeated
+
+
+def iter_report_claims(text: str) -> list[str]:
+    claims: list[str] = []
+    ignored_section = False
+    for raw_line in text.splitlines():
+        line = raw_line.strip()
+        if line.startswith("## "):
+            ignored_section = line.lower() in {"## sources", "## audit"}
+            continue
+        if ignored_section:
+            continue
+        if not line or line.startswith(("#", "| ---", "```")):
+            continue
+        if line.startswith("|"):
+            cells = [cell.strip() for cell in line.strip("|").split("|") if cell.strip()]
+            claims.extend(cell for cell in cells if len(cell.split()) >= 8)
+            continue
+        line = re.sub(r"^[-*]\s+", "", line)
+        line = re.sub(r"^[A-Za-z /_-]{2,35}:\s+", "", line)
+        for sentence in re.split(r"(?<=[.!?])\s+", line):
+            sentence = sentence.strip()
+            if len(sentence.split()) >= 8:
+                claims.append(sentence)
+    return claims
+
+
+def normalize_claim(value: str) -> str:
+    normalized = re.sub(r"\[[^\]]+\]\([^)]+\)", "", value.lower())
+    normalized = re.sub(r"\[\[\d+\]\](?:\([^)]+\))?", "", normalized)
+    normalized = re.sub(r"(?<!\!)\[(\d+)\](?!\()", "", normalized)
+    normalized = re.sub(r"[^a-z0-9]+", " ", normalized)
+    return " ".join(normalized.split())

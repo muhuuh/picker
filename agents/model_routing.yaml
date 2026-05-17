@@ -127,3 +127,7 @@ routes:
     provider: xai
     model_tier: grok_x_search
     complexity: medium_high
+  xai_company_deep_dive:
+    provider: xai
+    model_tier: grok_x_search
+    complexity: medium_high

@@ -61,6 +61,53 @@ class QualityReportTests(unittest.TestCase):
             self.assertEqual(len(missing), 1)
             self.assertIn("exa_discovery_priority_stock_discovery", missing[0])
 
+    def test_quality_report_checks_final_human_reports(self):
+        with TemporaryDirectory() as temp_dir:
+            root = seed_repo(Path(temp_dir))
+            run_dir = root / "agents/runs/2026-05-09_weekly"
+            (run_dir / "manifest.json").write_text(json.dumps({"provider_tasks": [], "analysis_tasks": []}), encoding="utf-8")
+            (run_dir / "run_summary.md").write_text("# Summary\n", encoding="utf-8")
+            human_synthesis_dir = run_dir / "reports" / "human_synthesis"
+            human_synthesis_dir.mkdir(parents=True)
+            repeated_claim = (
+                "AMBA needs to prove that edge AI design wins can convert into durable revenue growth "
+                "before valuation risk becomes acceptable."
+            )
+            (human_synthesis_dir / "AMBA_final_human_report.md").write_text(
+                f"# AMBA Final Human Report\n\n## Thesis\n\n{repeated_claim}\n\n## Next Checks\n\n{repeated_claim}\n",
+                encoding="utf-8",
+            )
+            (human_synthesis_dir / "AMBA_synthesis_pack.md").write_text(
+                f"# AMBA Synthesis Pack\n\n## Inputs\n\n{repeated_claim}\n\n## Audit\n\n{repeated_claim}\n",
+                encoding="utf-8",
+            )
+
+            report = build_quality_report(root, "2026-05-09_weekly", date(2026, 5, 4))
+
+            quality_findings = [finding for finding in report.findings if finding.category == "human_report_quality"]
+            self.assertEqual(len(quality_findings), 1)
+            self.assertIn("Repeated long claims found", quality_findings[0].summary)
+            self.assertIn("AMBA_final_human_report.md", quality_findings[0].evidence)
+            self.assertNotIn("AMBA_synthesis_pack.md", quality_findings[0].evidence)
+
+    def test_quality_report_checks_human_review_digest(self):
+        with TemporaryDirectory() as temp_dir:
+            root = seed_repo(Path(temp_dir))
+            run_dir = root / "agents/runs/2026-05-09_weekly"
+            (run_dir / "manifest.json").write_text(json.dumps({"provider_tasks": [], "analysis_tasks": []}), encoding="utf-8")
+            (run_dir / "run_summary.md").write_text("# Summary\n", encoding="utf-8")
+            (root / "agents/human_review_digest.md").write_text(
+                "# Human Review Digest\n\n## Review\n\nThis row has a visible truncation marker [...]\n",
+                encoding="utf-8",
+            )
+
+            report = build_quality_report(root, "2026-05-09_weekly", date(2026, 5, 4))
+
+            quality_findings = [finding for finding in report.findings if finding.category == "human_report_quality"]
+            self.assertEqual(len(quality_findings), 1)
+            self.assertIn("Visible truncation marker found", quality_findings[0].summary)
+            self.assertIn("agents/human_review_digest.md", quality_findings[0].evidence)
+
 
 def seed_repo(root: Path) -> Path:
     (root / "AGENTS.md").write_text("# AGENTS\n", encoding="utf-8")

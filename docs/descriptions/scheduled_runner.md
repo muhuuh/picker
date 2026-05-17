@@ -1,10 +1,10 @@
 # Scheduled Runner
 
-Last updated: 2026-05-16
+Last updated: 2026-05-17
 
 ## Purpose
 
-The scheduled runner is the tracked-stock workflow wrapper. The command is still named `run-weekly` because it builds weekly-style run artifacts, but the first Codex app automation runs it every two weeks. It chains the already-built repo loaders, manifest generation, provider task runner, analysis task runner, run summary, quality report, memory finalization, bounded memory-writer review, company-file factual sync, category state updates, final digest, human-review digest, and Codex-supervised review pack.
+The scheduled runner is the tracked-stock workflow wrapper. The command is still named `run-weekly` because it builds weekly-style run artifacts, but the first Codex app automation runs it every two weeks. It chains the already-built repo loaders, manifest generation, provider task runner, analysis task runner, run summary, quality report, memory finalization, bounded memory-writer review, company-file factual sync, category state updates, final digest, human synthesis packs, human-review digest, and Codex-supervised review pack.
 
 Implementation: `stock_research/scheduled_runner.py`.
 
@@ -32,7 +32,7 @@ The automation must use the explicit Python executable and this exact lower-cost
 C:\Python313\python.exe -m stock_research run-weekly --write --execute-providers --execute-analysis
 ```
 
-This intentionally omits `--execute-orchestrator`. Do not add API SDK orchestration unless the user explicitly asks for API-mode benchmarking/debugging or remote/headless simulation. Do not change it to bare `python`. Do not add `git fetch`, `git pull`, `git checkout`, `git reset`, or other Git metadata writes to the automation.
+This intentionally omits `--execute-orchestrator`. Do not add API SDK orchestration unless the user explicitly asks for remote/headless fallback or SDK debugging. Do not change it to bare `python`. Do not add `git fetch`, `git pull`, `git checkout`, `git reset`, or other Git metadata writes to the automation.
 
 Codex automation sandbox rules are stored at:
 
@@ -114,6 +114,7 @@ load repo state
   -> SDK portfolio/memory/main orchestrators (only with --execute-orchestrator)
   -> SDK proposal review bridge (only after successful SDK orchestrator output)
   -> final_digest
+  -> human_synthesis_packs
   -> human_review_digest
   -> codex_supervised_review_pack
   -> Codex app reads pack and writes codex_supervised_review.md
@@ -133,6 +134,7 @@ When `--write` is used:
 - `agents/runs/{run_id}/memory_writer_review.md`
 - `agents/runs/{run_id}/finalization.md`
 - `agents/runs/{run_id}/final_digest.md`
+- `agents/runs/{run_id}/reports/human_synthesis/{TICKER}_synthesis_pack.md`
 - `agents/human_review_digest.md`
 - `agents/runs/{run_id}/codex_supervised_review_pack.md`
 - `agents/runs/{run_id}/codex_supervised_review_pack.json`
@@ -149,7 +151,7 @@ Generated JSON files remain ignored local runtime artifacts.
 
 The final digest includes readable financial formatting, forward P/E and analyst target context when available, explicit per-ticker evidence links, concrete news developments, Grok/X pulse, recurring bull/bear narratives, accounts/posts to review, hype/noise, and deterministic digest quality findings when required evidence links, financial/news statuses, social-signal labels, status-only social output, missing social narratives, or trade-instruction guardrails fail.
 
-The deeper per-company opportunity report includes the richer investor insight section: executive read, company/industry context, thesis/trend change, Grok/X expert-community split, non-obvious insights, valuation/analyst target snapshot, peer context, decision table, and next research questions. The human-review digest is refreshed so the report can point the user to current approve/reject/needs-more-research/leave-open decisions.
+The deeper per-company opportunity report includes the richer investor insight section: executive read, company/industry context, thesis/trend change, Grok/X expert-community split, non-obvious insights, valuation/analyst target snapshot, peer context, decision table, and next research questions. Treat it as deterministic audit/evidence. The reader-facing per-ticker report should be written from `reports/human_synthesis/{TICKER}_synthesis_pack.md` by Codex app GPT-5.5 high. The human-review digest is refreshed so the report can point the user to current approve/reject/needs-more-research/leave-open decisions.
 
 Manual market-research reports use the same investor-usefulness standard. They should show industry/theme context, X/community pulse, trend evolution, candidate pipeline, non-obvious/contrarian angles, a decision table, and explicit approve/reject/request-more-research choices instead of generic lane/status labels.
 

@@ -1,6 +1,6 @@
 # Model Routing And Codex Usage
 
-Last updated: 2026-05-16
+Last updated: 2026-05-17
 
 ## Purpose
 
@@ -12,7 +12,7 @@ The goal is to keep high-quality research output while avoiding unnecessary Open
 
 ### xAI/Grok API
 
-Used for X.com-native research through xAI Responses API with `x_search`.
+Used for X.com-native research through xAI Responses API with `x_search`, and for auxiliary current-web company deep dives through xAI `web_search`.
 
 Current code paths:
 
@@ -39,6 +39,8 @@ Recommended routing:
 
 - Keep Grok API for X.com access and X-native insight.
 - Use Grok with `x_search` for anything where X.com is the source of edge.
+- Use Grok with `web_search` for auxiliary current-web company deep dives, especially when opportunity reports need business context, latest news, analyst/valuation gap checks, or a readable investor briefing structure.
+- Verify material Grok web claims through Exa contents, filings, company sources, or financial providers before writing durable thesis conclusions.
 - Do not use Grok as a generic summary model when the input is already in repo artifacts and no X access is needed.
 
 Complexity level:
@@ -133,7 +135,7 @@ Important boundary:
 Recommended routing:
 
 - Use Codex chat/automation for interactive review, repo maintenance, prompt iteration, command execution, report review, and improvement loops.
-- Use Codex-supervised mode as the default local scheduled workflow: Python runs deterministic provider/analysis/finalization work, writes `codex_supervised_review_pack.md`, and Codex GPT-5.5 high writes `codex_supervised_review.md`.
+- Use Codex-supervised mode as the default local scheduled workflow: Python runs deterministic provider/analysis/finalization work, writes `reports/human_synthesis/*_synthesis_pack.md` plus `codex_supervised_review_pack.md`, and Codex GPT-5.5 high writes `codex_supervised_review.md` and any needed per-ticker final human reports.
 - Use Python deterministic commands for repeatable workflow steps.
 - Use OpenAI API only when an autonomous Python runtime needs LLM synthesis without a human/Codex chat in the loop.
 - Use xAI/Grok API where X.com search is required.
@@ -149,9 +151,11 @@ Recommended routing:
 | Filing specialist over SEC packets | SDK specialist | medium | cheap/fast OpenAI |
 | Stock X sentiment collection | xAI/Grok provider | high | Grok 4.3 with `x_search` |
 | Industry/theme X discovery | xAI/Grok provider | high | Grok 4.3 with `x_search` |
+| Company web deep-dive gap fill | xAI/Grok provider | medium-high | Grok 4.3 with `web_search` |
 | Grok discovery synthesis from raw output | SDK specialist / report formatter | medium-high | cheap/fast OpenAI if raw Grok is rich; strong OpenAI only if synthesis quality is poor |
 | Market research final report | deterministic formatter plus optional SDK | high | `gpt-5.5` for autonomous API mode; Codex GPT-5.5 high review loop for manual mode; Grok remains source provider |
-| Opportunity assessment | deterministic synthesis plus optional SDK specialist | high | `gpt-5.5` for live autonomous runs; Codex GPT-5.5 high review loop for manual runs |
+| Opportunity assessment audit | deterministic synthesis plus optional SDK specialist | medium-high | no LLM required for audit/evidence; Codex app reads it as input |
+| Per-ticker final human report | human synthesis pack plus Codex app writer | high | Codex GPT-5.5 high for local scheduled/manual mode; `gpt-5.5` API only for explicit remote/headless fallback |
 | Main orchestrator final synthesis | OpenAI Agents SDK / Codex-supervised review | high | Codex GPT-5.5 high for local scheduled/manual mode; `gpt-5.5` API only for autonomous API mode |
 | Portfolio review | SDK sub-orchestrator | medium | cheap/fast OpenAI or deterministic/Codex summary |
 | Memory/evaluation review | deterministic plus optional LLM | low-medium | cheap/fast OpenAI or deterministic only |
@@ -170,7 +174,7 @@ Flow:
 
 1. Codex app automation runs `C:\Python313\python.exe -m stock_research run-weekly --write --execute-providers --execute-analysis`.
 2. Provider APIs collect Exa/Grok/financial/filing evidence.
-3. Python writes deterministic reports, finalization, memory artifacts, category state updates, final digest, human-review digest, and `codex_supervised_review_pack.md`.
+3. Python writes deterministic reports, human synthesis packs, finalization, memory artifacts, category state updates, final digest, human-review digest, and `codex_supervised_review_pack.md`.
 4. Codex reads the pack and every linked required artifact.
 5. Codex writes `agents/runs/{run_id}/codex_supervised_review.md` and updates docs/scratchpads/memory when durable operational lessons are found.
 
@@ -218,7 +222,7 @@ Cost posture:
 
 - Uses OpenAI API for autonomous synthesis.
 - Requires model routing config to control spend.
-- Remains useful as a benchmark against Codex-supervised quality and for SDK trace/debug work.
+- Remains useful for SDK trace/debug work and explicit remote/headless fallback.
 
 ## Implemented Routing
 

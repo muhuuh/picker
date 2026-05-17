@@ -16,6 +16,7 @@ from stock_research.evidence import Claim, EvidencePacket, Source, default_packe
 
 XAI_RESPONSES_URL = "https://api.x.ai/v1/responses"
 XAI_DOCS_TOOLS_OVERVIEW = "https://docs.x.ai/developers/tools/overview"
+XAI_DOCS_WEB_SEARCH = "https://docs.x.ai/developers/tools/web-search"
 XAI_DOCS_X_SEARCH = "https://docs.x.ai/developers/tools/x-search"
 XAI_DOCS_CITATIONS = "https://docs.x.ai/developers/tools/citations"
 
@@ -31,10 +32,13 @@ class XaiXSearchOptions:
     subject_id: str
     research_kind: str = "x_sentiment"
     model: str = "grok-4.3"
+    tool_type: str = "x_search"
     from_date: str = ""
     to_date: str = ""
     allowed_x_handles: tuple[str, ...] = ()
     excluded_x_handles: tuple[str, ...] = ()
+    allowed_domains: tuple[str, ...] = ()
+    excluded_domains: tuple[str, ...] = ()
     enable_image_understanding: bool = False
     enable_video_understanding: bool = False
     artifact_id: str = ""
@@ -80,27 +84,59 @@ def fetch_json(url: str, api_key: str, payload: dict[str, Any], timeout: int = 1
 def build_xai_x_search_payload(options: XaiXSearchOptions) -> dict[str, Any]:
     if not options.prompt.strip():
         raise XaiGrokError("xAI Grok prompt is required.")
-    tool: dict[str, Any] = {"type": "x_search"}
-    if options.allowed_x_handles:
-        tool["allowed_x_handles"] = list(options.allowed_x_handles[:10])
-    if options.excluded_x_handles:
-        tool["excluded_x_handles"] = list(options.excluded_x_handles[:10])
-    if "allowed_x_handles" in tool and "excluded_x_handles" in tool:
-        raise XaiGrokError("xAI x_search cannot use allowed_x_handles and excluded_x_handles together.")
-    if options.from_date:
-        tool["from_date"] = options.from_date
-    if options.to_date:
-        tool["to_date"] = options.to_date
-    if options.enable_image_understanding:
-        tool["enable_image_understanding"] = True
-    if options.enable_video_understanding:
-        tool["enable_video_understanding"] = True
+    tool = build_search_tool(options)
 
     return {
         "model": options.model,
         "input": [{"role": "user", "content": options.prompt}],
         "tools": [tool],
     }
+
+
+def build_search_tool(options: XaiXSearchOptions) -> dict[str, Any]:
+    tool_type = (options.tool_type or "x_search").strip()
+    if tool_type == "x_search":
+        if options.allowed_domains or options.excluded_domains:
+            raise XaiGrokError("xAI x_search does not support web domain filters; use web_search.")
+        tool: dict[str, Any] = {"type": "x_search"}
+        if options.allowed_x_handles:
+            tool["allowed_x_handles"] = list(options.allowed_x_handles[:10])
+        if options.excluded_x_handles:
+            tool["excluded_x_handles"] = list(options.excluded_x_handles[:10])
+        if "allowed_x_handles" in tool and "excluded_x_handles" in tool:
+            raise XaiGrokError("xAI x_search cannot use allowed_x_handles and excluded_x_handles together.")
+        if options.from_date:
+            tool["from_date"] = options.from_date
+        if options.to_date:
+            tool["to_date"] = options.to_date
+        if options.enable_image_understanding:
+            tool["enable_image_understanding"] = True
+        if options.enable_video_understanding:
+            tool["enable_video_understanding"] = True
+        return tool
+
+    if tool_type == "web_search":
+        if options.allowed_x_handles or options.excluded_x_handles:
+            raise XaiGrokError("xAI web_search does not support X handle filters; use x_search.")
+        if options.from_date or options.to_date:
+            raise XaiGrokError("xAI web_search does not support from_date/to_date; put recency requirements in the prompt.")
+        tool = {"type": "web_search"}
+        if options.allowed_domains and options.excluded_domains:
+            raise XaiGrokError("xAI web_search cannot use allowed_domains and excluded_domains together.")
+        filters: dict[str, Any] = {}
+        if options.allowed_domains:
+            filters["allowed_domains"] = list(options.allowed_domains[:5])
+        if options.excluded_domains:
+            filters["excluded_domains"] = list(options.excluded_domains[:5])
+        if filters:
+            tool["filters"] = filters
+        if options.enable_image_understanding:
+            tool["enable_image_understanding"] = True
+        if options.enable_video_understanding:
+            raise XaiGrokError("xAI web_search does not support video understanding.")
+        return tool
+
+    raise XaiGrokError(f"Unsupported xAI search tool: {tool_type}.")
 
 
 def build_xai_x_search_packet(
@@ -114,7 +150,7 @@ def build_xai_x_search_packet(
     today = current_date or date.today()
     payload = build_xai_x_search_payload(options)
     response = fetcher(XAI_RESPONSES_URL, api_key, payload)
-    artifact_name = artifact_suffix(options.artifact_id, f"x_search_{options.research_kind}_{options.subject_id}_{short_digest(options.prompt)}")
+    artifact_name = artifact_suffix(options.artifact_id, f"{options.tool_type}_{options.research_kind}_{options.subject_id}_{short_digest(options.prompt)}")
     raw_path = write_raw_artifact(root, run_id, artifact_name, {"payload": payload, "response": response})
     packet = xai_response_to_packet(options, response, raw_path, today)
     packet = with_packet_suffix(packet, artifact_name)
@@ -135,13 +171,13 @@ def xai_response_to_packet(
         Source(
             source_id=f"xai_x_source_{index}",
             provider="xai_grok",
-            source_type="social" if "x.com/" in url else "web",
+            source_type=xai_source_type(options, url),
             title=f"xAI Grok citation {index}",
             url=url,
-            publisher="X via xAI Grok" if "x.com/" in url else source_publisher(url),
+            publisher="X via xAI Grok" if xai_source_type(options, url) == "social" else source_publisher(url),
             accessed_at=today.isoformat(),
             artifact_path=raw_path.as_posix(),
-            notes="Citation surfaced by Grok x_search. Treat as social evidence unless independently verified.",
+            notes=xai_source_notes(options),
         )
         for index, url in enumerate(citation_urls, start=1)
     ]
@@ -150,12 +186,12 @@ def xai_response_to_packet(
             Source(
                 source_id="xai_grok_raw_response",
                 provider="xai_grok",
-                source_type="social",
-                title=f"xAI Grok x_search response for {options.subject_id}",
+                source_type="social" if options.tool_type == "x_search" else "web",
+                title=f"xAI Grok {options.tool_type} response for {options.subject_id}",
                 publisher="xAI Grok",
                 accessed_at=today.isoformat(),
                 artifact_path=raw_path.as_posix(),
-                notes="No citation URLs were returned; use only as low-confidence social signal.",
+                notes=xai_source_notes(options, no_citations=True),
             )
         ]
 
@@ -185,8 +221,30 @@ def xai_response_to_packet(
         claims=claims,
         unknowns=unknowns,
         raw_artifact_path=raw_path.as_posix(),
-        notes="Uses xAI Grok Responses API with built-in x_search. This replaces direct X API usage.",
+        notes=xai_packet_notes(options),
     )
+
+
+def xai_source_type(options: XaiXSearchOptions, url: str) -> str:
+    if options.tool_type == "x_search" and "x.com/" in url:
+        return "social"
+    return "web"
+
+
+def xai_source_notes(options: XaiXSearchOptions, no_citations: bool = False) -> str:
+    if options.tool_type == "web_search":
+        base = "Citation surfaced by Grok web_search. Treat as auxiliary web evidence until independently verified."
+    else:
+        base = "Citation surfaced by Grok x_search. Treat as social evidence unless independently verified."
+    if no_citations:
+        return base + " No citation URLs were returned, so confidence is lower."
+    return base
+
+
+def xai_packet_notes(options: XaiXSearchOptions) -> str:
+    if options.tool_type == "web_search":
+        return "Uses xAI Grok Responses API with built-in web_search for auxiliary company deep-dive/news context. Verify material facts with filings, financial providers, Exa, or company sources."
+    return "Uses xAI Grok Responses API with built-in x_search. This replaces direct X API usage."
 
 
 def stock_sentiment_prompt(ticker: str, company_name: str = "") -> str:
@@ -213,6 +271,26 @@ def stock_sentiment_prompt(ticker: str, company_name: str = "") -> str:
         "10) Rumors or unverified claims - label speculation clearly and state how to verify it. "
         "11) Investor implications and scorecard - specific research checks plus a compact table with Signal, Evidence, Confidence, What would confirm, What would invalidate. "
         "Do not give buy/sell instructions. Separate verified facts, social narrative, and speculation. Avoid generic phrasing; every bullet should teach a concrete investor insight."
+    )
+
+
+def company_deep_dive_prompt(ticker: str, company_name: str = "") -> str:
+    label = f"{ticker.upper()} {company_name}".strip()
+    return (
+        f"Use current web search and browsing for an evidence-based investor deep dive on {label}. "
+        "Prioritize sources with current company facts, recent news, filings/IR pages, reputable financial data, analyst coverage, and credible industry context. "
+        "Clearly label facts, consensus estimates, analyst opinion, rumors/speculation, and your synthesis. "
+        "Include data recency in each section where possible. Do not give buy/sell instructions. "
+        "Write clean markdown with these exact sections: "
+        "1) Business & Technology Overview - what the company does, core products/technology, customers/end markets, and moat/strengths. "
+        "2) Industry Context & Competitive Landscape - industry health over the next 1-2 years, key competitors, advantages, disadvantages, and market position. "
+        "3) Latest News & Rumors - most recent material news, catalysts, controversies, and rumors; label unverified items clearly. "
+        "4) Financial Snapshot - market cap, current P/E, forward P/E, revenue growth, margins, cash/debt, and other KPIs if material; state when unavailable. "
+        "5) Analyst Forecasts - consensus target range, ratings mix, implied upside/downside, and source/date caveats if available. "
+        "6) Catalysts & Tailwinds - concrete drivers that could change the thesis. "
+        "7) Risks & Headwinds - valuation, execution, competition, balance-sheet, cyclicality, regulatory, or dilution risks. "
+        "8) Overall Assessment & Research Checks - balanced synthesis, why it is or is not worth close monitoring, and the next 3-5 verification tasks. "
+        "Every bullet should contain a concrete investor insight, not generic filler. Use citations wherever possible."
     )
 
 
@@ -312,6 +390,8 @@ def source_publisher(url: str) -> str:
 
 
 def time_window(options: XaiXSearchOptions) -> str:
+    if options.tool_type == "web_search":
+        return "current_web_search"
     if options.from_date or options.to_date:
         return f"{options.from_date or 'begin'}_to_{options.to_date or 'now'}"
     return "current_x_search"

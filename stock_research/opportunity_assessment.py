@@ -69,6 +69,7 @@ def build_opportunity_assessment(root: Path, run_id: str, ticker: str, packets: 
     financial.update(enrich_financial_snapshot(root, run_id, ticker, financial))
     news = summarize_news(news_review)
     social = summarize_social(packets)
+    grok_web = summarize_grok_web_research(packets)
     filings = summarize_filings(packets)
     source_ids = selected_source_ids(packets)
     score, score_factors = score_opportunity(financial, news, social, filings, packets)
@@ -86,7 +87,7 @@ def build_opportunity_assessment(root: Path, run_id: str, ticker: str, packets: 
     negatives = build_negatives(financial, news, social, filings, packets)
     watch_items = build_watch_items(financial, news, social, filings, packets)
     data_quality_notes = build_data_quality_notes(financial, news)
-    investor_insight = build_investor_insight_report(root, run_id, ticker, financial, news, social, filings, positives, negatives, watch_items)
+    investor_insight = build_investor_insight_report(root, run_id, ticker, financial, news, social, filings, grok_web, positives, negatives, watch_items)
 
     assessment = {
         "ticker": ticker,
@@ -100,6 +101,7 @@ def build_opportunity_assessment(root: Path, run_id: str, ticker: str, packets: 
         "financial_snapshot": financial,
         "news_snapshot": news,
         "social_snapshot": social,
+        "grok_web_snapshot": grok_web,
         "filing_snapshot": filings,
         "positives": positives,
         "negatives": negatives,
@@ -534,6 +536,10 @@ def is_bad_truncated_excerpt(value: str) -> bool:
         return True
     if value.startswith('"') and value.count('"') % 2 == 1:
         return True
+    if "we're pleased to our work" in lower:
+        return True
+    if lower.startswith(('"we are pleased', '"we\'re pleased')) and not any(token in lower for token in ("revenue", "order", "guidance", "backlog", "margin", "$", "%")):
+        return True
     return False
 
 
@@ -566,12 +572,15 @@ def looks_investor_relevant(value: str) -> bool:
         "customer",
         "launched",
         "contract",
+        "order",
+        "battery",
+        "sonar",
     )
     return any(keyword in lower for keyword in keywords)
 
 
 def summarize_social(packets: list[EvidencePacket]) -> dict[str, Any]:
-    social_packets = [packet for packet in packets if packet.provider == "xai_grok"]
+    social_packets = [packet for packet in packets if is_xai_x_search_packet(packet)]
     raw_texts = [text for packet in social_packets if (text := read_xai_raw_output(packet.raw_artifact_path))]
     claims = raw_texts or [claim.evidence for packet in social_packets for claim in packet.claims]
     sources = [source for packet in social_packets for source in packet.sources]
@@ -639,6 +648,54 @@ def summarize_social(packets: list[EvidencePacket]) -> dict[str, Any]:
             fallback_paragraph=True,
         ),
         "summary_excerpt": compact_text(text, 1200),
+    }
+
+
+def is_xai_x_search_packet(packet: EvidencePacket) -> bool:
+    if packet.provider != "xai_grok":
+        return False
+    haystack = " ".join([packet.packet_id, packet.raw_artifact_path or "", packet.notes or ""]).lower()
+    return "x_search" in haystack or "xai_x_search" in haystack
+
+
+def is_xai_web_search_packet(packet: EvidencePacket) -> bool:
+    if packet.provider != "xai_grok":
+        return False
+    haystack = " ".join([packet.packet_id, packet.raw_artifact_path or "", packet.notes or ""]).lower()
+    return "web_search" in haystack or "web_deep_dive" in haystack
+
+
+def summarize_grok_web_research(packets: list[EvidencePacket]) -> dict[str, Any]:
+    web_packets = [packet for packet in packets if is_xai_web_search_packet(packet)]
+    raw_texts = [text for packet in web_packets if (text := read_xai_raw_output(packet.raw_artifact_path))]
+    text = "\n".join(raw_texts or [claim.evidence for packet in web_packets for claim in packet.claims])
+    sections = parse_grok_sections(text)
+    sources = [source for packet in web_packets for source in packet.sources]
+    return {
+        "status": "available" if web_packets else "missing",
+        "packet_count": len(web_packets),
+        "citation_count": len([source for source in sources if source.url]),
+        "business_technology_overview": first_non_empty_section(
+            sections,
+            ["business & technology overview", "business and technology overview"],
+            fallback="",
+        ),
+        "industry_competition": first_non_empty_section(
+            sections,
+            ["industry context & competitive landscape", "industry context and competitive landscape"],
+            fallback="",
+        ),
+        "latest_news_rumors": section_items(sections, ["latest news & rumors", "latest news and rumors"], limit=5, fallback_paragraph=True),
+        "financial_snapshot": first_non_empty_section(sections, ["financial snapshot"], fallback=""),
+        "analyst_forecasts": first_non_empty_section(sections, ["analyst forecasts"], fallback=""),
+        "catalysts_tailwinds": section_items(sections, ["catalysts & tailwinds", "catalysts and tailwinds"], limit=5),
+        "risks_headwinds": section_items(sections, ["risks & headwinds", "risks and headwinds"], limit=5),
+        "overall_assessment": first_non_empty_section(
+            sections,
+            ["overall assessment & research checks", "overall assessment and research checks", "overall assessment"],
+            fallback=first_paragraph(text),
+        ),
+        "summary_excerpt": compact_text(text, 1200) if text else "",
     }
 
 
@@ -903,11 +960,12 @@ def build_investor_insight_report(
     news: dict[str, Any],
     social: dict[str, Any],
     filings: dict[str, Any],
+    grok_web: dict[str, Any],
     positives: list[str],
     negatives: list[str],
     watch_items: list[str],
 ) -> dict[str, Any]:
-    company_context = build_company_context(root, run_id, ticker, financial)
+    company_context = build_company_context(root, run_id, ticker, financial, grok_web)
     valuation_snapshot = build_valuation_snapshot(financial)
     community = build_community_split(social)
     thesis = build_thesis_and_trends(financial, news, social, positives, negatives)
@@ -918,6 +976,7 @@ def build_investor_insight_report(
         "company_context": company_context,
         "thesis_and_trends": thesis,
         "community_and_expert_split": community,
+        "grok_web_research": grok_web,
         "non_obvious_insights": non_obvious,
         "valuation_snapshot": valuation_snapshot,
         "peer_competition_context": build_peer_competition_context(root, run_id, ticker, company_context),
@@ -926,15 +985,16 @@ def build_investor_insight_report(
     }
 
 
-def build_company_context(root: Path, run_id: str, ticker: str, financial: dict[str, Any]) -> dict[str, Any]:
+def build_company_context(root: Path, run_id: str, ticker: str, financial: dict[str, Any], grok_web: dict[str, Any] | None = None) -> dict[str, Any]:
     exa_context = read_exa_company_context(root, run_id, ticker)
-    description = financial.get("company_description") or exa_context.get("description") or ""
+    grok_web = grok_web or {}
+    description = financial.get("company_description") or exa_context.get("description") or grok_web.get("business_technology_overview") or ""
     return {
         "what_it_does": compact_text(description, 700) if description else "Company description was not available from current provider artifacts.",
         "sector": financial.get("sector") or exa_context.get("industry") or "unknown",
         "industry": financial.get("industry") or exa_context.get("industry") or "unknown",
         "business_model_notes": extract_business_model_notes(description, exa_context.get("highlights", "")),
-        "source": exa_context.get("source") or "financial provider profile",
+        "source": exa_context.get("source") or ("Grok web_search auxiliary report" if grok_web.get("business_technology_overview") else "financial provider profile"),
     }
 
 
@@ -1005,10 +1065,10 @@ def build_core_thesis(financial: dict[str, Any], news: dict[str, Any], social: d
     first_positive = normalize_sentence_fragment(
         summarize_developments_short(news) or (strip_citations_and_markdown(positives[0]) if positives else "recent evidence is mixed")
     )
-    if social.get("bullish_claims"):
-        bull_case = normalize_sentence_fragment(strip_citations_and_markdown(str(social["bullish_claims"][0])))
-        return compact_text(f"{sector} / {industry}: {first_positive}. The social bull case centers on {bull_case}.", 550)
-    return compact_text(f"{sector} / {industry}: {first_positive}.", 550)
+    social_context = ""
+    if social.get("bullish_claims") or social.get("bearish_claims"):
+        social_context = " X adds a separate narrative layer that should be checked against fundamentals, not treated as proof."
+    return compact_text(f"{sector} / {industry}: {first_positive}.{social_context}", 520)
 
 
 def normalize_sentence_fragment(value: str) -> str:
@@ -1022,7 +1082,6 @@ def build_tailwinds(news: dict[str, Any], social: dict[str, Any], positives: lis
             items.append(value)
     if not any("strategic ai ecosystem" in item.lower() for item in items):
         items.extend(strategic_ai_items(news, social))
-    items.extend(list(social.get("bullish_claims") or [])[:3])
     return unique_texts([strip_citations_and_markdown(item) for item in items], 6)
 
 
@@ -1046,8 +1105,6 @@ def build_trend_evolution(news: dict[str, Any], social: dict[str, Any]) -> list[
             items.append(f"Fundamental trend: {claim}")
         elif any(word in claim.lower() for word in ("adoption", "agreement", "partner", "bedrock")):
             items.append(f"Ecosystem trend: {claim}")
-    if social.get("x_pulse"):
-        items.append(f"Social trend: {strip_citations_and_markdown(str(social['x_pulse']))}")
     for item in social.get("strategic_partnerships", [])[:2]:
         items.append(f"Strategic ecosystem trend: {strip_citations_and_markdown(str(item))}")
     return unique_texts(items, 5)
@@ -1272,16 +1329,20 @@ def build_summary_table(
     valuation: dict[str, Any],
     non_obvious: list[str],
 ) -> list[dict[str, str]]:
+    development_count = len(news.get("material_developments") or [])
+    bull_count = len(social.get("bullish_claims") or [])
+    bear_count = len(social.get("bearish_claims") or [])
+    non_obvious_count = len(non_obvious or [])
     return [
         {
             "dimension": "Growth / demand",
-            "current_read": compact_text(first_or_default(thesis.get("tailwinds"), "No clear growth tailwind extracted."), 360),
+            "current_read": f"{development_count} source-backed recent development(s) and {len(thesis.get('tailwinds') or [])} extracted tailwind(s) need ranking by thesis impact.",
             "evidence": "Exa news + earnings/call excerpts",
             "follow_up": "Check whether growth is broad-based or mostly one segment.",
         },
         {
             "dimension": "Community / X sentiment",
-            "current_read": compact_text(strip_citations_and_markdown(str(social.get("x_pulse", "No X pulse available."))), 420),
+            "current_read": f"{social.get('sentiment', 'missing')} with {bull_count} bull theme(s) and {bear_count} skeptic theme(s); use the X section for the actual narratives.",
             "evidence": "Grok/X social signal",
             "follow_up": "Separate informed accounts from price-action chatter and spam.",
         },
@@ -1293,7 +1354,7 @@ def build_summary_table(
         },
         {
             "dimension": "Non-obvious angle",
-            "current_read": compact_text(first_or_default(non_obvious, "No non-obvious angle extracted."), 360),
+            "current_read": f"{non_obvious_count} under-discussed angle(s) extracted; verify only those that would change the thesis or next research decision.",
             "evidence": "Cross-read of Exa, Grok/X, and financials",
             "follow_up": "Verify with primary source or higher-quality source before thesis update.",
         },
@@ -1322,13 +1383,14 @@ def build_next_research_questions(financial: dict[str, Any], news: dict[str, Any
 
 
 def build_executive_read(ticker: str, thesis: dict[str, Any], valuation: dict[str, Any], community: dict[str, Any], non_obvious: list[str]) -> str:
-    thesis_text = compact_text(strip_citations_and_markdown(str(thesis.get("core_thesis") or "Evidence is incomplete.")), 500)
+    thesis_text = claim_theme(str(thesis.get("core_thesis") or "Evidence is incomplete."))
     valuation_text = "needs verification before using headline price/market-cap/P/E" if valuation.get("valuation_sanity_warnings") else valuation_sentence(valuation)
-    community_text = normalize_sentence_fragment(compact_text(first_sentence(strip_citations_and_markdown(str(community.get("x_pulse", "")))), 300))
-    non_obvious_text = compact_text(first_or_default(non_obvious, "No strong non-obvious angle was extracted."), 360)
+    bull_count = len(community.get("bullish_camp") or [])
+    bear_count = len(community.get("skeptical_camp") or [])
+    non_obvious_text = f"{len(non_obvious)} under-discussed angle(s) to verify" if non_obvious else "no strong under-discussed angle extracted"
     return compact_text(
-        f"{ticker}: {thesis_text} Valuation: {valuation_text}. X/community: {community_text}. Under-discussed check: {non_obvious_text}",
-        860,
+        f"{ticker}: {thesis_text}. Valuation context: {valuation_text}. X/community evidence adds {bull_count} bull theme(s) and {bear_count} skeptic theme(s), so the key job is to verify which social claims are supported by filings, news, and financials. Main extra check: {non_obvious_text}.",
+        760,
     )
 
 
@@ -1542,13 +1604,14 @@ def build_summary(
     negatives: list[str],
     social: dict[str, Any],
 ) -> str:
-    pulse = social.get("x_pulse", "")
-    pulse_sentence = f" X pulse: {compact_text(strip_citations_and_markdown(pulse), 220)}" if pulse else ""
-    positive = compact_text(strip_citations_and_markdown(positives[0]), 320)
-    negative = compact_text(strip_citations_and_markdown(negatives[0]), 320)
+    positive = claim_theme(positives[0] if positives else "limited positive evidence")
+    negative = claim_theme(negatives[0] if negatives else "limited caveat evidence")
+    social_context = ""
+    if social.get("status") == "available":
+        social_context = f" {ticker} Grok/X adds {len(social.get('bullish_claims') or [])} bull theme(s) and {len(social.get('bearish_claims') or [])} skeptic theme(s) for verification."
     return (
-        f"{ticker} is {opportunity_view} ({score}/100, {risk_level} risk, {confidence} confidence) because {positive} "
-        f"Main caveat: {negative}{pulse_sentence}"
+        f"{ticker} is {opportunity_view} ({score}/100, {risk_level} risk, {confidence} confidence). "
+        f"{ticker} main positive driver: {positive}. {ticker} main caveat: {negative}.{social_context}"
     )
 
 
@@ -1577,6 +1640,28 @@ def normalize_claim_key(value: str) -> str:
     normalized = re.sub(r"\b(inc|incorporated|corp|corporation|plc|ltd|limited)\b", "", normalized)
     normalized = re.sub(r"[^a-z0-9]+", " ", normalized)
     return " ".join(normalized.split())
+
+
+def claim_theme(value: str) -> str:
+    lower = strip_citations_and_markdown(str(value)).lower()
+    themes: list[str] = []
+    if any(word in lower for word in ("rumor", "speculation", "speculative", "unverified", "verify", "unconfirmed")):
+        themes.append("verification risk around unconfirmed claims")
+    if any(word in lower for word in ("revenue", "sales", "guidance", "backlog", "demand", "orders")):
+        themes.append("source-backed growth/demand evidence")
+    if any(word in lower for word in ("margin", "income", "profit", "cash flow", "ebitda", "fcf")):
+        themes.append("profitability or cash-conversion evidence")
+    if any(word in lower for word in ("ai", "chip", "semiconductor", "cloud", "robot", "autonomous", "subsea", "software", "nvidia", "customer", "partner", "ecosystem")):
+        themes.append("technology or product-positioning evidence")
+    if any(word in lower for word in ("strategic ecosystem", "customer/partner", "major customers", "supplier", "contract")):
+        themes.append("strategic ecosystem/customer leverage evidence")
+    if any(word in lower for word in ("valuation", "multiple", "p/e", "expensive", "target", "market cap")):
+        themes.append("valuation risk")
+    if any(word in lower for word in ("competition", "competitor", "execution", "cyclical", "dilution", "debt", "risk", "uncertain")):
+        themes.append("execution or competitive risk")
+    if themes:
+        return ", ".join(unique_texts(themes, 3))
+    return compact_text(strip_citations_and_markdown(str(value)), 180)
 
 
 def recommended_next_action(
@@ -1728,8 +1813,13 @@ def format_opportunity_assessment_markdown(root: Path, run_id: str, assessment: 
     ]
     insight = assessment.get("investor_insight_report") or {}
     lines.extend(format_investor_insight_markdown(insight))
+    report_seen = seen_from_markdown_lines(lines)
     lines.extend(["", "## Actionable Follow-ups", ""])
-    lines.extend(f"- {format_report_item(item, 650)}" for item in unique_texts(assessment["watch_items"], 6))
+    followups = unique_report_items(assessment["watch_items"], seen=report_seen, limit=6, max_length=650)
+    if followups:
+        lines.extend(f"- {item}" for item in followups)
+    else:
+        lines.append("- No distinct follow-up beyond the investor insight report above.")
     lines.extend(["", "## Filing And Data Coverage", ""])
     filing = assessment["filing_snapshot"]
     lines.append(f"- status: {filing.get('status')}")
@@ -1748,7 +1838,9 @@ def format_opportunity_assessment_markdown(root: Path, run_id: str, assessment: 
         lines.extend(f"- {item}" for item in assessment["quality_findings"])
     else:
         lines.append("- None.")
-    lines.extend(["", "## Recommended Next Action", "", f"- {assessment['recommended_next_action']}"])
+    next_action = unique_report_items([assessment["recommended_next_action"]], seen=report_seen, limit=1, max_length=650)
+    lines.extend(["", "## Recommended Next Action", ""])
+    lines.extend(f"- {item}" for item in (next_action or ["Use the non-repeated follow-up checks above as the next review path."]))
     return "\n".join(lines).rstrip() + "\n"
 
 
@@ -1789,13 +1881,16 @@ def format_score_rationale(assessment: dict[str, Any]) -> list[str]:
 
 def format_investor_insight_markdown(insight: dict[str, Any]) -> list[str]:
     lines: list[str] = []
-    lines.extend(["### Executive Read", "", insight.get("executive_read") or "No executive read generated.", ""])
+    seen: set[str] = set()
+    executive_read = insight.get("executive_read") or "No executive read generated."
+    lines.extend(["### Executive Read", "", executive_read, ""])
+    remember_report_text(executive_read, seen)
     context = insight.get("company_context") or {}
     lines.extend(
         [
-            "### Company / Industry Context",
+            "### Business, Technology, And Industry Context",
             "",
-            f"- What it does: {context.get('what_it_does') or 'unknown'}",
+            f"- What it does: {format_report_item(context.get('what_it_does') or 'unknown', 850)}",
             f"- Sector / industry: {context.get('sector') or 'unknown'} / {context.get('industry') or 'unknown'}",
         ]
     )
@@ -1811,26 +1906,49 @@ def format_investor_insight_markdown(insight: dict[str, Any]) -> list[str]:
 
     thesis = insight.get("thesis_and_trends") or {}
     lines.extend(["", "### Thesis, Trends, And What Changed", ""])
-    lines.append(f"- Core thesis: {thesis.get('core_thesis') or 'No core thesis generated.'}")
-    append_list_section(lines, "What changed recently", thesis.get("what_changed_recently") or [])
-    append_list_section(lines, "Tailwinds", thesis.get("tailwinds") or [])
-    append_list_section(lines, "Headwinds / debate points", thesis.get("headwinds") or [])
-    append_list_section(lines, "Trend evolution", thesis.get("trend_evolution") or [])
+    core_thesis = format_report_item(thesis.get("core_thesis") or "No core thesis generated.", 650)
+    lines.append(f"- Core thesis: {core_thesis}")
+    remember_report_text(core_thesis, seen)
+    append_list_section(lines, "What changed recently", thesis.get("what_changed_recently") or [], seen=seen, limit=5, max_length=520)
+    append_list_section(lines, "Tailwinds", thesis.get("tailwinds") or [], seen=seen, limit=4, max_length=500)
+    append_list_section(lines, "Headwinds / debate points", thesis.get("headwinds") or [], seen=seen, limit=5, max_length=500)
+    append_list_section(lines, "Trend evolution", thesis.get("trend_evolution") or [], seen=seen, limit=4, max_length=500)
 
     community = insight.get("community_and_expert_split") or {}
     lines.extend(["", "### Expert / Community Split From X", ""])
     x_pulse = community.get("x_pulse") or "No X pulse available."
-    lines.append(f"- X pulse: {format_report_item(x_pulse, 700)}")
-    append_list_section(lines, "Bullish camp", community.get("bullish_camp") or [])
-    append_list_section(lines, "Skeptical camp", community.get("skeptical_camp") or [])
-    append_list_section(lines, "Strategic partnerships / ecosystem leverage", community.get("strategic_partnerships") or [])
+    append_unique_labeled_item(lines, "X pulse", x_pulse, seen, max_length=700)
+    append_list_section(lines, "Bullish camp", community.get("bullish_camp") or [], seen=seen, limit=4, max_length=520)
+    append_list_section(lines, "Skeptical camp", community.get("skeptical_camp") or [], seen=seen, limit=4, max_length=520)
+    append_list_section(lines, "Strategic partnerships / ecosystem leverage", community.get("strategic_partnerships") or [], seen=seen, limit=3, max_length=500)
     if community.get("notable_accounts_or_posts"):
         lines.append(f"- Accounts/posts worth reviewing: {', '.join(community['notable_accounts_or_posts'][:8])}")
     if community.get("hype_noise_assessment"):
-        lines.append(f"- Hype/noise: {format_report_item(community['hype_noise_assessment'], 500)}")
-    append_list_section(lines, "Rumors / unverified claims", community.get("rumors_or_unverified") or [])
+        append_unique_labeled_item(lines, "Hype/noise", community["hype_noise_assessment"], seen, max_length=500)
+    append_list_section(lines, "Rumors / unverified claims", community.get("rumors_or_unverified") or [], seen=seen, limit=3, max_length=500)
 
-    append_list_section(lines, "Non-obvious / under-discussed insights to verify", insight.get("non_obvious_insights") or [], heading_level="###")
+    grok_web = insight.get("grok_web_research") or {}
+    if grok_web.get("status") == "available":
+        lines.extend(["", "### Auxiliary Grok Web Deep Dive", ""])
+        lines.append("- Use: auxiliary coverage-gap evidence only; verify material claims with Exa contents, filings, company sources, or financial providers.")
+        append_unique_labeled_item(lines, "Business / technology", grok_web.get("business_technology_overview", ""), seen, max_length=700)
+        append_unique_labeled_item(lines, "Industry / competition", grok_web.get("industry_competition", ""), seen, max_length=700)
+        append_list_section(lines, "Latest news / rumors from web search", grok_web.get("latest_news_rumors") or [], seen=seen, limit=4, max_length=520)
+        append_unique_labeled_item(lines, "Financial / analyst gap check", grok_web.get("financial_snapshot", ""), seen, max_length=520)
+        append_unique_labeled_item(lines, "Analyst forecasts", grok_web.get("analyst_forecasts", ""), seen, max_length=520)
+        append_list_section(lines, "Grok web catalysts to verify", grok_web.get("catalysts_tailwinds") or [], seen=seen, limit=3, max_length=500)
+        append_list_section(lines, "Grok web risks to verify", grok_web.get("risks_headwinds") or [], seen=seen, limit=3, max_length=500)
+        append_unique_labeled_item(lines, "Overall web read", grok_web.get("overall_assessment", ""), seen, max_length=650)
+
+    append_list_section(
+        lines,
+        "Non-obvious / under-discussed insights to verify",
+        insight.get("non_obvious_insights") or [],
+        heading_level="###",
+        seen=seen,
+        limit=5,
+        max_length=520,
+    )
 
     valuation = insight.get("valuation_snapshot") or {}
     lines.extend(["", "### Valuation And Analyst Snapshot", ""])
@@ -1883,7 +2001,7 @@ def format_investor_insight_markdown(insight: dict[str, Any]) -> list[str]:
                 )
                 + " |"
             )
-    append_list_section(lines, "Next research questions", insight.get("next_research_questions") or [], heading_level="###")
+    append_list_section(lines, "Next research questions", insight.get("next_research_questions") or [], heading_level="###", seen=seen, limit=5, max_length=520)
     return lines
 
 
@@ -1935,14 +2053,98 @@ def format_financial_snapshot_lines(financial: dict[str, Any]) -> list[str]:
     return lines
 
 
-def append_list_section(lines: list[str], title: str, items: list[str], heading_level: str = "") -> None:
-    if not items:
+def append_list_section(
+    lines: list[str],
+    title: str,
+    items: list[str],
+    heading_level: str = "",
+    *,
+    seen: set[str] | None = None,
+    limit: int | None = None,
+    max_length: int = 360,
+) -> None:
+    visible_items = unique_report_items(items, seen=seen, limit=limit or len(items), max_length=max_length)
+    if not visible_items:
         return
     if heading_level:
         lines.extend(["", f"{heading_level} {title}", ""])
     else:
         lines.append(f"- {title}:")
-    lines.extend(f"  - {format_report_item(item)}" if not heading_level else f"- {format_report_item(item)}" for item in items)
+    lines.extend(f"  - {item}" if not heading_level else f"- {item}" for item in visible_items)
+
+
+def append_unique_labeled_item(lines: list[str], label: str, value: Any, seen: set[str], *, max_length: int = 360) -> None:
+    formatted = format_report_item(value, max_length)
+    if not formatted:
+        return
+    key = normalize_claim_key(formatted)
+    if key and is_report_duplicate(key, seen):
+        return
+    if key:
+        seen.add(key)
+    lines.append(f"- {label}: {formatted}")
+
+
+def unique_report_items(
+    items: list[Any],
+    *,
+    seen: set[str] | None = None,
+    limit: int,
+    max_length: int = 360,
+) -> list[str]:
+    result: list[str] = []
+    local_seen = seen if seen is not None else set()
+    for item in items:
+        formatted = format_report_item(item, max_length)
+        if not formatted:
+            continue
+        key = normalize_claim_key(formatted)
+        if not key or is_report_duplicate(key, local_seen):
+            continue
+        local_seen.add(key)
+        result.append(formatted)
+        if len(result) >= limit:
+            break
+    return result
+
+
+def remember_report_text(value: Any, seen: set[str]) -> None:
+    for sentence in split_report_sentences(str(value)):
+        key = normalize_claim_key(sentence)
+        if key and len(key.split()) >= 8:
+            seen.add(key)
+
+
+def seen_from_markdown_lines(lines: list[str]) -> set[str]:
+    seen: set[str] = set()
+    for line in lines:
+        if line.startswith(("## Sources", "- run:", "## Quality Findings")):
+            continue
+        remember_report_text(line, seen)
+    return seen
+
+
+def split_report_sentences(value: str) -> list[str]:
+    cleaned = clean_report_text(strip_citations_and_markdown(value))
+    if not cleaned:
+        return []
+    return [sentence.strip() for sentence in re.split(r"(?<=[.!?])\s+", cleaned) if sentence.strip()]
+
+
+def is_report_duplicate(key: str, existing: set[str]) -> bool:
+    if is_duplicate_key(key, existing):
+        return True
+    words = set(key.split())
+    if len(words) < 8:
+        return False
+    for previous in existing:
+        previous_words = set(previous.split())
+        if len(previous_words) < 8:
+            continue
+        overlap = len(words & previous_words) / max(len(words), len(previous_words))
+        if overlap >= 0.82:
+            return True
+    return False
 
 
 def format_report_item(value: Any, max_length: int = 360) -> str:

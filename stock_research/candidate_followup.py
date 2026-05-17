@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 from dataclasses import asdict, dataclass, field
 from datetime import date, datetime
 from pathlib import Path
@@ -158,11 +159,72 @@ def load_candidate_groups(review_report_path: Path) -> dict[str, dict[str, str]]
     if not tables:
         return {}
     groups: dict[str, dict[str, str]] = {}
-    for row in tables[0]:
-        group_id = normalize_ascii(row.get("Group ID", ""))
-        if group_id:
-            groups[group_id] = row
+    for table in tables:
+        if not table or "Group ID" not in table[0]:
+            continue
+        for row in table:
+            group_id = normalize_ascii(row.get("Group ID", ""))
+            if group_id:
+                groups[group_id] = normalize_candidate_group_row(row)
     return groups
+
+
+def normalize_candidate_group_row(row: dict[str, str]) -> dict[str, str]:
+    normalized = {key: normalize_ascii(value) for key, value in row.items()}
+    candidate, label_tickers = split_candidate_label(normalized.get("Candidate", ""))
+    evidence = parse_evidence_state(normalized.get("Evidence state", ""))
+
+    if candidate:
+        normalized["Candidate"] = candidate
+    if not normalized.get("Tickers") and label_tickers:
+        normalized["Tickers"] = ", ".join(label_tickers)
+    if not normalized.get("Channels") and evidence.get("channels"):
+        normalized["Channels"] = evidence["channels"]
+    if not normalized.get("Verification") and evidence.get("verification"):
+        normalized["Verification"] = evidence["verification"]
+    if not normalized.get("Hype") and evidence.get("hype"):
+        normalized["Hype"] = evidence["hype"]
+    if not normalized.get("Cooldown") and evidence.get("cooldown"):
+        normalized["Cooldown"] = evidence["cooldown"]
+    if not normalized.get("Decision Kind"):
+        normalized["Decision Kind"] = decision_kind_from_group_state(normalized)
+    if not normalized.get("Why surfaced") and normalized.get("Why it surfaced"):
+        normalized["Why surfaced"] = normalized["Why it surfaced"]
+    return normalized
+
+
+def split_candidate_label(label: str) -> tuple[str, list[str]]:
+    cleaned = normalize_ascii(label)
+    match = re.search(r"\(([^()]*)\)\s*$", cleaned)
+    if not match:
+        return cleaned, []
+    tickers = [ticker.strip().upper() for ticker in match.group(1).split(",") if ticker.strip()]
+    if not tickers or not all(re.fullmatch(r"[A-Z0-9][A-Z0-9.\-]*", ticker) for ticker in tickers):
+        return cleaned, []
+    candidate = cleaned[: match.start()].strip()
+    return candidate or cleaned, tickers
+
+
+def parse_evidence_state(value: str) -> dict[str, str]:
+    parsed: dict[str, str] = {}
+    for part in normalize_ascii(value).split(";"):
+        if "=" not in part:
+            continue
+        key, raw_value = part.split("=", 1)
+        parsed[key.strip().lower()] = raw_value.strip()
+    return parsed
+
+
+def decision_kind_from_group_state(group: dict[str, str]) -> str:
+    cooldown_status = normalize_ascii(group.get("Cooldown", "")).lower()
+    verification_status = normalize_ascii(group.get("Verification", "")).lower()
+    if cooldown_status == "cooldown_active":
+        return "cooldown_override"
+    if verification_status in {"verified", "partially_verified"}:
+        return "monitoring_candidate"
+    if verification_status == "grok_only":
+        return "verify_grok_lead"
+    return "verify_before_monitoring"
 
 
 def build_candidate_verification_manifest(

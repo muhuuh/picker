@@ -92,6 +92,7 @@ from .providers.xai_grok import (
     XaiGrokError,
     XaiXSearchOptions,
     build_xai_x_search_packet,
+    company_deep_dive_prompt,
     default_xai_run_id,
     industry_sentiment_prompt,
     latest_news_prompt,
@@ -250,6 +251,38 @@ def main(argv: list[str] | None = None) -> int:
     human_review_decide.add_argument("--write", action="store_true", help="Update agents/human_review_queue.md and refresh the digest.")
     human_review_decide.add_argument("--today", help="Override current date as YYYY-MM-DD.")
 
+    sheet_intake_parser = subparsers.add_parser("sheet-intake", help="Turn selected quick-intake sheet rows into candidate review artifacts.")
+    sheet_intake_subparsers = sheet_intake_parser.add_subparsers(dest="sheet_intake_command", required=True)
+    sheet_intake_selected = sheet_intake_subparsers.add_parser(
+        "selected-rows",
+        help="Import rows explicitly marked for research in the stock-intake sheet.",
+    )
+    sheet_intake_selected.add_argument(
+        "--rows-json",
+        required=True,
+        help="Path to rows JSON, or '-' to read JSON from stdin. Accepts a list of row dicts/lists or {headers, rows}.",
+    )
+    sheet_intake_selected.add_argument("--run-id", help="Run id for artifacts. Defaults to YYYY-MM-DD_sheet-intake.")
+    sheet_intake_selected.add_argument(
+        "--selected-action",
+        action="append",
+        default=[],
+        help="Sheet action value to import. Repeatable. Defaults to 'research'.",
+    )
+    sheet_intake_selected.add_argument("--write", action="store_true", help="Write sheet-intake and candidate-review artifacts.")
+    sheet_intake_selected.add_argument("--queue-review", action="store_true", help="Append candidate review rows to the human-review queue.")
+    sheet_intake_selected.add_argument(
+        "--approve-verification",
+        action="store_true",
+        help="Mark created candidate-review rows approved for verification. Use only after explicit user instruction.",
+    )
+    sheet_intake_selected.add_argument(
+        "--write-verification-plan",
+        action="store_true",
+        help="Write candidate verification manifest/plan after approving verification rows.",
+    )
+    sheet_intake_selected.add_argument("--today", help="Override current date as YYYY-MM-DD.")
+
     evidence_parser = subparsers.add_parser("evidence", help="Create or validate evidence packets.")
     evidence_subparsers = evidence_parser.add_subparsers(dest="evidence_command", required=True)
 
@@ -399,6 +432,22 @@ def main(argv: list[str] | None = None) -> int:
     xai_x_search.add_argument("--api-key", help="xAI API key. Or set XAI_API_KEY.")
     xai_x_search.add_argument("--today", help="Override current date as YYYY-MM-DD.")
 
+    xai_web_search = xai_subparsers.add_parser("web-search", help="Use Grok with built-in web_search and write an evidence packet.")
+    xai_web_search.add_argument("--prompt", help="Full research prompt. If omitted, use --ticker/--company-name or --topic.")
+    xai_web_search.add_argument("--ticker", help="Ticker for company deep-dive prompt.")
+    xai_web_search.add_argument("--company-name", default="")
+    xai_web_search.add_argument("--topic", help="Company, industry, or news topic for prompt generation.")
+    xai_web_search.add_argument("--research-kind", default="company_deep_dive", choices=["company_deep_dive", "latest_news", "industry_sentiment"])
+    xai_web_search.add_argument("--subject-type", required=True, choices=["company", "industry", "theme", "macro", "strategy", "portfolio"])
+    xai_web_search.add_argument("--subject-id", required=True)
+    xai_web_search.add_argument("--run-id", help="Run ID for output artifacts. Defaults to YYYY-MM-DD_manual-xai.")
+    xai_web_search.add_argument("--model", help="xAI model override. Defaults through agents/model_routing.yaml.")
+    xai_web_search.add_argument("--allowed-domain", action="append", default=[])
+    xai_web_search.add_argument("--excluded-domain", action="append", default=[])
+    xai_web_search.add_argument("--enable-image-understanding", action="store_true")
+    xai_web_search.add_argument("--api-key", help="xAI API key. Or set XAI_API_KEY.")
+    xai_web_search.add_argument("--today", help="Override current date as YYYY-MM-DD.")
+
     provider_tasks = subparsers.add_parser("provider-tasks", help="Dry-run or execute provider tasks from a manifest.")
     provider_tasks.add_argument("--manifest", type=Path, required=True)
     provider_tasks.add_argument("--execute", action="store_true", help="Execute tasks. Omit for safe dry-run.")
@@ -424,6 +473,17 @@ def main(argv: list[str] | None = None) -> int:
     quality_report_parser.add_argument("--run-id", required=True)
     quality_report_parser.add_argument("--write", action="store_true", help="Write quality_report.json and quality_report.md into the run directory.")
     quality_report_parser.add_argument("--today", help="Override current date as YYYY-MM-DD.")
+
+    human_report_parser = subparsers.add_parser("human-report", help="Prepare Codex app human-report synthesis inputs.")
+    human_report_subparsers = human_report_parser.add_subparsers(dest="human_report_command", required=True)
+    synthesis_pack_parser = human_report_subparsers.add_parser(
+        "synthesis-pack",
+        help="Build per-ticker synthesis packs for first-principles Codex app final reports.",
+    )
+    synthesis_pack_parser.add_argument("--run-id", required=True)
+    synthesis_pack_parser.add_argument("--ticker", action="append", default=[], help="Optional ticker filter. Can be repeated.")
+    synthesis_pack_parser.add_argument("--write", action="store_true", help="Write reports/human_synthesis/*_synthesis_pack.md/json.")
+    synthesis_pack_parser.add_argument("--today", help="Override current date as YYYY-MM-DD.")
 
     agent_runtime_parser = subparsers.add_parser("agent-runtime", help="Inspect the OpenAI Agents SDK runtime registry.")
     agent_runtime_subparsers = agent_runtime_parser.add_subparsers(dest="agent_runtime_command", required=True)
@@ -815,6 +875,29 @@ def main(argv: list[str] | None = None) -> int:
             print(json.dumps(human_review_decision_result_to_dict(result), indent=2, sort_keys=True))
             return 0 if result.status in {"ready_to_apply", "applied", "no_decisions"} else 2
 
+    if args.command == "sheet-intake":
+        if args.sheet_intake_command == "selected-rows":
+            from .sheet_intake import build_sheet_intake_candidate_review, load_rows_json, result_to_dict
+
+            request_date = parse_cli_date(args.today)
+            try:
+                result = build_sheet_intake_candidate_review(
+                    root=state.root,
+                    rows=load_rows_json(args.rows_json),
+                    run_id=args.run_id or "",
+                    selected_actions=set(args.selected_action) if args.selected_action else None,
+                    current_date=request_date,
+                    write=args.write,
+                    queue_review=args.queue_review,
+                    approve_verification=args.approve_verification,
+                    write_verification_plan=args.write_verification_plan,
+                )
+            except Exception as exc:
+                print(f"ERROR: {exc}")
+                return 1
+            print(json.dumps(result_to_dict(result), indent=2, sort_keys=True))
+            return 0 if result.status != "partial" else 2
+
     if args.command == "evidence":
         if args.evidence_command == "new":
             packet_date = parse_cli_date(args.today)
@@ -1124,6 +1207,26 @@ def main(argv: list[str] | None = None) -> int:
                     root=state.root,
                     current_date=request_date,
                 )
+            elif args.xai_command == "web-search":
+                route_id = xai_route_for_research_kind(args.research_kind)
+                resolved_xai_model = resolve_model_for_route(state.root, route_id, explicit_model=args.model).model
+                packet, paths = build_xai_x_search_packet(
+                    options=XaiXSearchOptions(
+                        prompt=prompt,
+                        subject_type=args.subject_type,
+                        subject_id=args.subject_id,
+                        research_kind=args.research_kind,
+                        model=resolved_xai_model,
+                        tool_type="web_search",
+                        allowed_domains=tuple(args.allowed_domain),
+                        excluded_domains=tuple(args.excluded_domain),
+                        enable_image_understanding=args.enable_image_understanding,
+                    ),
+                    api_key=api_key,
+                    run_id=run_id,
+                    root=state.root,
+                    current_date=request_date,
+                )
             else:
                 return 1
         except XaiGrokError as exc:
@@ -1189,6 +1292,25 @@ def main(argv: list[str] | None = None) -> int:
             print(f"ERROR: {exc}")
             return 1
         return 0
+
+    if args.command == "human-report":
+        from .human_synthesis_pack import build_human_synthesis_packs, human_synthesis_pack_result_to_dict
+
+        if args.human_report_command == "synthesis-pack":
+            request_date = parse_cli_date(args.today)
+            try:
+                result = build_human_synthesis_packs(
+                    root=state.root,
+                    run_id=args.run_id,
+                    current_date=request_date,
+                    tickers=args.ticker or None,
+                    write=args.write,
+                )
+            except (FileNotFoundError, ValueError) as exc:
+                print(f"ERROR: {exc}")
+                return 1
+            print(json.dumps(human_synthesis_pack_result_to_dict(result), indent=2, sort_keys=True))
+            return 0 if result.status == "ready" else 2
 
     if args.command == "market-research":
         from .market_research_runner import manual_market_result_to_dict, run_manual_market_research
@@ -1599,6 +1721,8 @@ def resolve_xai_prompt(
 ) -> str:
     if prompt:
         return prompt
+    if ticker and research_kind == "company_deep_dive":
+        return company_deep_dive_prompt(ticker, company_name)
     if ticker:
         return stock_sentiment_prompt(ticker, company_name)
     if topic and research_kind == "latest_news":
@@ -1611,6 +1735,8 @@ def resolve_xai_prompt(
 def xai_route_for_research_kind(research_kind: str) -> str:
     if research_kind == "stock_sentiment":
         return "xai_stock_sentiment"
+    if research_kind == "company_deep_dive":
+        return "xai_company_deep_dive"
     if research_kind == "latest_news":
         return "xai_latest_news"
     return "xai_industry_discovery"

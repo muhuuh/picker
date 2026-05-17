@@ -9,7 +9,7 @@ Thesis freshness: `fresh_recent_evidence`
 
 ## Verdict
 
-TE is interesting (83/100, medium risk, high confidence) because Strategic ecosystem signal: evidence cites major customers, partners, or suppliers, suggesting customer/partner leverage that may matter beyond the headline financial metrics. Main caveat: X bear/skeptic narrative: Dilution risk: 13 offering-related filings in the last 60 documents flagged by @petitnong_. X pulse: X chatter on $TE (T1 Energy) spiked around the May 12 earnings release and stayed elevated through the May 15 Breitbart CEO interview.
+TE is interesting (83/100, medium risk, high confidence). TE main positive driver: technology or product-positioning evidence, strategic ecosystem/customer leverage evidence. TE main caveat: execution or competitive risk. TE Grok/X adds 4 bull theme(s) and 4 skeptic theme(s) for verification.
 
 ### Why The Score Looks Like This
 
@@ -24,9 +24,9 @@ TE is interesting (83/100, medium risk, high confidence) because Strategic ecosy
 ## Investor Insight Report
 ### Executive Read
 
-TE: Industrials / Electrical Equipment & Parts: T1 achieves record quarterly Net Income from Continuing Operations of $3.9 million and record quarterly Adjusted EBITDA of $9.1. The social bull case centers on Earnings inflection: revenue nearly tripled while the G1 Dallas ramp continues-@petitnong_ and @CHItrader both flagged the beat as proof the story is moving from development to scale. Valuation: price $5.67, P/E 12.74x. X/community: X chatter on $TE (T1 Energy) spiked around the May 12 earnings release and stayed elevated through the May 15 Breitbart CEO interview. Under-discussed check: X under-discussed angle: Grid-constraint read-through: ERCOT data-center requests hit 233 GW (+269% YoY); T1's solar output could be contracted directly to hyperscalers rather than merchant solar.
+TE: profitability or cash-conversion evidence, technology or product-positioning evidence. Valuation context: price $5.67, P/E 12.74x. X/community evidence adds 4 bull theme(s) and 4 skeptic theme(s), so the key job is to verify which social claims are supported by filings, news, and financials. Main extra check: 7 under-discussed angle(s) to verify.
 
-### Company / Industry Context
+### Business, Technology, And Industry Context
 
 - What it does: T1 Energy (NYSE: TE) is building an integrated U.S. supply chain for advanced solar and battery manufacturing. We own and operate one of the world's most modern solar module plants in Wilmer, Texas, with an annual production capacity of 5 GW. And we're planning a solar cell plant outside of Austin. We believe harnessing solar energy with U.S. made panels is vital for our future. For more information, please visit www.t1energy.com.
 - Sector / industry: Industrials / Electrical Equipment & Parts
@@ -36,48 +36,33 @@ TE: Industrials / Electrical Equipment & Parts: T1 achieves record quarterly Net
 
 ### Thesis, Trends, And What Changed
 
-- Core thesis: Industrials / Electrical Equipment & Parts: T1 achieves record quarterly Net Income from Continuing Operations of $3.9 million and record quarterly Adjusted EBITDA of $9.1. The social bull case centers on Earnings inflection: revenue nearly tripled while the G1 Dallas ramp continues-@petitnong_ and @CHItrader both flagged the beat as proof the story is moving from development to scale.
+- Core thesis: Industrials / Electrical Equipment & Parts: T1 achieves record quarterly Net Income from Continuing Operations of $3.9 million and record quarterly Adjusted EBITDA of $9.1. X adds a separate narrative layer that should be checked against fundamentals, not treated as proof.
 - What changed recently:
-  - T1 achieves record quarterly Net Income from Continuing Operations of $3.9 million and record quarterly Adjusted EBITDA of $9.1 million in Q1 2026. Following the successful ramp of production at G1_Dallas in 2025, T1 achieved record quarterly profitability during the first quarter of 2026 due to higher than forecasted G1_Dallas production and sales, along.
+  - T1 achieves record quarterly Net Income from Continuing Operations of $3.9 million and record quarterly Adjusted EBITDA of $9.1 million in Q1 2026. Following the successful ramp of production at G1_Dallas in 2025, T1 achieved record quarterly profitability during the first quarter of 2026 due to higher than forecasted G1_Dallas production and sales, along with a favorable sequential mix shift of deliveries from merchant sales to fixed margin and cost-plus offtake contracts, and lower third-party fees.
   - Capital formation is progressing through diligence. T1 has identified and is targeting a comprehensive financing solution in Q2 2026 that includes a significant debt component to fund the remaining estimated capi.
   - G1 Production Guidance Range -- Management reiterated an unchanged 2026 G1 production target of 3.1-4.2 gigawatts, based on expanded non-FEOC cell vendor network and supply chain confidence.
   - Section 232 Exposure -- The company anticipates that outcomes from the Commerce Department's Section 232 investigation could lead to a pricing uplift for T1 Energy (TE 4.19%) due to its U.S. polysilicon-based supply agreements.
-  - T1 Energy (TE 4.19%) articulated a clear timeline and operational roadmap for its strategic G2_Austin expansion, maintaining execution pace despite adverse weather in Central Texas.
-  - G2_Austin Financing Status -- A comprehensive financing package for the remaining
+  - T1 Energy (TE 4.19%) articulated a clear timeline and operational roadmap for its strategic G2_Austin expansion, maintaining execution pace despite adverse weather in Central Texas. The upsized $176 million convertible notes offering in April bolstered liquidity and enabled uninterrupted progress on construction, while management detailed an active transition to predominantly debt-based funding for the balance of G2 Phase 1.
 - Tailwinds:
-  - T1 Energy (TE 4.19%) articulated a clear timeline and operational roadmap for its strategic G2_Austin expansion, maintaining execution pace despite adverse weather in Central Texas.
   - X bull narrative: Earnings inflection: revenue nearly tripled while the G1 Dallas ramp continues-@petitnong_ and @CHItrader both flagged the beat as proof the story is moving from development to scale.
   - Strategic ecosystem signal: evidence cites major customers, partners, or suppliers, suggesting customer/partner leverage that may matter beyond the headline financial metrics.
-  - Fab scale + data-center adjacency: the $425M Rockdale project sits inside the same Texas industrial boom that produced Riot's 1 GW substation and Edged Energy permits.
-  - Policy tailwind: Barcelo's "learn to build again" line is read as early positioning for tariffs or domestic-content incentives.
 - Headwinds / debate points:
   - X bear/skeptic narrative: Dilution risk: 13 offering-related filings in the last 60 documents flagged by @petitnong_.
   - X bear/skeptic narrative: Margin weakness: operating margin still -33.84% and net margin -47.99% despite revenue surge.
   - X bear/skeptic narrative: Execution skepticism: @squeezingshort notes the market wants "multiple reliable earnings" before pricing in the fab; Section 232 could also backfire if tariffs are delayed or diluted.
   - Grok/X scan includes rumor or speculation language; do not treat it as verified fact.
-  - T1 achieves record quarterly Net Income from Continuing Operations of $3.9 million and record quarterly Adjusted EBITDA of $9.1 million in Q1 2026. Following the successful ramp of production at G1_Dallas in 2025, T1 achieved record quarterly profitability during the first quarter of 2026 due to higher than forecasted G1_Dallas production and sales, along.
 - Trend evolution:
-  - Fundamental trend: T1 achieves record quarterly Net Income from Continuing Operations of $3.9 million and record quarterly Adjusted EBITDA of $9.1 million in Q1 2026.
-  - Fundamental trend: G1 Production Guidance Range -- Management reiterated an unchanged 2026 G1 production target of 3.1-4.2 gigawatts, based on expanded non-FEOC cell vendor network and supply chain confidence.
-  - Ecosystem trend: Section 232 Exposure -- The company anticipates that outcomes from the Commerce Department's Section 232 investigation could lead to a pricing uplift for T1 Energy (TE 4.19%) due to its U.S. polysilicon-based supply agreements.
-  - Fundamental trend: T1 Energy (TE 4.19%) articulated a clear timeline and operational roadmap for its strategic G2_Austin expansion, maintaining execution pace despite adverse weather in Central Texas.
-  - Social trend: X chatter on $TE (T1 Energy) spiked around the May 12 earnings release and stayed elevated through the May 15 Breitbart CEO interview. The dominant narrative is "reshoring solar manufacturing is finally real" after the company posted $177.65M Q1 revenue (up ~175% YoY) and swung closer to breakeven, paired with the $425M Rockdale solar cell fab.
+  - Strategic ecosystem trend: No new AI-model or cloud commitments surfaced. The key visible relationship is the 900 MW Treaty Oak solar supply deal. Supplier dependency sits on polysilicon and cell equipment-both China-heavy, which is why the CEO's reshoring rhetoric is gaining traction. No custom-silicon or hyperscale equity stakes disclosed yet; any future direct contract with a major data-center operator would be a high-conviction signal.
 
 ### Expert / Community Split From X
 
 - X pulse: X chatter on $TE (T1 Energy) spiked around the May 12 earnings release and stayed elevated through the May 15 Breitbart CEO interview. The dominant narrative is "reshoring solar manufacturing is finally real" after the company posted $177.65M Q1 revenue (up ~175% YoY) and swung closer to breakeven, paired with the $425M Rockdale solar cell fab permit that positions it as the largest U.S. facility. What changed in the last 14 days is the shift from quiet permit filings to concrete earnings + policy commentary; investors now treat the fab as a live catalyst rather than a headline.
 - Bullish camp:
-  - Earnings inflection: revenue nearly tripled while the G1 Dallas ramp continues-@petitnong_ and @CHItrader both flagged the beat as proof the story is moving from development to scale.
   - Fab scale + data-center adjacency: the $425M Rockdale project sits inside the same Texas industrial boom that produced Riot's 1 GW substation and Edged Energy permits.
   - Policy tailwind: Barcelo's "learn to build again" line is read as early positioning for tariffs or domestic-content incentives.
   - Valuation reset: P/S ~2.2x on rapidly growing revenue is cited as still cheap if margins improve.
 - Skeptical camp:
-  - Dilution risk: 13 offering-related filings in the last 60 documents flagged by @petitnong_.
-  - Margin weakness: operating margin still -33.84% and net margin -47.99% despite revenue surge.
-  - Execution skepticism: @squeezingshort notes the market wants "multiple reliable earnings" before pricing in the fab; Section 232 could also backfire if tariffs are delayed or diluted.
   - Low float/promotional noise: several accounts simply repost generic "short-term bullish" charts with no new data.
-- Strategic partnerships / ecosystem leverage:
-  - No new AI-model or cloud commitments surfaced. The key visible relationship is the 900 MW Treaty Oak solar supply deal. Supplier dependency sits on polysilicon and cell equipment-both China-heavy, which is why the CEO's reshoring rhetoric is gaining traction.
 - Accounts/posts worth reviewing: @petitnong_, @CHItrader, @squeezingshort, @Cabala44Isabel, @jacobftcth
 - Hype/noise: Discussion is thin and mostly earnings-reactive rather than bot-heavy. A handful of near-identical "short-term bullish" chart posts suggest some coordinated promotion, but core conversation remains technical and policy-driven, not crowded retail spam.
 - Rumors / unverified claims:
@@ -88,10 +73,8 @@ TE: Industrials / Electrical Equipment & Parts: T1 achieves record quarterly Net
 - X under-discussed angle: Grid-constraint read-through: ERCOT data-center requests hit 233 GW (+269% YoY); T1's solar output could be contracted directly to hyperscalers rather than merchant solar.
 - X under-discussed angle: Bitcoin-to-AI pivot adjacency: Riot Platforms' Corsicana project (same week permit) shows miners reallocating land/power-T1 could supply the solar component of those conversions.
 - X under-discussed angle: Hidden optionality in commercial mobility: the company's battery focus is rarely mentioned alongside the solar fab, yet the same Rockdale site could support integrated storage for data-center backup.
-- Strategic AI ecosystem angle: Evidence-backed ecosystem leverage: evidence cites major customers, partners, or suppliers, suggesting customer/partner leverage that may matter beyond the headline financial metrics.
 - X implication to verify: Q1 inflection: evidence Revenue +175%, EPS beat with confidence Medium; confirm via Q2 revenue >$200M + positive gross margin; invalidate if Margin compression or guidance cut.
 - X implication to verify: Fab as real catalyst: evidence $425M Rockdale permit with confidence Medium; confirm via Groundbreaking or equipment orders; invalidate if Permit delay or cost overrun.
-- X implication to verify: Policy tailwind: evidence CEO reshoring interview with confidence Low; confirm via Tariff announcement or DOE grant; invalidate if No policy movement by Q3.
 
 ### Valuation And Analyst Snapshot
 
@@ -116,10 +99,10 @@ TE: Industrials / Electrical Equipment & Parts: T1 achieves record quarterly Net
 
 | Dimension | Current read | Evidence | Follow-up |
 | --- | --- | --- | --- |
-| Growth / demand | T1 Energy (TE 4.19%) articulated a clear timeline and operational roadmap for its strategic G2_Austin expansion, maintaining execution pace despite adverse weather in Central Texas. | Exa news + earnings/call excerpts | Check whether growth is broad-based or mostly one segment. |
-| Community / X sentiment | X chatter on $TE (T1 Energy) spiked around the May 12 earnings release and stayed elevated through the May 15 Breitbart CEO interview. The dominant narrative is "reshoring solar manufacturing is finally real" after the company posted $177.65M Q1 revenue (up ~175% YoY) and swung closer to breakeven, paired with the $425M Rockdale solar cell fab permit that positions it as the largest U.S. facility. | Grok/X social signal | Separate informed accounts from price-action chatter and spam. |
+| Growth / demand | 6 source-backed recent development(s) and 3 extracted tailwind(s) need ranking by thesis impact. | Exa news + earnings/call excerpts | Check whether growth is broad-based or mostly one segment. |
+| Community / X sentiment | positive_social_signal with 4 bull theme(s) and 4 skeptic theme(s); use the X section for the actual narratives. | Grok/X social signal | Separate informed accounts from price-action chatter and spam. |
 | Valuation | price $5.67, P/E 12.74x | Financial providers / Alpha Vantage / FMP | Compare multiples and analyst target with growth durability. |
-| Non-obvious angle | X under-discussed angle: Grid-constraint read-through: ERCOT data-center requests hit 233 GW (+269% YoY); T1's solar output could be contracted directly to hyperscalers rather than merchant solar. | Cross-read of Exa, Grok/X, and financials | Verify with primary source or higher-quality source before thesis update. |
+| Non-obvious angle | 7 under-discussed angle(s) extracted; verify only those that would change the thesis or next research decision. | Cross-read of Exa, Grok/X, and financials | Verify with primary source or higher-quality source before thesis update. |
 | Primary-source coverage | Filings lane: available; news sources: 8. | SEC/Exa packets | Use filings for claims that affect valuation or risk. |
 
 ### Next research questions
@@ -129,10 +112,7 @@ TE: Industrials / Electrical Equipment & Parts: T1 achieves record quarterly Net
 
 ## Actionable Follow-ups
 
-- Q1 inflection: evidence Revenue +175%, EPS beat with confidence Medium; confirm via Q2 revenue >$200M + positive gross margin; invalidate if Margin compression or guidance cut.
-- Fab as real catalyst: evidence $425M Rockdale permit with confidence Medium; confirm via Groundbreaking or equipment orders; invalidate if Permit delay or cost overrun.
 - Policy tailwind: evidence CEO reshoring interview with confidence Low; confirm via Tariff announcement or DOE grant; invalidate if No policy movement by Q3.
-- Verify X rumor/speculation: No major unverified rumors; the only speculation is the implied Section 232 benefit and potential hyperscale offtake contracts. Verify both via next 10-Q customer disclosures and any new Texas or federal tariff announcements.
 
 ## Filing And Data Coverage
 

@@ -8,7 +8,7 @@ from typing import Any
 from .repo import RepoState
 from .validation import parse_date
 from .model_routing import resolve_model_for_route
-from .providers.xai_grok import industry_sentiment_prompt, latest_news_prompt, stock_sentiment_prompt
+from .providers.xai_grok import company_deep_dive_prompt, industry_sentiment_prompt, latest_news_prompt, stock_sentiment_prompt
 
 
 ACTIVE_HUMAN_REQUEST_STATUSES = {"new", "triaged", "queued_for_weekly_run", "in_progress"}
@@ -364,6 +364,7 @@ def build_provider_tasks(
     xai_stock_model = resolve_model_for_route(state.root, "xai_stock_sentiment").model
     xai_industry_model = resolve_model_for_route(state.root, "xai_industry_discovery").model
     xai_latest_news_model = resolve_model_for_route(state.root, "xai_latest_news").model
+    xai_company_deep_dive_model = resolve_model_for_route(state.root, "xai_company_deep_dive").model
     tasks: list[dict[str, Any]] = []
     seen_task_ids: set[str] = set()
 
@@ -514,6 +515,27 @@ def build_provider_tasks(
                     reason=f"Default Grok x_search community-sentiment scan for {bucket} ticker {label}.",
                     priority="high" if bucket == "current_holdings" else "medium",
                     source_bucket=bucket,
+                ),
+            )
+            add_task(
+                tasks,
+                seen_task_ids,
+                provider_task(
+                    task_id=f"xai_web_deep_dive_company_{slugify(ticker)}",
+                    provider="xai_grok",
+                    tool="web_search",
+                    subject_type="company",
+                    subject_id=ticker,
+                    args={
+                        "prompt": company_deep_dive_prompt(ticker, company),
+                        "run_id": run_id,
+                        "research_kind": "company_deep_dive",
+                        "model": xai_company_deep_dive_model,
+                    },
+                    reason=f"Default Grok web_search company deep-dive scan for {bucket} ticker {label}; use as auxiliary context and verify material facts.",
+                    priority="medium" if bucket == "current_holdings" else "low",
+                    source_bucket=bucket,
+                    follow_up=["Verify Grok web facts against Exa contents, filings, financial providers, or company sources before thesis updates."],
                 ),
             )
 

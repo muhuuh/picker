@@ -1,6 +1,6 @@
 # Setup
 
-Last updated: 2026-05-16
+Last updated: 2026-05-17
 
 ## Requirements
 
@@ -44,6 +44,28 @@ Append and route a request into durable repo artifacts:
 ```powershell
 python -m stock_research route-request "Research ASML, TSM, AMD, and SAP" --priority high
 ```
+
+## Google Sheet Stock Intake
+
+The quick stock inbox is the Google Sheet `new_stock_overview`:
+
+```text
+https://docs.google.com/spreadsheets/d/16S9NXkIi4IH6fPHe3DMpxvtjknzzRIjyxW2XjJp6Jr0/edit
+```
+
+After the user marks rows with `action=research`, Codex can pass those rows to the repo bridge:
+
+```powershell
+python -m stock_research sheet-intake selected-rows --rows-json rows.json --write --queue-review
+```
+
+If the user explicitly wants immediate verification planning for the just-created review rows:
+
+```powershell
+python -m stock_research sheet-intake selected-rows --rows-json rows.json --write --queue-review --approve-verification --write-verification-plan
+```
+
+These commands create candidate-review and verification-planning artifacts. They do not add stocks to monitoring, current holdings, or rejected state.
 
 ## Evidence Packets
 
@@ -123,6 +145,7 @@ Inspect the resolved route:
 python -m stock_research model-routing show --route main_orchestrator
 python -m stock_research model-routing show --route writer_specialist
 python -m stock_research model-routing show --route xai_stock_sentiment
+python -m stock_research model-routing show --route xai_company_deep_dive
 ```
 
 Precedence is explicit override, route-specific environment variable, tier environment variable, config file, then built-in fallback. Useful overrides:
@@ -152,7 +175,7 @@ The automation command is intentionally exact and lower-cost:
 C:\Python313\python.exe -m stock_research run-weekly --write --execute-providers --execute-analysis
 ```
 
-This is Codex-supervised mode. It intentionally omits `--execute-orchestrator`, writes `agents/runs/{run_id}/codex_supervised_review_pack.md`, and expects Codex app automation to write `agents/runs/{run_id}/codex_supervised_review.md` after reading the pack and linked artifacts.
+This is Codex-supervised mode. It intentionally omits `--execute-orchestrator`, writes `agents/runs/{run_id}/codex_supervised_review_pack.md` plus per-ticker `reports/human_synthesis/*_synthesis_pack.md`, and expects Codex app automation to write `agents/runs/{run_id}/codex_supervised_review.md` after reading the pack and linked artifacts. Codex app should also write or refresh `reports/human_synthesis/{TICKER}_final_human_report.md` for every synthesis pack. Those final human reports are the reader-facing per-ticker company/opportunity reports; the deterministic opportunity assessments are audit trails.
 
 Codex automation sandbox rules live at:
 
@@ -166,7 +189,7 @@ Validate the rule before relying on the automation:
 codex execpolicy check --pretty --rules C:\Users\valen\.codex\rules\default.rules -- C:\Python313\python.exe -m stock_research run-weekly --write --execute-providers --execute-analysis
 ```
 
-Expected result: `decision: allow`. Keep this narrow; do not allow broad Git/network commands or arbitrary Python module execution for the automation. The API SDK command with `--execute-orchestrator` remains a separate explicit benchmark/remote-mode path, not the default scheduled command.
+Expected result: `decision: allow`. Keep this narrow; do not allow broad Git/network commands or arbitrary Python module execution for the automation. The API SDK command with `--execute-orchestrator` remains a separate explicit remote/headless fallback and SDK-debug path, not the default scheduled command.
 
 ## OpenAI Agents SDK Runtime
 
@@ -388,6 +411,14 @@ Research an industry/theme:
 ```powershell
 python -m stock_research xai x-search --topic "European grid infrastructure" --research-kind industry_sentiment --subject-type industry --subject-id european_grid_infrastructure --run-id 2026-05-09_weekly
 ```
+
+Research current web context for a company deep dive:
+
+```powershell
+python -m stock_research xai web-search --ticker AMBA --company-name "Ambarella" --subject-type company --subject-id AMBA --run-id 2026-05-17_manual-xai
+```
+
+Treat Grok `web_search` output as auxiliary gap-filling for business context, latest news, analyst context, and research checks. Verify material facts through Exa contents, filings, company sources, or financial providers before using them in durable thesis updates.
 
 ## Generated Run Artifacts
 

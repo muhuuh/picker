@@ -53,6 +53,22 @@ Duplicate section.
         self.assertTrue(any("mojibake" in finding.lower() for finding in findings))
         self.assertTrue(any("dangling" in finding.lower() for finding in findings))
 
+    def test_flags_repeated_long_claims(self):
+        markdown = """
+# Bad Repetition
+
+## First
+
+- Ambarella revenue accelerated because edge AI camera demand improved and management raised near-term product expectations.
+
+## Second
+
+- Ambarella revenue accelerated because edge AI camera demand improved and management raised near-term product expectations.
+"""
+        findings = validate_human_facing_markdown(markdown)
+
+        self.assertTrue(any("repeated long claims" in finding.lower() for finding in findings))
+
 
 if __name__ == "__main__":
     unittest.main()

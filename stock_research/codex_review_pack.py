@@ -15,6 +15,8 @@ class CodexReviewPack:
     status: str
     expected_output_path: str
     required_artifacts: list[dict[str, Any]]
+    human_synthesis_packs: list[dict[str, Any]]
+    final_human_report_targets: list[dict[str, Any]]
     company_reports: list[dict[str, Any]]
     memory_artifacts: list[dict[str, Any]]
     hygiene_artifacts: list[dict[str, Any]]
@@ -38,11 +40,18 @@ def build_codex_review_pack(root: Path | None, run_id: str) -> CodexReviewPack:
         artifact(repo_root, run_dir / "company_file_factual_updates.md", "FYI summary of scoped factual company-file sync.", required=False),
         artifact(repo_root, run_dir / "category_state_updates.md", "FYI summary of holdings/monitoring/rejected state updates.", required=False),
     ]
+    human_synthesis_packs = sorted_artifacts(
+        repo_root,
+        run_dir / "reports" / "human_synthesis",
+        "*_synthesis_pack.md",
+        "Codex app final-report evidence pack.",
+    )
+    final_human_report_targets = final_report_targets_for_synthesis_packs(repo_root, human_synthesis_packs)
     company_reports = sorted_artifacts(
         repo_root,
         run_dir / "reports" / "opportunity_assessment",
         "*_opportunity_assessment.md",
-        "Human-facing deep company report.",
+        "Deterministic opportunity audit trail.",
     )
     memory_artifacts = [
         artifact(repo_root, run_dir / "memory_reflection.md", "Post-run operational lessons and update proposals."),
@@ -71,6 +80,8 @@ def build_codex_review_pack(root: Path | None, run_id: str) -> CodexReviewPack:
         status=status,
         expected_output_path=expected_output_path,
         required_artifacts=required_artifacts,
+        human_synthesis_packs=human_synthesis_packs,
+        final_human_report_targets=final_human_report_targets,
         company_reports=company_reports,
         memory_artifacts=memory_artifacts,
         hygiene_artifacts=hygiene_artifacts,
@@ -120,6 +131,25 @@ def sorted_artifacts(repo_root: Path, directory: Path, pattern: str, purpose: st
     ]
 
 
+def final_report_targets_for_synthesis_packs(repo_root: Path, packs: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    targets: list[dict[str, Any]] = []
+    for pack in packs:
+        pack_path = Path(str(pack["path"]))
+        if not pack_path.name.endswith("_synthesis_pack.md"):
+            continue
+        target_name = pack_path.name.replace("_synthesis_pack.md", "_final_human_report.md")
+        target_path = repo_root / pack_path.parent / target_name
+        targets.append(
+            artifact(
+                repo_root,
+                target_path,
+                "Codex app-written per-ticker final report.",
+                required=False,
+            )
+        )
+    return targets
+
+
 def pack_quality_findings(
     *,
     repo_root: Path,
@@ -134,6 +164,18 @@ def pack_quality_findings(
     ]
     if not company_reports:
         findings.append("No opportunity assessment reports were found; Codex should inspect whether analysis execution failed or no tracked tickers exist.")
+    human_synthesis_dir = run_dir / "reports" / "human_synthesis"
+    if company_reports and not list(human_synthesis_dir.glob("*_synthesis_pack.md")):
+        findings.append("No human synthesis packs were found; Codex cannot write final per-ticker human reports from first-principles inputs.")
+    quality_report_json = run_dir / "quality_report.json"
+    if quality_report_json.exists():
+        quality = read_json(quality_report_json)
+        for finding in quality.get("findings") or []:
+            severity = finding.get("severity", "unknown")
+            category = finding.get("category", "quality")
+            summary = finding.get("summary", "Unspecified quality finding")
+            evidence = finding.get("evidence", "")
+            findings.append(f"Quality report finding: [{severity}] {category}: {summary} ({evidence})")
     final_digest_json = run_dir / "final_digest.json"
     if final_digest_json.exists():
         digest = read_json(final_digest_json)
@@ -148,12 +190,13 @@ def pack_quality_findings(
 
 def codex_supervised_instructions(run_id: str, expected_output_path: str) -> list[str]:
     return [
-        "Use Codex GPT-5.5 high as the outer orchestrator. Do not run the OpenAI API SDK orchestrator unless the user explicitly asks for API-mode benchmarking/debugging.",
-        "Read this review pack first, then read every existing required artifact and every opportunity assessment listed below.",
+        "Use Codex GPT-5.5 high as the outer orchestrator. Do not run the OpenAI API SDK orchestrator unless the user explicitly asks for remote/headless fallback or SDK debugging.",
+        "Read this review pack first, then read every existing required artifact and every human synthesis pack listed below. Use opportunity assessments as audit/evidence artifacts, not as final prose to patch together.",
         "Write or update the Codex-supervised final review at "
         f"`{expected_output_path}`. This file is the human-facing synthesis for the scheduled run.",
-        "The final review must include: bottom line, per-ticker attention ranking, material X/Grok narrative shifts, source-backed news, valuation/financial flags, non-obvious opportunities/risks, what changed vs existing company files, open human decisions, and next actions.",
-        "If a human-facing report is obviously poor, duplicated, truncated, stale, or missing key X/community insight, fix the relevant formatter/prompt/code and regenerate the affected report before finalizing.",
+        "For every human synthesis pack, write or refresh the matching `*_final_human_report.md` target from first principles. This is the reader-facing company/opportunity report; `reports/opportunity_assessment/` is the deterministic audit trail.",
+        "Each final human report should include: bottom line, business context, what changed, material X/Grok narrative shifts, source-backed news, valuation/financial flags, non-obvious opportunities/risks, what changed vs existing company files, open human decisions, and next actions.",
+        "If a human-facing report is obviously poor, duplicated, over-compressed, stale, or missing key X/Grok/web insight, fix the synthesis pack, formatter, prompt, or provider coverage and regenerate the affected artifact before finalizing.",
         "Keep low-risk factual company-file updates as FYI. Do not ask for approval for routine source-backed factual syncs. Do ask for approval for thesis/status/strategy/buy/sell/position-size changes.",
         "Do not make trades, do not silently move stocks between holdings/monitoring/rejected, and do not auto-approve human-review rows.",
         "Review memory artifacts. If the run produced a durable operational lesson, update `agents/memory/` through the deterministic memory workflow or update the relevant scratchpad/backlog when that is the right scope.",
@@ -179,6 +222,10 @@ def format_codex_review_pack_markdown(pack: CodexReviewPack) -> str:
     lines.extend(f"{index}. {instruction}" for index, instruction in enumerate(pack.codex_instructions, 1))
     lines.extend(["", "## Required Artifacts", ""])
     append_artifact_table(lines, pack.required_artifacts)
+    lines.extend(["", "## Human Synthesis Packs", ""])
+    append_artifact_table(lines, pack.human_synthesis_packs)
+    lines.extend(["", "## Final Human Report Targets", ""])
+    append_artifact_table(lines, pack.final_human_report_targets)
     lines.extend(["", "## Opportunity Assessment Reports", ""])
     append_artifact_table(lines, pack.company_reports)
     lines.extend(["", "## Human Review Artifacts", ""])
@@ -195,15 +242,15 @@ def format_codex_review_pack_markdown(pack: CodexReviewPack) -> str:
     lines.extend(
         [
             "",
-            "## API Workflow Benchmark",
+            "## API Workflow Fallback",
             "",
-            "The OpenAI Agents SDK workflow remains available for remote/headless API mode and benchmarking:",
+            "The OpenAI Agents SDK workflow remains available for remote/headless API mode, traces, and debugging when Codex app supervision is unavailable:",
             "",
             "```powershell",
             "C:\\Python313\\python.exe -m stock_research run-weekly --write --execute-providers --execute-analysis --execute-orchestrator --orchestrator-timeout-seconds 900",
             "```",
             "",
-            "Do not use API mode in the scheduled Codex-supervised automation unless the user explicitly asks for it.",
+            "Do not use API mode in the scheduled Codex-supervised automation unless the user explicitly asks for remote/headless fallback or SDK debugging.",
         ]
     )
     return "\n".join(lines).rstrip() + "\n"

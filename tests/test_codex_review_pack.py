@@ -21,6 +21,10 @@ class CodexReviewPackTests(unittest.TestCase):
 
             self.assertEqual(pack.status, "ready")
             self.assertEqual(pack.quality_findings, [])
+            self.assertEqual(
+                pack.final_human_report_targets[0]["path"],
+                "agents/runs/2026-05-16_weekly/reports/human_synthesis/AAPL_final_human_report.md",
+            )
 
 
 def seed_required_pack_artifacts(root: Path, run_id: str) -> None:
@@ -35,6 +39,9 @@ def seed_required_pack_artifacts(root: Path, run_id: str) -> None:
     report_dir = run_dir / "reports" / "opportunity_assessment"
     report_dir.mkdir(parents=True)
     (report_dir / "AAPL_opportunity_assessment.md").write_text("# AAPL\n", encoding="utf-8")
+    synthesis_dir = run_dir / "reports" / "human_synthesis"
+    synthesis_dir.mkdir(parents=True)
+    (synthesis_dir / "AAPL_synthesis_pack.md").write_text("# AAPL Synthesis Pack\n", encoding="utf-8")
 
 
 if __name__ == "__main__":

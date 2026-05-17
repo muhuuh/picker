@@ -197,7 +197,7 @@ def extract_verification(notes: str) -> str:
 def suggest_action(category: str, item: str, decision: str, notes: str) -> str:
     text = f"{item} {decision} {notes}".lower()
     if category == "candidate_verification_grok":
-        return "Approve follow-up verification, reject/ignore, or leave open. Do not promote yet."
+        return "Verify, reject, or leave open."
     if category == "candidate_monitoring_review":
         return "Approve adding to monitoring, request more research, or reject/ignore."
     if category == "candidate_verification":

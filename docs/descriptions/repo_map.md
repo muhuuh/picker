@@ -1,6 +1,6 @@
 # Repo Map
 
-Last updated: 2026-05-16
+Last updated: 2026-05-17
 
 ## Purpose
 
@@ -20,6 +20,7 @@ This file tells Codex, the orchestrator, and future agents where to find and upd
 ## Human Interaction
 
 - `docs/descriptions/human_interaction_workflow.md`: how user chat input becomes repo state.
+- `docs/descriptions/google_sheet_stock_intake.md`: quick Google Sheet stock idea inbox, action/status semantics, and selected-row repo bridge.
 - `docs/descriptions/human_review_operating_model.md`: how asynchronous human review, digest use, notifications, and approval-gated follow-up should work.
 - `docs/descriptions/artifact_lifecycle_and_hygiene.md`: how active, archived, ignored, and index artifacts should be organized as research volume grows.
 - `docs/plans/human_research_requests.md`: human input queue.
@@ -88,8 +89,10 @@ This file tells Codex, the orchestrator, and future agents where to find and upd
 - `agents/runs/`: future run artifacts.
   - Generated JSON/raw/evidence artifacts are local runtime output and ignored by Git.
   - Markdown run summaries, quality reports, reflections, and finalization reports are the reviewable artifacts.
+  - `agents/runs/{run_id}/reports/human_synthesis/{TICKER}_synthesis_pack.md` is the per-ticker Codex app handoff for final human report writing.
+  - `agents/runs/{run_id}/reports/human_synthesis/{TICKER}_final_human_report.md` is the Codex app-written reader-facing company/opportunity report for that run.
   - `agents/runs/{run_id}/codex_supervised_review_pack.md` is the deterministic handoff for local Codex app automation.
-  - `agents/runs/{run_id}/codex_supervised_review.md` is the final Codex-written human-facing synthesis when the scheduled/manual Codex-supervised path is used.
+  - `agents/runs/{run_id}/codex_supervised_review.md` is the final Codex-written run-level digest/review when the scheduled/manual Codex-supervised path is used.
   - Long-lived active knowledge should be promoted into stock files, market research files, strategy files, or indexes; old run artifacts should be archiveable without losing discoverability.
 - `archive/research_index.md`: generated inventory of run markdown artifacts, classified as active, recent, review-blocked, archive candidates, or archived.
 - `archive/archive_move_report.md`: latest archive move report.
@@ -135,6 +138,7 @@ Use CLI commands for manual operation, scheduler entrypoints, validation, smoke 
 - `python -m stock_research classify-request "..."`
 - `python -m stock_research add-request "..."`
 - `python -m stock_research route-request "..."`: append and route a user request into target repo artifacts.
+- `python -m stock_research sheet-intake selected-rows --rows-json rows.json --write --queue-review`: turn explicit `action=research` rows from the quick Google Sheet inbox into candidate-review artifacts and optional human-review rows. This does not add stocks to monitoring or holdings.
 - `python -m stock_research model-routing show --route ROUTE_OR_TASK`: inspect the resolved model/provider/tier after explicit/env/config fallback precedence.
 - `python -m stock_research evidence new ...`: create a provider-neutral evidence packet.
 - `python -m stock_research evidence validate ...`: validate an evidence packet.
@@ -150,14 +154,16 @@ Use CLI commands for manual operation, scheduler entrypoints, validation, smoke 
 - `python -m stock_research exa search --query "..." --subject-type TYPE --subject-id ID --run-id RUN_ID`: run Exa search into evidence artifacts.
 - `python -m stock_research exa contents --url URL --subject-type TYPE --subject-id ID --run-id RUN_ID`: run Exa contents extraction into evidence artifacts.
 - `python -m stock_research xai x-search --ticker TICKER --subject-type company --subject-id TICKER --run-id RUN_ID`: run Grok x_search into social evidence artifacts.
+- `python -m stock_research xai web-search --ticker TICKER --subject-type company --subject-id TICKER --run-id RUN_ID`: run Grok web_search into auxiliary company deep-dive artifacts for business/news/analyst-context gap filling.
 - `python -m stock_research provider-tasks --manifest PATH`: dry-run provider tasks from a manifest.
 - `python -m stock_research provider-tasks --manifest PATH --execute`: execute provider tasks from a manifest.
 - `python -m stock_research analysis-tasks --manifest PATH`: dry-run analysis tasks from a manifest.
 - `python -m stock_research analysis-tasks --manifest PATH --execute`: execute analysis tasks from a manifest.
 - `python -m stock_research run-summary --run-id RUN_ID --write`: write run_summary artifacts from run evidence.
 - `python -m stock_research quality-report --run-id RUN_ID --write`: write quality_report artifacts from run evidence.
+- `python -m stock_research human-report synthesis-pack --run-id RUN_ID --write`: write per-ticker human synthesis packs so Codex app can create final reports from first principles.
 - `python -m stock_research run-weekly`: dry-run the deterministic weekly workflow wrapper.
-- `python -m stock_research run-weekly --write --execute-providers --execute-analysis`: execute and persist the default Codex-supervised weekly workflow. Codex should then read `agents/runs/{run_id}/codex_supervised_review_pack.md` and write `agents/runs/{run_id}/codex_supervised_review.md`.
+- `python -m stock_research run-weekly --write --execute-providers --execute-analysis`: execute and persist the default Codex-supervised weekly workflow. Codex should then read `agents/runs/{run_id}/codex_supervised_review_pack.md`, write `agents/runs/{run_id}/codex_supervised_review.md`, and write or refresh every `reports/human_synthesis/*_final_human_report.md` target.
 - `python -m stock_research run-weekly --write --execute-orchestrator --orchestrator-timeout-seconds 300`: optional API mode. Opt into OpenAI Agents SDK synthesis over written run artifacts. Requires `OPENAI_API_KEY`; actionable output from dry-run provider/analysis inputs is marked `needs_review`.
 - `python -m stock_research run-weekly --write --execute-providers --execute-analysis --execute-orchestrator --orchestrator-timeout-seconds 300`: execute fresh provider/analysis tasks and then run SDK synthesis.
 - `python -m stock_research agent-runtime list-agents`: list registered OpenAI Agents SDK orchestrators and specialists.
@@ -217,6 +223,7 @@ Use CLI commands for manual operation, scheduler entrypoints, validation, smoke 
 | User request | Primary update | Secondary update |
 | --- | --- | --- |
 | Research specific stocks | `docs/plans/human_research_requests.md` | `stock_tracking/monitoring/`, company files |
+| Capture quick stock ideas | Google Sheet `new_stock_overview` | `sheet-intake selected-rows` when rows are marked `action=research` |
 | Track an industry | `market_research/industries/` | `strategy/research_priorities.md` |
 | Track a technology/theme | `market_research/themes/` | `strategy/research_priorities.md`, strategy files |
 | Change strategy | `strategy/` | `MEMORY.md` if durable/high-impact |
