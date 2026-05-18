@@ -148,11 +148,21 @@ def collect_ticker_artifacts(root: Path, run_id: str, ticker: str) -> list[dict[
 def grok_artifacts(root: Path, run_dir: Path, ticker: str) -> list[dict[str, Any]]:
     artifacts: list[dict[str, Any]] = []
     raw_dir = run_dir / "raw" / "xai_grok"
+    ticker_key = ticker.lower()
+    ticker_slug = "".join(character.lower() if character.isalnum() else "_" for character in ticker).strip("_")
     patterns = [
-        ("*x_search*" + ticker.lower() + "*.json", "Grok/X social narrative raw artifact. Treat as social signal, not fact."),
-        ("*" + ticker.lower() + "*x_search*.json", "Grok/X social narrative raw artifact. Treat as social signal, not fact."),
-        ("*web_search*" + ticker.lower() + "*.json", "Grok web-search deep-dive raw artifact. Treat as auxiliary coverage-gap evidence until verified."),
-        ("*" + ticker.lower() + "*web_search*.json", "Grok web-search deep-dive raw artifact. Treat as auxiliary coverage-gap evidence until verified."),
+        ("*x_search*" + ticker_key + "*.json", "Grok/X social narrative raw artifact. Treat as social signal, not fact."),
+        ("*" + ticker_key + "*x_search*.json", "Grok/X social narrative raw artifact. Treat as social signal, not fact."),
+        ("*web_search*" + ticker_key + "*.json", "Grok web-search deep-dive raw artifact. Treat as auxiliary coverage-gap evidence until verified."),
+        ("*" + ticker_key + "*web_search*.json", "Grok web-search deep-dive raw artifact. Treat as auxiliary coverage-gap evidence until verified."),
+        ("*web_deep_dive*" + ticker_key + "*.json", "Grok web-search deep-dive raw artifact. Treat as auxiliary coverage-gap evidence until verified."),
+        ("*" + ticker_key + "*web_deep_dive*.json", "Grok web-search deep-dive raw artifact. Treat as auxiliary coverage-gap evidence until verified."),
+        ("*x_search*" + ticker_slug + "*.json", "Grok/X social narrative raw artifact. Treat as social signal, not fact."),
+        ("*" + ticker_slug + "*x_search*.json", "Grok/X social narrative raw artifact. Treat as social signal, not fact."),
+        ("*web_search*" + ticker_slug + "*.json", "Grok web-search deep-dive raw artifact. Treat as auxiliary coverage-gap evidence until verified."),
+        ("*" + ticker_slug + "*web_search*.json", "Grok web-search deep-dive raw artifact. Treat as auxiliary coverage-gap evidence until verified."),
+        ("*web_deep_dive*" + ticker_slug + "*.json", "Grok web-search deep-dive raw artifact. Treat as auxiliary coverage-gap evidence until verified."),
+        ("*" + ticker_slug + "*web_deep_dive*.json", "Grok web-search deep-dive raw artifact. Treat as auxiliary coverage-gap evidence until verified."),
     ]
     seen: set[Path] = set()
     if raw_dir.exists():

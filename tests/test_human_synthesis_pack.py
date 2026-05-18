@@ -24,6 +24,23 @@ class HumanSynthesisPackTests(unittest.TestCase):
             self.assertIn("Auxiliary Grok Web Inputs", pack_text)
             self.assertIn("Expected final report", pack_text)
 
+    def test_collects_slugged_grok_artifacts_for_dotted_ticker(self):
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            run_id = "2026-05-18_manual"
+            ticker = "LPK.DE"
+            seed_synthesis_inputs(root, run_id, ticker)
+            raw_dir = root / "agents" / "runs" / run_id / "raw" / "xai_grok"
+            (raw_dir / "xai_x_search_company_lpk_de.json").write_text("{}", encoding="utf-8")
+            (raw_dir / "xai_web_deep_dive_company_lpk_de.json").write_text("{}", encoding="utf-8")
+
+            result = build_human_synthesis_packs(root, run_id, tickers=[ticker], write=True)
+
+            self.assertEqual(result.status, "ready")
+            pack_text = (root / result.packs[0].synthesis_pack_path).read_text(encoding="utf-8")
+            self.assertIn("xai_x_search_company_lpk_de.json", pack_text)
+            self.assertIn("xai_web_deep_dive_company_lpk_de.json", pack_text)
+
 
 def seed_synthesis_inputs(root: Path, run_id: str, ticker: str) -> None:
     (root / "AGENTS.md").write_text("# AGENTS\n", encoding="utf-8")

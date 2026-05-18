@@ -23,6 +23,14 @@
 
 ## What We Learned
 
+- 2026-05-18: Started a focused current-holdings update for LPKF Laser & Electronics SE and Sivers Semiconductors AB, with Kraken Robotics removed after the user sold it. Task plan: `docs/plans/lpkf_sivers_holdings_research_plan.md`.
+- 2026-05-18: For provider compatibility, use `LPK.DE` for LPKF's XETRA listing and `SIVE.ST` for Sivers' Nasdaq Stockholm listing unless a broker-specific ticker requires a later override.
+- 2026-05-18: Focused automation-style run `2026-05-18_manual-lpkf-sivers-holdings` completed provider and analysis tasks only for `LPK.DE` and `SIVE.ST`; final reports live under `reports/human_synthesis/`.
+- 2026-05-18: LPKF conclusion is constructive-but-watch: Q1 order intake/book-to-bill improved and LIDE has advanced-packaging upside, but high-volume production orders are not yet confirmed.
+- 2026-05-18: Sivers conclusion is neutral/high-risk: AI optics/SATCOM/LiDAR exposure is attractive, but 2025 restatements, Q1 delay to 2026-05-29, dilution, and valuation-data conflicts require human review before raising conviction.
+- 2026-05-18: Fixed `human_synthesis_pack` dotted-ticker raw-artifact lookup so tickers like `LPK.DE` and `SIVE.ST` find slugged Grok/X and web artifacts (`lpk_de`, `sive_st`).
+- 2026-05-18: Final checks passed: `python -m stock_research validate`, `python -m stock_research memory validate`, targeted `test_human_synthesis_pack`, and full `python -m unittest discover -s tests`.
+- 2026-05-18: Added operational memory `orch-2026-05-18-dotted-ticker-artifact-slugs` through `python -m stock_research memory add` for dotted ticker artifact lookup.
 - `monitoring.csv` was empty before adding AAPL.
 - `stock_tracking/stock_info_files/monitoring/` existed but had no company files.
 - AAPL causes the weekly manifest to plan 10 provider tasks and 2 analysis tasks.
@@ -48,6 +56,7 @@
 - 2026-05-17: Live Sheet round-trip verified with ASTS and SIVE sample rows from the user's pasted report. Writing rows, reading values/validation metadata, updating processing status/Last checked, and reading updates back all worked through the Google Sheets connector.
 - 2026-05-17: CLI dry-run verified action semantics: a `research` row is selected for intake, while a blank-action row is skipped.
 - 2026-05-17: Final live Sheet read-back verified pragmatic dropdowns: action=research/add to monitoring/buy candidate/bought/ignore/rejected; Processing status=not processed/in research/done/needs fix; Score preserves B+.
+- 2026-05-17: Added pasted photonics/CPO ideas to live Sheet rows 4-6: AAOI score B, LITE score A-, and POET score B. `available` and `action` were left blank; `Processing status` is `not processed`.
 
 ## Open Questions
 
@@ -59,6 +68,8 @@
 - Decide whether to keep AAPL as a real monitored stock or replace it with the user's actual watchlist.
 - Add Exa contents follow-up for high-value company-news URLs before deeper AAPL thesis/company-file updates.
 - Regenerate a weekly/company report for AXTI or another small-cap example to confirm the new valuation sanity warnings appear in the final human-facing output when provider coverage is suspicious.
+- Recheck SIVE.ST after its Q1 2026 report scheduled for 2026-05-29 and reconcile market cap/share count/52-week-range data before using valuation conclusions.
+- Recheck LPK.DE on any disclosed material LIDE production-equipment order or Q2 2026 order-intake update.
 - Continue improving candidate-review evidence quality for newly generated rows; the digest now has contextual rows, but source candidate-review files should keep improving the reason-to-care and risk/check fields.
 - Run the first real Sheet-to-repo processing pass with actual `action=research` rows, then decide whether a helper is needed.
 
@@ -80,3 +91,4 @@
 - Full validation commands: `python -m stock_research provider-tasks --manifest agents\runs\2026-05-09_weekly\manifest.json --execute --today 2026-05-04`, then `run-summary`, `quality-report`, and `memory finalize-run`.
 - Company news validation command: `python -m stock_research analysis-tasks --manifest agents\runs\2026-05-09_weekly\manifest.json --execute --task-id company_news_review_aapl --today 2026-05-04`.
 - Sheet intake command: `python -m stock_research sheet-intake selected-rows --rows-json rows.json --write --queue-review`.
+- LPKF/Sivers focused run commands used: `provider-tasks --manifest agents\runs\2026-05-18_manual-lpkf-sivers-holdings\manifest.json --execute --today 2026-05-18`, `analysis-tasks --manifest agents\runs\2026-05-18_manual-lpkf-sivers-holdings\manifest.json --execute --today 2026-05-18`, `run-summary`, `quality-report`, `human-report synthesis-pack`, `memory finalize-run`, `category-state update`, and `human-review digest`.

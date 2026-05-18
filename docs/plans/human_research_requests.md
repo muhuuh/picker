@@ -1,6 +1,6 @@
 # Human Research Requests
 
-Last updated: 2026-05-03
+Last updated: 2026-05-18
 
 ## Purpose
 
@@ -42,3 +42,4 @@ This is separate from `agents/human_review_queue.md`, which is for system-genera
 | ID | Date Added | Request | Type | Priority | Status | Tickers | Industries / Themes | Target Files | Next Run | Immediate Action | Owner / Agent | Result Link | Notes |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | HIR-0001 | 2026-05-03 | Formalize the human-to-system intake layer for Codex chat and future automation. | strategy_change | high | done |  | human interaction workflow | `docs/descriptions/human_interaction_workflow.md`, `docs/descriptions/repo_map.md`, `strategy/research_priorities.md`, `agents/human_review_queue.md` | no | yes | Codex | `docs/descriptions/human_interaction_workflow.md` | Initial intake system design. |
+| HIR-0002 | 2026-05-18 | Add LPKF Laser & Electronics SE and Sivers Semiconductors AB to holdings, research only these two like an automation run, and remove Kraken Robotics after sale. | manual_run | high | done | LPK.DE, SIVE.ST, KRKNF | advanced packaging, photonics, semiconductors, subsea robotics | `stock_tracking/current_holdings/current_holdings.csv`, `stock_tracking/rejected/rejected.csv`, `agents/runs/2026-05-18_manual-lpkf-sivers-holdings/codex_supervised_review.md` | no | yes | Codex | `agents/runs/2026-05-18_manual-lpkf-sivers-holdings/codex_supervised_review.md` | Focused run completed for LPK.DE and SIVE.ST only; KRKNF moved to rejected after user-confirmed sale. |

@@ -656,3 +656,17 @@ Operational memory for workflow routing, orchestration, run ordering, and user c
 - evidence: `agents/runs/2026-05-17_followup_user_questions/follow_up_web_research_redo.md`, `stock_tracking/stock_info_files/current_holdings/TE.md`, `stock_tracking/stock_info_files/current_holdings/IREN.md`, `stock_tracking/stock_info_files/current_holdings/AXTI.md`, `stock_tracking/stock_info_files/current_holdings/AMBA.md`, `stock_tracking/stock_info_files/current_holdings/AVAV.md`, `stock_tracking/stock_info_files/current_holdings/KRKNF.md`, `stock_tracking/stock_info_files/current_holdings/OSS.md`
 - owner: main orchestrator
 - next_review: 2026-06-17
+
+- id: orch-2026-05-18-dotted-ticker-artifact-slugs
+- date: 2026-05-18
+- type: procedural
+- scope: provider
+- status: active
+- confidence: high
+- trigger/source: Manual LPKF/Sivers focused run on 2026-05-18 found synthesis packs missing Grok artifacts for dotted tickers.
+- lesson: When matching provider raw artifacts for exchange-suffixed tickers such as LPK.DE or SIVE.ST, check both the literal lowercase ticker and the slugged artifact form such as lpk_de or sive_st; Grok web deep-dive artifacts may use web_deep_dive rather than web_search.
+- use_when: Building synthesis packs, artifact maps, quality checks, or provider artifact lookup for non-US or exchange-suffixed tickers.
+- do_not_use_when: The artifact path is already an exact explicit path from the manifest or evidence packet.
+- evidence: stock_research/human_synthesis_pack.py; tests/test_human_synthesis_pack.py; agents/runs/2026-05-18_manual-lpkf-sivers-holdings/reports/human_synthesis
+- owner: provider orchestrator
+- next_review: 2026-08-18

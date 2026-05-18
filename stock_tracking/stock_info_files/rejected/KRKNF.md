@@ -1,6 +1,6 @@
 # KRKNF Kraken Robotics Inc.
 
-Last updated: 2026-05-17
+Last updated: 2026-05-18
 
 ## Company Snapshot
 
@@ -12,24 +12,24 @@ Last updated: 2026-05-17
 - Sector: Technology
 - Industry: Scientific & Technical Instruments
 - Market cap: 1606525440
-- Current status: current_holding
-- Stock tracking row: `stock_tracking/current_holdings/current_holdings.csv`
-- Primary sources: user-confirmed holding list; yfinance metadata check on 2026-05-15; public ticker verification on 2026-05-15
+- Current status: rejected
+- Stock tracking row: `stock_tracking/rejected/rejected.csv`
+- Primary sources: user-confirmed holding list; user-confirmed sale/removal on 2026-05-18; yfinance metadata check on 2026-05-15; public ticker verification on 2026-05-15
 
 ## Status Dates
 
 - Date found: 2026-05-15
-- Date last updated: 2026-05-15
-- Next review date: 2026-05-16
-- Date rejected:
-- Next eligible review date:
+- Date last updated: 2026-05-18
+- Next review date:
+- Date rejected: 2026-05-18
+- Next eligible review date: 2026-06-29
 
 ## Current Opinion
 
-- Summary: Current holding with attractive subsea autonomy/UUV optionality. Recent orders support demand, but the thesis needs verification of Anduril/Ghost Shark exposure, Covelya integration, and institutional/liquidity improvement.
+- Summary: Removed from current holdings after the user confirmed the position was sold on 2026-05-18. Preserve prior research only as context for a future revisit.
 - Confidence: medium
-- Current decision: hold for research review
-- What would change our mind: weak order follow-through, delayed Covelya integration, no evidence of material UUV program exposure, margin deterioration, or liquidity/coverage issues that prevent reliable monitoring.
+- Current decision: inactive after sale
+- What would change our mind: explicit user request to revisit, or new material source-backed evidence after the 2026-06-29 cooldown that changes the prior UUV/subsea autonomy thesis.
 
 ## Thesis
 
@@ -90,6 +90,7 @@ Last updated: 2026-05-17
 - [ ] Run through the biweekly tracked-stock workflow and review the opportunity assessment.
 - [ ] Verify Anduril/Ghost Shark exposure size, order timing, backlog contribution, and whether new UUV programs convert into material revenue.
 - [ ] Track Covelya/Sonardyne integration, Q1 2026 results, and any TSX/liquidity developments.
+- [ ] Do not resurface as an active candidate before 2026-06-29 unless the user explicitly asks.
 
 ## Follow-up Research Notes
 
@@ -117,6 +118,7 @@ Last updated: 2026-05-17
 | 2026-05-16 | AUTOFACT-2026-05-16_weekly-KRKNF | internal artifact | Low-risk factual sync from opportunity assessment; no thesis/status/trade decision changed. | [agents/runs/2026-05-16_weekly/reports/opportunity_assessment/KRKNF_opportunity_assessment.md](agents/runs/2026-05-16_weekly/reports/opportunity_assessment/KRKNF_opportunity_assessment.md) |
 | 2026-05-17 | User follow-up research | internal artifact plus Exa/Grok evidence | Clarified UUV supercycle thesis, latest CAD 28M/CAD 24M orders, Kraken technology positioning, Covelya context, and verification risks. | [agents/runs/2026-05-17_followup_user_questions/follow_up_research_report.md](agents/runs/2026-05-17_followup_user_questions/follow_up_research_report.md) |
 | 2026-05-17 | Web research redo | official/web sources | Rechecked underwater-autonomy supercycle framing, order flow, defense/offshore demand drivers, and Kraken positioning. | [agents/runs/2026-05-17_followup_user_questions/follow_up_web_research_redo.md](agents/runs/2026-05-17_followup_user_questions/follow_up_web_research_redo.md) |
+| 2026-05-18 | User sale instruction | Codex chat | User confirmed Kraken Robotics was sold and should be removed from current holdings. | Codex chat |
 
 ## Change Log
 
@@ -130,6 +132,7 @@ Last updated: 2026-05-17
 | 2026-05-16 | Codex factual update writer | Applied AUTOFACT-2026-05-16_weekly-KRKNF: synced factual assessment, financial, news, social, and watch-item summaries. | [agents/runs/2026-05-16_weekly/reports/opportunity_assessment/KRKNF_opportunity_assessment.md](agents/runs/2026-05-16_weekly/reports/opportunity_assessment/KRKNF_opportunity_assessment.md) |
 | 2026-05-17 | Codex | Added user follow-up findings on underwater-drone/UUV demand, latest orders, technology fit, Covelya optionality, and verification risks. | [agents/runs/2026-05-17_followup_user_questions/follow_up_research_report.md](agents/runs/2026-05-17_followup_user_questions/follow_up_research_report.md) |
 | 2026-05-17 | Codex | Added persisted source-backed web redo as supporting evidence for future runs. | [agents/runs/2026-05-17_followup_user_questions/follow_up_web_research_redo.md](agents/runs/2026-05-17_followup_user_questions/follow_up_web_research_redo.md) |
+| 2026-05-18 | Codex | Moved KRKNF from current holdings to rejected/inactive tracking after user-confirmed sale. | User instruction |
 
 ## Automated Factual Updates
 

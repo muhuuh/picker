@@ -1,6 +1,6 @@
 # Monitoring State
 
-Last updated: 2026-05-16
+Last updated: 2026-05-18
 
 ## Current View
 
@@ -47,4 +47,5 @@ Last updated: 2026-05-16
 | --- | --- | --- | --- | --- |
 | 2026-05-15 | MANUAL-MONITORING-UPDATE | monitoring | Monitoring is empty after removing the AAPL validation seed. | [monitoring.csv](stock_tracking/monitoring/monitoring.csv) |
 | 2026-05-16 | CATSTATE-2026-05-16_weekly | monitoring | 0 monitored stock(s): none. | [agents/runs/2026-05-16_weekly/final_digest.md](agents/runs/2026-05-16_weekly/final_digest.md) |
+| 2026-05-18 | CATSTATE-2026-05-18_manual-lpkf-sivers-holdings | monitoring | 0 monitored stock(s): none. | [agents/runs/2026-05-18_manual-lpkf-sivers-holdings/run_summary.md](agents/runs/2026-05-18_manual-lpkf-sivers-holdings/run_summary.md) |
 
