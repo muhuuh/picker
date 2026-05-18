@@ -473,6 +473,11 @@ def main(argv: list[str] | None = None) -> int:
     quality_report_parser.add_argument("--run-id", required=True)
     quality_report_parser.add_argument("--write", action="store_true", help="Write quality_report.json and quality_report.md into the run directory.")
     quality_report_parser.add_argument("--today", help="Override current date as YYYY-MM-DD.")
+    quality_report_parser.add_argument(
+        "--require-final-reports",
+        action="store_true",
+        help="Post-Codex gate: require one canonical reports/human_synthesis/*_final_human_report.md for every synthesis pack.",
+    )
 
     human_report_parser = subparsers.add_parser("human-report", help="Prepare Codex app human-report synthesis inputs.")
     human_report_subparsers = human_report_parser.add_subparsers(dest="human_report_command", required=True)
@@ -1282,7 +1287,12 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "quality-report":
         request_date = parse_cli_date(args.today)
         try:
-            report = build_quality_report(state.root, args.run_id, request_date)
+            report = build_quality_report(
+                state.root,
+                args.run_id,
+                request_date,
+                require_final_reports=args.require_final_reports,
+            )
             if args.write:
                 paths = write_quality_report(state.root, report)
                 print(json.dumps({"paths": [str(path) for path in paths], "report": quality_report_to_dict(report)}, indent=2, sort_keys=True))

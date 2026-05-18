@@ -893,8 +893,8 @@ def build_negatives(
     negatives: list[str] = []
     if financial.get("status") == "needs_human_review":
         negatives.append(f"Financial review needs human review: {financial.get('reason') or 'unresolved financial gate'}.")
-    for warning in financial.get("valuation_sanity_warnings", [])[:2]:
-        negatives.append(f"Valuation sanity check: {warning}")
+    if financial.get("valuation_sanity_warnings"):
+        negatives.append("Valuation snapshot has sanity warnings; use the valuation section for specific checks before relying on headline metrics.")
     for claim_text in social.get("bearish_claims", [])[:3]:
         negatives.append(f"X bear/skeptic narrative: {claim_text}")
     if numeric(financial.get("free_cash_flow_per_share_ttm")) and numeric(financial.get("free_cash_flow_per_share_ttm")) < 0:
@@ -920,8 +920,8 @@ def build_watch_items(
     packets: list[EvidencePacket],
 ) -> list[str]:
     items: list[str] = []
-    for warning in financial.get("valuation_sanity_warnings", [])[:2]:
-        items.append(f"Verify valuation snapshot before using it in thesis work: {warning}")
+    if financial.get("valuation_sanity_warnings"):
+        items.append("Complete cross-provider valuation sanity review before using headline price, market cap, P/E, or target-gap conclusions.")
     if financial.get("material_conflict_count"):
         items.append("Resolve material financial provider conflict before updating company-file conclusions.")
     for implication in social.get("investor_implications", [])[:3]:

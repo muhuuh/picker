@@ -1,6 +1,6 @@
 # Evaluation Metrics
 
-Last updated: 2026-05-10
+Last updated: 2026-05-18
 
 Run-quality memory for weekly/manual runs and future post-run reflection.
 
@@ -344,3 +344,45 @@ After a weekly or manual run:
 - evidence: docs/descriptions/codex_supervised_workflow.md; stock_research/codex_review_pack.py; stock_research/scheduled_runner.py; agents/runs/2026-05-16_weekly/reports/human_synthesis/AMBA_final_human_report.md
 - owner: codex
 - next_review: 2026-06-17
+
+- id: eval-2026-05-18-final-report-contract
+- date: 2026-05-18
+- type: procedural
+- scope: writer
+- status: active
+- confidence: high
+- trigger/source: User rejected LPKF/Sivers manual run reports because they used ad hoc report shape instead of established automation final-report workflow.
+- lesson: Per-ticker final human reports must follow the accepted AMBA-style final-report contract, including provenance paragraph and required sections, even for manual one-off Codex-supervised research. Do not create side report names or ad hoc formats when the user asks for automation-style research.
+- use_when: Writing or quality-checking reports/human_synthesis/*_final_human_report.md for scheduled or manual Codex-supervised stock research runs.
+- do_not_use_when: The user explicitly requests a different custom report format or a short ad hoc answer outside the repo workflow.
+- evidence: Patched human_synthesis_pack instructions and report_quality final-human-report gate on 2026-05-18; regenerated LPK.DE and SIVE.ST final reports in the same final_human_report targets.
+- owner: codex
+- next_review: 2026-06-18
+
+- id: eval-2026-05-18-final-report-depth-not-summary
+- date: 2026-05-18
+- type: evaluation
+- scope: writer
+- status: active
+- confidence: high
+- trigger/source: User clarified that final human reports had become superficial summaries and must preserve opportunity-assessment insight depth while removing repetition.
+- lesson: Final human reports are not short summaries. They must be at least as insight-rich as opportunity assessments, but reorganized into a clear non-repetitive Codex narrative. Include source-backed developments, market context, X trend and notable accounts, bull/bear social claims, rumors/unverified claims, under-discussed angles, valuation/analyst gaps, decision table or scorecard, thesis changers, and concrete next checks.
+- use_when: Writing, reviewing, or quality-gating reports/human_synthesis/*_final_human_report.md for Codex-supervised stock research runs.
+- do_not_use_when: The user explicitly asks for a brief executive summary only or a non-repo chat answer.
+- evidence: 2026-05-18 LPKF/Sivers final report depth correction; patched human_synthesis_pack instructions and report_quality depth markers.
+- owner: codex
+- next_review: 2026-06-18
+
+- id: eval-2026-05-18-post-codex-final-report-gate
+- date: 2026-05-18
+- type: evaluation
+- scope: writer
+- status: active
+- confidence: high
+- trigger/source: User challenged that improved LPKF/Sivers reports still had to fit the normal automation workflow and not become orphan artifacts.
+- lesson: After Codex writes scheduled or manual per-ticker final human reports, rerun `quality-report --require-final-reports`. The pre-Codex deterministic quality report can pass before final reports exist, but the post-Codex gate must fail missing canonical final reports and orphan final reports, then scan the final reports for depth and formatting defects. The active automation prompt and exec-policy rules must both allow this post-Codex gate.
+- use_when: Completing Codex-supervised scheduled runs, manual automation-style stock research, or debugging report files that may have been written outside the canonical workflow.
+- do_not_use_when: Running the deterministic pre-Codex phase before Codex has had a chance to write final reports.
+- evidence: `stock_research/quality_report.py`, `stock_research/codex_review_pack.py`, `docs/descriptions/codex_supervised_workflow.md`, `docs/descriptions/run_summary_and_quality.md`, `C:\Users\valen\.codex\automations\biweekly-holdings-and-monitoring-research\automation.toml`, `C:\Users\valen\.codex\rules\default.rules`
+- owner: codex
+- next_review: 2026-06-18

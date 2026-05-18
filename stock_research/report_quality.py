@@ -32,7 +32,82 @@ def validate_human_facing_markdown(text: str) -> list[str]:
         findings.append("Status-only Grok/X social signal found without narrative context.")
     if re.search(r"\b(run|provider|lane)\s+status\b", text, flags=re.IGNORECASE) and "## Audit" not in text:
         findings.append("Internal workflow status appears outside an audit section.")
+    findings.extend(validate_final_human_report_contract(text))
     return findings
+
+
+def validate_final_human_report_contract(text: str) -> list[str]:
+    if not is_final_human_report(text):
+        return []
+
+    findings: list[str] = []
+    normalized = text.lower()
+    if "this report is a codex-written synthesis from" not in normalized:
+        findings.append("Final human report is missing the established Codex synthesis provenance paragraph.")
+    if "deterministic opportunity assessment remains the audit artifact" not in normalized:
+        findings.append("Final human report does not identify the deterministic opportunity assessment as the audit artifact.")
+
+    headings = [line.strip() for line in text.splitlines() if line.startswith("## ")]
+    heading_set = {heading.lower() for heading in headings}
+    missing_sections = [
+        heading
+        for heading in [
+            "## Bottom Line",
+            "## Why The Setup Changed",
+            "## X Sentiment And What It Is Really Saying",
+            "## Financial And Valuation Read",
+            "## Bull Case",
+            "## Bear Case",
+            "## What Would Change The Thesis",
+            "## Next Research Checks",
+            "## Final Assessment",
+            "## Sources",
+        ]
+        if heading.lower() not in heading_set
+    ]
+    if not any(re.fullmatch(r"## What .+ Actually Does", heading) for heading in headings):
+        missing_sections.append("## What [Company] Actually Does")
+    if missing_sections:
+        findings.append(
+            "Final human report is missing established synthesis sections: "
+            + ", ".join(missing_sections)
+            + "."
+        )
+    findings.extend(validate_final_human_report_depth(text))
+    return findings
+
+
+def validate_final_human_report_depth(text: str) -> list[str]:
+    normalized = text.lower()
+    words = re.findall(r"\b[\w./$%-]+\b", text)
+    findings: list[str] = []
+    if len(words) < 1700:
+        findings.append("Final human report is too short to preserve opportunity-assessment depth.")
+
+    required_depth_markers = {
+        "source-backed or verified facts": ("source-backed", "verified facts", "source-backed facts", "verified company"),
+        "notable X/social accounts or source-quality context": ("notable accounts", "accounts/posts", "informed accounts", "recurring accounts"),
+        "rumors or unverified claims separated from facts": ("rumor", "rumors", "unverified", "speculation"),
+        "non-obvious or under-discussed angles": ("non-obvious", "under-discussed", "underdiscussed", "hidden optionality"),
+        "decision table or investor scorecard": ("decision table", "scorecard", "| signal | evidence |", "| decision area | current read |"),
+    }
+    missing_markers = [
+        label
+        for label, markers in required_depth_markers.items()
+        if not any(marker in normalized for marker in markers)
+    ]
+    if missing_markers:
+        findings.append(
+            "Final human report is missing opportunity-assessment depth markers: "
+            + ", ".join(missing_markers)
+            + "."
+        )
+    return findings
+
+
+def is_final_human_report(text: str) -> bool:
+    first_heading = next((line.strip() for line in text.splitlines() if line.startswith("# ")), "")
+    return bool(re.search(r"\bfinal human report\b", first_heading, flags=re.IGNORECASE))
 
 
 def repeated_long_claims(text: str) -> list[str]:

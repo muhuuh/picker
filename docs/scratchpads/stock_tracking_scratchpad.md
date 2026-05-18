@@ -31,6 +31,14 @@
 - 2026-05-18: Fixed `human_synthesis_pack` dotted-ticker raw-artifact lookup so tickers like `LPK.DE` and `SIVE.ST` find slugged Grok/X and web artifacts (`lpk_de`, `sive_st`).
 - 2026-05-18: Final checks passed: `python -m stock_research validate`, `python -m stock_research memory validate`, targeted `test_human_synthesis_pack`, and full `python -m unittest discover -s tests`.
 - 2026-05-18: Added operational memory `orch-2026-05-18-dotted-ticker-artifact-slugs` through `python -m stock_research memory add` for dotted ticker artifact lookup.
+- 2026-05-18: User correctly rejected the first LPKF/Sivers final reports as too high-level. Rewrote both final reports to include the missing automation-run insight layers: market context, Grok/X sentiment, rumors, underdiscussed angles, bull/bear tables, and concrete verification tasks.
+- 2026-05-18: User correctly objected that the rewrite still drifted from the established workflow. Fixed the process: synthesis packs now require the accepted AMBA-style final report shape, the report-quality gate flags missing final-report provenance/sections, and LPKF/Sivers final reports were regenerated in the same `*_final_human_report.md` targets rather than as side reports.
+- 2026-05-18: Regenerated the focused run quality report after the correction; it now has zero findings. Also fixed repeated valuation-warning text in opportunity assessments so deterministic audit artifacts do not fail the human-facing markdown quality gate.
+- 2026-05-18: User clarified the actual final-report standard: not a short summary, but at least the same amount of investor-useful insight as opportunity assessments, rewritten with a clear story and less repetition. Regenerated LPKF/Sivers final reports again with full source-backed developments, market context, X trends/accounts, rumors, under-discussed angles, scorecards, valuation gaps, thesis changers, and next checks; added depth markers to the quality gate.
+- 2026-05-18: Direct quality check shows `LPK.DE_final_human_report.md` has 3,359 words and `SIVE.ST_final_human_report.md` has 3,289 words, both with zero human-facing markdown findings under the stricter final-report depth gate. Focused run quality report is back to zero findings.
+- 2026-05-18: User correctly challenged that final reports also need workflow fit, not just better prose. Added `quality-report --require-final-reports` as the post-Codex completion gate, updated the review pack to require canonical `reports/human_synthesis/*_final_human_report.md` targets and forbid side reports, and documented that the default pre-Codex quality report is not the final completion gate.
+- 2026-05-18: Updated active biweekly Codex automation prompt so the next scheduled run must write every canonical per-ticker final report, avoid side/ad hoc reports, and rerun `quality-report --require-final-reports` before finishing.
+- 2026-05-18: Updated Codex exec-policy rules to allow the direct post-Codex `quality-report --run-id ... --write --require-final-reports` command; verified both the post gate and main scheduled command return `allow`.
 - `monitoring.csv` was empty before adding AAPL.
 - `stock_tracking/stock_info_files/monitoring/` existed but had no company files.
 - AAPL causes the weekly manifest to plan 10 provider tasks and 2 analysis tasks.
@@ -70,6 +78,7 @@
 - Regenerate a weekly/company report for AXTI or another small-cap example to confirm the new valuation sanity warnings appear in the final human-facing output when provider coverage is suspicious.
 - Recheck SIVE.ST after its Q1 2026 report scheduled for 2026-05-29 and reconcile market cap/share count/52-week-range data before using valuation conclusions.
 - Recheck LPK.DE on any disclosed material LIDE production-equipment order or Q2 2026 order-intake update.
+- On the next scheduled/manual Codex-supervised run, confirm the quality report fails any final human report that does not follow the AMBA-style final-report contract.
 - Continue improving candidate-review evidence quality for newly generated rows; the digest now has contextual rows, but source candidate-review files should keep improving the reason-to-care and risk/check fields.
 - Run the first real Sheet-to-repo processing pass with actual `action=research` rows, then decide whether a helper is needed.
 
@@ -92,3 +101,5 @@
 - Company news validation command: `python -m stock_research analysis-tasks --manifest agents\runs\2026-05-09_weekly\manifest.json --execute --task-id company_news_review_aapl --today 2026-05-04`.
 - Sheet intake command: `python -m stock_research sheet-intake selected-rows --rows-json rows.json --write --queue-review`.
 - LPKF/Sivers focused run commands used: `provider-tasks --manifest agents\runs\2026-05-18_manual-lpkf-sivers-holdings\manifest.json --execute --today 2026-05-18`, `analysis-tasks --manifest agents\runs\2026-05-18_manual-lpkf-sivers-holdings\manifest.json --execute --today 2026-05-18`, `run-summary`, `quality-report`, `human-report synthesis-pack`, `memory finalize-run`, `category-state update`, and `human-review digest`.
+- Post-Codex final-report completion check: `python -m stock_research quality-report --run-id RUN_ID --write --require-final-reports`.
+- Final report contract correction checks: `python -m stock_research validate`, `python -m stock_research memory validate`, `python -m unittest discover -s tests -p test_report_quality_golden.py`, `python -m unittest discover -s tests -p test_quality_report.py`, `python -m unittest discover -s tests -p test_human_synthesis_pack.py`, `python -m unittest discover -s tests -p test_opportunity_assessment.py`, and `python -m unittest discover -s tests`.

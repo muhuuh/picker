@@ -85,10 +85,46 @@ class QualityReportTests(unittest.TestCase):
             report = build_quality_report(root, "2026-05-09_weekly", date(2026, 5, 4))
 
             quality_findings = [finding for finding in report.findings if finding.category == "human_report_quality"]
-            self.assertEqual(len(quality_findings), 1)
-            self.assertIn("Repeated long claims found", quality_findings[0].summary)
-            self.assertIn("AMBA_final_human_report.md", quality_findings[0].evidence)
-            self.assertNotIn("AMBA_synthesis_pack.md", quality_findings[0].evidence)
+            self.assertTrue(any("Repeated long claims found" in finding.summary for finding in quality_findings))
+            self.assertTrue(any("established synthesis sections" in finding.summary for finding in quality_findings))
+            self.assertTrue(all("AMBA_final_human_report.md" in finding.evidence for finding in quality_findings))
+            self.assertTrue(all("AMBA_synthesis_pack.md" not in finding.evidence for finding in quality_findings))
+
+    def test_quality_report_can_require_canonical_final_reports_after_codex(self):
+        with TemporaryDirectory() as temp_dir:
+            root = seed_repo(Path(temp_dir))
+            run_dir = root / "agents/runs/2026-05-09_weekly"
+            (run_dir / "manifest.json").write_text(json.dumps({"provider_tasks": [], "analysis_tasks": []}), encoding="utf-8")
+            (run_dir / "run_summary.md").write_text("# Summary\n", encoding="utf-8")
+            human_synthesis_dir = run_dir / "reports" / "human_synthesis"
+            human_synthesis_dir.mkdir(parents=True)
+            (human_synthesis_dir / "AMBA_synthesis_pack.md").write_text("# AMBA Synthesis Pack\n", encoding="utf-8")
+
+            pre_codex_report = build_quality_report(root, "2026-05-09_weekly", date(2026, 5, 4))
+            post_codex_report = build_quality_report(
+                root,
+                "2026-05-09_weekly",
+                date(2026, 5, 4),
+                require_final_reports=True,
+            )
+
+            self.assertFalse(any(finding.category == "missing_final_human_report" for finding in pre_codex_report.findings))
+            self.assertTrue(any(finding.category == "missing_final_human_report" for finding in post_codex_report.findings))
+            self.assertTrue(any("AMBA_final_human_report.md" in finding.evidence for finding in post_codex_report.findings))
+
+    def test_quality_report_flags_orphan_final_reports(self):
+        with TemporaryDirectory() as temp_dir:
+            root = seed_repo(Path(temp_dir))
+            run_dir = root / "agents/runs/2026-05-09_weekly"
+            (run_dir / "manifest.json").write_text(json.dumps({"provider_tasks": [], "analysis_tasks": []}), encoding="utf-8")
+            (run_dir / "run_summary.md").write_text("# Summary\n", encoding="utf-8")
+            human_synthesis_dir = run_dir / "reports" / "human_synthesis"
+            human_synthesis_dir.mkdir(parents=True)
+            (human_synthesis_dir / "RANDOM_final_human_report.md").write_text("# RANDOM Final Human Report\n", encoding="utf-8")
+
+            report = build_quality_report(root, "2026-05-09_weekly", date(2026, 5, 4))
+
+            self.assertTrue(any(finding.category == "orphan_final_human_report" for finding in report.findings))
 
     def test_quality_report_checks_human_review_digest(self):
         with TemporaryDirectory() as temp_dir:

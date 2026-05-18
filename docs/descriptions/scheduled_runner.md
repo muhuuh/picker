@@ -1,6 +1,6 @@
 # Scheduled Runner
 
-Last updated: 2026-05-17
+Last updated: 2026-05-18
 
 ## Purpose
 
@@ -33,6 +33,10 @@ C:\Python313\python.exe -m stock_research run-weekly --write --execute-providers
 ```
 
 This intentionally omits `--execute-orchestrator`. Do not add API SDK orchestration unless the user explicitly asks for remote/headless fallback or SDK debugging. Do not change it to bare `python`. Do not add `git fetch`, `git pull`, `git checkout`, `git reset`, or other Git metadata writes to the automation.
+
+The automation prompt also requires Codex to write every canonical per-ticker final report target from the human synthesis packs, avoid side reports, and rerun the post-Codex quality gate with `--require-final-reports` before finishing.
+
+The Codex exec-policy rules also allow the direct post-Codex quality-report command. Validate both scheduled commands with `codex execpolicy check` after changing the automation prompt or rules.
 
 Codex automation sandbox rules are stored at:
 
@@ -78,7 +82,16 @@ and then write:
 
 ```text
 agents/runs/{run_id}/codex_supervised_review.md
+agents/runs/{run_id}/reports/human_synthesis/{TICKER}_final_human_report.md for every synthesis pack
 ```
+
+After writing those Codex-authored reports, Codex must run:
+
+```powershell
+python -m stock_research quality-report --run-id {run_id} --write --require-final-reports
+```
+
+This post-Codex gate prevents the scheduled or manual workflow from silently accepting missing, orphaned, shallow, or malformed final reports.
 
 When live provider or analysis execution is enabled, the runner first cleans generated artifacts in the target run directory (`evidence_packets/`, `raw/`, `reports/`, and generated root report files). This keeps repeated manual smoke tests or reruns from double-counting stale evidence packets.
 
@@ -118,6 +131,8 @@ load repo state
   -> human_review_digest
   -> codex_supervised_review_pack
   -> Codex app reads pack and writes codex_supervised_review.md
+  -> Codex app writes canonical reports/human_synthesis/*_final_human_report.md targets
+  -> post-Codex quality_report --require-final-reports
   -> orchestration_report
 ```
 

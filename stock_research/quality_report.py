@@ -28,7 +28,13 @@ class QualityReport:
     findings: list[QualityFinding]
 
 
-def build_quality_report(root: Path | None, run_id: str, current_date: date | None = None) -> QualityReport:
+def build_quality_report(
+    root: Path | None,
+    run_id: str,
+    current_date: date | None = None,
+    *,
+    require_final_reports: bool = False,
+) -> QualityReport:
     repo_root = find_repo_root(root)
     today = current_date or date.today()
     run_dir = repo_root / "agents" / "runs" / run_id
@@ -60,6 +66,8 @@ def build_quality_report(root: Path | None, run_id: str, current_date: date | No
     if not (run_dir / "run_summary.md").exists():
         findings.append(QualityFinding("medium", "missing_run_summary", "Run summary has not been generated.", (run_dir / "run_summary.md").as_posix()))
 
+    findings.extend(final_human_report_target_findings(run_dir, require_final_reports=require_final_reports))
+
     for report_path in human_facing_report_paths(repo_root, run_dir):
         for finding in validate_human_facing_markdown(report_path.read_text(encoding="utf-8")):
             findings.append(QualityFinding("medium", "human_report_quality", finding, report_path.as_posix()))
@@ -68,6 +76,7 @@ def build_quality_report(root: Path | None, run_id: str, current_date: date | No
         "provider_tasks_planned": len(provider_tasks),
         "analysis_tasks_planned": len(manifest.get("analysis_tasks", [])) if isinstance(manifest, dict) else 0,
         "evidence_packets": len(packets),
+        "require_final_reports": require_final_reports,
         "findings": len(findings),
         "high_findings": len([finding for finding in findings if finding.severity == "high"]),
         "medium_findings": len([finding for finding in findings if finding.severity == "medium"]),
@@ -78,6 +87,45 @@ def build_quality_report(root: Path | None, run_id: str, current_date: date | No
         ),
     }
     return QualityReport(run_id=run_id, generated_at=today.isoformat(), metrics=metrics, findings=findings)
+
+
+def final_human_report_target_findings(run_dir: Path, *, require_final_reports: bool = False) -> list[QualityFinding]:
+    human_synthesis_dir = run_dir / "reports" / "human_synthesis"
+    if not human_synthesis_dir.exists():
+        return []
+
+    synthesis_packs = sorted(human_synthesis_dir.glob("*_synthesis_pack.md"))
+    final_reports = sorted(human_synthesis_dir.glob("*_final_human_report.md"))
+    expected_report_names = {
+        path.name.replace("_synthesis_pack.md", "_final_human_report.md")
+        for path in synthesis_packs
+    }
+    actual_report_names = {path.name for path in final_reports}
+    findings: list[QualityFinding] = []
+
+    if require_final_reports:
+        for expected_name in sorted(expected_report_names - actual_report_names):
+            findings.append(
+                QualityFinding(
+                    "high",
+                    "missing_final_human_report",
+                    "Human synthesis pack is missing its canonical final human report target.",
+                    (human_synthesis_dir / expected_name).as_posix(),
+                )
+            )
+
+    for report_path in final_reports:
+        if report_path.name not in expected_report_names:
+            findings.append(
+                QualityFinding(
+                    "medium",
+                    "orphan_final_human_report",
+                    "Final human report has no matching synthesis pack in the canonical workflow.",
+                    report_path.as_posix(),
+                )
+            )
+
+    return findings
 
 
 def write_quality_report(root: Path | None, report: QualityReport) -> tuple[Path, Path]:

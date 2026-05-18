@@ -1,6 +1,6 @@
 # Repo Map
 
-Last updated: 2026-05-17
+Last updated: 2026-05-18
 
 ## Purpose
 
@@ -161,9 +161,10 @@ Use CLI commands for manual operation, scheduler entrypoints, validation, smoke 
 - `python -m stock_research analysis-tasks --manifest PATH --execute`: execute analysis tasks from a manifest.
 - `python -m stock_research run-summary --run-id RUN_ID --write`: write run_summary artifacts from run evidence.
 - `python -m stock_research quality-report --run-id RUN_ID --write`: write quality_report artifacts from run evidence.
+- `python -m stock_research quality-report --run-id RUN_ID --write --require-final-reports`: post-Codex completion gate requiring every synthesis pack to have its canonical `*_final_human_report.md` target and flagging orphan final reports.
 - `python -m stock_research human-report synthesis-pack --run-id RUN_ID --write`: write per-ticker human synthesis packs so Codex app can create final reports from first principles.
 - `python -m stock_research run-weekly`: dry-run the deterministic weekly workflow wrapper.
-- `python -m stock_research run-weekly --write --execute-providers --execute-analysis`: execute and persist the default Codex-supervised weekly workflow. Codex should then read `agents/runs/{run_id}/codex_supervised_review_pack.md`, write `agents/runs/{run_id}/codex_supervised_review.md`, and write or refresh every `reports/human_synthesis/*_final_human_report.md` target.
+- `python -m stock_research run-weekly --write --execute-providers --execute-analysis`: execute and persist the default Codex-supervised weekly workflow. Codex should then read `agents/runs/{run_id}/codex_supervised_review_pack.md`, write `agents/runs/{run_id}/codex_supervised_review.md`, write or refresh every `reports/human_synthesis/*_final_human_report.md` target, and rerun `quality-report --write --require-final-reports`.
 - `python -m stock_research run-weekly --write --execute-orchestrator --orchestrator-timeout-seconds 300`: optional API mode. Opt into OpenAI Agents SDK synthesis over written run artifacts. Requires `OPENAI_API_KEY`; actionable output from dry-run provider/analysis inputs is marked `needs_review`.
 - `python -m stock_research run-weekly --write --execute-providers --execute-analysis --execute-orchestrator --orchestrator-timeout-seconds 300`: execute fresh provider/analysis tasks and then run SDK synthesis.
 - `python -m stock_research agent-runtime list-agents`: list registered OpenAI Agents SDK orchestrators and specialists.

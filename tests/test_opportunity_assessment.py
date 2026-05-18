@@ -2,6 +2,7 @@ import unittest
 from pathlib import Path
 
 from stock_research.opportunity_assessment import extract_development_items, format_opportunity_assessment_markdown, validate_opportunity_assessment
+from stock_research.report_quality import validate_human_facing_markdown
 
 
 class OpportunityAssessmentTests(unittest.TestCase):
@@ -75,6 +76,24 @@ class OpportunityAssessmentTests(unittest.TestCase):
 
         self.assertIn("Valuation sanity: needs cross-provider verification", markdown)
         self.assertIn("52-week range is unusually wide", markdown)
+
+    def test_valuation_sanity_warnings_are_not_repeated_across_report_sections(self):
+        assessment = full_report_assessment()
+        assessment["financial_snapshot"]["status"] = "needs_human_review"
+        assessment["financial_snapshot"]["reason"] = "Valuation sanity warnings require cross-provider verification before using headline price, market cap, or P/E conclusions."
+        assessment["financial_snapshot"]["valuation_sanity_warning_count"] = 2
+        assessment["financial_snapshot"]["valuation_sanity_warnings"] = [
+            "52-week range is unusually wide (21.0x from low to high); check for split, corporate-action, ticker, or stale-data issues before using valuation metrics.",
+            "P/E ratio is single-provider while the valuation snapshot has weak or suspicious coverage; do not treat the multiple as clean consensus.",
+        ]
+        assessment["investor_insight_report"]["valuation_snapshot"]["valuation_sanity_warnings"] = list(
+            assessment["financial_snapshot"]["valuation_sanity_warnings"]
+        )
+
+        markdown = format_opportunity_assessment_markdown(Path("."), "2026-05-16_weekly", assessment)
+        findings = validate_human_facing_markdown(markdown)
+
+        self.assertFalse(any("Repeated long claims" in finding for finding in findings))
 
     def test_development_extraction_rejects_truncated_markdown_fragments(self):
         evidence = """

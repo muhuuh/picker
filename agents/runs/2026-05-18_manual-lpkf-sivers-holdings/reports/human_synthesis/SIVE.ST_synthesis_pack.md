@@ -12,12 +12,15 @@ This is the deterministic handoff to the Codex app for a first-principles human 
 ## Synthesis Instructions
 
 1. Write the final human-facing report from scratch; do not paste sections together.
-2. Start with the investable question and bottom line, then explain the business, what changed, sentiment, financial/valuation read, bull case, bear case, and concrete next checks.
-3. Explain why each important point matters to an investor. Do not compress facts so far that a reader cannot act on them.
-4. Separate verified facts, auxiliary Grok web context, Grok/X social narrative, rumors, and your synthesis.
-5. Prefer fewer stronger points over every available point. Remove repeated claims across sections.
-6. Use exact dates and numbers where available. If providers conflict, name the conflict and how to verify it.
-7. Do not give buy/sell/trade instructions or position-size advice.
+2. Use the established final-report shape from the accepted AMBA report; do not invent a new report format unless the user explicitly asks.
+3. After the run/date metadata, include this provenance paragraph adapted to the ticker: `This report is a Codex-written synthesis from the synthesis pack, deterministic audit report, company-news and financial specialist outputs, raw Grok/X sentiment, the live Grok web deep dive, and the current company file. It is written as the human-facing read. The deterministic opportunity assessment remains the audit artifact.`
+4. Required sections, in this order: Bottom Line; What [Company] Actually Does; Why The Setup Changed; X Sentiment And What It Is Really Saying; Financial And Valuation Read; Bull Case; Bear Case; What Would Change The Thesis; Next Research Checks; Final Assessment; Sources.
+5. Explain why each important point matters to an investor. Do not compress facts so far that a reader cannot act on them.
+6. Separate verified facts, auxiliary Grok web context, Grok/X social narrative, rumors, and your synthesis.
+7. Prefer fewer stronger points over every available point. Remove repeated claims across sections.
+8. Use exact dates and numbers where available. If providers conflict, name the conflict and how to verify it.
+9. Before finishing, self-check that the report includes market context, sentiment, rumors or explicitly states none found, underdiscussed angles, bull/bear cases, thesis changers, and concrete next checks.
+10. Do not give buy/sell/trade instructions or position-size advice.
 
 ## Evidence Priority
 
@@ -123,14 +126,18 @@ This is the deterministic handoff to the Codex app for a first-principles human 
 ## Risks / Headwinds To Consider
 
 - Financial review needs human review: Valuation sanity warnings require cross-provider verification before using headline price, market cap, or P/E conclusions..
+- Valuation snapshot has sanity warnings; use the valuation section for specific checks before relying on headline metrics.
+- Grok/X scan includes rumor or speculation language; do not treat it as verified fact.
 
 ## Next Checks From Audit Layer
 
+- Complete cross-provider valuation sanity review before using headline price, market cap, P/E, or target-gap conclusions.
 - Resolve material financial provider conflict before updating company-file conclusions.
 - Research checks: (1) Confirm AEVA lifetime revenue ramp timeline in next quarterly; (2) Track gross-margin inflection on first production shipments; (3) Monitor Nasdaq dual-listing progress and any PCAOB remediation updates.
 - AI optics/CPO ramp: evidence GFS slide + Jabil LRO modules with confidence Medium; confirm via Design-win announcement or volume PO; invalidate if Continued NRE-only revenue.
 - LiDAR diversification: evidence AEVA multi-platform selection with confidence High; confirm via Q4 2026 shipment disclosure; invalidate if Delay beyond 2027.
 - Verify X rumor/speculation: "Apple silicon photonics program" is speculation only (@aleabitoreddit). Verify via supplier disclosures or next earnings call.
+- Verify X rumor/speculation: Exact hyperscaler identity behind Jabil modules remains unconfirmed. Verify through Jabil or Sivers IR updates.
 
 ## Artifact Map
 
@@ -144,6 +151,7 @@ This is the deterministic handoff to the Codex app for a first-principles human 
 | present | no | `agents/runs/2026-05-18_manual-lpkf-sivers-holdings/raw/company_news_specialist/SIVE.ST_company_news_review.json` | Structured company-news specialist output. |
 | present | no | `agents/runs/2026-05-18_manual-lpkf-sivers-holdings/raw/xai_grok/xai_x_search_company_sive_st.json` | Grok/X social narrative raw artifact. Treat as social signal, not fact. |
 | present | no | `agents/runs/2026-05-18_manual-lpkf-sivers-holdings/raw/xai_grok/xai_web_deep_dive_company_sive_st.json` | Grok web-search deep-dive raw artifact. Treat as auxiliary coverage-gap evidence until verified. |
+| present | no | `stock_tracking/stock_info_files/current_holdings/SIVE.ST.md` | Current durable company-file context and prior thesis state. |
 
 ## Pack Quality Findings
 

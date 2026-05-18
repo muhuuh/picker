@@ -46,10 +46,10 @@ SIVE.ST: technology or product-positioning evidence. Valuation context: needs ve
   - Sivers Will Supply Lasers and Optical Amplifiers with Cumulative Revenue Potential Ranging From $53M to $138M Over Our Customer's Product Lifecycle
 - Headwinds / debate points:
   - Financial review needs human review: Valuation sanity warnings require cross-provider verification before using headline price, market cap, or P/E conclusions..
-  - Valuation sanity check: 52-week range is unusually wide (21.0x from low to high); check for split, corporate-action, ticker, or stale-data issues before using valuation metrics.
-  - Valuation sanity check: P/E ratio is single-provider while the valuation snapshot has weak or suspicious coverage; do not treat the multiple as clean consensus.
+  - Valuation snapshot has sanity warnings; use the valuation section for specific checks before relying on headline metrics.
   - X bear/skeptic narrative: Valuation absurdity: ~50x 2025 sales with negative gross margin and SEK -222.6M adjusted net loss (@dubidubabap).
   - X bear/skeptic narrative: Execution gap: NRE still >50% of revenue; no confirmed hyperscaler volume ASP or share yet (@TheValueist).
+  - X bear/skeptic narrative: Accounting & dilution risk: restatements, material weaknesses, IT intrusion, and recent equity raises signal ongoing cash-burn and credibility issues (@BrainyMarsupial, @TheValueist).
 - Trend evolution:
   - Strategic ecosystem trend: Key nodes: Jabil (1.6T LRO modules for hyperscalers), Ayar Labs ecosystem, GlobalFoundries (CPO laser supplier), O-Net/POET/LIGHTIUM (optical engines), AEVA (LiDAR across all platforms), Tachyon (FWA), ESA/IRIS2 SATCOM, Doosan, and unnamed Tier-1 defense contractor. Hidden optionality sits in the asset-light model plus potential US onshoring incentives via Jabil/Trump alignment and EU sovereign comms funding.
 
@@ -62,7 +62,6 @@ SIVE.ST: technology or product-positioning evidence. Valuation context: needs ve
   - Pipeline visibility: $453M opportunity + GFS ecosystem naming + Tachyon $2.8M order + major US defense contract as concrete proof points (@Ren_aramb referencing former CEO Anders Storm).
   - 2027-2028 inflection: hyperscaler CPO ramps and Nasdaq listing expected to drive re-rating from current ~SEK 16.5B market cap.
 - Skeptical camp:
-  - Accounting & dilution risk: restatements, material weaknesses, IT intrusion, and recent equity raises signal ongoing cash-burn and credibility issues (@BrainyMarsupial, @TheValueist).
   - Over-optimistic unit assumptions: 2028 model of 663M units at SEK ~30 ASP requires customer evidence that remains "technical inference" only.
 - Accounts/posts worth reviewing: @FinanceMajor_23, @aleabitoreddit, @JakobGangeskar, @Ren_aramb, @dubidubabap, @TheValueist
 - Hype/noise: Discussion is predominantly informed and technical among 5-10 recurring high-signal accounts; low bot activity. Promotional tone is minimal compared with typical small-cap memes. Still early rather than crowded-most volume comes from supply-chain and former-insider circles rather than broad retail.
@@ -141,8 +140,6 @@ SIVE.ST: technology or product-positioning evidence. Valuation context: needs ve
 
 ## Actionable Follow-ups
 
-- Verify valuation snapshot before using it in thesis work: 52-week range is unusually wide (21.0x from low to high); check for split, corporate-action, ticker, or stale-data issues before using valuation metrics.
-- Verify valuation snapshot before using it in thesis work: P/E ratio is single-provider while the valuation snapshot has weak or suspicious coverage; do not treat the multiple as clean consensus.
 - Resolve material financial provider conflict before updating company-file conclusions.
 - AI optics/CPO ramp: evidence GFS slide + Jabil LRO modules with confidence Medium; confirm via Design-win announcement or volume PO; invalidate if Continued NRE-only revenue.
 - LiDAR diversification: evidence AEVA multi-platform selection with confidence High; confirm via Q4 2026 shipment disclosure; invalidate if Delay beyond 2027.

@@ -1,6 +1,6 @@
 # Setup
 
-Last updated: 2026-05-17
+Last updated: 2026-05-18
 
 ## Requirements
 
@@ -175,7 +175,7 @@ The automation command is intentionally exact and lower-cost:
 C:\Python313\python.exe -m stock_research run-weekly --write --execute-providers --execute-analysis
 ```
 
-This is Codex-supervised mode. It intentionally omits `--execute-orchestrator`, writes `agents/runs/{run_id}/codex_supervised_review_pack.md` plus per-ticker `reports/human_synthesis/*_synthesis_pack.md`, and expects Codex app automation to write `agents/runs/{run_id}/codex_supervised_review.md` after reading the pack and linked artifacts. Codex app should also write or refresh `reports/human_synthesis/{TICKER}_final_human_report.md` for every synthesis pack. Those final human reports are the reader-facing per-ticker company/opportunity reports; the deterministic opportunity assessments are audit trails.
+This is Codex-supervised mode. It intentionally omits `--execute-orchestrator`, writes `agents/runs/{run_id}/codex_supervised_review_pack.md` plus per-ticker `reports/human_synthesis/*_synthesis_pack.md`, and expects Codex app automation to write `agents/runs/{run_id}/codex_supervised_review.md` after reading the pack and linked artifacts. Codex app should also write or refresh the canonical `reports/human_synthesis/{TICKER}_final_human_report.md` for every synthesis pack. Those final human reports are the reader-facing per-ticker company/opportunity reports; the deterministic opportunity assessments are audit trails. After Codex writes them, run `python -m stock_research quality-report --run-id RUN_ID --write --require-final-reports` and fix any missing, orphaned, shallow, or malformed final report before treating the run as complete. The active Codex exec-policy rules allow both the main scheduled command and the direct post-Codex quality-report command.
 
 Codex automation sandbox rules live at:
 

@@ -43,7 +43,12 @@ class ScheduledRunnerTests(unittest.TestCase):
             pack_text = (root / "agents/runs/2026-05-09_weekly/codex_supervised_review_pack.md").read_text(encoding="utf-8")
             self.assertIn("Codex-Supervised Review Pack", pack_text)
             self.assertIn("Do not use API mode in the scheduled Codex-supervised automation", pack_text)
+            self.assertIn("--require-final-reports", pack_text)
             self.assertEqual(result.steps["codex_review_pack"]["expected_output_path"], "agents/runs/2026-05-09_weekly/codex_supervised_review.md")
+            self.assertEqual(
+                result.steps["codex_review_pack"]["post_codex_quality_command"],
+                "python -m stock_research quality-report --run-id 2026-05-09_weekly --write --require-final-reports",
+            )
             self.assertIn("agents/runs/2026-05-09_weekly/codex_supervised_review_pack.md", result.steps["codex_review_pack"]["written_paths"])
             self.assertEqual(result.steps["human_review_digest"]["status"], "clear")
 

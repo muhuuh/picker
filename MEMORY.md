@@ -416,6 +416,21 @@ Use this file for information we should not lose across sessions.
   - evidence artifact path(s): `docs/descriptions/codex_supervised_workflow.md`, `stock_research/codex_review_pack.py`, `stock_research/scheduled_runner.py`, `agents/runs/2026-05-16_weekly/reports/human_synthesis/AMBA_final_human_report.md`
   - status: active
 
+- 2026-05-18:
+  - decision/fact: Per-ticker final human reports must follow the accepted AMBA-style final-report contract, including the Codex synthesis provenance paragraph and required sections. Manual one-off Codex-supervised runs use the same `reports/human_synthesis/*_final_human_report.md` target and should not create ad hoc side report formats unless the user explicitly asks.
+  - evidence artifact path(s): `docs/descriptions/codex_supervised_workflow.md`, `stock_research/human_synthesis_pack.py`, `stock_research/report_quality.py`, `agents/runs/2026-05-18_manual-lpkf-sivers-holdings/reports/human_synthesis/LPK.DE_final_human_report.md`, `agents/runs/2026-05-18_manual-lpkf-sivers-holdings/reports/human_synthesis/SIVE.ST_final_human_report.md`
+  - status: active
+
+- 2026-05-18:
+  - decision/fact: The final human report must be at least as insight-rich as the opportunity assessment, but rewritten into a clearer non-repetitive Codex narrative. Correct headings alone are not sufficient. Required depth includes source-backed developments, market context, X trend and notable accounts, bull/bear claims, rumors/unverified claims, under-discussed angles, valuation gaps, decision table or scorecard, thesis changers, and concrete next checks.
+  - evidence artifact path(s): `docs/descriptions/codex_supervised_workflow.md`, `docs/plans/human_report_quality_improvement_plan.md`, `stock_research/human_synthesis_pack.py`, `stock_research/report_quality.py`, `agents/runs/2026-05-18_manual-lpkf-sivers-holdings/reports/human_synthesis/LPK.DE_final_human_report.md`, `agents/runs/2026-05-18_manual-lpkf-sivers-holdings/reports/human_synthesis/SIVE.ST_final_human_report.md`
+  - status: active
+
+- 2026-05-18:
+  - decision/fact: Post-Codex completion for scheduled or manual Codex-supervised stock research must rerun `python -m stock_research quality-report --run-id RUN_ID --write --require-final-reports`. The normal pre-Codex quality report can run before final reports exist, but the post-Codex gate must prove every synthesis pack has its canonical `reports/human_synthesis/{TICKER}_final_human_report.md` target and no orphan final reports. The active biweekly Codex automation prompt now explicitly requires those final reports and the post-Codex gate, and the Codex exec-policy rules allow the direct post-Codex quality-report command.
+  - evidence artifact path(s): `stock_research/quality_report.py`, `stock_research/codex_review_pack.py`, `docs/descriptions/codex_supervised_workflow.md`, `docs/descriptions/run_summary_and_quality.md`, `C:\Users\valen\.codex\automations\biweekly-holdings-and-monitoring-research\automation.toml`, `C:\Users\valen\.codex\rules\default.rules`
+  - status: active
+
 - 2026-05-17:
   - decision/fact: Google Sheet `new_stock_overview` is the quick stock idea inbox. It is not durable portfolio state and must not auto-trigger research; the user marks rows with `action=research` and explicitly asks Codex to process them through the `sheet-intake selected-rows` bridge before candidate verification or monitoring decisions. Blank `action` means no repo processing, while `add to monitoring`, `bought`, `ignore`, and `rejected` are post-research outcomes. The Sheet `Processing status` dropdown is only for simple process state: `not processed`, `in research`, `done`, or `needs fix`.
   - evidence artifact path(s): `docs/descriptions/google_sheet_stock_intake.md`, `stock_research/sheet_intake.py`, `tests/test_sheet_intake.py`, `https://docs.google.com/spreadsheets/d/16S9NXkIi4IH6fPHe3DMpxvtjknzzRIjyxW2XjJp6Jr0/edit`

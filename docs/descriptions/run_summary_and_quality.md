@@ -1,6 +1,6 @@
 # Run Summary And Quality Reports
 
-Last updated: 2026-05-17
+Last updated: 2026-05-18
 
 ## Purpose
 
@@ -12,6 +12,7 @@ Current deterministic commands:
 python -m stock_research run-summary --run-id RUN_ID --write
 python -m stock_research quality-report --run-id RUN_ID --write
 python -m stock_research human-report synthesis-pack --run-id RUN_ID --write
+python -m stock_research quality-report --run-id RUN_ID --write --require-final-reports
 ```
 
 ## Run Summary
@@ -53,6 +54,8 @@ The quality report currently checks:
 - missing run summary,
 - recommended updates needing human review,
 - human-facing markdown quality issues in the final digest, Codex review, run summary, human-review digest, human-review digest summary, opportunity audit reports, company-research reports, and `reports/human_synthesis/*_final_human_report.md` reports.
+- when `--require-final-reports` is passed, missing canonical `reports/human_synthesis/{TICKER}_final_human_report.md` targets for every synthesis pack.
+- orphan `reports/human_synthesis/*_final_human_report.md` reports that do not have a matching synthesis pack.
 
 Generated `.json` outputs are local runtime artifacts and are ignored by Git. The `.md` summary/report/finalization files are the reviewable artifacts intended for normal repo inspection.
 
@@ -71,7 +74,7 @@ These packs are the handoff for Codex app final-report writing. They collect the
 
 The quality gate checks the generated `*_final_human_report.md` reader artifacts, not the `*_synthesis_pack.md` inputs.
 
-In the scheduled Codex-supervised runner, the final quality report is written after the deterministic final digest, human-review digest, category-state update, and synthesis-pack generation so it can scan the actual human-facing artifacts that exist before Codex app writes the final narrative layer.
+In the scheduled Codex-supervised runner, the normal quality report is written after the deterministic final digest, human-review digest, category-state update, and synthesis-pack generation so it can scan the actual human-facing artifacts that exist before Codex app writes the final narrative layer. After Codex writes `codex_supervised_review.md` and every `*_final_human_report.md`, Codex must rerun `quality-report --write --require-final-reports`; that post-Codex gate is the completion check for the final report layer.
 
 ## Workflow Role
 
@@ -82,6 +85,8 @@ provider-tasks --execute
   -> quality-report --write
   -> human-report synthesis-pack --write
   -> memory finalize-run
+  -> Codex writes codex_supervised_review.md and canonical *_final_human_report.md files
+  -> quality-report --write --require-final-reports
 ```
 
 ## Current Validation

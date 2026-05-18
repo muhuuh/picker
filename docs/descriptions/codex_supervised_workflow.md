@@ -1,6 +1,6 @@
 # Codex-Supervised Workflow
 
-Last updated: 2026-05-17
+Last updated: 2026-05-18
 
 ## Purpose
 
@@ -61,6 +61,14 @@ agents/runs/{run_id}/codex_supervised_review.md
 agents/runs/{run_id}/reports/human_synthesis/{TICKER}_final_human_report.md for every human synthesis pack
 ```
 
+Then Codex must rerun the post-Codex quality gate:
+
+```powershell
+python -m stock_research quality-report --run-id {run_id} --write --require-final-reports
+```
+
+This command is the deterministic proof that the final report layer is present in the canonical workflow paths. A run should not be treated as complete if this gate reports missing final reports, orphan final reports, shallow final reports, malformed final reports, repeated claims, or other human-facing quality findings.
+
 Reader-facing artifact contract:
 
 - `codex_supervised_review.md` is the crafted run-level final digest/review written by Codex app.
@@ -88,6 +96,32 @@ The Codex final review must be more useful than a status summary. It should incl
 Codex should actively inspect output quality. If reports are truncated, duplicated, stale, shallow, missing X/community insight, or not actionable, Codex should fix the relevant prompt/formatter/code and regenerate the affected report before finishing.
 
 Per-ticker opportunity assessments are not the final reading experience. They are audit artifacts that preserve score factors, evidence lanes, and source coverage. The final human-facing report must be written from a human synthesis pack by the Codex app so the output has a coherent storyline, explains why each fact matters, separates verified facts from Grok/X social narrative and auxiliary Grok web context, and avoids over-compressed bullets that are technically accurate but not useful.
+
+## Established Per-Ticker Final Report Shape
+
+The accepted baseline is the 2026-05-16 AMBA final human report. Manual one-off research and scheduled automation must use the same final-report contract; Codex should not create a new report name or ad hoc structure when the user asks for automation-style research.
+
+Each `reports/human_synthesis/{TICKER}_final_human_report.md` must start with a provenance paragraph stating that it is a Codex-written synthesis from the synthesis pack, deterministic audit report, company-news and financial specialist outputs, raw Grok/X sentiment, Grok web deep dive, and the current company file. It must also state that the deterministic opportunity assessment remains the audit artifact.
+
+Required sections:
+
+- Bottom Line
+- What [Company] Actually Does
+- Why The Setup Changed
+- X Sentiment And What It Is Really Saying
+- Financial And Valuation Read
+- Bull Case
+- Bear Case
+- What Would Change The Thesis
+- Next Research Checks
+- Final Assessment
+- Sources
+
+The final report is a cleaner story, not a smaller story. It must preserve at least the same investor-useful insight coverage as the opportunity assessment while removing repetition and pasted-subreport feel. The required coverage includes source-backed developments, market/industry context, X pulse and trend evolution, recurring bull and bear social claims, notable accounts/posts or source-quality context, rumors/unverified claims, non-obvious or under-discussed angles, valuation/analyst gaps, a decision table or investor scorecard, thesis changers, and concrete next checks.
+
+The report-quality gate treats missing provenance, missing required sections, shallow length, or missing depth markers in a final human report as workflow defects. A shallow or differently shaped final report should be fixed in the workflow instructions/templates and regenerated, not patched by inventing a separate report artifact.
+
+Post-Codex report validation must use `quality-report --require-final-reports`. The default pre-Codex quality report can run before Codex has written the final reports, but the post-Codex gate must require every synthesis pack to have exactly the expected canonical final report target. Extra `*_final_human_report.md` files without matching `*_synthesis_pack.md` are orphan artifacts and should be removed or moved into the correct run workflow rather than left as alternate reports.
 
 For the 2026-05-16 real-holdings run, this quality check must include explicit scans for mojibake/encoding artifacts, dead citation markers, dead bracketed source ids, visible truncation, duplicate report sections, and dangling excerpt tails. Passing provider execution is not enough to call the run good.
 

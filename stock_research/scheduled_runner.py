@@ -553,7 +553,7 @@ def next_actions(
         )
     if codex_review_pack:
         actions.append(
-            f"Codex-supervised automation should read `agents/runs/{codex_review_pack.run_id}/codex_supervised_review_pack.md`, write `{codex_review_pack.expected_output_path}`, and refresh every `reports/human_synthesis/*_final_human_report.md` target."
+            f"Codex-supervised automation should read `agents/runs/{codex_review_pack.run_id}/codex_supervised_review_pack.md`, write `{codex_review_pack.expected_output_path}`, refresh every canonical `reports/human_synthesis/*_final_human_report.md` target, then run `{codex_review_pack.post_codex_quality_command}`."
         )
     return unique(actions)
 

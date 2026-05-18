@@ -17,6 +17,7 @@ class CodexReviewPack:
     required_artifacts: list[dict[str, Any]]
     human_synthesis_packs: list[dict[str, Any]]
     final_human_report_targets: list[dict[str, Any]]
+    post_codex_quality_command: str
     company_reports: list[dict[str, Any]]
     memory_artifacts: list[dict[str, Any]]
     hygiene_artifacts: list[dict[str, Any]]
@@ -47,6 +48,9 @@ def build_codex_review_pack(root: Path | None, run_id: str) -> CodexReviewPack:
         "Codex app final-report evidence pack.",
     )
     final_human_report_targets = final_report_targets_for_synthesis_packs(repo_root, human_synthesis_packs)
+    post_codex_quality_command = (
+        f"python -m stock_research quality-report --run-id {run_id} --write --require-final-reports"
+    )
     company_reports = sorted_artifacts(
         repo_root,
         run_dir / "reports" / "opportunity_assessment",
@@ -82,6 +86,7 @@ def build_codex_review_pack(root: Path | None, run_id: str) -> CodexReviewPack:
         required_artifacts=required_artifacts,
         human_synthesis_packs=human_synthesis_packs,
         final_human_report_targets=final_human_report_targets,
+        post_codex_quality_command=post_codex_quality_command,
         company_reports=company_reports,
         memory_artifacts=memory_artifacts,
         hygiene_artifacts=hygiene_artifacts,
@@ -189,14 +194,19 @@ def pack_quality_findings(
 
 
 def codex_supervised_instructions(run_id: str, expected_output_path: str) -> list[str]:
+    post_codex_quality_command = (
+        f"python -m stock_research quality-report --run-id {run_id} --write --require-final-reports"
+    )
     return [
         "Use Codex GPT-5.5 high as the outer orchestrator. Do not run the OpenAI API SDK orchestrator unless the user explicitly asks for remote/headless fallback or SDK debugging.",
         "Read this review pack first, then read every existing required artifact and every human synthesis pack listed below. Use opportunity assessments as audit/evidence artifacts, not as final prose to patch together.",
         "Write or update the Codex-supervised final review at "
         f"`{expected_output_path}`. This file is the human-facing synthesis for the scheduled run.",
-        "For every human synthesis pack, write or refresh the matching `*_final_human_report.md` target from first principles. This is the reader-facing company/opportunity report; `reports/opportunity_assessment/` is the deterministic audit trail.",
+        "For every human synthesis pack, write or refresh the matching canonical `reports/human_synthesis/{TICKER}_final_human_report.md` target from first principles. This is the reader-facing company/opportunity report; `reports/opportunity_assessment/` is the deterministic audit trail.",
+        "Do not create separate side reports, alternate report names, or chat-only report artifacts for automation-style stock research. If a report needs correction, overwrite the same canonical final human report target.",
         "Each final human report should include: bottom line, business context, what changed, material X/Grok narrative shifts, source-backed news, valuation/financial flags, non-obvious opportunities/risks, what changed vs existing company files, open human decisions, and next actions.",
         "If a human-facing report is obviously poor, duplicated, over-compressed, stale, or missing key X/Grok/web insight, fix the synthesis pack, formatter, prompt, or provider coverage and regenerate the affected artifact before finalizing.",
+        f"After writing `codex_supervised_review.md` and all final human reports, run `{post_codex_quality_command}`. Do not finish the supervised run while it reports missing, orphaned, shallow, or malformed final human reports.",
         "Keep low-risk factual company-file updates as FYI. Do not ask for approval for routine source-backed factual syncs. Do ask for approval for thesis/status/strategy/buy/sell/position-size changes.",
         "Do not make trades, do not silently move stocks between holdings/monitoring/rejected, and do not auto-approve human-review rows.",
         "Review memory artifacts. If the run produced a durable operational lesson, update `agents/memory/` through the deterministic memory workflow or update the relevant scratchpad/backlog when that is the right scope.",
@@ -211,6 +221,7 @@ def format_codex_review_pack_markdown(pack: CodexReviewPack) -> str:
         "",
         f"Status: {pack.status}",
         f"Expected Codex output: `{pack.expected_output_path}`",
+        f"Post-Codex quality gate: `{pack.post_codex_quality_command}`",
         "",
         "## Purpose",
         "",
@@ -226,6 +237,12 @@ def format_codex_review_pack_markdown(pack: CodexReviewPack) -> str:
     append_artifact_table(lines, pack.human_synthesis_packs)
     lines.extend(["", "## Final Human Report Targets", ""])
     append_artifact_table(lines, pack.final_human_report_targets)
+    lines.extend(
+        [
+            "",
+            "After Codex writes or refreshes those targets, rerun the post-Codex quality gate. It must be clean before the run is treated as complete.",
+        ]
+    )
     lines.extend(["", "## Opportunity Assessment Reports", ""])
     append_artifact_table(lines, pack.company_reports)
     lines.extend(["", "## Human Review Artifacts", ""])

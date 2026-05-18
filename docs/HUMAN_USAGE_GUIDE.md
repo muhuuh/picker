@@ -1,6 +1,6 @@
 # Human Usage Guide
 
-Last updated: 2026-05-17
+Last updated: 2026-05-18
 
 ## Short Version
 
@@ -233,15 +233,17 @@ C:\Python313\python.exe -m stock_research run-weekly --write --execute-providers
 
 - read the generated `agents/runs/{run_id}/codex_supervised_review_pack.md`,
 - write or update `agents/runs/{run_id}/codex_supervised_review.md`,
-- write reports under `agents/runs/{run_id}/`,
+- write one canonical `agents/runs/{run_id}/reports/human_synthesis/{TICKER}_final_human_report.md` for every synthesis pack,
+- rerun `python -m stock_research quality-report --run-id {run_id} --write --require-final-reports`,
 - refresh the review digest,
 - summarize what changed and what you need to decide.
 
 Where to read:
 
 - start with `agents/runs/{run_id}/codex_supervised_review.md` when the Codex automation/manual run completed the supervised review step,
+- open `agents/runs/{run_id}/reports/human_synthesis/{TICKER}_final_human_report.md` for the best per-company report,
 - then read `agents/runs/{run_id}/final_digest.md` for the quick per-stock digest,
-- open `agents/runs/{run_id}/reports/opportunity_assessment/{TICKER}_opportunity_assessment.md` for any stock that matters,
+- open `agents/runs/{run_id}/reports/opportunity_assessment/{TICKER}_opportunity_assessment.md` only when you want the deterministic audit trail,
 - use `agents/human_review_digest.md` for decisions and FYI update summaries.
 
 The API SDK workflow is still available when you explicitly ask for an API-mode benchmark or remote/headless simulation, but it is not the default Codex app workflow.
@@ -253,6 +255,7 @@ Use this simple map:
 | Need | Main place |
 | --- | --- |
 | Best first read after scheduled Codex automation | `agents/runs/{run_id}/codex_supervised_review.md` |
+| Best per-company report after supervised research | `agents/runs/{run_id}/reports/human_synthesis/{TICKER}_final_human_report.md` |
 | What needs my decision? | `agents/human_review_digest.md` |
 | Durable review queue | `agents/human_review_queue.md` |
 | Latest run outputs | `agents/runs/{run_id}/` |
@@ -273,11 +276,12 @@ Use this simple map:
 2. Ask a natural-language request.
 3. Codex runs or queues the right workflow.
 4. Codex summarizes the result in chat.
-5. Start with the final digest or market report.
-6. Open the opportunity assessment only when you want deeper company detail.
-7. For decisions, ask Codex to show `agents/human_review_digest.md`.
-8. Tell Codex which HRQ items to approve, reject, mark for more research, or leave open.
-9. If you decide to buy, sell, move to monitoring, or reject a stock, say that plainly in Codex chat. Codex should update the relevant CSV/state/company files and preserve the decision trail.
+5. Start with `codex_supervised_review.md` after a scheduled/manual Codex-supervised run, or the market report after a market-research run.
+6. Open `reports/human_synthesis/{TICKER}_final_human_report.md` for the deep per-company read.
+7. Open the opportunity assessment only when you want the deterministic audit trail behind the final report.
+8. For decisions, ask Codex to show `agents/human_review_digest.md`.
+9. Tell Codex which HRQ items to approve, reject, mark for more research, or leave open.
+10. If you decide to buy, sell, move to monitoring, or reject a stock, say that plainly in Codex chat. Codex should update the relevant CSV/state/company files and preserve the decision trail.
 
 ## Good Prompts
 

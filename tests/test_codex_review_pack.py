@@ -25,6 +25,11 @@ class CodexReviewPackTests(unittest.TestCase):
                 pack.final_human_report_targets[0]["path"],
                 "agents/runs/2026-05-16_weekly/reports/human_synthesis/AAPL_final_human_report.md",
             )
+            self.assertEqual(
+                pack.post_codex_quality_command,
+                "python -m stock_research quality-report --run-id 2026-05-16_weekly --write --require-final-reports",
+            )
+            self.assertTrue(any("--require-final-reports" in instruction for instruction in pack.codex_instructions))
 
 
 def seed_required_pack_artifacts(root: Path, run_id: str) -> None:

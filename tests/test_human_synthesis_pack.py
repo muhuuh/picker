@@ -20,6 +20,12 @@ class HumanSynthesisPackTests(unittest.TestCase):
             pack = result.packs[0]
             pack_text = (root / pack.synthesis_pack_path).read_text(encoding="utf-8")
             self.assertIn("Write the final human-facing report from scratch", pack_text)
+            self.assertIn("Use the established final-report shape from the accepted AMBA report", pack_text)
+            self.assertIn("The deterministic opportunity assessment remains the audit artifact", pack_text)
+            self.assertIn("What [Company] Actually Does", pack_text)
+            self.assertIn("preserve at least the same investor-useful insight coverage as the opportunity assessment", pack_text)
+            self.assertIn("notable accounts/posts or source-quality context", pack_text)
+            self.assertIn("decision table or scorecard", pack_text)
             self.assertIn("deterministic opportunity assessment is an evidence and audit layer", pack_text)
             self.assertIn("Auxiliary Grok Web Inputs", pack_text)
             self.assertIn("Expected final report", pack_text)

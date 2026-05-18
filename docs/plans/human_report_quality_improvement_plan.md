@@ -1,6 +1,6 @@
 # Human Report Quality Improvement Plan
 
-Last updated: 2026-05-17
+Last updated: 2026-05-18
 
 ## Goal
 
@@ -40,6 +40,11 @@ Improve opportunity assessments and final digests so they are easier to read, le
 - [x] Confirm Codex app is the primary final-report writer; API/OpenRouter is only a remote/headless fallback, not a competing quality target.
 - [x] Make the Codex review pack list explicit final human report targets for every synthesis pack.
 - [x] Write 2026-05-16 per-ticker final human reports for all ten synthesis packs and verify the report-quality gate is clean.
+- [x] Promote the accepted AMBA final-report shape into synthesis-pack instructions and final-report quality gates so manual runs cannot drift into ad hoc report formats.
+- [x] Add final-report depth requirements so correct headings are not enough; final reports must preserve opportunity-assessment insight coverage while removing repetition.
+- [x] Add a post-Codex quality gate that requires every synthesis pack to have its canonical final human report and flags orphan final reports.
+- [x] Update the active biweekly Codex automation prompt so scheduled runs perform the canonical final-report write and post-Codex quality gate.
+- [x] Update Codex exec-policy rules so the scheduled automation can run the post-Codex quality gate.
 
 ## Guardrails
 
@@ -51,7 +56,7 @@ Improve opportunity assessments and final digests so they are easier to read, le
 
 ## Next Backlog Step
 
-On the next fresh scheduled run, verify that same-run Grok web artifacts are present in the synthesis packs and have Codex app write all `reports/human_synthesis/*_final_human_report.md` targets. Keep `reports/opportunity_assessment/` audit-only.
+On the next fresh scheduled run, verify that same-run Grok web artifacts are present in the synthesis packs, have Codex app write all `reports/human_synthesis/*_final_human_report.md` targets, and rerun `quality-report --write --require-final-reports` before treating the run as complete. Keep `reports/opportunity_assessment/` audit-only.
 
 ## 2026-05-17 Update
 
@@ -81,3 +86,23 @@ On the next fresh scheduled run, verify that same-run Grok web artifacts are pre
 - Updated the Codex review pack so every synthesis pack has an explicit final-report target; the 2026-05-16 pack now shows 10/10 targets present.
 - Moved scheduled quality-report generation after final digest, human-review digest, category-state update, and synthesis-pack generation so the gate scans the actual deterministic human-facing artifacts before Codex writes the final narrative layer.
 - The quality report for `2026-05-16_weekly` has zero findings after scanning final digest, human-review digest, opportunity audits, and final human reports.
+
+## 2026-05-18 Final-Report Contract Correction
+
+- User feedback exposed a real workflow defect: a manual LPKF/Sivers run used the correct `*_final_human_report.md` destination but drifted into an ad hoc report shape instead of the established AMBA-style final report.
+- Fixed the process by adding the AMBA final-report contract to synthesis-pack instructions and by adding a report-quality gate for missing final-report provenance or required sections.
+- Regenerated the LPKF and Sivers final human reports in the established structure rather than creating another side report.
+
+## 2026-05-18 Depth Correction
+
+- User feedback exposed a second workflow defect: enforcing the final-report shape still allowed reports that were too high-level and did not preserve the opportunity assessment's useful insight depth.
+- Clarified the true standard: final reports must be cleaner than opportunity assessments, not thinner. They must include source-backed developments, market context, X trend and notable accounts, bull/bear social claims, rumors, under-discussed angles, valuation gaps, decision table/scorecard, thesis changers, and next checks.
+- Added a final-human-report depth gate and regenerated LPKF/Sivers final reports again in the same `*_final_human_report.md` targets.
+
+## 2026-05-18 Canonical Path And Post-Codex Gate
+
+- User feedback exposed a third workflow defect: the automation handoff named final-report targets, but the deterministic quality command did not yet have a post-Codex mode that requires those targets to exist.
+- Added `quality-report --require-final-reports` so the post-Codex completion check flags missing canonical final reports and orphan final reports without breaking the pre-Codex deterministic run phase.
+- Updated the Codex review pack so Codex must write the canonical final report targets, avoid side reports, and rerun the post-Codex quality gate after final report writing.
+- Updated the active biweekly Codex automation prompt to require the same behavior during scheduled runs, not only manual runs.
+- Updated and verified the active Codex exec-policy rules so both the main scheduled command and the post-Codex quality command are allowed.
