@@ -1,6 +1,6 @@
 # Orchestrator Lessons
 
-Last updated: 2026-05-17
+Last updated: 2026-05-24
 
 Operational memory for workflow routing, orchestration, run ordering, and user corrections.
 
@@ -104,7 +104,7 @@ Operational memory for workflow routing, orchestration, run ordering, and user c
 - status: active
 - confidence: high
 - trigger/source: run summary and quality report implementation
-- lesson: After provider tasks and analysis tasks, use python -m stock_research run-summary --run-id RUN_ID --write and python -m stock_research quality-report --run-id RUN_ID --write before memory finalize-run.
+- lesson: After provider tasks and analysis tasks, run python -m stock_research run-summary --run-id RUN_ID --write first, then run python -m stock_research quality-report --run-id RUN_ID --write. Keep these sequential because quality-report can falsely flag a missing run summary if both commands run in parallel.
 - use_when: Ending weekly/manual deterministic runs or preparing outputs for human review.
 - do_not_use_when: Replacing specialist evidence packets or LLM synthesis; these reports summarize and validate existing artifacts.
 - evidence: stock_research/run_summary.py, stock_research/quality_report.py, docs/descriptions/run_summary_and_quality.md, agents/runs/2026-05-09_weekly/run_summary.md, agents/runs/2026-05-09_weekly/quality_report.md

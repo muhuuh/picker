@@ -1,10 +1,24 @@
 # Source Quality Memory
 
-Last updated: 2026-05-16
+Last updated: 2026-05-24
 
 Operational memory about provider reliability, source behavior, and known gotchas.
 
 ## Active Provider Lessons
+
+- id: source-2026-05-24-short-ticker-identity-collisions
+- date: 2026-05-24
+- type: source_quality
+- scope: financial
+- status: active
+- confidence: high
+- trigger/source: Sheet-intake verification run for `SOI` mixed Solaris Oilfield financial evidence with Soitec news evidence.
+- lesson: Short or exchange-local tickers can collide across U.S. and non-U.S. listings. Before making candidate decisions, compare company identity across financial providers, Exa company/news results, filings, and the user's intended theme. If financial evidence and news evidence name different companies, mark the row `needs fix` and ask for or infer an exchange-aware ticker such as `.DE` or `.PA` before promotion.
+- use_when: Processing Google Sheet stock ideas, European tickers, ambiguous short tickers, and provider results where company names disagree.
+- do_not_use_when: Providers consistently identify the same company and exchange.
+- evidence: `agents/runs/2026-05-24_sheet-intake-new-stocks/market_research/candidate_research_summary.md`, `agents/runs/2026-05-24_sheet-intake-new-stocks/reports/company_news_specialist/SOI_company_news_review.md`, `agents/runs/2026-05-24_sheet-intake-new-stocks/reports/financial_data_specialist/SOI_financial_review.md`
+- owner: financial-data specialist
+- next_review: 2026-08-24
 
 - id: source-2026-05-03-sec-user-agent-compression
 - date: 2026-05-03

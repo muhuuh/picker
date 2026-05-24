@@ -76,6 +76,8 @@
 - 2026-05-24: Added live Sheet `P/S` column next to `Forward PE` and updated the Sheet intake parser/docs so price-to-sales is preserved in candidate notes.
 - 2026-05-24: Updated Sheet intake ticker normalization so leading `$` cashtag prefixes are stripped before validation and duplicate checks.
 - 2026-05-24: First real Sheet intake run `2026-05-24_sheet-intake-new-stocks` selected 10 new candidates for verification and skipped PENG because it already exists in monitoring.
+- 2026-05-24: Sheet candidate verification completed. Summary: likely monitor review first = MRVL, FLNC, VPG, LSCC, AIXA after exchange-aware financial refresh; speculative = AMBQ, OCC; likely pass = FCEL; SOI needs ticker correction because financial providers matched Solaris while news evidence matched Soitec.
+- 2026-05-24: Sheet rows 7-17 were updated with repo links and processing status. PENG and SOI are `needs fix`; the other researched rows are `done`.
 
 ## Open Questions
 

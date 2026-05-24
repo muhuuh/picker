@@ -447,7 +447,7 @@ Use this file for information we should not lose across sessions.
   - status: active
 
 - 2026-05-17:
-  - decision/fact: Google Sheet `new_stock_overview` is the quick stock idea inbox. It is not durable portfolio state and must not auto-trigger research; the user marks rows with `action=research` and explicitly asks Codex to process them through the `sheet-intake selected-rows` bridge before candidate verification or monitoring decisions. Blank `action` means no repo processing, while `add to monitoring`, `bought`, `ignore`, and `rejected` are post-research outcomes. The Sheet `Processing status` dropdown is only for simple process state: `not processed`, `in research`, `done`, or `needs fix`.
+  - decision/fact: Google Sheet `new_stock_overview` is the quick stock idea inbox. It is not durable portfolio state and must not auto-trigger research; the user marks rows with `action=research` and explicitly asks Codex to process them through the `sheet-intake selected-rows` bridge before candidate verification or monitoring decisions. Blank `action` means no repo processing, while `add to monitoring`, `bought`, `ignore`, and `rejected` are post-research outcomes. The Sheet `Processing status` dropdown is only for simple process state: `not processed`, `in research`, `done`, or `needs fix`. The live Sheet includes `P/S` next to `Forward PE`, and sheet-intake normalization accepts leading `$` cashtag prefixes by stripping them before validation.
   - evidence artifact path(s): `docs/descriptions/google_sheet_stock_intake.md`, `stock_research/sheet_intake.py`, `tests/test_sheet_intake.py`, `https://docs.google.com/spreadsheets/d/16S9NXkIi4IH6fPHe3DMpxvtjknzzRIjyxW2XjJp6Jr0/edit`
   - status: active
 

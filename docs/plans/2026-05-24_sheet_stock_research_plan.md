@@ -17,10 +17,10 @@ Research the stocks the user marked with `action=research` in the Google Sheet w
 - [x] Add the `P/S` column next to `Forward PE`.
 - [x] Patch intake normalization so leading `$` cashtags process correctly.
 - [x] Generate Sheet-intake and candidate-verification artifacts.
-- [ ] Run provider tasks for the verified candidates.
-- [ ] Run analysis tasks and candidate verification synthesis.
-- [ ] Update Sheet processing status/repo links.
-- [ ] Run validation checks and summarize recommendations for user review.
+- [x] Run provider tasks for the verified candidates.
+- [x] Run analysis tasks and candidate verification synthesis.
+- [x] Update Sheet processing status/repo links.
+- [x] Run validation checks and summarize recommendations for user review.
 
 ## Decisions
 
@@ -31,3 +31,5 @@ Research the stocks the user marked with `action=research` in the Google Sheet w
 
 - 2026-05-24: Plan created after confirming the user wants research on the new Sheet rows.
 - 2026-05-24: Sheet intake created candidate-review and verification-plan artifacts for 10 candidates. PENG was skipped because it already exists in monitoring.
+- 2026-05-24: Provider and analysis tasks completed. Candidate verification result and human-facing summary were written. Sheet status cells were updated: SOI and PENG need fixes; the other researched rows are done.
+- 2026-05-24: Final checks passed: targeted Sheet-intake tests, repo validate, memory validate, rerun quality report with zero findings.
