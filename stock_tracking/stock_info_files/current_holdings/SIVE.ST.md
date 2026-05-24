@@ -1,6 +1,6 @@
 # SIVE.ST Sivers Semiconductors AB
 
-Last updated: 2026-05-18
+Last updated: 2026-05-24
 
 ## Company Snapshot
 
@@ -105,6 +105,10 @@ Last updated: 2026-05-18
 
 ## Source Log
 
+| Date | Source | Type | Relevance | Link / Location |
+| --- | --- | --- | --- | --- |
+
+
 | Date accessed | Source | URL / artifact | Notes |
 | --- | --- | --- | --- |
 | 2026-05-18 | User input | Codex chat | User confirmed Sivers should be added to holdings. |
@@ -115,10 +119,26 @@ Last updated: 2026-05-18
 | 2026-05-18 | Sivers LiDAR release | https://www.sivers-semiconductors.com/press/strategic-lidar-customer-ramps-remote-sensing-production-with-sivers-semiconductors-technology/ | Source for Q4 2026 LiDAR ramp and revenue-potential range. |
 | 2026-05-18 | Financial specialist review | `agents/runs/2026-05-18_manual-lpkf-sivers-holdings/reports/financial_data_specialist/SIVE.ST_financial_review.md` | Provider metric comparison and conflict notes. |
 | 2026-05-18 | Human synthesis pack | `agents/runs/2026-05-18_manual-lpkf-sivers-holdings/reports/human_synthesis/SIVE.ST_synthesis_pack.md` | Codex-supervised input pack for final report. |
+| 2026-05-24 | AUTOFACT-2026-05-18_manual-lpkf-sivers-holdings-SIVE.ST | internal artifact | Low-risk factual sync from opportunity assessment; no thesis/status/trade decision changed. | [agents/runs/2026-05-18_manual-lpkf-sivers-holdings/reports/opportunity_assessment/SIVE.ST_opportunity_assessment.md](agents/runs/2026-05-18_manual-lpkf-sivers-holdings/reports/opportunity_assessment/SIVE.ST_opportunity_assessment.md) |
 
 ## Change Log
+
+| Date | Updated by | Change | Reason / Source |
+| --- | --- | --- | --- |
+
 
 | Date | Updated by | Summary | Sources |
 | --- | --- | --- | --- |
 | 2026-05-18 | Codex | Created company file after user-confirmed holding addition and focused automation-style research. | User input; `agents/runs/2026-05-18_manual-lpkf-sivers-holdings`; Sivers May 2026 releases |
+| 2026-05-24 | Codex factual update writer | Applied AUTOFACT-2026-05-18_manual-lpkf-sivers-holdings-SIVE.ST: synced factual assessment, financial, news, social, and watch-item summaries. | [agents/runs/2026-05-18_manual-lpkf-sivers-holdings/reports/opportunity_assessment/SIVE.ST_opportunity_assessment.md](agents/runs/2026-05-18_manual-lpkf-sivers-holdings/reports/opportunity_assessment/SIVE.ST_opportunity_assessment.md) |
+
+## Automated Factual Updates
+
+| Date | Update ID | Area | Summary | Source |
+| --- | --- | --- | --- | --- |
+| 2026-05-24 | AUTOFACT-2026-05-18_manual-lpkf-sivers-holdings-SIVE.ST | assessment_summary | Opportunity score 50/100; view: neutral; risk: high; confidence: medium; next check: Review blocking evidence gaps before updating the company thesis. | [agents/runs/2026-05-18_manual-lpkf-sivers-holdings/reports/opportunity_assessment/SIVE.ST_opportunity_assessment.md](agents/runs/2026-05-18_manual-lpkf-sivers-holdings/reports/opportunity_assessment/SIVE.ST_opportunity_assessment.md) |
+| 2026-05-24 | AUTOFACT-2026-05-18_manual-lpkf-sivers-holdings-SIVE.ST | financial_snapshot | valuation needs verification before using headline price/market cap/P/E; price: 55.70; market cap: 14.1B; P/E: -278.50; sanity warning: 52-week range is unusually wide (21.0x from low to high); check for split, corporate-action, ticker, or stale-data issues before using valuation metrics.; sanity warning: P/E ratio is single-provider while the valuation snapshot has weak or suspicious coverage; do not treat the multiple as clean consensus. | [agents/runs/2026-05-18_manual-lpkf-sivers-holdings/reports/opportunity_assessment/SIVE.ST_opportunity_assessment.md](agents/runs/2026-05-18_manual-lpkf-sivers-holdings/reports/opportunity_assessment/SIVE.ST_opportunity_assessment.md) |
+| 2026-05-24 | AUTOFACT-2026-05-18_manual-lpkf-sivers-holdings-SIVE.ST | developments | Sivers Semiconductors AB (publ) (STO: SIVE) ("Sivers" or the "Company") today publishes its Annual Report for 2025 and corrects for changes in the results as reported in the year-end report published on February 26, 2026. The Annual Report is available on the Company's website, www.sivers-semiconductors.com. / As previously communicated, the Company has upgraded its consolidated financial statements for 2024 and 2025 to align better with the US Public Company Accounting Oversight Board (PCAOB) standards in connection with the evaluation of a potential dual listing on Nasdaq New York. As part of this process, certain financial figures have been adjusted, including the reallocation of revenues between reporting periods and to 2026 and later, revised inventory valuations, updated fair value assumptions for share-based compensation, and impairment of previously capitalized development expenditures. These corrections are described in detail in Note 32 t. / Achieved record Q4 and full-year 2025 revenues, with SEK 304.1 million for the year (up 25% YoY, 33% at constant FX) and SEK 80.7 million in Q4, despite FX headwinds and a U.S. government shutdown. | [agents/runs/2026-05-18_manual-lpkf-sivers-holdings/reports/opportunity_assessment/SIVE.ST_opportunity_assessment.md](agents/runs/2026-05-18_manual-lpkf-sivers-holdings/reports/opportunity_assessment/SIVE.ST_opportunity_assessment.md) |
+| 2026-05-24 | AUTOFACT-2026-05-18_manual-lpkf-sivers-holdings-SIVE.ST | grok_x_social_signal | Sentiment: positive_social_signal / Pulse: The X community views $SIVE as a high-beta platform play on AI optical interconnects (CPO/external lasers), mmWave/SATCOM, FWA, defense, and LiDAR rather than a single-product story. Momentum accelerated after the May 16 release of the 2025 annual report (revenue +40% to SEK 306.6M, but gross profit negative at SEK -2.1M and material weaknesses disclosed) plus visible Jabil/Trump onshoring tailwinds and the GFS ecosystem inclusion. The narrative is still early-stage and concentrated among supply-chain specialists and former-CEO circles; it is not yet crowded retail hype. / Bullish: InP laser sovereignty hedge: Glasgow fab valued as geopolitical asset worth ~25% of enterprise value (@FinanceMajor_23). / Multi-domain leverage: same III-V platform powering Jabil CPO transceivers, AEVA LiDAR, SATCOM terminals, and FWA modules (@aleabitoreddit, @JakobGangeskar). / Bearish: Valuation absurdity: ~50x 2025 sales with negative gross margin and SEK -222.6M adjusted net loss (@dubidubabap). / Execution gap: NRE still >50% of revenue; no confirmed hyperscaler volume ASP or share yet (@TheValueist). | [agents/runs/2026-05-18_manual-lpkf-sivers-holdings/reports/opportunity_assessment/SIVE.ST_opportunity_assessment.md](agents/runs/2026-05-18_manual-lpkf-sivers-holdings/reports/opportunity_assessment/SIVE.ST_opportunity_assessment.md) |
+| 2026-05-24 | AUTOFACT-2026-05-18_manual-lpkf-sivers-holdings-SIVE.ST | watch_items | Complete cross-provider valuation sanity review before using headline price, market cap, P/E, or target-gap conclusions. / Resolve material financial provider conflict before updating company-file conclusions. / Research checks: (1) Confirm AEVA lifetime revenue ramp timeline in next quarterly; (2) Track gross-margin inflection on first production shipments; (3) Monitor Nasdaq dual-listing progress and any PCAOB remediation updates. | [agents/runs/2026-05-18_manual-lpkf-sivers-holdings/reports/opportunity_assessment/SIVE.ST_opportunity_assessment.md](agents/runs/2026-05-18_manual-lpkf-sivers-holdings/reports/opportunity_assessment/SIVE.ST_opportunity_assessment.md) |
 

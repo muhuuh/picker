@@ -1,6 +1,6 @@
 # Google Sheet Stock Intake Plan
 
-Last updated: 2026-05-17
+Last updated: 2026-05-24
 
 ## Goal
 
@@ -33,6 +33,7 @@ Use the Google Sheet `new_stock_overview` as a fast stock idea inbox, then let C
 - The Sheet is not the source of truth for holdings, monitoring, or rejected state.
 - `available` is a yes/no broker availability field; blank means unknown.
 - `Score` is the user's personal quick-interest grade from A+ to D-.
+- `P/S` is a quick price-to-sales valuation snapshot, especially useful when P/E is unavailable or the company is loss-making.
 - `Forecast` is the average analyst forecast/upside snapshot.
 - `Comment` should be a concise skim summary, not full research reasoning.
 
@@ -45,8 +46,14 @@ Use Codex's Google Sheets connector for live reads/writes for now. Build a helpe
 - Live Sheet validation passed with rows 2-3 populated from the user's ASTS/SIVE pasted report.
 - Read/write/update checks verified:
   - write full rows with strict dropdown values,
-  - read rows and validation metadata back from `Sheet1!A1:O3`,
+  - read rows and validation metadata back from `Sheet1!A1:P3`,
   - update processing status and `Last checked`,
   - read the updated cells back successfully.
 - CLI dry-run check selected one `research` row and skipped one blank-action row.
 - After user feedback, simplified visible dropdowns: removed `save idea` and `research next`, preserved plus/minus scores such as `B+`, and reduced processing status to four values.
+
+## 2026-05-24 Update
+
+- Added a `P/S` column next to `Forward PE` in the live Sheet.
+- Updated the intake schema/parser so `P/S`, `PS`, and price-to-sales header variants are preserved in candidate notes.
+- Updated ticker normalization so cashtag-style inputs such as `$VPG` are accepted and processed as `VPG`.

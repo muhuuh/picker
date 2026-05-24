@@ -57,7 +57,7 @@ The quality report currently checks:
 - when `--require-final-reports` is passed, missing canonical `reports/human_synthesis/{TICKER}_final_human_report.md` targets for every synthesis pack.
 - orphan `reports/human_synthesis/*_final_human_report.md` reports that do not have a matching synthesis pack.
 
-Generated `.json` outputs are local runtime artifacts and are ignored by Git. The `.md` summary/report/finalization files are the reviewable artifacts intended for normal repo inspection.
+Generated `.json` outputs are local runtime artifacts and are ignored by Git. The `.md` summary/report/finalization files are the reviewable artifacts intended for normal repo inspection. After finalization and promotion guardrails pass, ignored JSON can be removed with `python -m stock_research artifact-hygiene cleanup-json --write`; dry-run the command first.
 
 ## Human Synthesis Packs
 

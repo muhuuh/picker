@@ -479,9 +479,13 @@ python -m stock_research category-state update --run-id 2026-05-16_weekly --writ
 Refresh generated artifact hygiene index:
 
 ```powershell
+python -m stock_research knowledge-promotion status --run-id 2026-05-16_weekly
+python -m stock_research knowledge-promotion status --run-id 2026-05-16_weekly --write
 python -m stock_research artifact-hygiene inventory --write
 python -m stock_research artifact-hygiene archive
 python -m stock_research artifact-hygiene archive --write
+python -m stock_research artifact-hygiene cleanup-json
+python -m stock_research artifact-hygiene cleanup-json --write
 ```
 
 Write run summary and quality report artifacts:
@@ -491,7 +495,7 @@ python -m stock_research run-summary --run-id 2026-05-09_weekly --write
 python -m stock_research quality-report --run-id 2026-05-09_weekly --write
 ```
 
-Run markdown artifacts are intended to be inspectable repo state. Generated run JSON files, raw provider JSON, and evidence packet JSON are local runtime artifacts and are ignored by Git.
+Run markdown artifacts are intended to be inspectable repo state. Generated run JSON files, raw provider JSON, and evidence packet JSON are local runtime artifacts and are ignored by Git. Use `knowledge-promotion status --run-id RUN_ID` to verify company-file, category-state, memory, human-review, market/strategy, and archive-index promotion. Use `artifact-hygiene cleanup-json` to dry-run local JSON cleanup; pass `--write` only after the command confirms the run is old enough, knowledge-promotion is cleanup-ready, finalization exists, memory drafts are handled, human-review follow-ups are resolved/completed, all canonical final human reports exist, and no JSON is Git-tracked or non-ignored.
 
 ## Operational Agent Memory
 

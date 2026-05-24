@@ -27,6 +27,7 @@ CANONICAL_HEADERS = [
     "Industry",
     "Mcap",
     "Forward PE",
+    "P/S",
     "Forecast",
     "Score",
     "available",
@@ -54,6 +55,7 @@ class SheetIntakeRow:
     industry: str = ""
     market_cap: str = ""
     forward_pe: str = ""
+    price_to_sales: str = ""
     forecast: str = ""
     score: str = ""
     available: str = ""
@@ -235,6 +237,7 @@ def normalize_sheet_row(row: dict[str, Any], *, fallback_row_number: int) -> She
         industry=values.get("industry", ""),
         market_cap=values.get("mcap", ""),
         forward_pe=values.get("forward_pe", ""),
+        price_to_sales=values.get("price_to_sales", ""),
         forecast=values.get("forecast", ""),
         score=values.get("score", "").upper(),
         available=normalize_option(values.get("available", "")),
@@ -309,6 +312,8 @@ def lead_notes(row: SheetIntakeRow) -> str:
         notes.append(f"mcap={row.market_cap}")
     if row.forward_pe:
         notes.append(f"forward_pe={row.forward_pe}")
+    if row.price_to_sales:
+        notes.append(f"price_to_sales={row.price_to_sales}")
     if row.source_link:
         notes.append(f"source={row.source_link}")
     return "; ".join(notes)
@@ -464,6 +469,11 @@ def normalize_header(value: Any) -> str:
         "m_cap": "mcap",
         "forward_p_e": "forward_pe",
         "forward_pe": "forward_pe",
+        "p_s": "price_to_sales",
+        "ps": "price_to_sales",
+        "price_sales": "price_to_sales",
+        "price_to_sales": "price_to_sales",
+        "price_to_sales_ttm": "price_to_sales",
         "source": "source_link",
         "source_url": "source_link",
         "link": "source_link",
@@ -481,7 +491,7 @@ def normalize_header(value: Any) -> str:
 
 
 def normalize_ticker(value: str) -> str:
-    return normalize_ascii(value).strip().upper()
+    return normalize_ascii(value).strip().upper().lstrip("$").strip()
 
 
 def normalize_action(value: str) -> str:

@@ -24,9 +24,10 @@ class SheetIntakeTests(unittest.TestCase):
                     "__row_number": "5",
                     "Date": "2026-05-17",
                     "Name": "Robo Holdings",
-                    "Ticker": "robo",
+                    "Ticker": "$robo",
                     "Mcap": "1B",
                     "Forward PE": "22",
+                    "P/S": "4.5",
                     "Forecast": "+15%",
                     "Score": "b+",
                     "available": "Yes",
@@ -41,6 +42,7 @@ class SheetIntakeTests(unittest.TestCase):
         self.assertEqual(rows[0].row_number, 5)
         self.assertEqual(rows[0].ticker, "ROBO")
         self.assertEqual(rows[0].score, "B+")
+        self.assertEqual(rows[0].price_to_sales, "4.5")
         self.assertEqual(rows[0].available, "yes")
         self.assertEqual(rows[0].action, "research")
 

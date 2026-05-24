@@ -51,11 +51,13 @@
 - [x] Add automatic Exa contents follow-up before company-news review.
 - [x] Select OpenAI Agents SDK as orchestration framework.
 - [x] Create dedicated OpenAI Agents SDK orchestration scratchpad and backlog.
+- [x] Add guarded runtime JSON cleanup for ignored run artifacts.
 - [ ] Validate updated architecture with user.
 
 ## Key Decisions and Why
 
 - 2026-05-17: Human report quality work should prioritize first-principles synthesis and cross-section de-duplication before adding more provider calls, because AMBA/KRKNF raw artifacts already contain stronger evidence than the final report reading experience shows.
+- 2026-05-24: Generated JSON under `agents/runs/` is runtime cache, not durable memory. Keep it ignored by Git and clean it only after finalization, memory-draft, final-report, open-review, retention, Git-ignore, and Git-tracking guardrails pass.
 - 2026-05-17: Add a Grok `web_search` deep-dive path as auxiliary gap-filling for business context, latest news, analyst context, and research checks; material facts from that path still need Exa/filing/financial-provider verification.
 - 2026-05-17: Use `docs/plans/human_report_quality_improvement_plan.md` to track this multi-step report-quality effort.
 - 2026-05-17: Implemented cross-section de-duplication in opportunity reports and final digest, added repeated-long-claim quality checks, regenerated the 2026-05-16 reports, and reached zero human-report quality findings for that run.
@@ -166,6 +168,15 @@
 - Company news contents follow-up command exists: `python -m stock_research news contents-follow-up --ticker AAPL --run-id 2026-05-09_weekly`.
 - Weekly manifests now include `company_news_contents_follow_up` before `company_news_review` analysis tasks for tracked stocks and human stock-research requests.
 - Agent memory stores workflow/source/procedure/evaluation lessons only; company facts stay in stock files, strategy, and evidence packets.
+- 2026-05-24 artifact review: Git currently tracks 122 `agents/runs` files and all are Markdown; no run JSON is tracked. Local runtime output has 542 ignored JSON files (~10 MB) and 139 Markdown files (~1 MB).
+- 2026-05-24 cleanup dry runs: 30-day JSON retention has no cleanup candidates; 7-day retention would plan one finalized run, keep two recent runs, and block eight runs due to open review references or missing finalization.
+- 2026-05-24: Added run-level `knowledge-promotion status` gate. JSON cleanup now calls it and blocks unless required summaries/final reports exist, active ticker facts have company-file promotion markers, category state has `CATSTATE-{run_id}`, memory drafts are handled, HRQ follow-ups are resolved/completed, and market research is linked.
+- 2026-05-24: `memory apply-updates` now marks applied draft items as `applied`, giving cleanup/promotion checks proof that ready operational-memory proposals were handled.
+- 2026-05-24 verification: PENG promotion dry-run is cleanup-ready with only an archive-index warning; JSON cleanup dry-run for that run would clean 39 ignored JSON files with retention-days 0, but no deletion was executed.
+- 2026-05-24 cleanup execution: deleted 332 ignored runtime JSON files from promotion-ready `2026-05-16_weekly` and PENG runs; moved 16 stale/inactive markdown artifacts to `archive/runs/`; remaining 211 JSON files are intentionally blocked.
+- 2026-05-24 cleanup validation: the gate caught one useful missing promotion. SIVE.ST could be auto-promoted and was applied; LPK.DE remains blocked because the opportunity assessment has unresolved quality findings, so that run's JSON stays protected.
+- 2026-05-24 robustness fix: cleanup now treats required core markdown as valid if it is already in `archive/runs/`, preventing archive-before-cleanup order from causing false missing-artifact blocks.
+- 2026-05-24 commit hygiene: clean commits should include durable state, archive moves, final/review-linked markdown, and current evidence only; generated run JSON and specialist-lane markdown dumps should remain ignored/untracked by default.
 - `python -m unittest discover -s tests` is the working test command in this repo.
 - Cursor SDK is promising for coding-agent automation, but it is public beta and TypeScript-first; it looks better for repo maintenance agents than for the core stock-research runtime.
 - OpenAI Agents SDK supports the repo's manager/specialist pattern, tracing, guardrails, Pydantic outputs, sessions, and non-OpenAI model routing via Any-LLM/LiteLLM, but provider capability gaps must be tested.
@@ -211,11 +222,17 @@
 - Grok/X evidence is social signal unless independently verified. Treat it as sentiment/community chatter, not standalone fact.
 - Do not reintroduce direct X.com API bearer-token search unless the user explicitly asks for that reversal.
 - Do not let `agents/memory/` become a duplicate investment database. Keep provider output in `agents/runs/`, company facts in stock files, and strategy in `strategy/`.
+- Do not commit generated run JSON. Do not delete it manually; use `knowledge-promotion status` and `artifact-hygiene cleanup-json` so company/category/memory/HRQ/market promotion, final-report, retention, Git-ignore, and Git tracking checks run first.
+- Do not hide or delete markdown artifacts linked from open or recently approved HRQ rows; commit or archive them so durable review links keep working.
+- If archive moves `run_summary.md` or `quality_report.md` before JSON cleanup, cleanup should still pass when the archived copy exists under `archive/runs/{year}/{run_id}/`.
 - Codex app archived chats are stored outside the repo under `C:\Users\valen\.codex\archived_sessions`; active local chats live under `C:\Users\valen\.codex\sessions\YYYY\MM\DD` and are listed in `C:\Users\valen\.codex\session_index.jsonl`.
 
 ## Commands / Environment Notes
 
 - AMBA Grok web smoke command succeeded: `python -m stock_research xai web-search --ticker AMBA --company-name "Ambarella" --subject-type company --subject-id AMBA --run-id 2026-05-17_amba-report-quality --today 2026-05-17`.
+- Runtime JSON cleanup dry-run: `python -m stock_research artifact-hygiene cleanup-json --today 2026-05-24 --retention-days 30`.
+- Aggressive cleanup inspection only: `python -m stock_research artifact-hygiene cleanup-json --today 2026-05-24 --retention-days 7`.
+- Promotion gate: `python -m stock_research knowledge-promotion status --run-id RUN_ID --write`.
 - Human synthesis pack command: `python -m stock_research human-report synthesis-pack --run-id RUN_ID --write`.
 - AMBA comparison result: deterministic de-dup helps, but the best human read was the Codex first-principles synthesis over deterministic evidence plus Grok/X and Grok web. Treat opportunity assessments as audit/evidence and write final reports from synthesis packs.
 - AMBA final human report test artifact: `agents/runs/2026-05-16_weekly/reports/human_synthesis/AMBA_final_human_report.md`; it passed `validate_human_facing_markdown`, and final human reports are now included in run quality reports.

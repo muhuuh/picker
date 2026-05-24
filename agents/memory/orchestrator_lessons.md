@@ -670,3 +670,59 @@ Operational memory for workflow routing, orchestration, run ordering, and user c
 - evidence: stock_research/human_synthesis_pack.py; tests/test_human_synthesis_pack.py; agents/runs/2026-05-18_manual-lpkf-sivers-holdings/reports/human_synthesis
 - owner: provider orchestrator
 - next_review: 2026-08-18
+
+- id: orch-2026-05-24-generated-json-under-agents-runs-is-runtime-cach
+- date: 2026-05-24
+- type: procedural
+- scope: orchestrator
+- status: active
+- confidence: high
+- trigger/source: 2026-05-24 run artifact retention review
+- lesson: Generated JSON under agents/runs is runtime cache, not durable memory. Keep it ignored by Git and use artifact-hygiene cleanup-json only after finalization, memory-draft, final-report, open-review, retention, Git-ignore, and Git-tracking guardrails pass; promote durable lessons to agents/memory and investment facts to stock/market/strategy files before cleanup.
+- use_when: Reviewing run artifact retention, preparing commits after research runs, or deciding whether local JSON can be cleaned.
+- do_not_use_when: A run is still active, lacks finalization or final human reports, has ready memory drafts, or is referenced by open human-review items.
+- evidence: stock_research/artifact_hygiene.py; docs/descriptions/artifact_lifecycle_and_hygiene.md; docs/plans/run_artifact_retention_plan.md
+- owner: memory and evaluation orchestrator
+- next_review: 2026-06-24
+
+- id: orch-2026-05-24-before-cleaning-generated-run-json-or-treating-o
+- date: 2026-05-24
+- type: procedural
+- scope: orchestrator
+- status: active
+- confidence: high
+- trigger/source: 2026-05-24 run artifact retention implementation
+- lesson: Before cleaning generated run JSON or treating old run artifacts as disposable, run the knowledge-promotion gate and require cleanup_ready=true; promotion must prove durable company, category-state, operational-memory, human-review, and market/strategy surfaces are handled.
+- use_when: Preparing artifact cleanup, archive review, or run finalization follow-up after a weekly/manual research run.
+- do_not_use_when: Inspecting raw provider cache during an active run or before final reports and memory drafts are completed.
+- evidence: stock_research/knowledge_promotion.py; tests/test_knowledge_promotion.py; docs/descriptions/artifact_lifecycle_and_hygiene.md
+- owner: Codex
+- next_review: 2026-07-01
+
+- id: orch-2026-05-24-runtime-json-cleanup-must-accept-required-core-m
+- date: 2026-05-24
+- type: procedural
+- scope: orchestrator
+- status: active
+- confidence: high
+- trigger/source: 2026-05-24 cleanup execution validation
+- lesson: Runtime JSON cleanup must accept required core markdown from either the active run directory or archive/runs; otherwise archiving run_summary.md or quality_report.md before cleanup creates a false missing-artifact blocker even though the evidence was preserved.
+- use_when: Changing artifact archive order, cleanup gates, promotion checks, or run retention automation.
+- do_not_use_when: The markdown artifact is missing from both agents/runs and archive/runs.
+- evidence: stock_research/artifact_hygiene.py; stock_research/knowledge_promotion.py; tests/test_artifact_hygiene.py
+- owner: Codex
+- next_review: 2026-07-01
+
+- id: orch-2026-05-24-run-artifact-commit-hygiene
+- date: 2026-05-24
+- type: procedural
+- scope: orchestrator
+- status: active
+- confidence: high
+- trigger/source: User asked why cleanup still left a large uncommitted diff and requested clean Git/GitHub handling after artifact cleanup.
+- lesson: After artifact cleanup, stage only durable state, archive moves, final/review-linked run markdown, and current evidence needed by active holdings/monitoring or open/recently approved human-review links. Leave specialist-lane reports, synthesis packs, and memory-writer prompts/reviews local unless explicitly needed. Never stage generated run JSON; verify `git ls-files agents/runs` has no `.json` paths before committing.
+- use_when: Preparing commits after weekly/manual runs, artifact cleanup, memory promotion, or candidate intake.
+- do_not_use_when: A run is still mid-execution and its markdown has not yet been reviewed, linked, or promoted.
+- evidence: docs/descriptions/artifact_lifecycle_and_hygiene.md; docs/plans/run_artifact_retention_plan.md; archive/runtime_cleanup_report.md
+- owner: Codex
+- next_review: 2026-07-01

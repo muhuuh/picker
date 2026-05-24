@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import json
 import shutil
+import subprocess
 from dataclasses import asdict, dataclass, field
 from datetime import date, datetime
 from pathlib import Path
@@ -61,6 +63,30 @@ class ArchiveMoveResult:
     mode: str
     archive_after_days: int
     items: list[ArchiveMoveItem]
+    written_paths: list[str] = field(default_factory=list)
+    findings: list[str] = field(default_factory=list)
+
+
+@dataclass(frozen=True)
+class RuntimeCleanupRun:
+    run_id: str
+    status: str
+    reason: str
+    age_days: int | None
+    json_file_count: int
+    json_total_bytes: int
+    deleted_file_count: int = 0
+    deleted_total_bytes: int = 0
+    blocked_paths: list[str] = field(default_factory=list)
+
+
+@dataclass(frozen=True)
+class RuntimeCleanupResult:
+    generated_at: str
+    status: str
+    mode: str
+    retention_days: int
+    runs: list[RuntimeCleanupRun]
     written_paths: list[str] = field(default_factory=list)
     findings: list[str] = field(default_factory=list)
 
@@ -337,6 +363,308 @@ def archive_artifacts(
     )
 
 
+def cleanup_runtime_json(
+    *,
+    root: Path | None = None,
+    current_date: date | None = None,
+    write: bool = False,
+    retention_days: int = 30,
+    run_ids: list[str] | None = None,
+) -> RuntimeCleanupResult:
+    repo_root = find_repo_root(root)
+    today = current_date or date.today()
+    selected_run_ids = set(run_ids or [])
+    runs_root = repo_root / "agents" / "runs"
+    open_refs = load_open_review_references(repo_root)
+    tracked_json_paths = git_tracked_paths(repo_root, "agents/runs")
+    ignored_json_paths = git_ignored_paths(repo_root, "agents/runs")
+    runs: list[RuntimeCleanupRun] = []
+    findings: list[str] = []
+
+    if retention_days < 0:
+        raise ValueError("retention_days must be >= 0")
+
+    if not runs_root.exists():
+        return RuntimeCleanupResult(
+            generated_at=today.isoformat(),
+            status="no_runtime_json",
+            mode="write" if write else "dry_run",
+            retention_days=retention_days,
+            runs=[],
+        )
+
+    for run_dir in sorted(path for path in runs_root.iterdir() if path.is_dir()):
+        if selected_run_ids and run_dir.name not in selected_run_ids:
+            continue
+        json_files = sorted(path for path in run_dir.rglob("*.json") if path.is_file())
+        if not json_files:
+            continue
+        rel_json = [relative_path(repo_root, path) for path in json_files]
+        total_bytes = sum(path.stat().st_size for path in json_files)
+        status, reason, blocked_paths = classify_runtime_cleanup_run(
+            repo_root=repo_root,
+            run_dir=run_dir,
+            json_paths=rel_json,
+            open_refs=open_refs,
+            tracked_paths=tracked_json_paths,
+            ignored_paths=ignored_json_paths,
+            current_date=today,
+            retention_days=retention_days,
+        )
+        deleted_count = 0
+        deleted_bytes = 0
+        if status == "cleanup_candidate" and write:
+            for path in json_files:
+                deleted_bytes += path.stat().st_size
+                path.unlink()
+                deleted_count += 1
+                prune_empty_parents(path.parent, stop_at=run_dir)
+            status = "deleted"
+            reason = "Deleted ignored runtime JSON after knowledge promotion and cleanup guardrails passed."
+        elif status == "cleanup_candidate":
+            status = "planned"
+
+        runs.append(
+            RuntimeCleanupRun(
+                run_id=run_dir.name,
+                status=status,
+                reason=reason,
+                age_days=artifact_age_days(run_dir.name, today),
+                json_file_count=len(json_files),
+                json_total_bytes=total_bytes,
+                deleted_file_count=deleted_count,
+                deleted_total_bytes=deleted_bytes,
+                blocked_paths=blocked_paths,
+            )
+        )
+
+    if selected_run_ids:
+        found = {run.run_id for run in runs}
+        missing = sorted(selected_run_ids - found)
+        findings.extend(f"No runtime JSON files found for requested run id: {run_id}" for run_id in missing)
+
+    written_paths: list[str] = []
+    if write:
+        written_paths.append(write_runtime_cleanup_report(repo_root, today, retention_days, runs, findings))
+
+    statuses = {run.status for run in runs}
+    if not runs:
+        status = "no_runtime_json"
+    elif statuses <= {"planned"}:
+        status = "ready_to_clean"
+    elif statuses <= {"deleted"}:
+        status = "complete"
+    elif "planned" in statuses or "deleted" in statuses:
+        status = "partial"
+    elif statuses <= {"recent_keep", "blocked"}:
+        status = "no_cleanup_candidates"
+    else:
+        status = "partial"
+
+    return RuntimeCleanupResult(
+        generated_at=today.isoformat(),
+        status=status,
+        mode="write" if write else "dry_run",
+        retention_days=retention_days,
+        runs=runs,
+        written_paths=written_paths,
+        findings=dedupe_strings(findings),
+    )
+
+
+def classify_runtime_cleanup_run(
+    *,
+    repo_root: Path,
+    run_dir: Path,
+    json_paths: list[str],
+    open_refs: set[str],
+    tracked_paths: set[str],
+    ignored_paths: set[str] | None,
+    current_date: date,
+    retention_days: int,
+) -> tuple[str, str, list[str]]:
+    rel_run = relative_path(repo_root, run_dir)
+    age_days = artifact_age_days(run_dir.name, current_date)
+    if age_days is not None and age_days < retention_days:
+        return "recent_keep", f"Run is {age_days} day(s) old; retention is {retention_days}.", []
+
+    open_ref_matches = sorted(ref for ref in open_refs if ref.startswith(rel_run) or rel_run.startswith(ref))
+    if open_ref_matches:
+        return "blocked", "Run is referenced by open human-review context.", open_ref_matches
+
+    tracked_matches = sorted(path for path in json_paths if path in tracked_paths)
+    if tracked_matches:
+        return "blocked", "One or more JSON files are tracked by Git; remove from Git tracking before runtime cleanup.", tracked_matches
+
+    if ignored_paths is not None:
+        non_ignored_matches = sorted(path for path in json_paths if path not in ignored_paths)
+        if non_ignored_matches:
+            return "blocked", "One or more JSON files are not ignored by Git; cleanup only handles ignored runtime JSON.", non_ignored_matches
+
+    required_missing = [
+        relative_path(repo_root, run_dir / name)
+        for name in ("run_summary.md", "quality_report.md", "memory_reflection.md", "finalization.md")
+        if not run_or_archived_artifact(repo_root, run_dir.name, name).exists()
+    ]
+    if required_missing:
+        return "blocked", "Run is missing required markdown/finalization artifacts.", required_missing
+
+    pending_memory_drafts = pending_ready_memory_drafts(run_dir)
+    if pending_memory_drafts:
+        return "blocked", "Run has ready memory-update drafts that should be applied or rejected first.", pending_memory_drafts
+
+    missing_final_reports = missing_human_final_reports(repo_root, run_dir)
+    if missing_final_reports:
+        return "blocked", "Run has human synthesis packs without canonical final human reports.", missing_final_reports
+
+    from .knowledge_promotion import assess_knowledge_promotion, promotion_blocking_details
+
+    promotion = assess_knowledge_promotion(
+        root=repo_root,
+        run_id=run_dir.name,
+        current_date=current_date,
+        write=False,
+    )
+    if not promotion.cleanup_ready:
+        return (
+            "blocked",
+            f"Run knowledge promotion is not complete ({promotion.status}).",
+            promotion_blocking_details(promotion),
+        )
+
+    return "cleanup_candidate", "Runtime JSON is eligible for cleanup; markdown/final artifacts preserve the review trail.", []
+
+
+def pending_ready_memory_drafts(run_dir: Path) -> list[str]:
+    path = run_dir / "memory_update_drafts.json"
+    if not path.exists():
+        return []
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        return [path.name]
+    result: list[str] = []
+    for item in data.get("items", []):
+        if str(item.get("status", "")).lower() == "ready":
+            result.append(str(item.get("proposal_id", "ready_memory_update")))
+    return result
+
+
+def missing_human_final_reports(repo_root: Path, run_dir: Path) -> list[str]:
+    synthesis_dir = run_dir / "reports" / "human_synthesis"
+    if not synthesis_dir.exists():
+        return []
+    missing: list[str] = []
+    for pack in sorted(synthesis_dir.glob("*_synthesis_pack.md")):
+        ticker = pack.name.replace("_synthesis_pack.md", "")
+        final_report = pack.with_name(f"{ticker}_final_human_report.md")
+        final_rel = final_report.relative_to(run_dir).as_posix()
+        if not run_or_archived_artifact(repo_root, run_dir.name, final_rel).exists():
+            missing.append(relative_path(repo_root, final_report))
+    return missing
+
+
+def run_or_archived_artifact(repo_root: Path, run_id: str, rel_inside_run: str) -> Path:
+    active = repo_root / "agents" / "runs" / run_id / rel_inside_run
+    if active.exists():
+        return active
+    year = run_id[:4] if run_id[:4].isdigit() else "unknown"
+    archived = repo_root / "archive" / "runs" / year / run_id / rel_inside_run
+    return archived if archived.exists() else active
+
+
+def git_tracked_paths(repo_root: Path, pathspec: str) -> set[str]:
+    git_dir = repo_root / ".git"
+    if not git_dir.exists():
+        return set()
+    try:
+        result = subprocess.run(
+            ["git", "ls-files", pathspec],
+            cwd=repo_root,
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+    except OSError:
+        return set()
+    if result.returncode != 0:
+        return set()
+    return {line.strip().replace("\\", "/") for line in result.stdout.splitlines() if line.strip().endswith(".json")}
+
+
+def git_ignored_paths(repo_root: Path, pathspec: str) -> set[str] | None:
+    git_dir = repo_root / ".git"
+    if not git_dir.exists():
+        return None
+    try:
+        result = subprocess.run(
+            ["git", "ls-files", "-o", "-i", "--exclude-standard", pathspec],
+            cwd=repo_root,
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+    except OSError:
+        return None
+    if result.returncode != 0:
+        return None
+    return {line.strip().replace("\\", "/") for line in result.stdout.splitlines() if line.strip().endswith(".json")}
+
+
+def write_runtime_cleanup_report(
+    repo_root: Path,
+    current_date: date,
+    retention_days: int,
+    runs: list[RuntimeCleanupRun],
+    findings: list[str],
+) -> str:
+    path = repo_root / "archive" / "runtime_cleanup_report.md"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    lines = [
+        "# Runtime JSON Cleanup Report",
+        "",
+        f"Generated: {current_date.isoformat()}",
+        f"Retention days: {retention_days}",
+        "",
+        "This report records cleanup of ignored generated JSON under `agents/runs/`. It does not archive or delete markdown review artifacts.",
+        "",
+        "| Status | Run ID | Age Days | JSON Files | JSON KB | Deleted Files | Deleted KB | Reason |",
+        "| --- | --- | --- | --- | --- | --- | --- | --- |",
+    ]
+    for run in runs:
+        lines.append(
+            "| "
+            + " | ".join(
+                clean_cell(value)
+                for value in [
+                    run.status,
+                    run.run_id,
+                    "" if run.age_days is None else str(run.age_days),
+                    str(run.json_file_count),
+                    f"{run.json_total_bytes / 1024:.1f}",
+                    str(run.deleted_file_count),
+                    f"{run.deleted_total_bytes / 1024:.1f}",
+                    run.reason,
+                ]
+            )
+            + " |"
+        )
+    if not runs:
+        lines.append("| no_runtime_json |  |  |  |  |  |  | No ignored runtime JSON files matched the request. |")
+    blocked = [run for run in runs if run.blocked_paths]
+    if blocked:
+        lines.extend(["", "## Blocked Details", ""])
+        for run in blocked:
+            lines.append(f"### {run.run_id}")
+            lines.extend(f"- `{path}`" for path in run.blocked_paths)
+            lines.append("")
+    if findings:
+        lines.extend(["", "## Findings", ""])
+        lines.extend(f"- {finding}" for finding in findings)
+    path.write_text("\n".join(lines).rstrip() + "\n", encoding="utf-8")
+    return relative_path(repo_root, path)
+
+
 def write_archive_proposals_for_run(
     *,
     repo_root: Path,
@@ -566,6 +894,10 @@ def artifact_inventory_to_dict(result: ArtifactInventoryResult) -> dict:
 
 
 def archive_move_result_to_dict(result: ArchiveMoveResult) -> dict:
+    return asdict(result)
+
+
+def runtime_cleanup_result_to_dict(result: RuntimeCleanupResult) -> dict:
     return asdict(result)
 
 

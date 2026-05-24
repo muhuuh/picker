@@ -1,6 +1,6 @@
 # Agent Memory Workflow
 
-Last updated: 2026-05-05
+Last updated: 2026-05-24
 
 ## Purpose
 
@@ -73,6 +73,8 @@ Examples:
 - Quality reviewer: `evaluation_metrics.md`, `source_quality.md`, and `deprecated_memory.md`.
 - File updater: `specialist_playbooks.md` and the relevant repo docs/templates.
 
+For scalable prompt use, prefer `memory prompt-context --task TASK`. It ranks task-relevant items and limits prompt injection to the highest-signal lessons instead of dumping every memory file into every run. `memory context --task TASK` is still useful for deterministic inspection, but broad tasks such as `learning` can return many items.
+
 ## Write Flow
 
 Use two write paths:
@@ -125,6 +127,7 @@ Required fields:
 
 - Do not store secrets, tokens, API keys, broker data, or private account data.
 - Do not store raw provider output; link to evidence packets or raw run artifacts instead.
+- Do not store generated run JSON in operational memory. Generated JSON under `agents/runs/` is runtime cache; durable lessons should be promoted into concise memory items before local JSON cleanup.
 - Do not store company facts unless the memory is about source reliability or workflow behavior.
 - Prefer updating an existing item over duplicating it.
 - If a memory is wrong, mark it `superseded` or move it to `deprecated_memory.md`.
@@ -202,6 +205,8 @@ python -m stock_research memory writer-review --run-id RUN_ID --execute --write 
 
 The bounded writer uses OpenAI Responses API structured output. It can accept, revise, or reject draft items, but it still does not write to `agents/memory/*.md`. Actual operational memory writes must go through `memory apply-updates`, which validates the schema again before appending memory items.
 
+After a ready draft is applied, `memory apply-updates` marks that draft item as `applied` in `memory_update_drafts.json` and `.md`. This gives the run-level knowledge-promotion gate deterministic proof that operational lessons were handled before local runtime JSON cleanup.
+
 Use `memory finalize-run` as the normal deterministic end-of-run command. It writes:
 
 - `agents/runs/{run_id}/memory_reflection.json`
@@ -214,6 +219,14 @@ Use `memory finalize-run` as the normal deterministic end-of-run command. It wri
 - `agents/runs/{run_id}/finalization.md`
 
 The finalization artifact summarizes run-learning status, reflection issue counts, recurring failure counts, memory update draft counts, generated artifacts, and next actions. It does not apply proposed memory updates automatically.
+
+Use the promotion gate after final reports, company factual updates, category-state updates, memory draft decisions, and HRQ decisions/follow-ups are handled:
+
+```powershell
+python -m stock_research knowledge-promotion status --run-id RUN_ID --write
+```
+
+The gate is not another memory store. It verifies that operational lessons are handled in `agents/memory/`, active company facts are marked in company files, category state was updated, open decisions are resolved or still deliberately blocking cleanup, and market artifacts are linked from durable surfaces.
 
 ## Workflow Integration
 

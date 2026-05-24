@@ -17,6 +17,16 @@ dist/
 agents/runs/**/*.json
 agents/memory/recurring_failures.json
 
+# Local run markdown internals. Commit final summaries/reports, HRQ-linked
+# candidate artifacts, and archive indexes instead of every specialist lane.
+agents/runs/**/codex_supervised_review_pack.md
+agents/runs/**/memory_writer_prompt.md
+agents/runs/**/memory_writer_review.md
+agents/runs/**/memory_update_drafts.md
+agents/runs/**/reports/*_specialist/*.md
+agents/runs/**/reports/opportunity_assessment/*.md
+agents/runs/**/reports/human_synthesis/*_synthesis_pack.md
+
 # OS/editor noise
 .DS_Store
 Thumbs.db

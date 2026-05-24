@@ -1,6 +1,6 @@
 # Google Sheet Stock Intake
 
-Last updated: 2026-05-17
+Last updated: 2026-05-24
 
 ## Purpose
 
@@ -24,7 +24,7 @@ Durable state still lives in the repo:
 
 1. User hears about a stock.
 2. User asks Codex chat to fill one row in the Sheet from a pasted paragraph, source link, or quick note.
-3. Codex fills the row with basic company data, analyst forecast if available, the user's `Score`, broker `available` value, a concise `Comment`, and the source link.
+3. Codex fills the row with basic company data, valuation snapshots if available, analyst forecast if available, the user's `Score`, broker `available` value, a concise `Comment`, and the source link.
 4. User reviews the Sheet every one or two weeks.
 5. User changes `action` to `research` only for rows that should enter the repo validation path.
 6. User explicitly asks Codex to process those `research` rows.
@@ -39,10 +39,11 @@ No background automation should watch the Sheet and start research without an ex
 | --- | --- |
 | `Date` | Date the stock idea was captured. |
 | `Name` | Company name. |
-| `Ticker` | Exchange ticker or best-known symbol. |
+| `Ticker` | Exchange ticker or best-known symbol. Leading `$` cashtag prefixes are accepted and stripped during intake. |
 | `Industry` | Short industry/theme label. |
 | `Mcap` | Market capitalization snapshot for triage. |
 | `Forward PE` | Forward P/E snapshot for triage. |
+| `P/S` | Price-to-sales snapshot for triage, especially useful when P/E is unavailable or the company is loss-making. |
 | `Forecast` | Average analyst forecast/upside noted at capture time. |
 | `Score` | User's personal interest grade: `A+` strongest, `D-` weakest. |
 | `available` | Broker/provider availability: `yes` or `no`; blank means unknown. |

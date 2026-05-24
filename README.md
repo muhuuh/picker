@@ -168,17 +168,26 @@ python -m stock_research category-state update --run-id RUN_ID --write
 This reads opportunity-assessment artifacts, updates only automated factual/source/change-log sections in the target company file, and writes an FYI summary at `agents/runs/{run_id}/company_file_factual_updates.md`.
 `category-state update` appends bucket-level summaries to holdings, monitoring, and rejected state files without overwriting human notes.
 
+Before cleaning generated run JSON, verify that the run's useful knowledge has been promoted:
+
+```powershell
+python -m stock_research knowledge-promotion status --run-id RUN_ID
+python -m stock_research knowledge-promotion status --run-id RUN_ID --write
+```
+
 Artifact hygiene is indexed with:
 
 ```powershell
 python -m stock_research artifact-hygiene inventory --write
 python -m stock_research artifact-hygiene archive
 python -m stock_research artifact-hygiene archive --write
+python -m stock_research artifact-hygiene cleanup-json
+python -m stock_research artifact-hygiene cleanup-json --write
 ```
 
 Inventory writes `archive/research_index.md` with active, recent, review-blocked, archive-candidate, and archived run artifacts. Archive is dry-run by default; `--write` moves only eligible stale markdown reports into `archive/runs/` and refreshes the index.
 
-Generated run JSON, raw provider JSON, and evidence packet JSON are local runtime artifacts ignored by Git. Commit the markdown summaries/reports and source/docs changes, not the generated JSON blobs.
+Generated run JSON, raw provider JSON, and evidence packet JSON are local runtime artifacts ignored by Git. Commit the markdown summaries/reports and source/docs changes, not the generated JSON blobs. `cleanup-json` is also dry-run by default; with `--write`, it deletes only ignored runtime JSON after the run is old enough, the knowledge-promotion gate is cleanup-ready, finalization exists, memory drafts are handled, human-review follow-ups are resolved/completed, canonical final human reports exist for synthesis packs, and no JSON is Git-tracked or non-ignored.
 
 Classify a natural-language user request:
 
@@ -350,6 +359,7 @@ Implemented:
 - low-risk company-file factual updater with run-end FYI summary.
 - category-state updater for holdings/monitoring/rejected bucket summaries.
 - artifact inventory/index/archive commands for research-output hygiene.
+- dry-run-first runtime JSON cleanup for ignored generated run files after finalization and promotion guardrails pass.
 - deterministic human request classifier and queue appender.
 - deterministic request router for stock, industry, theme, strategy, alert-review, manual-run, and status-move requests.
 - provider-neutral evidence packet schema and JSON artifact writer.

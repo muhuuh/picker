@@ -376,6 +376,21 @@ Use this file for information we should not lose across sessions.
   - evidence artifact path(s): `stock_research/artifact_hygiene.py`, `stock_research/run_finalization.py`, `archive/research_index.md`, `archive/archive_move_report.md`, `agents/runs/2026-05-16_weekly/archive_proposals.md`
   - status: active
 
+- 2026-05-24:
+  - decision/fact: Generated run JSON is a local runtime cache, not long-term repo memory. Keep JSON ignored by Git and clean it with `python -m stock_research artifact-hygiene cleanup-json --write` only after the dry run confirms retention age, run finalization, no ready memory drafts, no open human-review references, canonical final human reports, and no Git-tracked or non-ignored JSON. Markdown run reports remain the reviewable/archivable trail.
+  - evidence artifact path(s): `stock_research/artifact_hygiene.py`, `docs/descriptions/artifact_lifecycle_and_hygiene.md`, `docs/plans/run_artifact_retention_plan.md`, `README.md`, `SETUP.md`
+  - status: active
+
+- 2026-05-24:
+  - decision/fact: Runtime JSON cleanup now depends on a run-level knowledge-promotion gate. Use `python -m stock_research knowledge-promotion status --run-id RUN_ID --write` to verify active ticker facts have company-file promotion markers, category state has `CATSTATE-{run_id}`, memory drafts are applied/rejected/blocked instead of still ready, human-review follow-ups are completed or resolved, and market artifacts are linked from durable surfaces before cleanup.
+  - evidence artifact path(s): `stock_research/knowledge_promotion.py`, `stock_research/artifact_hygiene.py`, `stock_research/memory_updates.py`, `tests/test_knowledge_promotion.py`, `docs/descriptions/artifact_lifecycle_and_hygiene.md`
+  - status: active
+
+- 2026-05-24:
+  - decision/fact: JSON cleanup must be archive-aware. If required markdown such as `run_summary.md` or `quality_report.md` has already moved to `archive/runs/{year}/{run_id}/`, that archived copy is valid proof of preservation for the promotion/cleanup gate.
+  - evidence artifact path(s): `stock_research/knowledge_promotion.py`, `stock_research/artifact_hygiene.py`, `tests/test_artifact_hygiene.py`, `docs/plans/run_artifact_retention_plan.md`
+  - status: active
+
 - 2026-05-16:
   - decision/fact: Category state updates are implemented. Use `python -m stock_research category-state update --run-id RUN_ID --write`; weekly runs now refresh holdings, monitoring, and rejected state files with source-linked automated summary rows.
   - evidence artifact path(s): `stock_research/category_state_updater.py`, `stock_research/scheduled_runner.py`, `stock_tracking/current_holdings/current_holdings_state.md`, `stock_tracking/monitoring/monitoring_state.md`, `stock_tracking/rejected/rejected_state.md`

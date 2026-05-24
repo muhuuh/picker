@@ -1,45 +1,49 @@
 # Monitoring State
 
-Last updated: 2026-05-18
+Last updated: 2026-05-19
 
 ## Current View
 
-- Monitoring is currently empty.
-- AAPL was an earlier workflow validation seed and has been removed from `monitoring.csv` so the first live automation run focuses on the user's actual holdings.
+- Monitoring currently contains 1 stock: PENG.
+- PENG was added on 2026-05-19 after the user requested focused monitoring research for Penguin Solutions, Inc.
 
 ## Watchlist Thesis
 
-- TODO: add real monitored companies when the user wants ongoing tracking before buying.
+- PENG: monitor as a neutral, high-risk AI infrastructure and memory-wall candidate. The thesis depends on Integrated Memory durability, AI/HPC logo conversion, margin quality, and cash-flow evidence.
 
 ## Important Changes Since Last Review
 
 - 2026-05-15: Removed AAPL validation seed from active monitoring.
+- 2026-05-19: Added PENG to monitoring and completed a focused PENG-only Codex-supervised research workflow.
 
 ## High-Priority Reviews
 
-- None currently.
+- PENG: next review should reconcile Q2 10-Q cash/debt/free-cash-flow/share-count data and verify whether AI/HPC customer wins convert into revenue and margin.
 
 ## Candidate Alerts
 
-- TODO: record promising new stocks surfaced by discovery agents.
+- None from this focused run; PENG was added by direct user request, not discovery.
 
 ## Industry / Macro Context
 
-- TODO: note sector-level or macro developments that may affect monitored stocks.
+- PENG is tied to AI inference infrastructure, CXL/memory expansion, enterprise/neocloud/sovereign AI factory deployments, memory cyclicality, and server integration economics.
 
 ## Planned Next Steps
 
-- Add real watchlist names when the user confirms monitoring candidates.
+- Track PENG through the next reporting cycle and verify the final-report gates: AI/HPC logo conversion, Integrated Memory growth, Advanced Computing stabilization, gross-margin quality, and cash-flow conversion.
 
 ## Open Questions
 
-- Which non-held companies should be monitored separately from current holdings?
+- Are PENG's new AI/HPC logos paying deployments, pilots, or early design wins?
+- Does PENG earn differentiated services/software/deployment margin, or mostly lower-margin integration economics?
+- Is valuation supportable after manual reconciliation of forward P/E, P/S, FCF, cash, debt, and share count?
 
 ## Change Log
 
 - 2026-04-30: Created initial state file template.
 - 2026-05-04: Added AAPL as monitoring workflow validation seed.
 - 2026-05-15: Removed AAPL validation seed from active monitoring.
+- 2026-05-19: Added PENG to monitoring and completed focused research run `2026-05-19_manual-penguin-solutions-monitoring`.
 
 ## Automated State Updates
 
@@ -48,4 +52,5 @@ Last updated: 2026-05-18
 | 2026-05-15 | MANUAL-MONITORING-UPDATE | monitoring | Monitoring is empty after removing the AAPL validation seed. | [monitoring.csv](stock_tracking/monitoring/monitoring.csv) |
 | 2026-05-16 | CATSTATE-2026-05-16_weekly | monitoring | 0 monitored stock(s): none. | [agents/runs/2026-05-16_weekly/final_digest.md](agents/runs/2026-05-16_weekly/final_digest.md) |
 | 2026-05-18 | CATSTATE-2026-05-18_manual-lpkf-sivers-holdings | monitoring | 0 monitored stock(s): none. | [agents/runs/2026-05-18_manual-lpkf-sivers-holdings/run_summary.md](agents/runs/2026-05-18_manual-lpkf-sivers-holdings/run_summary.md) |
+| 2026-05-19 | CATSTATE-2026-05-19_manual-penguin-solutions-monitoring | monitoring | 1 monitored stock(s): PENG. | [agents/runs/2026-05-19_manual-penguin-solutions-monitoring/final_digest.md](agents/runs/2026-05-19_manual-penguin-solutions-monitoring/final_digest.md) |
 

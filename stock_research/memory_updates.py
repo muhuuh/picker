@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import json
-from dataclasses import asdict, dataclass, field
+from dataclasses import asdict, dataclass, field, replace
 from datetime import date
 from pathlib import Path
 from typing import Any
@@ -136,12 +136,15 @@ def apply_memory_update_draft(
 
     applied: list[dict[str, str]] = []
     skipped: list[dict[str, str]] = []
+    updated_items: list[MemoryUpdateDraftItem] = []
     for item in draft.items:
         if not apply_all and item.proposal_id not in proposal_ids:
             skipped.append({"proposal_id": item.proposal_id, "reason": "not selected"})
+            updated_items.append(item)
             continue
         if item.status != "ready":
             skipped.append({"proposal_id": item.proposal_id, "reason": "; ".join(item.issues) or item.status})
+            updated_items.append(item)
             continue
         result = add_memory_item(
             root=repo_root,
@@ -149,13 +152,24 @@ def apply_memory_update_draft(
             current_date=today,
             memory_file=item.target_file,
         )
+        applied_path = relative_to_root(repo_root, result.path).as_posix()
         applied.append(
             {
                 "proposal_id": item.proposal_id,
                 "item_id": result.item_id,
-                "path": relative_to_root(repo_root, result.path).as_posix(),
+                "path": applied_path,
             }
         )
+        updated_items.append(
+            replace(
+                item,
+                status="applied",
+                reason=f"Applied to {applied_path} as {result.item_id}.",
+                issues=[],
+            )
+        )
+    if applied:
+        write_memory_update_draft(repo_root, replace(draft, items=updated_items))
     return MemoryUpdateApplyResult(run_id=run_id, applied=applied, skipped=skipped)
 
 

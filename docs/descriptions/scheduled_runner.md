@@ -162,7 +162,14 @@ When `--write` is used:
 - `agents/runs/{run_id}/run_metrics.md` when `--execute-orchestrator` is used
 - `agents/runs/{run_id}/orchestration_report.md`
 
-Generated JSON files remain ignored local runtime artifacts.
+Generated JSON files remain ignored local runtime artifacts. They should not be committed. After the run is finalized, memory drafts are handled, open review references are resolved, and canonical final human reports exist, local JSON can be cleaned with:
+
+```powershell
+python -m stock_research artifact-hygiene cleanup-json
+python -m stock_research artifact-hygiene cleanup-json --write
+```
+
+The cleanup command is dry-run by default and only deletes generated JSON under `agents/runs/`.
 
 The final digest includes readable financial formatting, forward P/E and analyst target context when available, explicit per-ticker evidence links, concrete news developments, Grok/X pulse, recurring bull/bear narratives, accounts/posts to review, hype/noise, and deterministic digest quality findings when required evidence links, financial/news statuses, social-signal labels, status-only social output, missing social narratives, or trade-instruction guardrails fail.
 

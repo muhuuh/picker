@@ -43,9 +43,11 @@ class MemoryUpdateTests(unittest.TestCase):
             )
             memory = load_memory_state(root)
             report = validate_memory_state(memory)
+            updated_draft = json.loads((root / "agents/runs/2026-05-09_weekly/memory_update_drafts.json").read_text(encoding="utf-8"))
 
             self.assertEqual(len(result.applied), 1)
             self.assertFalse(result.skipped)
+            self.assertEqual(updated_draft["items"][0]["status"], "applied")
             self.assertTrue(report.ok, report.errors)
             self.assertIn("Test reflection lesson", (root / "agents/memory/evaluation_metrics.md").read_text(encoding="utf-8"))
 

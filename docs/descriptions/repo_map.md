@@ -93,6 +93,7 @@ This file tells Codex, the orchestrator, and future agents where to find and upd
   - `agents/runs/{run_id}/reports/human_synthesis/{TICKER}_final_human_report.md` is the Codex app-written reader-facing company/opportunity report for that run.
   - `agents/runs/{run_id}/codex_supervised_review_pack.md` is the deterministic handoff for local Codex app automation.
   - `agents/runs/{run_id}/codex_supervised_review.md` is the final Codex-written run-level digest/review when the scheduled/manual Codex-supervised path is used.
+  - `agents/runs/{run_id}/knowledge_promotion_status.md` records whether run insights were promoted into durable company, category-state, memory, HRQ, market/strategy, and archive surfaces.
   - Long-lived active knowledge should be promoted into stock files, market research files, strategy files, or indexes; old run artifacts should be archiveable without losing discoverability.
 - `archive/research_index.md`: generated inventory of run markdown artifacts, classified as active, recent, review-blocked, archive candidates, or archived.
 - `archive/archive_move_report.md`: latest archive move report.
@@ -183,9 +184,12 @@ Use CLI commands for manual operation, scheduler entrypoints, validation, smoke 
 - `python -m stock_research company-file apply-factual-updates --run-id RUN_ID --write`: apply low-risk factual summaries from opportunity assessments to company files and write a run-level FYI summary.
 - `python -m stock_research company-file apply-factual-updates --run-id RUN_ID --ticker TICKER --write --refresh`: refresh existing factual rows for the same run/ticker after report regeneration or formatter improvement.
 - `python -m stock_research category-state update --run-id RUN_ID --write`: append current bucket summaries to holdings/monitoring/rejected state files.
+- `python -m stock_research knowledge-promotion status --run-id RUN_ID --write`: verify run insights have durable promotion markers before JSON cleanup or stale markdown archive decisions.
 - `python -m stock_research artifact-hygiene inventory --write`: classify generated run markdown artifacts and write `archive/research_index.md`.
 - `python -m stock_research artifact-hygiene archive`: dry-run archive moves for eligible stale markdown artifacts.
 - `python -m stock_research artifact-hygiene archive --write`: move only archive-eligible markdown artifacts into `archive/runs/` and refresh the index.
+- `python -m stock_research artifact-hygiene cleanup-json`: dry-run cleanup of ignored runtime JSON under `agents/runs/`.
+- `python -m stock_research artifact-hygiene cleanup-json --write`: delete only eligible ignored runtime JSON after knowledge-promotion, finalization, memory-draft, final-report, review, Git-ignore, and Git-tracking guardrails pass.
 - `python -m stock_research human-review digest --write`: summarize open human-review queue items by decision type and priority, writing `agents/human_review_digest.md`.
 - `python -m stock_research human-review decide --set HRQ-0004=approved --note "Run verification." --write`: record explicit user decisions on human-review queue rows and refresh the digest. This does not run follow-up actions or edit stock/company files by itself.
 - `tests/`: unit tests for current deterministic core.

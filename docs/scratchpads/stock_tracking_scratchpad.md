@@ -39,6 +39,12 @@
 - 2026-05-18: User correctly challenged that final reports also need workflow fit, not just better prose. Added `quality-report --require-final-reports` as the post-Codex completion gate, updated the review pack to require canonical `reports/human_synthesis/*_final_human_report.md` targets and forbid side reports, and documented that the default pre-Codex quality report is not the final completion gate.
 - 2026-05-18: Updated active biweekly Codex automation prompt so the next scheduled run must write every canonical per-ticker final report, avoid side/ad hoc reports, and rerun `quality-report --require-final-reports` before finishing.
 - 2026-05-18: Updated Codex exec-policy rules to allow the direct post-Codex `quality-report --run-id ... --write --require-final-reports` command; verified both the post gate and main scheduled command return `allow`.
+- 2026-05-19: Started focused monitoring research for Penguin Solutions Inc. (`PENG`). Added `PENG` to monitoring, created `stock_tracking/stock_info_files/monitoring/PENG.md`, and created plan `docs/plans/penguin_solutions_monitoring_research_plan.md`. Run id: `2026-05-19_manual-penguin-solutions-monitoring`.
+- 2026-05-19: Completed PENG-only Codex-supervised workflow. Provider and analysis tasks ran only for `PENG`; canonical final report is `agents/runs/2026-05-19_manual-penguin-solutions-monitoring/reports/human_synthesis/PENG_final_human_report.md`; post-Codex `quality-report --require-final-reports` passed with zero findings.
+- 2026-05-19: PENG monitoring thesis is neutral/high-risk: Integrated Memory growth, raised FY2026 guidance, and AI/HPC logo wins justify monitoring, but conviction needs Q3/Q4 proof of revenue conversion, margin quality, and cash flow.
+- 2026-05-20: Manual TE social-post research combined local TE reports with fresh web sources. Key insight: the current rally is now a three-way narrative fight between an AI-infrastructure fund 13F signal, source-backed G1/G2 operating progress, and FEOC/tax-credit short-seller risk. Best post framing is not "solar stock up" but "AI power bottleneck is pulling domestic solar manufacturing into the AI infrastructure trade."
+- 2026-05-20: LPKF AGM counter-motion checked. Shareholder Prof. Dr. Hans-Ingo Radatz is asking shareholders to deny management-board discharge because he wants an immediate capital increase and faster LIDE/Advanced Packaging scaling instead of North Star cost discipline. Management recommends rejecting it and says cost savings fund growth rather than replace it; the board does not rule out a capital increase for value-creating growth.
+- 2026-05-22: Prepared concise X framing for the LPKF AGM counter-motion. Plain-language angle: "refuse discharge" is a governance protest/no-confidence vote, not an instruction that management must stop saving money; the investment issue is whether LPKF should keep funding LIDE through disciplined North Star savings or raise capital to accelerate Advanced Packaging before confirmed volume orders.
 - `monitoring.csv` was empty before adding AAPL.
 - `stock_tracking/stock_info_files/monitoring/` existed but had no company files.
 - AAPL causes the weekly manifest to plan 10 provider tasks and 2 analysis tasks.
@@ -56,7 +62,7 @@
 - 2026-05-17: HRQ candidate rows still need better human ergonomics. The user should not approve/reject random ticker symbols; candidate digest rows need mini-thesis context or should be left open/marked `needs_more_research`.
 - 2026-05-17: Redid the lost native web research and persisted it immediately in `agents/runs/2026-05-17_followup_user_questions/follow_up_web_research_redo.md`; linked it from TE, IREN, AXTI, AMBA, AVAV, KRKNF, and OSS company files.
 - 2026-05-17: Human review digest now loads linked candidate-review context and stale/non-actionable open HRQ rows were marked `superseded`, reducing the live digest from 20 rows to 6 contextual rows.
-- 2026-05-17: Google Sheet `new_stock_overview` is accessible via the Google Drive plugin. It has one tab, `Sheet1`, with headers: Date, Name, Ticker, Industry, Mcap, Forward PE, Forecast, Score, available, action, Comment.
+- 2026-05-17: Google Sheet `new_stock_overview` is accessible via the Google Drive plugin. It has one tab, `Sheet1`; current headers include Date, Name, Ticker, Industry, Mcap, Forward PE, P/S, Forecast, Score, available, action, Comment, Source / link, Processing status, Repo link, and Last checked.
 - 2026-05-17: Proposed sheet journey fits the repo if treated as a lightweight pre-intake/inbox for user-discovered stocks. The durable workflow should still sync selected rows into repo artifacts before validation, verification, or monitoring promotion.
 - 2026-05-17: Implemented the quick Sheet intake bridge. Sheet `action=research` rows can be passed to `python -m stock_research sheet-intake selected-rows --rows-json rows.json --write --queue-review`; this writes intake/candidate-review artifacts and optional HRQ rows, but does not add monitoring/holdings/rejected state.
 - 2026-05-17: Live Sheet headers now include Source / link, Processing status, Repo link, and Last checked. Final dropdown model: Score=A+/A/A-/B+/B/B-/C+/C/C-/D+/D/D-, available=yes/no, action=research/add to monitoring/buy candidate/bought/ignore/rejected, and processing status=not processed/in research/done/needs fix. Blank action means no repo processing.
@@ -65,6 +71,11 @@
 - 2026-05-17: CLI dry-run verified action semantics: a `research` row is selected for intake, while a blank-action row is skipped.
 - 2026-05-17: Final live Sheet read-back verified pragmatic dropdowns: action=research/add to monitoring/buy candidate/bought/ignore/rejected; Processing status=not processed/in research/done/needs fix; Score preserves B+.
 - 2026-05-17: Added pasted photonics/CPO ideas to live Sheet rows 4-6: AAOI score B, LITE score A-, and POET score B. `available` and `action` were left blank; `Processing status` is `not processed`.
+- 2026-05-24: Re-clarified user workflow: Sheet rows marked `action=research` are a pre-monitoring research trigger; Codex can run per-stock deep-dive/verification first, then the user decides final Sheet/repo outcomes (`add to monitoring`, `rejected`, `ignore`, `needs_more_research`).
+- 2026-05-24: Inspected live Sheet rows 7-17. User added 11 sparse rows with ticker-only entries and `action=research`: `$vpg`, `$peng`, `$occ`, `$mrvl`, `$arm`, `$soi`, `$aixa`, `$flnc`, `$fcel`, `$AMBQ`, `$LSCC`. This is enough for later intake in theory, but the leading `$` should be stripped or parser-normalized before repo processing.
+- 2026-05-24: Added live Sheet `P/S` column next to `Forward PE` and updated the Sheet intake parser/docs so price-to-sales is preserved in candidate notes.
+- 2026-05-24: Updated Sheet intake ticker normalization so leading `$` cashtag prefixes are stripped before validation and duplicate checks.
+- 2026-05-24: First real Sheet intake run `2026-05-24_sheet-intake-new-stocks` selected 10 new candidates for verification and skipped PENG because it already exists in monitoring.
 
 ## Open Questions
 
@@ -78,6 +89,8 @@
 - Regenerate a weekly/company report for AXTI or another small-cap example to confirm the new valuation sanity warnings appear in the final human-facing output when provider coverage is suspicious.
 - Recheck SIVE.ST after its Q1 2026 report scheduled for 2026-05-29 and reconcile market cap/share count/52-week-range data before using valuation conclusions.
 - Recheck LPK.DE on any disclosed material LIDE production-equipment order or Q2 2026 order-intake update.
+- Check the 2026-06-04 LPKF AGM outcome for management-board discharge, counter-motion support, and any new management comments on LIDE acceleration or capital increases.
+- Recheck PENG after the next quarterly update for AI/HPC logo conversion, Integrated Memory durability, Advanced Computing stabilization, gross-margin quality, and cash-flow reconciliation.
 - On the next scheduled/manual Codex-supervised run, confirm the quality report fails any final human report that does not follow the AMBA-style final-report contract.
 - Continue improving candidate-review evidence quality for newly generated rows; the digest now has contextual rows, but source candidate-review files should keep improving the reason-to-care and risk/check fields.
 - Run the first real Sheet-to-repo processing pass with actual `action=research` rows, then decide whether a helper is needed.
@@ -92,6 +105,7 @@
 - Sheet-added financial metrics are useful for triage but should be refreshed and source-backed before they affect research conclusions.
 - `action=buy candidate` is only a triage label. It is not a buy instruction and should not bypass verification or human approval.
 - `action=add to monitoring` is an outcome after research/approval, not the trigger for Codex to run research. The trigger is `research`.
+- `sheet_intake.normalize_ticker` now strips leading `$`; ambiguous tickers still need exchange/source verification during research.
 
 ## Commands / Environment Notes
 
@@ -101,5 +115,6 @@
 - Company news validation command: `python -m stock_research analysis-tasks --manifest agents\runs\2026-05-09_weekly\manifest.json --execute --task-id company_news_review_aapl --today 2026-05-04`.
 - Sheet intake command: `python -m stock_research sheet-intake selected-rows --rows-json rows.json --write --queue-review`.
 - LPKF/Sivers focused run commands used: `provider-tasks --manifest agents\runs\2026-05-18_manual-lpkf-sivers-holdings\manifest.json --execute --today 2026-05-18`, `analysis-tasks --manifest agents\runs\2026-05-18_manual-lpkf-sivers-holdings\manifest.json --execute --today 2026-05-18`, `run-summary`, `quality-report`, `human-report synthesis-pack`, `memory finalize-run`, `category-state update`, and `human-review digest`.
+- PENG focused run commands used: `provider-tasks --manifest agents\runs\2026-05-19_manual-penguin-solutions-monitoring\manifest.json --execute --today 2026-05-19`, `analysis-tasks --manifest agents\runs\2026-05-19_manual-penguin-solutions-monitoring\manifest.json --execute --today 2026-05-19`, `run-summary`, `quality-report`, `human-report synthesis-pack`, `category-state update`, `company-file apply-factual-updates`, `memory finalize-run`, `memory writer-review`, and post-Codex `quality-report --require-final-reports`.
 - Post-Codex final-report completion check: `python -m stock_research quality-report --run-id RUN_ID --write --require-final-reports`.
 - Final report contract correction checks: `python -m stock_research validate`, `python -m stock_research memory validate`, `python -m unittest discover -s tests -p test_report_quality_golden.py`, `python -m unittest discover -s tests -p test_quality_report.py`, `python -m unittest discover -s tests -p test_human_synthesis_pack.py`, `python -m unittest discover -s tests -p test_opportunity_assessment.py`, and `python -m unittest discover -s tests`.

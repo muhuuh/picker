@@ -596,6 +596,19 @@ def main(argv: list[str] | None = None) -> int:
     category_state_update.add_argument("--write", action="store_true", help="Write category state files. Omit for dry-run.")
     category_state_update.add_argument("--today", help="Override current date as YYYY-MM-DD.")
 
+    knowledge_promotion_parser = subparsers.add_parser(
+        "knowledge-promotion",
+        help="Assess whether a run's meaningful insights were promoted into durable repo surfaces.",
+    )
+    knowledge_promotion_subparsers = knowledge_promotion_parser.add_subparsers(dest="knowledge_promotion_command", required=True)
+    knowledge_promotion_status = knowledge_promotion_subparsers.add_parser(
+        "status",
+        help="Write or print the run-level knowledge-promotion gate before cleanup/archive.",
+    )
+    knowledge_promotion_status.add_argument("--run-id", required=True)
+    knowledge_promotion_status.add_argument("--write", action="store_true", help="Write knowledge_promotion_status.json/md into the run directory.")
+    knowledge_promotion_status.add_argument("--today", help="Override current date as YYYY-MM-DD.")
+
     artifact_hygiene_parser = subparsers.add_parser("artifact-hygiene", help="Inventory and index generated research artifacts.")
     artifact_hygiene_subparsers = artifact_hygiene_parser.add_subparsers(dest="artifact_hygiene_command", required=True)
     artifact_inventory = artifact_hygiene_subparsers.add_parser(
@@ -613,6 +626,14 @@ def main(argv: list[str] | None = None) -> int:
     artifact_archive.add_argument("--archive-after-days", type=int, default=30)
     artifact_archive.add_argument("--limit", type=int, help="Optional maximum number of artifacts to move.")
     artifact_archive.add_argument("--today", help="Override current date as YYYY-MM-DD.")
+    artifact_runtime_cleanup = artifact_hygiene_subparsers.add_parser(
+        "cleanup-json",
+        help="Delete eligible ignored runtime JSON under agents/runs. Dry-run by default.",
+    )
+    artifact_runtime_cleanup.add_argument("--write", action="store_true", help="Delete eligible ignored runtime JSON and write archive/runtime_cleanup_report.md.")
+    artifact_runtime_cleanup.add_argument("--retention-days", type=int, default=30)
+    artifact_runtime_cleanup.add_argument("--run-id", action="append", help="Optional run id to evaluate. Can be passed more than once.")
+    artifact_runtime_cleanup.add_argument("--today", help="Override current date as YYYY-MM-DD.")
 
     run_weekly_parser = subparsers.add_parser("run-weekly", help="Run the weekly tracked-stock workflow and prepare deterministic/Codex-supervised artifacts.")
     run_weekly_parser.add_argument("--write", action="store_true", help="Persist manifest, reports, finalization, memory-writer review, Codex review pack, and orchestration report.")
@@ -1452,6 +1473,8 @@ def main(argv: list[str] | None = None) -> int:
             archive_move_result_to_dict,
             artifact_inventory_to_dict,
             build_artifact_inventory,
+            cleanup_runtime_json,
+            runtime_cleanup_result_to_dict,
         )
 
         request_date = parse_cli_date(args.today)
@@ -1474,6 +1497,30 @@ def main(argv: list[str] | None = None) -> int:
             )
             print(json.dumps(archive_move_result_to_dict(result), indent=2, sort_keys=True))
             return 0 if result.status not in {"blocked"} else 1
+        if args.artifact_hygiene_command == "cleanup-json":
+            result = cleanup_runtime_json(
+                root=state.root,
+                current_date=request_date,
+                write=args.write,
+                retention_days=args.retention_days,
+                run_ids=args.run_id,
+            )
+            print(json.dumps(runtime_cleanup_result_to_dict(result), indent=2, sort_keys=True))
+            return 0
+
+    if args.command == "knowledge-promotion":
+        from .knowledge_promotion import assess_knowledge_promotion, knowledge_promotion_result_to_dict
+
+        request_date = parse_cli_date(args.today)
+        if args.knowledge_promotion_command == "status":
+            result = assess_knowledge_promotion(
+                root=state.root,
+                run_id=args.run_id,
+                current_date=request_date,
+                write=args.write,
+            )
+            print(json.dumps(knowledge_promotion_result_to_dict(result), indent=2, sort_keys=True))
+            return 0 if result.cleanup_ready else 2
 
     if args.command == "category-state":
         from .category_state_updater import category_state_update_result_to_dict, update_category_state_files

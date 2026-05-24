@@ -429,8 +429,8 @@ This is the clear task backlog for building the stock tracking and investment re
   - Description: keep market research manual-first until prompts, candidate quality, and review workflow are stable.
 - [x] Add artifact lifecycle and archive hygiene.
   - Description: prevent `agents/runs/`, company reports, and candidate artifacts from becoming an unbounded active working set.
-  - Current progress: `docs/descriptions/artifact_lifecycle_and_hygiene.md` defines the archive/index approach. `python -m stock_research artifact-hygiene inventory --write` writes `archive/research_index.md`; `python -m stock_research artifact-hygiene archive [--write]` dry-runs or moves only archive-eligible markdown reports into `archive/runs/`; run finalization writes `archive_proposals.md`.
-  - Guardrails: never archive active holding/monitoring company files, never delete evidence by default, never archive unresolved HRQ context, and keep rejected cooldown/reason discoverable.
+  - Current progress: `docs/descriptions/artifact_lifecycle_and_hygiene.md` defines the archive/index approach. `python -m stock_research artifact-hygiene inventory --write` writes `archive/research_index.md`; `python -m stock_research artifact-hygiene archive [--write]` dry-runs or moves only archive-eligible markdown reports into `archive/runs/`; run finalization writes `archive_proposals.md`; `python -m stock_research knowledge-promotion status --run-id RUN_ID [--write]` verifies durable insight promotion; `python -m stock_research artifact-hygiene cleanup-json [--write]` dry-runs or deletes eligible ignored runtime JSON only after promotion/finalization guardrails pass.
+  - Guardrails: never archive active holding/monitoring company files, never archive unresolved HRQ context, never delete tracked or non-ignored files, never clean JSON before knowledge-promotion/finalization/memory/final-report checks pass, and keep rejected cooldown/reason discoverable.
 
 ## Open Decisions
 
