@@ -13,6 +13,7 @@ from stock_research.agent_runtime.runner import build_run_config
 from stock_research.cli import main
 from stock_research.market_research_runner import build_manual_market_manifest
 from stock_research.model_routing import resolve_model_for_route
+from stock_research.providers.xai_grok import XaiGrokError
 
 
 def write_routing_test_repo(root: Path) -> None:
@@ -28,7 +29,7 @@ def write_routing_test_repo(root: Path) -> None:
                 "  openai_balanced: gpt-5.4-mini",
                 "  openai_fast: gpt-5.4-mini",
                 "  openai_nano: gpt-5.4-mini",
-                "  xai_grok_x_search: grok-4.3",
+                "  xai_grok_x_search: grok-4.6",
                 "  codex_manual_model: gpt-5.5",
                 "  codex_manual_reasoning: high",
                 "routes:",
@@ -109,7 +110,7 @@ class ModelRoutingTests(unittest.TestCase):
             route = resolve_model_for_route(root, "xai_stock_sentiment")
 
         self.assertEqual(route.provider, "xai")
-        self.assertEqual(route.model, "grok-4.3")
+        self.assertEqual(route.model, "grok-4.6")
         self.assertEqual(route.complexity, "high")
 
     def test_missing_config_uses_safe_defaults(self):
@@ -162,6 +163,24 @@ class ModelRoutingTests(unittest.TestCase):
         data = json.loads(buffer.getvalue())
         self.assertEqual(data["model"], "gpt-5.5")
         self.assertEqual(data["model_tier"], "strong")
+
+    def test_cli_xai_models_fails_closed_when_catalog_resolution_fails(self):
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            write_routing_test_repo(root)
+            buffer = io.StringIO()
+            with (
+                patch("stock_research.cli.resolve_xai_api_key", return_value="test-key"),
+                patch(
+                    "stock_research.cli.resolve_available_xai_search_model",
+                    side_effect=XaiGrokError("No compatible Grok search model is available."),
+                ),
+                redirect_stdout(buffer),
+            ):
+                exit_code = main(["--root", str(root), "xai", "models"])
+
+        self.assertEqual(exit_code, 1)
+        self.assertIn("No compatible Grok search model is available", buffer.getvalue())
 
 
 if __name__ == "__main__":

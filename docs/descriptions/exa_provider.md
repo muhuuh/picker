@@ -1,6 +1,6 @@
 # Exa Provider
 
-Last updated: 2026-05-04
+Last updated: 2026-08-16
 
 ## Purpose
 
@@ -138,6 +138,8 @@ agents/runs/{run_id}/evidence_packets/{packet_id}.json
 
 When Exa runs from manifest provider tasks, `artifact_id` is the manifest task id. This prevents same-provider/same-subject tasks, such as theme context search and company discovery search, from overwriting each other.
 
+For the selected top results, `Claim.evidence` preserves the full Exa highlight/summary/text returned to the adapter. `Claim.display_excerpt` is a bounded complete-sentence navigation excerpt, and `full_evidence_path` plus `full_evidence_selector` identify the raw response. Downstream writers should retrieve the preserved claim before promoting it into a report.
+
 ## Validation
 
 - 2026-05-03: Live Exa search smoke test passed for semiconductor industry news.
@@ -150,6 +152,6 @@ When Exa runs from manifest provider tasks, `artifact_id` is the manifest task i
 
 ## Current Limits
 
-- Current tool writes search result highlights and contents excerpts into evidence packets.
+- Search/contents packets select at most five result claims for compact downstream review; selection/ranking quality is a separate backlog item.
 - It does not yet use Exa `outputSchema`; this should be added when the specialist-agent layer needs structured synthesis.
 - Live smoke tests were small and only validate connectivity/basic packet creation, not full search quality.

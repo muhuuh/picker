@@ -3,6 +3,8 @@ from __future__ import annotations
 from typing import Any
 import re
 
+from .text_excerpt import complete_sentence_excerpt
+
 
 MONEY_FIELDS = {"latest_price", "analyst_target_price", "fifty_two_week_low", "fifty_two_week_high"}
 LARGE_MONEY_FIELDS = {"market_cap", "revenue_ttm"}
@@ -80,66 +82,16 @@ def format_plain_value(value: Any) -> str:
 
 
 def compact_complete_text(value: str, max_length: int = 600) -> str:
-    """Compact text for human reports without producing visible ellipses."""
+    """Return a complete display excerpt without hiding source truncation."""
     compact = " ".join(str(value or "").split())
     compact = re.sub(r"\[\[\d+\]\](?:\([^)]+\))?", "", compact)
     compact = re.sub(r"(?<!\!)\[(\d+)\](?!\()", "", compact)
-    compact = re.sub(r"\s*\[\.\.\.\]\s*", " ", compact)
-    compact = compact.replace("...", ".")
-    compact = compact.replace("\u2026", ".")
     compact = repair_common_mojibake(compact)
-    if len(compact) <= max_length:
-        return finalize_compact_text(compact)
-    boundary = sentence_boundary(compact, max_length)
-    if boundary >= int(max_length * 0.45):
-        return finalize_compact_text(compact[:boundary].rstrip())
-    shortened = compact[:max_length].rsplit(" ", 1)[0].rstrip(" ,;:-")
-    shortened = f"{shortened}." if shortened and shortened[-1] not in ".!?" else shortened
-    return finalize_compact_text(shortened)
-
-
-def finalize_compact_text(value: str) -> str:
-    """Remove common extract artifacts after compacting provider prose."""
-    cleaned = trim_unbalanced_tail(value.strip())
-    cleaned = trim_dangling_fragment(cleaned)
-    return cleaned.strip()
-
-
-def trim_unbalanced_tail(value: str) -> str:
-    cleaned = value
-    for open_char, close_char in (("(", ")"), ("[", "]")):
-        if cleaned.count(open_char) > cleaned.count(close_char):
-            index = cleaned.rfind(open_char)
-            if index >= 0 and (index >= int(len(cleaned) * 0.55) or len(cleaned) - index <= 90):
-                cleaned = cleaned[:index].rstrip(" ,;:-")
-    if cleaned.count('"') % 2 == 1:
-        index = cleaned.rfind('"')
-        if index >= int(len(cleaned) * 0.55):
-            cleaned = cleaned[:index].rstrip(" ,;:-")
-    return cleaned
-
-
-def trim_dangling_fragment(value: str) -> str:
-    bad_tail = re.search(
-        r"(?:\b(?:hig|implying|compared|indust|announc|subsequen|preliminar|approxim|financ|operat|developm)\.|\b(?:is|are|was|were|be|while|up|down|from|during|with|including|and|or|to|of|for|in|at|by|as)\.)$",
-        value,
-        flags=re.IGNORECASE,
-    )
-    if not bad_tail:
-        return value
-    previous_boundary = max(
-        value.rfind(". ", 0, bad_tail.start()),
-        value.rfind("! ", 0, bad_tail.start()),
-        value.rfind("? ", 0, bad_tail.start()),
-    )
-    if previous_boundary > 0:
-        return value[: previous_boundary + 1].rstrip()
-    return value[: bad_tail.start()].rstrip(" ,;:-(")
-
-
-def sentence_boundary(value: str, max_length: int) -> int:
-    candidates = [match.end() for match in re.finditer(r"[.!?](?:\s|$)", value[:max_length])]
-    return max(candidates) if candidates else -1
+    return complete_sentence_excerpt(
+        compact,
+        max_length,
+        allow_complete_phrase=True,
+    ).text
 
 
 def repair_common_mojibake(value: str) -> str:

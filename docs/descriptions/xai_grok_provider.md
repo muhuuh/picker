@@ -1,6 +1,6 @@
 # xAI Grok Provider
 
-Last updated: 2026-05-17
+Last updated: 2026-08-16
 
 ## Purpose
 
@@ -14,8 +14,11 @@ Implementation: `stock_research/providers/xai_grok.py`.
 - xAI Web Search tool: https://docs.x.ai/developers/tools/web-search
 - xAI X Search tool: https://docs.x.ai/developers/tools/x-search
 - xAI citations: https://docs.x.ai/developers/tools/citations
+- xAI Grok 4.6: https://docs.x.ai/developers/grok-4-6
+- xAI model-list endpoint: https://docs.x.ai/developers/rest-api-reference/inference/models
+- xAI reasoning controls: https://docs.x.ai/developers/model-capabilities/text/reasoning
 
-Rechecked on 2026-05-17 before adding the auxiliary web-search path.
+Rechecked on 2026-08-16 for the Grok 4.6 migration and authenticated model resolution.
 
 ## Correct Design
 
@@ -39,6 +42,16 @@ XAI_API_KEY="..."
 ```
 
 No `X_BEARER_TOKEN` is needed for this design.
+
+The configured search model is `grok-4.6`. Before a live provider task executes, the provider reads `/v1/models` with the same API key, resolves the requested model, and fails clearly when neither the requested model nor an approved X-search fallback is available. It never replaces an unavailable X-search lane with generic web search.
+
+Inspect the account-visible model catalog without running research:
+
+```powershell
+python -m stock_research xai models --requested-model grok-4.6
+```
+
+The 2026-08-16 authenticated check confirmed that the configured account exposes `grok-4.6` directly.
 
 ## Current Tool
 
@@ -74,8 +87,9 @@ Useful options:
 - `--excluded-x-handle HANDLE`
 - `--enable-image-understanding`
 - `--enable-video-understanding`
+- `--reasoning-effort low|medium|high|xhigh` (default: `high`)
 
-Official xAI docs currently list these `x_search` parameters: `allowed_x_handles`, `excluded_x_handles`, `from_date`, `to_date`, `enable_image_understanding`, and `enable_video_understanding`. Allowed/excluded handle filters are mutually exclusive and each supports up to 10 handles.
+Official xAI docs currently list these `x_search` parameters: `allowed_x_handles`, `excluded_x_handles`, `from_date`, `to_date`, `enable_image_understanding`, and `enable_video_understanding`. Allowed/excluded handle filters are mutually exclusive and each supports up to 20 handles.
 
 Official xAI docs currently list these `web_search` parameters: `allowed_domains`, `excluded_domains`, and `enable_image_understanding`. Allowed/excluded domain filters are mutually exclusive and each supports up to 5 domains. xAI docs state Web Search runs on the Responses API and can search/browse current web pages.
 
@@ -111,6 +125,15 @@ Raw xAI JSON:
 agents/runs/{run_id}/raw/xai_grok/{artifact_id}.json
 ```
 
+Every raw artifact includes `model_provenance` with:
+
+- requested model;
+- resolved model;
+- tool type;
+- reasoning effort;
+- resolution source;
+- fallback reason, when used.
+
 Evidence packet:
 
 ```text
@@ -121,7 +144,7 @@ When Grok runs from manifest provider tasks, `artifact_id` is the manifest task 
 
 Long run ids, subject ids, and manifest task ids are compacted with a stable hash in packet filenames so Windows path length does not break evidence packet writes.
 
-Human-facing report writers should use the full raw Grok artifact when available. Evidence packet claims may be truncated for compact storage, but market and opportunity reports need the full Grok sections so X pulse, bull/bear narratives, candidate follow-up, scorecards, and auxiliary web deep-dive sections are not lost.
+The canonical Grok claim preserves the complete extracted response text. Its `display_excerpt` is only a bounded complete-sentence navigation view; `full_evidence_path` and `full_evidence_selector` point to the raw response. Agent tools load bounded packet summaries first and retrieve one selected full claim on demand, so context limits do not destroy X pulse, bull/bear narratives, candidate follow-up, scorecards, or auxiliary web sections.
 
 Live smoke test status:
 
@@ -129,6 +152,7 @@ Live smoke test status:
 - Raw artifact: `agents/runs/2026-05-09_weekly/raw/xai_grok/x_search_amd.json`.
 - Evidence packet: `agents/runs/2026-05-09_weekly/evidence_packets/2026-05-03_xai_grok_company_amd.json`.
 - 2026-05-04: Manifest-driven AAPL and stock-discovery Grok tasks passed with task-specific artifact names after adding bounded timeout retry behavior.
+- 2026-08-16: Authenticated `/v1/models` resolution returned `grok-4.6` with no fallback. Bounded Grok 4.6 `x_search` smokes passed for GOOGL and the AI semiconductor supply chain, producing 45 and 4 X citation sources respectively with provenance recorded under `agents/runs/2026-08-16_grok-46-smoke/`.
 
 ## Guardrails
 

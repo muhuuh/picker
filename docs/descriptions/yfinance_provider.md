@@ -1,6 +1,6 @@
 # yfinance Provider
 
-Last updated: 2026-05-03
+Last updated: 2026-05-24
 
 ## Purpose
 
@@ -59,11 +59,22 @@ agents/runs/{run_id}/evidence_packets/{packet_id}.json
 
 The evidence packet attempts to extract:
 
+- company name,
+- country,
 - currency,
 - last price,
 - previous close,
 - market cap,
 - P/E ratio,
+- forward P/E,
+- PEG ratio,
+- price-to-sales TTM,
+- price-to-book ratio,
+- EV/EBITDA TTM,
+- revenue TTM,
+- EPS,
+- profit margin,
+- debt/equity,
 - 52-week low/high,
 - exchange,
 - sector,
@@ -76,3 +87,4 @@ Missing metrics are recorded as `unknowns`.
 - 2026-05-03: Live yfinance smoke test passed for AAPL.
 - Output packet: `agents/runs/2026-05-09_weekly/evidence_packets/2026-05-03_yfinance_company_aapl.json`.
 - Raw snapshot: `agents/runs/2026-05-09_weekly/raw/yfinance/AAPL_snapshot.json`.
+- 2026-05-24: Extended valuation/profile metric extraction was added after the Soitec `SOI.PA` Sheet correction showed raw yfinance data contained P/S and forward P/E fields that were not previously exposed to `financial_compare`.

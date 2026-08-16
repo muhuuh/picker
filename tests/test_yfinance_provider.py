@@ -11,12 +11,24 @@ class YFinanceProviderTests(unittest.TestCase):
     def test_extract_metrics_prefers_fast_info_for_market_data(self):
         metrics = extract_metrics(
             {"currency": "USD", "lastPrice": 123.45, "marketCap": 1000},
-            {"trailingPE": 20.5, "sector": "Technology", "industry": "Consumer Electronics"},
+            {
+                "longName": "Apple Inc.",
+                "trailingPE": 20.5,
+                "forwardPE": 18.2,
+                "priceToSalesTrailing12Months": 7.4,
+                "totalRevenue": 390000000000,
+                "sector": "Technology",
+                "industry": "Consumer Electronics",
+            },
         )
 
+        self.assertEqual(metrics["company_name"], "Apple Inc.")
         self.assertEqual(metrics["currency"], "USD")
         self.assertEqual(metrics["last_price"], 123.45)
         self.assertEqual(metrics["pe_ratio"], 20.5)
+        self.assertEqual(metrics["forward_pe"], 18.2)
+        self.assertEqual(metrics["price_to_sales_ttm"], 7.4)
+        self.assertEqual(metrics["revenue_ttm"], 390000000000)
         self.assertEqual(metrics["sector"], "Technology")
 
     def test_build_yfinance_company_packet_writes_valid_artifacts(self):
@@ -54,6 +66,8 @@ def fake_fetch_snapshot(ticker: str, period: str):
         },
         "info": {
             "trailingPE": 25.1,
+            "forwardPE": 22.3,
+            "priceToSalesTrailing12Months": 5.2,
             "exchange": "NMS",
             "sector": "Technology",
             "industry": "Consumer Electronics",

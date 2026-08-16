@@ -1,6 +1,6 @@
 # Financial Compare
 
-Last updated: 2026-05-17
+Last updated: 2026-05-24
 
 ## Purpose
 
@@ -54,7 +54,7 @@ agents/runs/{run_id}/evidence_packets/{date}_financial_compare_company_{ticker}.
 
 ## Comparison Rules
 
-- Normalize provider-specific metric names into canonical metrics such as `latest_price`, `market_cap`, `pe_ratio`, `currency`, `exchange`, `sector`, and `industry`.
+- Normalize provider-specific metric names into canonical metrics such as `latest_price`, `market_cap`, `pe_ratio`, `forward_pe`, `price_to_sales_ttm`, `revenue_ttm`, `currency`, `exchange`, `sector`, and `industry`.
 - Compare numeric values with metric-specific tolerances.
 - Normalize harmless text differences such as casing, exchange aliases, country aliases, and company-name punctuation.
 - Keep provider disagreements as contradictions instead of hiding them.
@@ -89,3 +89,4 @@ python -m stock_research financial review --ticker AAPL --run-id 2026-05-09_week
 - 2026-05-04: AAPL financial comparison passed.
 - Evidence packet: `agents/runs/2026-05-09_weekly/evidence_packets/2026-05-04_financial_compare_company_aapl.json`.
 - Raw artifact: `agents/runs/2026-05-09_weekly/raw/financial_compare/AAPL_comparison.json`.
+- 2026-05-24: `yfinance` extended valuation fields now flow into comparison when available, including `forward_pe`, `price_to_sales_ttm`, `revenue_ttm`, EV/EBITDA, PEG, price/book, EPS, profit margin, debt/equity, company name, and country.

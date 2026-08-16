@@ -1,6 +1,6 @@
 # Monitoring State
 
-Last updated: 2026-05-19
+Last updated: 2026-06-29
 
 ## Current View
 
@@ -53,4 +53,8 @@ Last updated: 2026-05-19
 | 2026-05-16 | CATSTATE-2026-05-16_weekly | monitoring | 0 monitored stock(s): none. | [agents/runs/2026-05-16_weekly/final_digest.md](agents/runs/2026-05-16_weekly/final_digest.md) |
 | 2026-05-18 | CATSTATE-2026-05-18_manual-lpkf-sivers-holdings | monitoring | 0 monitored stock(s): none. | [agents/runs/2026-05-18_manual-lpkf-sivers-holdings/run_summary.md](agents/runs/2026-05-18_manual-lpkf-sivers-holdings/run_summary.md) |
 | 2026-05-19 | CATSTATE-2026-05-19_manual-penguin-solutions-monitoring | monitoring | 1 monitored stock(s): PENG. | [agents/runs/2026-05-19_manual-penguin-solutions-monitoring/final_digest.md](agents/runs/2026-05-19_manual-penguin-solutions-monitoring/final_digest.md) |
+| 2026-05-30 | CATSTATE-2026-05-30_weekly | monitoring | 1 monitored stock(s): PENG. | [agents/runs/2026-05-30_weekly/final_digest.md](agents/runs/2026-05-30_weekly/final_digest.md) |
+| 2026-06-06 | CATSTATE-2026-06-06_weekly | monitoring | 1 monitored stock(s): PENG. | [agents/runs/2026-06-06_weekly/final_digest.md](agents/runs/2026-06-06_weekly/final_digest.md) |
+| 2026-06-13 | CATSTATE-2026-06-13_weekly | monitoring | 1 monitored stock(s): PENG. | [agents/runs/2026-06-13_weekly/final_digest.md](agents/runs/2026-06-13_weekly/final_digest.md) |
+| 2026-06-29 | CATSTATE-2026-07-04_weekly | monitoring | 1 monitored stock(s): PENG. | [agents/runs/2026-07-04_weekly/final_digest.md](agents/runs/2026-07-04_weekly/final_digest.md) |
 

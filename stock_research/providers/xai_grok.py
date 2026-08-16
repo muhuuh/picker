@@ -12,9 +12,11 @@ from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
 from stock_research.evidence import Claim, EvidencePacket, Source, default_packet_path, new_packet, write_packet
+from stock_research.text_excerpt import complete_sentence_excerpt
 
 
 XAI_RESPONSES_URL = "https://api.x.ai/v1/responses"
+XAI_MODELS_URL = "https://api.x.ai/v1/models"
 XAI_DOCS_TOOLS_OVERVIEW = "https://docs.x.ai/developers/tools/overview"
 XAI_DOCS_WEB_SEARCH = "https://docs.x.ai/developers/tools/web-search"
 XAI_DOCS_X_SEARCH = "https://docs.x.ai/developers/tools/x-search"
@@ -26,12 +28,34 @@ class XaiGrokError(RuntimeError):
 
 
 @dataclass(frozen=True)
+class XaiModelCatalog:
+    model_ids: tuple[str, ...]
+    aliases: tuple[str, ...]
+
+    @property
+    def available_names(self) -> tuple[str, ...]:
+        return tuple(dict.fromkeys((*self.model_ids, *self.aliases)))
+
+
+@dataclass(frozen=True)
+class XaiModelResolution:
+    requested_model: str
+    resolved_model: str
+    source: str
+    fallback_reason: str = ""
+
+
+@dataclass(frozen=True)
 class XaiXSearchOptions:
     prompt: str
     subject_type: str
     subject_id: str
     research_kind: str = "x_sentiment"
-    model: str = "grok-4.3"
+    model: str = "grok-4.6"
+    requested_model: str = ""
+    model_resolution_source: str = "static_options"
+    model_fallback_reason: str = ""
+    reasoning_effort: str = "high"
     tool_type: str = "x_search"
     from_date: str = ""
     to_date: str = ""
@@ -81,13 +105,122 @@ def fetch_json(url: str, api_key: str, payload: dict[str, Any], timeout: int = 1
     raise XaiGrokError(f"xAI request timed out after 2 attempt(s) with {timeout}s timeout.") from last_timeout
 
 
+def fetch_json_get(url: str, api_key: str, timeout: int = 30) -> dict[str, Any]:
+    request = Request(
+        url,
+        headers={
+            "Accept": "application/json",
+            "Authorization": f"Bearer {api_key}",
+            "User-Agent": "Picker Stock Research/0.1",
+        },
+        method="GET",
+    )
+    try:
+        with urlopen(request, timeout=timeout) as response:
+            return json.loads(response.read().decode("utf-8"))
+    except HTTPError as exc:
+        body = exc.read().decode("utf-8", errors="replace")
+        raise XaiGrokError(f"xAI model availability check failed with HTTP {exc.code}: {body}") from exc
+    except URLError as exc:
+        raise XaiGrokError(f"xAI model availability check failed: {exc.reason}") from exc
+    except TimeoutError as exc:
+        raise XaiGrokError(f"xAI model availability check timed out after {timeout}s.") from exc
+
+
+_MODEL_CATALOG_CACHE: dict[str, XaiModelCatalog] = {}
+
+
+def fetch_xai_model_catalog(
+    api_key: str,
+    fetcher: Callable[[str, str], dict[str, Any]] | None = None,
+) -> XaiModelCatalog:
+    if fetcher is not None:
+        return parse_xai_model_catalog(fetcher(XAI_MODELS_URL, api_key))
+
+    cache_key = hashlib.sha256(api_key.encode("utf-8")).hexdigest()
+    cached = _MODEL_CATALOG_CACHE.get(cache_key)
+    if cached is not None:
+        return cached
+    catalog = parse_xai_model_catalog(fetch_json_get(XAI_MODELS_URL, api_key))
+    _MODEL_CATALOG_CACHE[cache_key] = catalog
+    return catalog
+
+
+def parse_xai_model_catalog(response: dict[str, Any]) -> XaiModelCatalog:
+    model_ids: list[str] = []
+    aliases: list[str] = []
+    data = response.get("data", [])
+    if not isinstance(data, list):
+        raise XaiGrokError("xAI model availability response has no valid data list.")
+    for item in data:
+        if not isinstance(item, dict):
+            continue
+        model_id = str(item.get("id", "")).strip()
+        if model_id and model_id not in model_ids:
+            model_ids.append(model_id)
+        raw_aliases = item.get("aliases", [])
+        if isinstance(raw_aliases, list):
+            for alias in raw_aliases:
+                normalized = str(alias).strip()
+                if normalized and normalized not in aliases:
+                    aliases.append(normalized)
+    if not model_ids and not aliases:
+        raise XaiGrokError("xAI model availability response did not expose any model names.")
+    return XaiModelCatalog(model_ids=tuple(model_ids), aliases=tuple(aliases))
+
+
+def resolve_xai_search_model(
+    requested_model: str,
+    catalog: XaiModelCatalog,
+    *,
+    fallback_models: tuple[str, ...] = ("grok-4.5", "grok-4.5-latest", "grok-4.3", "grok-4.3-latest"),
+) -> XaiModelResolution:
+    requested = requested_model.strip()
+    if not requested:
+        raise XaiGrokError("An xAI model must be requested before availability resolution.")
+    available = set(catalog.available_names)
+    if requested in available:
+        return XaiModelResolution(
+            requested_model=requested,
+            resolved_model=requested,
+            source="authenticated_model_catalog",
+        )
+    for fallback in fallback_models:
+        if fallback in available:
+            return XaiModelResolution(
+                requested_model=requested,
+                resolved_model=fallback,
+                source="authenticated_model_catalog_fallback",
+                fallback_reason=f"Requested model `{requested}` is not available to the authenticating xAI API key.",
+            )
+    relevant = sorted(name for name in available if name.startswith("grok-4"))
+    available_summary = ", ".join(relevant[:12]) or "no approved Grok 4.x search model"
+    raise XaiGrokError(
+        f"Requested xAI model `{requested}` is unavailable and no approved X-search fallback is exposed. "
+        f"Relevant available models: {available_summary}."
+    )
+
+
+def resolve_available_xai_search_model(
+    requested_model: str,
+    api_key: str,
+    *,
+    fetcher: Callable[[str, str], dict[str, Any]] | None = None,
+) -> tuple[XaiModelResolution, XaiModelCatalog]:
+    catalog = fetch_xai_model_catalog(api_key, fetcher=fetcher)
+    return resolve_xai_search_model(requested_model, catalog), catalog
+
+
 def build_xai_x_search_payload(options: XaiXSearchOptions) -> dict[str, Any]:
     if not options.prompt.strip():
         raise XaiGrokError("xAI Grok prompt is required.")
+    if options.reasoning_effort not in {"low", "medium", "high", "xhigh"}:
+        raise XaiGrokError("xAI reasoning_effort must be one of: low, medium, high, xhigh.")
     tool = build_search_tool(options)
 
     return {
         "model": options.model,
+        "reasoning": {"effort": options.reasoning_effort},
         "input": [{"role": "user", "content": options.prompt}],
         "tools": [tool],
     }
@@ -100,9 +233,9 @@ def build_search_tool(options: XaiXSearchOptions) -> dict[str, Any]:
             raise XaiGrokError("xAI x_search does not support web domain filters; use web_search.")
         tool: dict[str, Any] = {"type": "x_search"}
         if options.allowed_x_handles:
-            tool["allowed_x_handles"] = list(options.allowed_x_handles[:10])
+            tool["allowed_x_handles"] = list(options.allowed_x_handles[:20])
         if options.excluded_x_handles:
-            tool["excluded_x_handles"] = list(options.excluded_x_handles[:10])
+            tool["excluded_x_handles"] = list(options.excluded_x_handles[:20])
         if "allowed_x_handles" in tool and "excluded_x_handles" in tool:
             raise XaiGrokError("xAI x_search cannot use allowed_x_handles and excluded_x_handles together.")
         if options.from_date:
@@ -151,7 +284,16 @@ def build_xai_x_search_packet(
     payload = build_xai_x_search_payload(options)
     response = fetcher(XAI_RESPONSES_URL, api_key, payload)
     artifact_name = artifact_suffix(options.artifact_id, f"{options.tool_type}_{options.research_kind}_{options.subject_id}_{short_digest(options.prompt)}")
-    raw_path = write_raw_artifact(root, run_id, artifact_name, {"payload": payload, "response": response})
+    raw_path = write_raw_artifact(
+        root,
+        run_id,
+        artifact_name,
+        {
+            "model_provenance": xai_model_provenance(options),
+            "payload": payload,
+            "response": response,
+        },
+    )
     packet = xai_response_to_packet(options, response, raw_path, today)
     packet = with_packet_suffix(packet, artifact_name)
     packet_path = default_packet_path(root, run_id, packet)
@@ -198,11 +340,14 @@ def xai_response_to_packet(
     claims = [
         Claim(
             claim=f"xAI Grok {options.research_kind} research completed for {options.subject_id}.",
-            evidence=truncate(text or "No output text returned.", 4000),
+            evidence=text or "No output text returned.",
             source_ids=[source.source_id for source in sources],
             confidence="medium" if citation_urls else "low",
             impact="medium",
             novelty="new",
+            display_excerpt=complete_sentence_excerpt(text or "No output text returned.", 4000).text,
+            full_evidence_path=raw_path.as_posix(),
+            full_evidence_selector="response.output",
         )
     ]
     unknowns = []
@@ -242,9 +387,27 @@ def xai_source_notes(options: XaiXSearchOptions, no_citations: bool = False) -> 
 
 
 def xai_packet_notes(options: XaiXSearchOptions) -> str:
+    provenance = xai_model_provenance(options)
+    model_note = (
+        f" Requested model: {provenance['requested_model']}; resolved model: {provenance['resolved_model']}; "
+        f"reasoning effort: {provenance['reasoning_effort']}; resolution: {provenance['resolution_source']}."
+    )
+    if provenance["fallback_reason"]:
+        model_note += f" Fallback reason: {provenance['fallback_reason']}"
     if options.tool_type == "web_search":
-        return "Uses xAI Grok Responses API with built-in web_search for auxiliary company deep-dive/news context. Verify material facts with filings, financial providers, Exa, or company sources."
-    return "Uses xAI Grok Responses API with built-in x_search. This replaces direct X API usage."
+        return "Uses xAI Grok Responses API with built-in web_search for auxiliary company deep-dive/news context. Verify material facts with filings, financial providers, Exa, or company sources." + model_note
+    return "Uses xAI Grok Responses API with built-in x_search. This replaces direct X API usage." + model_note
+
+
+def xai_model_provenance(options: XaiXSearchOptions) -> dict[str, str]:
+    return {
+        "requested_model": options.requested_model or options.model,
+        "resolved_model": options.model,
+        "tool_type": options.tool_type,
+        "reasoning_effort": options.reasoning_effort,
+        "resolution_source": options.model_resolution_source,
+        "fallback_reason": options.model_fallback_reason,
+    }
 
 
 def stock_sentiment_prompt(ticker: str, company_name: str = "") -> str:
@@ -403,13 +566,6 @@ def write_raw_artifact(root: Path, run_id: str, name: str, payload: dict[str, An
     path = raw_dir / f"{name}.json"
     path.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     return path
-
-
-def truncate(value: str, max_length: int) -> str:
-    value = clean_text(value)
-    if len(value) <= max_length:
-        return value
-    return value[: max_length - 3].rstrip() + "..."
 
 
 def clean_text(value: str) -> str:

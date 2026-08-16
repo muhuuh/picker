@@ -102,6 +102,8 @@ That command gathers provider/analysis evidence, writes the deterministic quick 
 
 Model routing is explicit in `agents/model_routing.yaml`. OpenAI API strong routes use `gpt-5.5` for high-complexity synthesis; balanced/fast routes use `gpt-5.4-mini` to reduce routine SDK synthesis cost. Grok routes use the configured xAI tier for X-search and auxiliary web-search deep dives. Codex app/automation is still preferred for manual repo execution, report review, prompt iteration, and file edits because it can use your Codex GPT-5.5 high environment outside the Python process.
 
+Research intent is profile-based. `route-request` creates a profile-specific run spec and no longer adds researched tickers to monitoring or turns one-off industry research into a recurring strategy priority. Portfolio/watchlist changes require a separate explicit approval/status workflow. See `docs/descriptions/research_profiles.md`.
+
 Inspect the OpenAI Agents SDK runtime registry without making live model calls:
 
 ```powershell
@@ -202,6 +204,8 @@ Create and validate evidence packets:
 python -m stock_research evidence new --provider exa --subject-type industry --subject-id "European defense" --run-id 2026-05-09_weekly
 python -m stock_research evidence validate agents/runs/2026-05-09_weekly/evidence_packets/PACKET.json
 ```
+
+Provider packets preserve canonical selected evidence and expose a separate complete-sentence display excerpt plus raw-artifact reference. SDK writers should review bounded packet summaries, then retrieve only the full claims they promote into reader reports.
 
 Fetch SEC EDGAR submissions into an evidence packet:
 
@@ -311,6 +315,8 @@ python -m stock_research memory deprecate --id ITEM_ID --reason "..."
 ```powershell
 python -m unittest discover -s tests
 ```
+
+The same complete-suite command runs in `.github/workflows/tests.yml` on pushes and pull requests. Install the declared dependencies first; collection errors are test failures, not optional skips.
 
 ## Status
 

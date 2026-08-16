@@ -12,7 +12,7 @@ defaults:
   openai_balanced: gpt-5.4-mini
   openai_fast: gpt-5.4-mini
   openai_nano: gpt-5.4-mini
-  xai_grok_x_search: grok-4.3
+  xai_grok_x_search: grok-4.6
   codex_manual_model: gpt-5.5
   codex_manual_reasoning: high
 

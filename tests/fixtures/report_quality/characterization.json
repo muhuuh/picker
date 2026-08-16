@@ -1,0 +1,38 @@
+{
+  "source_run": "2026-07-04_weekly",
+  "source_run_use": "Known-bad reader-output baseline only; investment claims are not current facts.",
+  "legacy_quality_report": "known_bad/2026-07-04_quality_report_baseline.json",
+  "known_bad_corpus": "known_bad/2026-07-04_real_report_excerpts.json",
+  "source_report_count": 12,
+  "source_report_names": [
+    "AMBA",
+    "AVAV",
+    "AXTI",
+    "GOOGL",
+    "IREN",
+    "LPK.DE",
+    "MU",
+    "NBIS",
+    "OSS",
+    "PENG",
+    "SIVE.ST",
+    "TE"
+  ],
+  "expected_verdict": "fail",
+  "expected_categories": [
+    "cross_report_boilerplate",
+    "dangling_sentence_fragment",
+    "reader_efficiency",
+    "completeness"
+  ],
+  "positive_reports": {
+    "positive/grok46_googl_x_snapshot.md": {
+      "subject_terms": ["GOOGL"],
+      "require_x_insight": true
+    },
+    "positive/exa_primary_source_snapshot.md": {
+      "subject_terms": ["GOOGL", "Alphabet"],
+      "require_x_insight": false
+    }
+  }
+}

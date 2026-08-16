@@ -16,7 +16,12 @@ from .providers.exa import ExaContentsOptions, ExaSearchOptions, build_exa_conte
 from .providers.fmp import FmpCompanyOptions, build_fmp_company_packet, resolve_fmp_api_key, resolve_fmp_fallback_api_key
 from .providers.polygon_provider import PolygonCompanyOptions, build_polygon_company_packet, resolve_polygon_api_key
 from .providers.sec_edgar import build_sec_company_packet, resolve_sec_user_agent
-from .providers.xai_grok import XaiXSearchOptions, build_xai_x_search_packet, resolve_xai_api_key
+from .providers.xai_grok import (
+    XaiXSearchOptions,
+    build_xai_x_search_packet,
+    resolve_available_xai_search_model,
+    resolve_xai_api_key,
+)
 from .providers.yfinance_provider import build_yfinance_company_packet
 from .model_routing import resolve_model_for_route
 
@@ -222,13 +227,19 @@ def execute_provider_task(root: Path, task: dict[str, Any], current_date: date |
     if provider == "xai_grok" and tool in {"x_search", "web_search"}:
         api_key = resolve_xai_api_key(get_config_value(root, "XAI_API_KEY"))
         model_route = xai_route_for_task(task)
+        requested_model = str(args.get("model") or resolve_model_for_route(root, model_route).model)
+        model_resolution, _catalog = resolve_available_xai_search_model(requested_model, api_key)
         packet, paths = build_xai_x_search_packet(
             options=XaiXSearchOptions(
                 prompt=str(args["prompt"]),
                 subject_type=str(task["subject_type"]),
                 subject_id=str(task["subject_id"]),
                 research_kind=str(args.get("research_kind", "x_sentiment")),
-                model=str(args.get("model") or resolve_model_for_route(root, model_route).model),
+                model=model_resolution.resolved_model,
+                requested_model=model_resolution.requested_model,
+                model_resolution_source=model_resolution.source,
+                model_fallback_reason=model_resolution.fallback_reason,
+                reasoning_effort=str(args.get("reasoning_effort", "high")),
                 tool_type=tool,
                 from_date=str(args.get("from_date", "")),
                 to_date=str(args.get("to_date", "")),

@@ -627,9 +627,9 @@ def provider_tasks_for_human_request(
     request: dict[str, str],
     run_id: str,
     *,
-    xai_stock_model: str = "grok-4.3",
-    xai_industry_model: str = "grok-4.3",
-    xai_latest_news_model: str = "grok-4.3",
+    xai_stock_model: str = "grok-4.6",
+    xai_industry_model: str = "grok-4.6",
+    xai_latest_news_model: str = "grok-4.6",
 ) -> list[dict[str, Any]]:
     request_id = request.get("ID", "").strip() or "human_request"
     request_type = request.get("Type", "").strip().lower()

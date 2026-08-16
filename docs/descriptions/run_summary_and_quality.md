@@ -1,6 +1,6 @@
 # Run Summary And Quality Reports
 
-Last updated: 2026-05-18
+Last updated: 2026-08-16
 
 ## Purpose
 
@@ -54,10 +54,18 @@ The quality report currently checks:
 - missing run summary,
 - recommended updates needing human review,
 - human-facing markdown quality issues in the final digest, Codex review, run summary, human-review digest, human-review digest summary, opportunity audit reports, company-research reports, and `reports/human_synthesis/*_final_human_report.md` reports.
+- exact long reader claims repeated across three or more canonical final reports, reported as `cross_report_boilerplate`; standardized provenance wording is excluded.
+- lightly varied/paraphrased claims repeated across three or more canonical final reports, reported as `cross_report_near_boilerplate`.
+- executable final-report reader-value checks for material change, specificity, source quality, X insight, reader efficiency, and completeness.
+- incomplete bullets, table cells, and prose tails without turning visible ellipses or clipped words into fabricated sentences.
 - when `--require-final-reports` is passed, missing canonical `reports/human_synthesis/{TICKER}_final_human_report.md` targets for every synthesis pack.
 - orphan `reports/human_synthesis/*_final_human_report.md` reports that do not have a matching synthesis pack.
 
 Generated `.json` outputs are local runtime artifacts and are ignored by Git. The `.md` summary/report/finalization files are the reviewable artifacts intended for normal repo inspection. After finalization and promotion guardrails pass, ignored JSON can be removed with `python -m stock_research artifact-hygiene cleanup-json --write`; dry-run the command first.
+
+The gate has no universal word-count minimum. A short, specific no-change update can pass; padded prose, repeated claims, or missing evidence value cannot pass merely by being long.
+
+The regression fixtures under `tests/fixtures/report_quality/` preserve sanitized excerpts and the prior zero-finding artifact from the actual 12-report `2026-07-04_weekly` output without treating historical investment claims as current facts. Positive fixtures preserve source-linked historical Grok 4.6 and Exa excerpts. `stock_research/report_characterization.py` implements the corpus and reader-value checks used by both fixtures and production quality reports.
 
 ## Human Synthesis Packs
 

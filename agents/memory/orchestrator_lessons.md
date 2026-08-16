@@ -726,3 +726,17 @@ Operational memory for workflow routing, orchestration, run ordering, and user c
 - evidence: docs/descriptions/artifact_lifecycle_and_hygiene.md; docs/plans/run_artifact_retention_plan.md; archive/runtime_cleanup_report.md
 - owner: Codex
 - next_review: 2026-07-01
+
+- id: orchestrator-2026-08-16-research-profile-boundaries
+- date: 2026-08-16
+- type: procedural
+- scope: orchestrator
+- status: active
+- confidence: high
+- trigger/source: Portfolio research product split implementation
+- lesson: Research-only intent must use an explicit research profile/run spec and must not mutate holdings, monitoring, rejected, or recurring strategy state. Company research, industry research, candidate discovery, and recurring portfolio updates have distinct output contracts and write permissions.
+- use_when: Routing natural-language research requests or building recurring/on-demand manifests and writers.
+- do_not_use_when: The user explicitly requests a stock-status or recurring-strategy change through its approval-gated workflow.
+- evidence: stock_research/research_profiles.py, stock_research/router.py, docs/descriptions/research_profiles.md, tests/test_research_profiles.py, tests/test_request_router.py
+- owner: orchestrator workflow
+- next_review: 2026-10-16

@@ -179,6 +179,48 @@ class ExaProviderTests(unittest.TestCase):
             self.assertIn("CRAWL_NOT_FOUND", "\n".join(packet.unknowns))
             self.assertTrue(validate_packet(read_packet(paths[0])).ok)
 
+    def test_exa_packet_preserves_full_evidence_and_separate_complete_excerpt(self):
+        long_evidence = (
+            "The primary source reported a material capacity expansion with a dated commissioning schedule. "
+            + "The second sentence contains detailed customer, qualification, margin, and execution context. " * 20
+        )
+
+        def fetcher(url: str, api_key: str, payload: dict):
+            self.assertEqual(url, EXA_SEARCH_URL)
+            return {
+                "requestId": "req_full_evidence",
+                "searchType": payload["type"],
+                "results": [
+                    {
+                        "title": "Primary source expansion",
+                        "url": "https://example.com/primary",
+                        "highlights": [long_evidence],
+                    }
+                ],
+            }
+
+        with TemporaryDirectory() as temp_dir:
+            packet, _paths = build_exa_search_packet(
+                options=ExaSearchOptions(
+                    query="material capacity expansion",
+                    subject_type="industry",
+                    subject_id="capacity",
+                ),
+                api_key="test-key",
+                run_id="2026-08-16_test",
+                root=Path(temp_dir),
+                current_date=date(2026, 8, 16),
+                fetcher=fetcher,
+            )
+
+        claim = packet.claims[1]
+        self.assertEqual(claim.evidence, long_evidence)
+        self.assertLess(len(claim.display_excerpt), len(claim.evidence))
+        self.assertTrue(claim.display_excerpt.endswith("."))
+        self.assertNotIn("...", claim.display_excerpt)
+        self.assertTrue(claim.full_evidence_path.endswith(".json"))
+        self.assertEqual(claim.full_evidence_selector, "response.results[0]")
+
 
 def fake_fetch_json(url: str, api_key: str, payload: dict):
     if url == EXA_SEARCH_URL:

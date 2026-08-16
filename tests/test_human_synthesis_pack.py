@@ -23,7 +23,7 @@ class HumanSynthesisPackTests(unittest.TestCase):
             self.assertIn("Use the established final-report shape from the accepted AMBA report", pack_text)
             self.assertIn("The deterministic opportunity assessment remains the audit artifact", pack_text)
             self.assertIn("What [Company] Actually Does", pack_text)
-            self.assertIn("preserve at least the same investor-useful insight coverage as the opportunity assessment", pack_text)
+            self.assertIn("preserve material investor insight, but do not target a word count", pack_text)
             self.assertIn("notable accounts/posts or source-quality context", pack_text)
             self.assertIn("decision table or scorecard", pack_text)
             self.assertIn("deterministic opportunity assessment is an evidence and audit layer", pack_text)
@@ -39,6 +39,8 @@ class HumanSynthesisPackTests(unittest.TestCase):
             raw_dir = root / "agents" / "runs" / run_id / "raw" / "xai_grok"
             (raw_dir / "xai_x_search_company_lpk_de.json").write_text("{}", encoding="utf-8")
             (raw_dir / "xai_web_deep_dive_company_lpk_de.json").write_text("{}", encoding="utf-8")
+            (raw_dir / "sheet_full_xai_x_lpk_de.json").write_text("{}", encoding="utf-8")
+            (raw_dir / "sheet_full_xai_web_lpk_de.json").write_text("{}", encoding="utf-8")
 
             result = build_human_synthesis_packs(root, run_id, tickers=[ticker], write=True)
 
@@ -46,6 +48,8 @@ class HumanSynthesisPackTests(unittest.TestCase):
             pack_text = (root / result.packs[0].synthesis_pack_path).read_text(encoding="utf-8")
             self.assertIn("xai_x_search_company_lpk_de.json", pack_text)
             self.assertIn("xai_web_deep_dive_company_lpk_de.json", pack_text)
+            self.assertIn("sheet_full_xai_x_lpk_de.json", pack_text)
+            self.assertIn("sheet_full_xai_web_lpk_de.json", pack_text)
 
 
 def seed_synthesis_inputs(root: Path, run_id: str, ticker: str) -> None:

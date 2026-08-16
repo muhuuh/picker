@@ -112,6 +112,31 @@ class QualityReportTests(unittest.TestCase):
             self.assertTrue(any(finding.category == "missing_final_human_report" for finding in post_codex_report.findings))
             self.assertTrue(any("AMBA_final_human_report.md" in finding.evidence for finding in post_codex_report.findings))
 
+    def test_quality_report_flags_boilerplate_repeated_across_final_reports(self):
+        with TemporaryDirectory() as temp_dir:
+            root = seed_repo(Path(temp_dir))
+            run_dir = root / "agents/runs/2026-05-09_weekly"
+            (run_dir / "manifest.json").write_text(json.dumps({"provider_tasks": [], "analysis_tasks": []}), encoding="utf-8")
+            (run_dir / "run_summary.md").write_text("# Summary\n", encoding="utf-8")
+            human_synthesis_dir = run_dir / "reports" / "human_synthesis"
+            human_synthesis_dir.mkdir(parents=True)
+            shared = (
+                "The key judgment is whether the story is becoming more verified or merely louder. "
+                "The company news lane supplies facts while the social lane supplies investor debate."
+            )
+            for ticker in ("ALPHA", "BRAVO", "CHARLIE"):
+                (human_synthesis_dir / f"{ticker}_final_human_report.md").write_text(
+                    f"# {ticker} Final Human Report\n\n## Bottom Line\n\n{shared}\n",
+                    encoding="utf-8",
+                )
+
+            report = build_quality_report(root, "2026-05-09_weekly", date(2026, 5, 4))
+
+            corpus_findings = [finding for finding in report.findings if finding.category == "cross_report_boilerplate"]
+            self.assertGreaterEqual(len(corpus_findings), 1)
+            self.assertEqual(report.metrics["cross_report_findings"], len(corpus_findings))
+            self.assertTrue(all(ticker in corpus_findings[0].evidence for ticker in ("ALPHA", "BRAVO", "CHARLIE")))
+
     def test_quality_report_flags_orphan_final_reports(self):
         with TemporaryDirectory() as temp_dir:
             root = seed_repo(Path(temp_dir))

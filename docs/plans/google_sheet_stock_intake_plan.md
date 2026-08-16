@@ -57,3 +57,4 @@ Use Codex's Google Sheets connector for live reads/writes for now. Build a helpe
 - Added a `P/S` column next to `Forward PE` in the live Sheet.
 - Updated the intake schema/parser so `P/S`, `PS`, and price-to-sales header variants are preserved in candidate notes.
 - Updated ticker normalization so cashtag-style inputs such as `$VPG` are accepted and processed as `VPG`.
+- Removed the visible `Source / link` Sheet column; detailed evidence belongs in repo artifacts linked from `Repo link`.

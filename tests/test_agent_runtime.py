@@ -50,9 +50,14 @@ from stock_research.agent_runtime.runner import AgentRuntimeResult, build_run_co
 from stock_research.agent_runtime.tracing import LocalRunHooks, LocalRunMetric, LocalRunTelemetry, write_run_metrics
 from stock_research.agent_runtime.tools.analysis_tools import run_analysis_tasks_for_context
 from stock_research.agent_runtime.tools.provider_tools import run_provider_tasks_for_context
-from stock_research.agent_runtime.tools.repo_tools import list_evidence_packets_data, load_evidence_packet_data, load_memory_prompt_context_for_task
+from stock_research.agent_runtime.tools.repo_tools import (
+    list_evidence_packets_data,
+    load_claim_evidence_data,
+    load_evidence_packet_data,
+    load_memory_prompt_context_for_task,
+)
 from stock_research.cli import main
-from stock_research.evidence import Source, new_packet, write_packet
+from stock_research.evidence import Claim, Source, new_packet, write_packet
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -579,14 +584,31 @@ class AgentRuntimeTests(unittest.TestCase):
                 time_window="test",
                 current_date=date(2026, 5, 10),
                 sources=[source],
+                claims=[
+                    Claim(
+                        claim="Grid storage evidence is preserved.",
+                        evidence="First complete sentence. Second complete sentence contains the full selected detail.",
+                        display_excerpt="First complete sentence.",
+                        full_evidence_path="raw/exa/grid_storage.json",
+                        full_evidence_selector="response.results[0]",
+                        source_ids=["src"],
+                    )
+                ],
             )
             write_packet(packet, context.run_dir / "evidence_packets" / f"{packet.packet_id}.json")
 
             data = load_evidence_packet_data(context, packet.packet_id)
+            full = load_claim_evidence_data(context, packet.packet_id, 0)
 
         self.assertEqual(data["packet_id"], packet.packet_id)
         self.assertEqual(data["subject_id"], "grid_storage")
         self.assertEqual(data["sources"][0]["source_id"], "src")
+        self.assertEqual(data["claims"][0]["evidence"], "First complete sentence.")
+        self.assertTrue(data["claims"][0]["full_evidence_available"])
+        self.assertGreater(data["claims"][0]["full_evidence_length"], len(data["claims"][0]["evidence"]))
+
+        self.assertIn("Second complete sentence", full["evidence"])
+        self.assertEqual(full["full_evidence_selector"], "response.results[0]")
 
     def test_specialist_can_be_built_as_tool(self):
         context = build_research_run_context(root=REPO_ROOT, run_id="test_weekly", task="company news specialist")

@@ -1,6 +1,6 @@
 # Current Holdings State
 
-Last updated: 2026-05-19
+Last updated: 2026-06-29
 
 ## Current View
 
@@ -56,4 +56,8 @@ Last updated: 2026-05-19
 | 2026-05-18 | MANUAL-LPKF-SIVERS-HOLDINGS | current_holdings | 11 current holding(s): AXTI, NBIS, MU, GOOGL, IREN, OSS, TE, AMBA, AVAV, LPK.DE, SIVE.ST. KRKNF moved out after sale. | [agents/runs/2026-05-18_manual-lpkf-sivers-holdings/codex_supervised_review.md](../../agents/runs/2026-05-18_manual-lpkf-sivers-holdings/codex_supervised_review.md) |
 | 2026-05-18 | CATSTATE-2026-05-18_manual-lpkf-sivers-holdings | current_holdings | 11 current holding(s): AXTI, NBIS, MU, GOOGL, IREN, OSS, TE, AMBA, AVAV, LPK.DE, SIVE.ST. | [agents/runs/2026-05-18_manual-lpkf-sivers-holdings/run_summary.md](agents/runs/2026-05-18_manual-lpkf-sivers-holdings/run_summary.md) |
 | 2026-05-19 | CATSTATE-2026-05-19_manual-penguin-solutions-monitoring | current_holdings | 11 current holding(s): AXTI, NBIS, MU, GOOGL, IREN, OSS, TE, AMBA, AVAV, LPK.DE, SIVE.ST. | [agents/runs/2026-05-19_manual-penguin-solutions-monitoring/final_digest.md](agents/runs/2026-05-19_manual-penguin-solutions-monitoring/final_digest.md) |
+| 2026-05-30 | CATSTATE-2026-05-30_weekly | current_holdings | 11 current holding(s): AXTI, NBIS, MU, GOOGL, IREN, OSS, TE, AMBA, AVAV, LPK.DE, SIVE.ST. | [agents/runs/2026-05-30_weekly/final_digest.md](agents/runs/2026-05-30_weekly/final_digest.md) |
+| 2026-06-06 | CATSTATE-2026-06-06_weekly | current_holdings | 11 current holding(s): AXTI, NBIS, MU, GOOGL, IREN, OSS, TE, AMBA, AVAV, LPK.DE, SIVE.ST. | [agents/runs/2026-06-06_weekly/final_digest.md](agents/runs/2026-06-06_weekly/final_digest.md) |
+| 2026-06-13 | CATSTATE-2026-06-13_weekly | current_holdings | 11 current holding(s): AXTI, NBIS, MU, GOOGL, IREN, OSS, TE, AMBA, AVAV, LPK.DE, SIVE.ST. | [agents/runs/2026-06-13_weekly/final_digest.md](agents/runs/2026-06-13_weekly/final_digest.md) |
+| 2026-06-29 | CATSTATE-2026-07-04_weekly | current_holdings | 11 current holding(s): AXTI, NBIS, MU, GOOGL, IREN, OSS, TE, AMBA, AVAV, LPK.DE, SIVE.ST. | [agents/runs/2026-07-04_weekly/final_digest.md](agents/runs/2026-07-04_weekly/final_digest.md) |
 

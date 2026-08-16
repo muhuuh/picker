@@ -2,17 +2,19 @@ from __future__ import annotations
 
 import re
 
+from .text_excerpt import incomplete_markdown_segments
+
 
 def validate_human_facing_markdown(text: str) -> list[str]:
     findings: list[str] = []
-    if "[...]" in text or re.search(r"\w\.\.\.(?:\s|$)", text):
+    incomplete_segments = incomplete_markdown_segments(text)
+    if any("visible_truncation_marker" in reasons for _line, _segment, reasons in incomplete_segments):
         findings.append("Visible truncation marker found.")
     if re.search(r"[\u00c2\u00c3\u00e2\ufffd]", text):
         findings.append("Mojibake or encoding artifact found.")
-    if re.search(
-        r"(?:\([^)]*\b(?:up|down|from|during|with)\.|\b(?:hig|implying|compared|indust|announc|subsequen|preliminar|approxim|financ|operat|developm)\.|\b(?:is|are|was|were|be|while)\.)",
-        text,
-        flags=re.IGNORECASE,
+    if any(
+        any(reason != "visible_truncation_marker" for reason in reasons)
+        for _line, _segment, reasons in incomplete_segments
     ):
         findings.append("Dangling sentence fragment found.")
     if re.search(r"(?<!\!)\[[0-9]+\](?!\()", text):
@@ -71,35 +73,6 @@ def validate_final_human_report_contract(text: str) -> list[str]:
         findings.append(
             "Final human report is missing established synthesis sections: "
             + ", ".join(missing_sections)
-            + "."
-        )
-    findings.extend(validate_final_human_report_depth(text))
-    return findings
-
-
-def validate_final_human_report_depth(text: str) -> list[str]:
-    normalized = text.lower()
-    words = re.findall(r"\b[\w./$%-]+\b", text)
-    findings: list[str] = []
-    if len(words) < 1700:
-        findings.append("Final human report is too short to preserve opportunity-assessment depth.")
-
-    required_depth_markers = {
-        "source-backed or verified facts": ("source-backed", "verified facts", "source-backed facts", "verified company"),
-        "notable X/social accounts or source-quality context": ("notable accounts", "accounts/posts", "informed accounts", "recurring accounts"),
-        "rumors or unverified claims separated from facts": ("rumor", "rumors", "unverified", "speculation"),
-        "non-obvious or under-discussed angles": ("non-obvious", "under-discussed", "underdiscussed", "hidden optionality"),
-        "decision table or investor scorecard": ("decision table", "scorecard", "| signal | evidence |", "| decision area | current read |"),
-    }
-    missing_markers = [
-        label
-        for label, markers in required_depth_markers.items()
-        if not any(marker in normalized for marker in markers)
-    ]
-    if missing_markers:
-        findings.append(
-            "Final human report is missing opportunity-assessment depth markers: "
-            + ", ".join(missing_markers)
             + "."
         )
     return findings

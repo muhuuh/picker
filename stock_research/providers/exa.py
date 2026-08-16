@@ -13,6 +13,7 @@ from urllib.parse import urlparse
 from urllib.request import Request, urlopen
 
 from stock_research.evidence import Claim, EvidencePacket, Source, default_packet_path, new_packet, write_packet
+from stock_research.text_excerpt import complete_sentence_excerpt
 
 
 EXA_SEARCH_URL = "https://api.exa.ai/search"
@@ -212,14 +213,18 @@ def exa_search_to_packet(
     for source, result in zip(sources[:5], results[:5]):
         highlight_text = result_evidence_text(result, options.search_mode)
         if highlight_text:
+            full_evidence = clean_text(str(highlight_text))
             claims.append(
                 Claim(
                     claim=f"Relevant Exa result: {result.get('title', result.get('url', 'untitled'))}",
-                    evidence=truncate(clean_text(str(highlight_text)), 800),
+                    evidence=full_evidence,
                     source_ids=[source.source_id],
                     confidence="medium",
                     impact="medium",
                     novelty="new",
+                    display_excerpt=complete_sentence_excerpt(full_evidence, 800).text,
+                    full_evidence_path=raw_path.as_posix(),
+                    full_evidence_selector=f"response.results[{len(claims) - 1}]",
                 )
             )
 
@@ -262,14 +267,18 @@ def exa_contents_to_packet(
     for source, result in zip(sources[:5], results[:5]):
         excerpt = first_text(result.get("highlights", [])) or result.get("summary", "") or result.get("text", "")
         if excerpt:
+            full_evidence = clean_text(str(excerpt))
             claims.append(
                 Claim(
                     claim=f"Exa content excerpt from {result.get('title', result.get('url', 'URL'))}",
-                    evidence=truncate(clean_text(str(excerpt)), 1000),
+                    evidence=full_evidence,
                     source_ids=[source.source_id],
                     confidence="medium",
                     impact="medium",
                     novelty="new",
+                    display_excerpt=complete_sentence_excerpt(full_evidence, 1000).text,
+                    full_evidence_path=raw_path.as_posix(),
+                    full_evidence_selector=f"response.results[{len(claims) - 1}]",
                 )
             )
 
@@ -372,13 +381,6 @@ def first_text(values: Any) -> str:
     if isinstance(values, str):
         return values
     return ""
-
-
-def truncate(value: str, max_length: int) -> str:
-    value = clean_text(value)
-    if len(value) <= max_length:
-        return value
-    return value[: max_length - 3].rstrip() + "..."
 
 
 def clean_text(value: str) -> str:

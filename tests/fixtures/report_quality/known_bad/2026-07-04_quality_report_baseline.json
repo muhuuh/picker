@@ -1,0 +1,16 @@
+{
+  "findings": [],
+  "generated_at": "2026-06-29",
+  "metrics": {
+    "analysis_tasks_planned": 60,
+    "evidence_packets": 167,
+    "findings": 0,
+    "high_findings": 0,
+    "human_review_recommended_updates": 20,
+    "medium_findings": 0,
+    "provider_tasks_planned": 107,
+    "recommended_updates": 36,
+    "require_final_reports": true
+  },
+  "run_id": "2026-07-04_weekly"
+}

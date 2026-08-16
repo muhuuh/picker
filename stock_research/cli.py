@@ -96,6 +96,7 @@ from .providers.xai_grok import (
     default_xai_run_id,
     industry_sentiment_prompt,
     latest_news_prompt,
+    resolve_available_xai_search_model,
     resolve_xai_api_key,
     stock_sentiment_prompt,
 )
@@ -217,7 +218,11 @@ def main(argv: list[str] | None = None) -> int:
     route_parser = subparsers.add_parser("route-request", help="Append and route a request into durable artifacts.")
     route_parser.add_argument("request")
     route_parser.add_argument("--priority", default="medium", choices=["low", "medium", "high", "urgent"])
-    route_parser.add_argument("--status", default="queued_for_weekly_run")
+    route_parser.add_argument(
+        "--status",
+        default="auto",
+        help="Request queue status. Default auto keeps one-off stock/industry/theme research out of the recurring run.",
+    )
     route_parser.add_argument("--today", help="Override current date as YYYY-MM-DD.")
 
     model_routing_parser = subparsers.add_parser("model-routing", help="Inspect resolved model routing for a task or agent.")
@@ -413,6 +418,10 @@ def main(argv: list[str] | None = None) -> int:
     xai_parser = subparsers.add_parser("xai", help="xAI Grok provider tools.")
     xai_subparsers = xai_parser.add_subparsers(dest="xai_command", required=True)
 
+    xai_models = xai_subparsers.add_parser("models", help="List models available to the authenticated xAI key and resolve the configured search model.")
+    xai_models.add_argument("--requested-model", help="Model to check. Defaults through agents/model_routing.yaml.")
+    xai_models.add_argument("--api-key", help="xAI API key. Or set XAI_API_KEY.")
+
     xai_x_search = xai_subparsers.add_parser("x-search", help="Use Grok with built-in x_search and write an evidence packet.")
     xai_x_search.add_argument("--prompt", help="Full research prompt. If omitted, use --ticker/--company-name or --topic.")
     xai_x_search.add_argument("--ticker", help="Ticker for stock sentiment prompt.")
@@ -423,6 +432,7 @@ def main(argv: list[str] | None = None) -> int:
     xai_x_search.add_argument("--subject-id", required=True)
     xai_x_search.add_argument("--run-id", help="Run ID for output artifacts. Defaults to YYYY-MM-DD_manual-xai.")
     xai_x_search.add_argument("--model", help="xAI model override. Defaults through agents/model_routing.yaml.")
+    xai_x_search.add_argument("--reasoning-effort", default="high", choices=["low", "medium", "high", "xhigh"])
     xai_x_search.add_argument("--from-date")
     xai_x_search.add_argument("--to-date")
     xai_x_search.add_argument("--allowed-x-handle", action="append", default=[])
@@ -442,6 +452,7 @@ def main(argv: list[str] | None = None) -> int:
     xai_web_search.add_argument("--subject-id", required=True)
     xai_web_search.add_argument("--run-id", help="Run ID for output artifacts. Defaults to YYYY-MM-DD_manual-xai.")
     xai_web_search.add_argument("--model", help="xAI model override. Defaults through agents/model_routing.yaml.")
+    xai_web_search.add_argument("--reasoning-effort", default="high", choices=["low", "medium", "high", "xhigh"])
     xai_web_search.add_argument("--allowed-domain", action="append", default=[])
     xai_web_search.add_argument("--excluded-domain", action="append", default=[])
     xai_web_search.add_argument("--enable-image-understanding", action="store_true")
@@ -1200,6 +1211,33 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     if args.command == "xai":
+        if args.xai_command == "models":
+            try:
+                api_key = resolve_xai_api_key(args.api_key or get_config_value(state.root, "XAI_API_KEY"))
+                requested_model = resolve_model_for_route(
+                    state.root,
+                    "xai_stock_sentiment",
+                    explicit_model=args.requested_model,
+                ).model
+                resolution, catalog = resolve_available_xai_search_model(requested_model, api_key)
+            except XaiGrokError as exc:
+                print(f"ERROR: {exc}")
+                return 1
+            print(
+                json.dumps(
+                    {
+                        "available_model_ids": list(catalog.model_ids),
+                        "available_aliases": list(catalog.aliases),
+                        "requested_model": resolution.requested_model,
+                        "resolved_model": resolution.resolved_model,
+                        "resolution_source": resolution.source,
+                        "fallback_reason": resolution.fallback_reason,
+                    },
+                    indent=2,
+                    sort_keys=True,
+                )
+            )
+            return 0
         request_date = parse_cli_date(args.today)
         run_id = args.run_id or default_xai_run_id(request_date)
         try:
@@ -1213,14 +1251,19 @@ def main(argv: list[str] | None = None) -> int:
             )
             if args.xai_command == "x-search":
                 route_id = xai_route_for_research_kind(args.research_kind)
-                resolved_xai_model = resolve_model_for_route(state.root, route_id, explicit_model=args.model).model
+                requested_xai_model = resolve_model_for_route(state.root, route_id, explicit_model=args.model).model
+                model_resolution, _catalog = resolve_available_xai_search_model(requested_xai_model, api_key)
                 packet, paths = build_xai_x_search_packet(
                     options=XaiXSearchOptions(
                         prompt=prompt,
                         subject_type=args.subject_type,
                         subject_id=args.subject_id,
                         research_kind=args.research_kind,
-                        model=resolved_xai_model,
+                        model=model_resolution.resolved_model,
+                        requested_model=model_resolution.requested_model,
+                        model_resolution_source=model_resolution.source,
+                        model_fallback_reason=model_resolution.fallback_reason,
+                        reasoning_effort=args.reasoning_effort,
                         from_date=args.from_date or "",
                         to_date=args.to_date or "",
                         allowed_x_handles=tuple(args.allowed_x_handle),
@@ -1235,14 +1278,19 @@ def main(argv: list[str] | None = None) -> int:
                 )
             elif args.xai_command == "web-search":
                 route_id = xai_route_for_research_kind(args.research_kind)
-                resolved_xai_model = resolve_model_for_route(state.root, route_id, explicit_model=args.model).model
+                requested_xai_model = resolve_model_for_route(state.root, route_id, explicit_model=args.model).model
+                model_resolution, _catalog = resolve_available_xai_search_model(requested_xai_model, api_key)
                 packet, paths = build_xai_x_search_packet(
                     options=XaiXSearchOptions(
                         prompt=prompt,
                         subject_type=args.subject_type,
                         subject_id=args.subject_id,
                         research_kind=args.research_kind,
-                        model=resolved_xai_model,
+                        model=model_resolution.resolved_model,
+                        requested_model=model_resolution.requested_model,
+                        model_resolution_source=model_resolution.source,
+                        model_fallback_reason=model_resolution.fallback_reason,
+                        reasoning_effort=args.reasoning_effort,
                         tool_type="web_search",
                         allowed_domains=tuple(args.allowed_domain),
                         excluded_domains=tuple(args.excluded_domain),

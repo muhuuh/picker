@@ -9,6 +9,7 @@ from pathlib import Path
 
 from .human import append_human_request, classify_request
 from .markdown_edit import append_markdown_table_row, append_section_entry
+from .research_profiles import assert_write_allowed, build_research_run_spec, write_research_run_spec
 from .repo import load_first_table
 
 
@@ -16,6 +17,9 @@ from .repo import load_first_table
 class RouteResult:
     request_id: str
     request_type: str
+    request_status: str = ""
+    profile_id: str = ""
+    run_spec_path: str = ""
     updated_paths: list[str] = field(default_factory=list)
     review_items: list[str] = field(default_factory=list)
     notes: list[str] = field(default_factory=list)
@@ -25,20 +29,28 @@ def route_request(
     root: Path,
     request_text: str,
     priority: str = "medium",
-    status: str = "queued_for_weekly_run",
+    status: str = "auto",
     today: date | None = None,
 ) -> RouteResult:
     current_date = today or date.today()
     root = root.resolve()
     classification = classify_request(request_text)
-    request_id = append_human_request(root, request_text, priority, status, current_date)
-    result = RouteResult(request_id=request_id, request_type=classification.request_type)
+    request_status = resolve_request_status(status, classification.request_type)
+    request_id = append_human_request(root, request_text, priority, request_status, current_date)
+    result = RouteResult(
+        request_id=request_id,
+        request_type=classification.request_type,
+        request_status=request_status,
+    )
 
     if classification.request_type == "stock_research":
+        result.profile_id = "company_deep_research"
         route_stock_research(root, request_id, request_text, classification.tickers, current_date, result)
     elif classification.request_type == "industry_research":
+        result.profile_id = "industry_deep_research"
         route_market_research(root, "industries", "industry", request_id, request_text, priority, current_date, result)
     elif classification.request_type == "theme_tracking":
+        result.profile_id = "industry_deep_research"
         route_market_research(root, "themes", "theme", request_id, request_text, priority, current_date, result)
     elif classification.request_type == "strategy_change":
         route_strategy_change(root, request_id, request_text, priority, current_date, result)
@@ -64,6 +76,15 @@ def route_request(
     return result
 
 
+def resolve_request_status(status: str, request_type: str) -> str:
+    normalized = str(status or "").strip().lower()
+    if normalized and normalized != "auto":
+        return normalized
+    if request_type in {"stock_research", "industry_research", "theme_tracking"}:
+        return "planned_on_demand"
+    return "queued_for_weekly_run"
+
+
 def route_stock_research(
     root: Path,
     request_id: str,
@@ -75,48 +96,25 @@ def route_stock_research(
     if not tickers:
         result.notes.append("No uppercase ticker symbols detected; request remains in human input queue only.")
         return
-
-    csv_path = root / "stock_tracking" / "monitoring" / "monitoring.csv"
-    rows = read_csv_rows(csv_path)
-    existing = {row.get("ticker", "").upper() for row in rows}
-    fieldnames = read_csv_fieldnames(csv_path)
-
-    for ticker in tickers:
-        if ticker.upper() in existing:
-            result.notes.append(f"{ticker} already exists in monitoring.csv; skipped CSV insert.")
-            continue
-        company_file = root / "stock_tracking" / "stock_info_files" / "monitoring" / f"{ticker}_pending.md"
-        stock_info_rel = company_file.relative_to(root).as_posix()
-        rows.append(
-            {
-                "ticker": ticker,
-                "company_name": "",
-                "exchange": "",
-                "country": "",
-                "currency": "",
-                "sector": "",
-                "industry": "",
-                "status": "monitoring",
-                "stock_info_file": stock_info_rel,
-                "source": request_id,
-                "price": "",
-                "market_cap": "",
-                "pe_ratio": "",
-                "date_found": today.isoformat(),
-                "date_last_updated": today.isoformat(),
-                "next_review_date": next_saturday(today).isoformat(),
-                "last_filing_checked": "",
-                "last_news_checked": "",
-                "last_sentiment_checked": "",
-                "alert_level": "low",
-                "watch_reason": request_text,
-                "target_entry_criteria": "Research requested by user.",
-                "notes": "",
-            }
-        )
-        write_csv_rows(csv_path, fieldnames, rows)
-        create_company_file(company_file, ticker, request_id, request_text, today)
-        result.updated_paths.extend([csv_path.relative_to(root).as_posix(), stock_info_rel])
+    run_id = f"{today.isoformat()}_company-deep-{request_id.lower()}"
+    spec = build_research_run_spec(
+        "company_deep_research",
+        run_id=run_id,
+        request_id=request_id,
+        request=request_text,
+        subjects=(
+            {"subject_type": "company", "subject_id": ticker.upper(), "label": ticker.upper()}
+            for ticker in tickers
+        ),
+    )
+    spec_path = write_research_run_spec(root, spec)
+    relative_spec_path = spec_path.relative_to(root).as_posix()
+    result.run_spec_path = relative_spec_path
+    result.updated_paths.append(relative_spec_path)
+    result.notes.append(
+        "Research-only request planned without changing holdings or monitoring. "
+        "Use an explicit stock-status request and approval flow to change portfolio membership."
+    )
 
 
 def create_company_file(path: Path, ticker: str, request_id: str, request_text: str, today: date) -> None:
@@ -240,6 +238,15 @@ def route_market_research(
 ) -> None:
     title = derive_topic_title(request_text)
     slug = slugify(title)
+    run_id = f"{today.isoformat()}_industry-deep-{request_id.lower()}"
+    spec = build_research_run_spec(
+        "industry_deep_research",
+        run_id=run_id,
+        request_id=request_id,
+        request=request_text,
+        subjects=({"subject_type": priority_type, "subject_id": slug, "label": title},),
+    )
+    assert_write_allowed(spec.profile, "reader_reports")
     research_path = root / "market_research" / folder_name / f"{slug}.md"
     if not research_path.exists():
         research_path.write_text(
@@ -291,8 +298,14 @@ Last updated: {today.isoformat()}
         )
 
     result.updated_paths.append(research_path.relative_to(root).as_posix())
-    add_research_priority(root, title, priority_type, priority, request_text, research_path, today)
-    result.updated_paths.append("strategy/research_priorities.md")
+    spec_path = write_research_run_spec(root, spec)
+    relative_spec_path = spec_path.relative_to(root).as_posix()
+    result.run_spec_path = relative_spec_path
+    result.updated_paths.append(relative_spec_path)
+    result.notes.append(
+        "On-demand industry/theme research does not create a recurring strategy priority. "
+        "Recurring coverage requires a separate explicit strategy request."
+    )
 
 
 def route_strategy_change(root: Path, request_id: str, request_text: str, priority: str, today: date, result: RouteResult) -> None:

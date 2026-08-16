@@ -70,14 +70,52 @@ class EvidenceTests(unittest.TestCase):
     def test_write_and_read_packet_round_trips(self):
         with TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
-            packet = new_packet("provider_test", "provider_test", "smoke", current_date=date(2026, 5, 3))
+            packet = new_packet(
+                "provider_test",
+                "provider_test",
+                "smoke",
+                current_date=date(2026, 5, 3),
+                claims=[
+                    Claim(
+                        claim="Full evidence survives serialization.",
+                        evidence="First complete sentence. Second complete sentence with preserved source detail.",
+                        display_excerpt="First complete sentence.",
+                        full_evidence_path="raw/provider_test/smoke.json",
+                        full_evidence_selector="response.results[0]",
+                        source_ids=[],
+                    )
+                ],
+            )
             path = default_packet_path(root, "2026-05-09_weekly", packet)
 
             write_packet(packet, path)
             loaded = read_packet(path)
 
             self.assertEqual(loaded.packet_id, packet.packet_id)
+            self.assertEqual(loaded.claims[0].evidence, packet.claims[0].evidence)
+            self.assertEqual(loaded.claims[0].display_excerpt, "First complete sentence.")
+            self.assertEqual(loaded.claims[0].full_evidence_selector, "response.results[0]")
             self.assertTrue(path.exists())
+
+    def test_shortened_display_excerpt_warns_without_full_evidence_link(self):
+        packet = new_packet(
+            "provider_test",
+            "provider_test",
+            "smoke",
+            current_date=date(2026, 5, 3),
+            claims=[
+                Claim(
+                    claim="Evidence was shortened for display.",
+                    evidence="First complete sentence. Second complete sentence.",
+                    display_excerpt="First complete sentence.",
+                    source_ids=[],
+                )
+            ],
+        )
+
+        report = validate_packet(packet)
+
+        self.assertTrue(any("shortened display_excerpt" in warning for warning in report.warnings))
 
 
 if __name__ == "__main__":

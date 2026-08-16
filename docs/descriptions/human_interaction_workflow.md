@@ -1,6 +1,6 @@
 # Human Interaction Workflow
 
-Last updated: 2026-05-17
+Last updated: 2026-08-16
 
 ## Goal
 
@@ -43,11 +43,11 @@ python -m stock_research route-request "Research ASML, TSM, AMD, and SAP" --prio
 
 The current classifier and router are keyword-based and deterministic. They are useful for intake plumbing, but they are not a replacement for a future specialist triage agent.
 
-Current routing behavior:
+Current routing behavior is profile-based. See `docs/descriptions/research_profiles.md`:
 
-- stock research: adds monitoring CSV rows and creates company stub files,
-- industry research: creates an industry research file and adds a research priority,
-- theme tracking: creates a theme research file and adds a research priority,
+- stock research: creates a `company_deep_research` run spec without changing holdings or monitoring,
+- industry research: creates an industry research file and an `industry_deep_research` run spec without creating a recurring priority,
+- theme tracking: creates a theme research file and an `industry_deep_research` run spec without changing strategy,
 - strategy change: appends a strategy input and creates a human review item,
 - alert review: records the request only,
 - manual run: creates a manual run manifest,
@@ -162,9 +162,9 @@ User examples:
 Expected Codex actions:
 
 - Add or update request in `docs/plans/human_research_requests.md`.
-- If the stock should be tracked, add it to `stock_tracking/monitoring/monitoring.csv`.
-- Create a company file from `docs/templates/company_stock_info_template.md` if needed.
-- Link the company file from the CSV row.
+- Create a `company_deep_research` run spec and leave portfolio/watchlist state unchanged.
+- Ask separately whether the stock should enter monitoring after the research is reviewed.
+- Only an explicit approved status-change/promotion flow may add the monitoring row and company file.
 - Mark whether research should happen immediately or in the next Saturday run.
 
 ### Industry Research Request
@@ -290,7 +290,7 @@ Each human input queue item should track:
 
 ## Routing Rules
 
-- Company-specific requests go to `stock_tracking/monitoring/` unless the user explicitly says current holding or rejected.
+- Company-specific research requests use `company_deep_research` and do not change portfolio/watchlist state.
 - Industry requests go to `market_research/industries/`.
 - Technology/theme requests go to `market_research/themes/`.
 - Recurring research priorities go to `strategy/research_priorities.md`.

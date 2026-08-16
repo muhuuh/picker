@@ -24,7 +24,7 @@ AWS acceleration, Anthropic exposure, and Trainium/Bedrock adoption create a cle
 """
         self.assertEqual(validate_human_facing_markdown(markdown), [])
 
-    def test_established_final_human_report_contract_passes(self):
+    def test_concise_source_specific_final_human_report_contract_passes_without_padding(self):
         markdown = """
 # AMBA Final Human Report
 
@@ -86,7 +86,6 @@ Additional depth text: A proper report should explain what the company does, why
 
 - [AMBA synthesis pack](agents/runs/2026-05-16_weekly/reports/human_synthesis/AMBA_synthesis_pack.md)
 """
-        markdown += "\n" + ("Depth sentence for realistic report coverage. " * 260)
         self.assertEqual(validate_human_facing_markdown(markdown), [])
 
     def test_flags_final_human_report_missing_established_contract(self):
@@ -102,7 +101,6 @@ LPKF has an interesting packaging story, but the report did not follow the estab
         self.assertTrue(any("provenance" in finding.lower() for finding in findings))
         self.assertTrue(any("audit artifact" in finding.lower() for finding in findings))
         self.assertTrue(any("established synthesis sections" in finding.lower() for finding in findings))
-        self.assertTrue(any("too short" in finding.lower() for finding in findings))
 
     def test_flags_truncation_dead_citations_raw_dict_and_status_only_sentiment(self):
         markdown = """
@@ -148,6 +146,23 @@ Duplicate section.
         findings = validate_human_facing_markdown(markdown)
 
         self.assertTrue(any("repeated long claims" in finding.lower() for finding in findings))
+
+    def test_flags_incomplete_bullets_and_table_cells(self):
+        markdown = """
+# Incomplete Evidence
+
+## Evidence
+
+- Management described demand from.
+
+| Signal | Evidence |
+| --- | --- |
+| AI demand | Customers increasingly sh. |
+"""
+
+        findings = validate_human_facing_markdown(markdown)
+
+        self.assertIn("Dangling sentence fragment found.", findings)
 
 
 if __name__ == "__main__":

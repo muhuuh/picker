@@ -447,8 +447,18 @@ Use this file for information we should not lose across sessions.
   - status: active
 
 - 2026-05-17:
-  - decision/fact: Google Sheet `new_stock_overview` is the quick stock idea inbox. It is not durable portfolio state and must not auto-trigger research; the user marks rows with `action=research` and explicitly asks Codex to process them through the `sheet-intake selected-rows` bridge before candidate verification or monitoring decisions. Blank `action` means no repo processing, while `add to monitoring`, `bought`, `ignore`, and `rejected` are post-research outcomes. The Sheet `Processing status` dropdown is only for simple process state: `not processed`, `in research`, `done`, or `needs fix`. The live Sheet includes `P/S` next to `Forward PE`, and sheet-intake normalization accepts leading `$` cashtag prefixes by stripping them before validation.
-  - evidence artifact path(s): `docs/descriptions/google_sheet_stock_intake.md`, `stock_research/sheet_intake.py`, `tests/test_sheet_intake.py`, `https://docs.google.com/spreadsheets/d/16S9NXkIi4IH6fPHe3DMpxvtjknzzRIjyxW2XjJp6Jr0/edit`
+  - decision/fact: Google Sheet `new_stock_overview` is the quick stock idea inbox. It is not durable portfolio state and must not auto-trigger research; the user marks rows with `action=research` and explicitly asks Codex to process them through the `sheet-intake selected-rows` bridge before candidate verification or monitoring decisions. Blank `action` means no repo processing, while `add to monitoring`, `bought`, `ignore`, and `rejected` are post-research outcomes. The Sheet `Processing status` dropdown is only for simple process state: `not processed`, `in research`, `done`, or `needs fix`. The live Sheet includes `P/S` next to `Forward PE`, no longer includes a visible `Source / link` column, and uses `Repo link` as the evidence pointer. Sheet-intake normalization accepts leading `$` cashtag prefixes by stripping them before validation.
+  - evidence artifact path(s): `docs/descriptions/google_sheet_stock_intake.md`, `stock_research/sheet_intake.py`, `tests/test_sheet_intake.py`, `agents/runs/2026-05-24_sheet-intake-soitec-soi/market_research/candidate_research_summary.md`, `https://docs.google.com/spreadsheets/d/16S9NXkIi4IH6fPHe3DMpxvtjknzzRIjyxW2XjJp6Jr0/edit`
+  - status: active
+
+- 2026-05-24:
+  - decision/fact: When the Sheet `research` action is used for reviewable deep dives, `Repo link` should point to canonical `agents/runs/{run_id}/reports/human_synthesis/{TICKER}_final_human_report.md` files after the full provider/analysis/synthesis workflow. Candidate-routing summaries are intermediate artifacts and are not acceptable as the final review surface.
+  - evidence artifact path(s): `docs/descriptions/google_sheet_stock_intake.md`, `docs/plans/2026-05-24_sheet_full_deep_dive_reports_plan.md`, `agents/runs/2026-05-24_sheet-full-deep-dives/reports/human_synthesis/VPG_final_human_report.md`, `agents/runs/2026-05-24_sheet-full-deep-dives/quality_report.md`
+  - status: active
+
+- 2026-05-24:
+  - decision/fact: Human synthesis packs must recognize custom xAI/Grok raw artifact names such as `xai_x` and `xai_web`, in addition to default `x_search` and `web_search` names. Custom manual manifests can otherwise produce valid Grok/X and Grok web evidence that the synthesis-pack handoff falsely reports as missing.
+  - evidence artifact path(s): `stock_research/human_synthesis_pack.py`, `tests/test_human_synthesis_pack.py`, `agents/memory/evaluation_metrics.md`, `agents/runs/2026-05-24_sheet-full-deep-dives/reports/human_synthesis/VPG_synthesis_pack.md`
   - status: active
 
 - 2026-05-16:
@@ -484,4 +494,24 @@ Use this file for information we should not lose across sessions.
 - 2026-05-04:
   - decision/fact: The deterministic company-news specialist is implemented with Exa contents follow-up. Use `python -m stock_research news contents-follow-up --ticker TICKER --run-id RUN_ID` after Exa company-news provider tasks, then `python -m stock_research news review --ticker TICKER --run-id RUN_ID`; search-highlight-only reviews stay `partial_review`.
   - evidence artifact path(s): `stock_research/company_news_specialist.py`, `stock_research/analysis_runner.py`, `stock_research/manifest.py`, `docs/descriptions/company_news_specialist.md`, `tests/test_company_news_specialist.py`, `agents/runs/2026-05-09_weekly/reports/company_news_specialist/AAPL_company_news_review.md`
+  - status: active
+
+- 2026-08-16:
+  - decision/fact: Research intent is separated from durable portfolio/watchlist state through explicit `portfolio_update`, `company_deep_research`, `industry_deep_research`, and `candidate_discovery` profiles. Generic stock research no longer adds a ticker to monitoring, and one-off industry/theme research no longer creates a recurring strategy priority; those state changes require separate explicit workflows.
+  - evidence artifact path(s): `stock_research/research_profiles.py`, `stock_research/router.py`, `docs/descriptions/research_profiles.md`, `tests/test_research_profiles.py`, `tests/test_request_router.py`
+  - status: active
+
+- 2026-08-16:
+  - decision/fact: xAI X Search and auxiliary web research now request `grok-4.6`. Live execution validates the requested model against the authenticating key's `/v1/models` catalog, records requested/resolved model, tool, reasoning effort, resolution source, and fallback reason in raw artifacts, and never silently replaces an unavailable X-search lane with web search. The configured account exposed Grok 4.6 directly, and bounded company/industry X-search smokes returned cited X sources.
+  - evidence artifact path(s): `agents/model_routing.yaml`, `stock_research/model_routing.py`, `stock_research/providers/xai_grok.py`, `stock_research/provider_runner.py`, `agents/runs/2026-08-16_grok-46-smoke/`, `docs/descriptions/xai_grok_provider.md`, `tests/test_xai_grok_provider.py`, `tests/test_provider_runner.py`
+  - status: active
+
+- 2026-08-16:
+  - decision/fact: Reader-quality evaluation must inspect final reports as a corpus and execute material-change, specificity, source-quality, X-insight, efficiency, and completeness checks. The gate uses real sanitized historical regressions, exact plus bounded semantic boilerplate detection, and complete-fragment checks; it has no universal word-count floor or keyword-padding route.
+  - evidence artifact path(s): `stock_research/report_characterization.py`, `stock_research/report_quality.py`, `stock_research/quality_report.py`, `tests/fixtures/report_quality/`, `tests/test_report_characterization.py`, `tests/test_report_quality_golden.py`, `.github/workflows/tests.yml`
+  - status: active
+
+- 2026-08-16:
+  - decision/fact: Provider evidence packets preserve complete selected Exa/Grok evidence in `Claim.evidence` and keep bounded complete-sentence `display_excerpt` text separate. Shortened views carry a raw artifact path/selector, and SDK specialists load bounded summaries before retrieving an individual full claim; ellipses or clipped tails must never be repaired into fabricated sentences.
+  - evidence artifact path(s): `stock_research/evidence.py`, `stock_research/text_excerpt.py`, `stock_research/providers/exa.py`, `stock_research/providers/xai_grok.py`, `stock_research/agent_runtime/tools/repo_tools.py`, `docs/descriptions/evidence_schema.md`
   - status: active

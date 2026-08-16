@@ -47,6 +47,9 @@ class Claim:
     confidence: str = "unknown"
     impact: str = "unknown"
     novelty: str = "unknown"
+    display_excerpt: str = ""
+    full_evidence_path: str = ""
+    full_evidence_selector: str = ""
 
 
 @dataclass(frozen=True)
@@ -160,6 +163,12 @@ def validate_packet(packet: EvidencePacket) -> EvidenceValidationReport:
             report.errors.append(f"Invalid claim confidence '{claim.confidence}'.")
         if claim.impact not in IMPACT_VALUES:
             report.errors.append(f"Invalid claim impact '{claim.impact}'.")
+        if claim.display_excerpt and len(claim.display_excerpt) < len(claim.evidence) and not claim.full_evidence_path:
+            report.warnings.append(
+                f"claim '{claim.claim}' has a shortened display_excerpt but no full_evidence_path."
+            )
+        if claim.full_evidence_path and not claim.evidence:
+            report.warnings.append(f"claim '{claim.claim}' links full evidence but has no canonical evidence text.")
 
     for risk in packet.risks:
         validate_source_refs("risk", risk.risk, risk.source_ids, source_ids, report)

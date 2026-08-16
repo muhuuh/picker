@@ -119,11 +119,13 @@ Required sections:
 
 The final report is a cleaner story, not a smaller story. It must preserve at least the same investor-useful insight coverage as the opportunity assessment while removing repetition and pasted-subreport feel. The required coverage includes source-backed developments, market/industry context, X pulse and trend evolution, recurring bull and bear social claims, notable accounts/posts or source-quality context, rumors/unverified claims, non-obvious or under-discussed angles, valuation/analyst gaps, a decision table or investor scorecard, thesis changers, and concrete next checks.
 
-The report-quality gate treats missing provenance, missing required sections, shallow length, or missing depth markers in a final human report as workflow defects. A shallow or differently shaped final report should be fixed in the workflow instructions/templates and regenerated, not patched by inventing a separate report artifact.
+The report-quality gate treats missing provenance/required sections, incomplete evidence, repeated or paraphrased boilerplate, and failed reader-value dimensions as workflow defects. It does not use a universal word-count floor or keyword checklist: stable names may be concise, while material changes must remain specific, source-backed, decision-relevant, and complete. A weak or differently shaped final report should be fixed in the workflow instructions/templates and regenerated, not padded or patched into a separate report artifact.
 
 Post-Codex report validation must use `quality-report --require-final-reports`. The default pre-Codex quality report can run before Codex has written the final reports, but the post-Codex gate must require every synthesis pack to have exactly the expected canonical final report target. Extra `*_final_human_report.md` files without matching `*_synthesis_pack.md` are orphan artifacts and should be removed or moved into the correct run workflow rather than left as alternate reports.
 
 For the 2026-05-16 real-holdings run, this quality check must include explicit scans for mojibake/encoding artifacts, dead citation markers, dead bracketed source ids, visible truncation, duplicate report sections, and dangling excerpt tails. Passing provider execution is not enough to call the run good.
+
+Custom/manual manifests can name xAI/Grok raw artifacts differently from the default manifest. The synthesis-pack builder must include both default `x_search` / `web_search` names and custom names such as `xai_x` / `xai_web`; otherwise a run can falsely appear to lack same-run Grok/X or Grok web evidence even when provider execution succeeded.
 
 ## Memory And Learning
 

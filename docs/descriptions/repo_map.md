@@ -67,6 +67,7 @@ This file tells Codex, the orchestrator, and future agents where to find and upd
 - `docs/descriptions/openai_agents_sdk_orchestration.md`: selected OpenAI Agents SDK runtime design.
 - `docs/descriptions/model_routing_and_codex_usage.md`: current LLM call sites, task complexity levels, and Codex app vs API runtime boundary.
 - `agents/model_routing.yaml`: repo-local model tiers and route assignments for OpenAI API, xAI/Grok, and Codex manual-mode guidance.
+- `stock_research/research_profiles.py`: importable contracts for recurring portfolio updates, company deep research, industry deep research, and candidate discovery, including explicit write permissions.
 - `docs/plans/openai_agents_sdk_orchestration_backlog.md`: dedicated backlog for OpenAI Agents SDK runtime implementation.
 - `docs/scratchpads/openai_agents_sdk_orchestration_scratchpad.md`: dedicated scratchpad for SDK orchestration findings and decisions.
 - `docs/descriptions/evidence_schema.md`: shared source/evidence packet schema for all providers and specialists.
@@ -138,7 +139,7 @@ Use CLI commands for manual operation, scheduler entrypoints, validation, smoke 
 - `python -m stock_research memory finalize-run --run-id RUN_ID`: write reflection, recurring-failure, and run finalization artifacts.
 - `python -m stock_research classify-request "..."`
 - `python -m stock_research add-request "..."`
-- `python -m stock_research route-request "..."`: append and route a user request into target repo artifacts.
+- `python -m stock_research route-request "..."`: append and route a user request into a profile-specific run spec. Research-only requests do not add stocks to monitoring or create recurring strategy priorities.
 - `python -m stock_research sheet-intake selected-rows --rows-json rows.json --write --queue-review`: turn explicit `action=research` rows from the quick Google Sheet inbox into candidate-review artifacts and optional human-review rows. This does not add stocks to monitoring or holdings.
 - `python -m stock_research model-routing show --route ROUTE_OR_TASK`: inspect the resolved model/provider/tier after explicit/env/config fallback precedence.
 - `python -m stock_research evidence new ...`: create a provider-neutral evidence packet.
@@ -192,7 +193,7 @@ Use CLI commands for manual operation, scheduler entrypoints, validation, smoke 
 - `python -m stock_research artifact-hygiene cleanup-json --write`: delete only eligible ignored runtime JSON after knowledge-promotion, finalization, memory-draft, final-report, review, Git-ignore, and Git-tracking guardrails pass.
 - `python -m stock_research human-review digest --write`: summarize open human-review queue items by decision type and priority, writing `agents/human_review_digest.md`.
 - `python -m stock_research human-review decide --set HRQ-0004=approved --note "Run verification." --write`: record explicit user decisions on human-review queue rows and refresh the digest. This does not run follow-up actions or edit stock/company files by itself.
-- `tests/`: unit tests for current deterministic core.
+- `tests/`: unit and regression tests, including sanitized historical report-quality fixtures. `.github/workflows/tests.yml` runs the complete suite on pushes and pull requests.
 
 ## OpenAI Agents SDK Runtime Planning
 
@@ -204,7 +205,7 @@ Use CLI commands for manual operation, scheduler entrypoints, validation, smoke 
 - Do not add broad LLM orchestration code without following the dedicated backlog.
 - First runtime foundation is implemented under `stock_research/agent_runtime/`.
 - SDK repo/memory tools live in `stock_research/agent_runtime/tools/repo_tools.py` and wrap Python functions directly for repo map, run summary, quality report, memory context, evidence packet index, run markdown, and stock CSV loading.
-- SDK repo/memory tools also include `load_evidence_packet` so specialists can inspect summarized provider-neutral JSON packets directly instead of relying on markdown-only evidence exports.
+- SDK repo/memory tools also include `load_evidence_packet` for bounded packet summaries and `load_claim_evidence` for one selected claim's preserved full evidence, so specialists can control context without clipping canonical source text.
 - SDK provider/analysis tools live in `stock_research/agent_runtime/tools/provider_tools.py` and `stock_research/agent_runtime/tools/analysis_tools.py`; they plan by default and block live side effects unless runtime context explicitly grants execution.
 - SDK local telemetry lives in `stock_research/agent_runtime/tracing.py`; `run_metrics.md` records agent/tool/LLM rows plus injected and reported operational memory ids and runner-level timeout/error status.
 - Post-run reflection in `stock_research/memory_reflection.py` reads `run_metrics.md` and turns SDK runtime failures or missing metrics into reflection issues.
@@ -227,9 +228,10 @@ Use CLI commands for manual operation, scheduler entrypoints, validation, smoke 
 
 | User request | Primary update | Secondary update |
 | --- | --- | --- |
-| Research specific stocks | `docs/plans/human_research_requests.md` | `stock_tracking/monitoring/`, company files |
+| Research specific stocks | `docs/plans/human_research_requests.md`, `agents/runs/{run_id}/research_run_spec.json` | company deep-research report; monitoring unchanged until explicit approval |
 | Capture quick stock ideas | Google Sheet `new_stock_overview` | `sheet-intake selected-rows` when rows are marked `action=research` |
-| Track an industry | `market_research/industries/` | `strategy/research_priorities.md` |
+| Research an industry once | `market_research/industries/`, `agents/runs/{run_id}/research_run_spec.json` | industry deep-research report |
+| Track an industry recurrently | explicit strategy/recurring request | `strategy/research_priorities.md` |
 | Track a technology/theme | `market_research/themes/` | `strategy/research_priorities.md`, strategy files |
 | Change strategy | `strategy/` | `MEMORY.md` if durable/high-impact |
 | Review alerts | `agents/human_review_queue.md` | latest run summary/category state files |

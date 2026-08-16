@@ -272,6 +272,9 @@ def claim_summary(claim: Claim) -> dict[str, Any]:
         "impact": claim.impact,
         "source_ids": claim.source_ids,
         "evidence": claim.evidence,
+        "display_excerpt": claim.display_excerpt,
+        "full_evidence_path": claim.full_evidence_path,
+        "full_evidence_selector": claim.full_evidence_selector,
     }
 
 
@@ -509,7 +512,16 @@ def format_company_news_review_markdown(root: Path, review: dict[str, Any]) -> s
         for claim in review["contents_claims"]:
             lines.append(f"- {claim['claim']} ({claim['confidence']}, {claim['impact']})")
             if claim.get("evidence"):
-                lines.append(f"  - Evidence: {format_inline_evidence(str(claim['evidence']))}")
+                display_evidence = str(claim.get("display_excerpt") or "") or format_inline_evidence(str(claim["evidence"]))
+                if display_evidence:
+                    lines.append(f"  - Evidence: {display_evidence}")
+                else:
+                    lines.append("  - Evidence excerpt omitted because the selected source text is incomplete.")
+                full_path = str(claim.get("full_evidence_path") or "").strip()
+                if full_path and (display_evidence != str(claim["evidence"])):
+                    selector = str(claim.get("full_evidence_selector") or "").strip()
+                    suffix = f" ({selector})" if selector else ""
+                    lines.append(f"  - Full evidence: `{full_path}`{suffix}")
     else:
         lines.append("- No Exa contents claims available.")
     lines.extend(["", "## Review Notes", ""])

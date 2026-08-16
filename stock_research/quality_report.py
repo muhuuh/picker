@@ -8,6 +8,7 @@ from typing import Any
 
 from .evidence import EvidencePacket, read_packet, validate_packet
 from .memory_reflection import packet_matches_task
+from .report_characterization import characterize_report_corpus, evaluate_reader_value, load_markdown_reports
 from .report_quality import validate_human_facing_markdown
 from .repo import find_repo_root
 
@@ -68,9 +69,41 @@ def build_quality_report(
 
     findings.extend(final_human_report_target_findings(run_dir, require_final_reports=require_final_reports))
 
-    for report_path in human_facing_report_paths(repo_root, run_dir):
+    report_paths = human_facing_report_paths(repo_root, run_dir)
+    for report_path in report_paths:
         for finding in validate_human_facing_markdown(report_path.read_text(encoding="utf-8")):
             findings.append(QualityFinding("medium", "human_report_quality", finding, report_path.as_posix()))
+
+    corpus_findings = characterize_report_corpus(load_markdown_reports(final_human_report_paths(run_dir)))
+    for finding in corpus_findings:
+        evidence = ", ".join(finding.evidence_paths)
+        findings.append(
+            QualityFinding(
+                "medium",
+                finding.category,
+                f"{finding.summary} Shared excerpt: {finding.excerpt[:240]}",
+                evidence,
+            )
+        )
+
+    reader_value_findings: list[QualityFinding] = []
+    for report_path in final_human_report_paths(run_dir):
+        subject = report_path.name.split("_", 1)[0]
+        for result in evaluate_reader_value(
+            report_path.read_text(encoding="utf-8"),
+            subject_terms=(subject,),
+            require_x_insight=True,
+        ):
+            if result.required and not result.passed:
+                reader_value_findings.append(
+                    QualityFinding(
+                        "medium",
+                        "reader_value",
+                        f"{result.dimension}: {result.reason}",
+                        report_path.as_posix(),
+                    )
+                )
+    findings.extend(reader_value_findings)
 
     metrics = {
         "provider_tasks_planned": len(provider_tasks),
@@ -80,6 +113,8 @@ def build_quality_report(
         "findings": len(findings),
         "high_findings": len([finding for finding in findings if finding.severity == "high"]),
         "medium_findings": len([finding for finding in findings if finding.severity == "medium"]),
+        "cross_report_findings": len(corpus_findings),
+        "reader_value_findings": len(reader_value_findings),
         "recommended_updates": sum(len(packet.recommended_updates) for _path, packet in packets),
         "human_review_recommended_updates": sum(
             len([update for update in packet.recommended_updates if update.needs_human_review])
@@ -201,6 +236,13 @@ def human_facing_report_paths(repo_root: Path, run_dir: Path) -> list[Path]:
     if company_research_dir.exists():
         candidates.extend(sorted(company_research_dir.glob("*_company_research.md")))
     return candidates
+
+
+def final_human_report_paths(run_dir: Path) -> list[Path]:
+    human_synthesis_dir = run_dir / "reports" / "human_synthesis"
+    if not human_synthesis_dir.exists():
+        return []
+    return sorted(human_synthesis_dir.glob("*_final_human_report.md"))
 
 
 def planned_provider_tasks_without_packets(

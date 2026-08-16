@@ -1,6 +1,6 @@
 # Setup
 
-Last updated: 2026-05-18
+Last updated: 2026-08-16
 
 ## Requirements
 
@@ -31,6 +31,8 @@ python -m stock_research model-routing show --route main_orchestrator
 python -m unittest discover -s tests
 ```
 
+This command must collect and run the entire suite. The repository CI workflow uses the same command on Windows with Python 3.13 after `python -m pip install -e .`; a missing declared dependency or collection error fails the job.
+
 ## Human Intake Routing
 
 Classify a request without editing files:
@@ -44,6 +46,8 @@ Append and route a request into durable repo artifacts:
 ```powershell
 python -m stock_research route-request "Research ASML, TSM, AMD, and SAP" --priority high
 ```
+
+This research-only route writes a `company_deep_research` run spec. It does not add those tickers to monitoring; use the separate approved status-change or candidate-promotion workflow for portfolio/watchlist changes.
 
 ## Google Sheet Stock Intake
 
@@ -494,6 +498,8 @@ Write run summary and quality report artifacts:
 python -m stock_research run-summary --run-id 2026-05-09_weekly --write
 python -m stock_research quality-report --run-id 2026-05-09_weekly --write
 ```
+
+Quality reports scan canonical final reports for exact and paraphrased cross-report boilerplate, incomplete excerpts, and executable reader-value dimensions. There is no universal final-report word floor; usefulness and evidence coverage determine whether concise output passes.
 
 Run markdown artifacts are intended to be inspectable repo state. Generated run JSON files, raw provider JSON, and evidence packet JSON are local runtime artifacts and are ignored by Git. Use `knowledge-promotion status --run-id RUN_ID` to verify company-file, category-state, memory, human-review, market/strategy, and archive-index promotion. Use `artifact-hygiene cleanup-json` to dry-run local JSON cleanup; pass `--write` only after the command confirms the run is old enough, knowledge-promotion is cleanup-ready, finalization exists, memory drafts are handled, human-review follow-ups are resolved/completed, all canonical final human reports exist, and no JSON is Git-tracked or non-ignored.
 

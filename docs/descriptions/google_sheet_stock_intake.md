@@ -23,13 +23,13 @@ Durable state still lives in the repo:
 ## User Journey
 
 1. User hears about a stock.
-2. User asks Codex chat to fill one row in the Sheet from a pasted paragraph, source link, or quick note.
-3. Codex fills the row with basic company data, valuation snapshots if available, analyst forecast if available, the user's `Score`, broker `available` value, a concise `Comment`, and the source link.
+2. User asks Codex chat to fill one row in the Sheet from a pasted paragraph or quick note.
+3. Codex fills the row with basic company data, valuation snapshots if available, analyst forecast if available, the user's `Score`, broker `available` value, and a concise `Comment`.
 4. User reviews the Sheet every one or two weeks.
 5. User changes `action` to `research` only for rows that should enter the repo validation path.
 6. User explicitly asks Codex to process those `research` rows.
-7. Codex turns selected rows into repo candidate-review artifacts and, only when explicitly requested, verification tasks.
-8. After research, the Sheet row should be updated to show the final routing in `action`, plus simple `Processing status`, `Repo link`, and `Last checked` fields.
+7. Codex turns selected rows into repo candidate-review artifacts and, when the user asks for reviewable deep dives, runs the full Codex-supervised final-report workflow.
+8. After research, the Sheet row should be backfilled with compact overview fields when they are blank, and updated to show the final routing in `action`, plus simple `Processing status`, `Repo link`, and `Last checked` fields.
 
 No background automation should watch the Sheet and start research without an explicit user request.
 
@@ -49,9 +49,8 @@ No background automation should watch the Sheet and start research without an ex
 | `available` | Broker/provider availability: `yes` or `no`; blank means unknown. |
 | `action` | User routing decision for the row. |
 | `Comment` | Few-sentence skim summary of what the stock is and why it is interesting. |
-| `Source / link` | Optional article, post, note, or URL behind the idea. |
 | `Processing status` | Simple Codex/repo processing status for this row. |
-| `Repo link` | Repo artifact created from this row, if any. |
+| `Repo link` | Repo artifact created from this row, if any. For reviewable deep dives this should point to `agents/runs/{run_id}/reports/human_synthesis/{TICKER}_final_human_report.md`, not an intermediate candidate summary. |
 | `Last checked` | Last date Codex or the user reviewed this row. |
 
 ## Dropdown Semantics
@@ -79,7 +78,7 @@ No background automation should watch the Sheet and start research without an ex
 `action` options:
 
 - blank: keep the idea in the Sheet inbox. Codex should not process it when scanning selected rows.
-- `research`: process this row through repo candidate review/verification planning when the user explicitly asks Codex.
+- `research`: process this row through repo candidate review/verification planning when the user explicitly asks Codex. If the user asks for actual reviewable deep dives, this means the full final-report workflow, not only a candidate-routing summary.
 - `add to monitoring`: final user decision to track the stock in repo monitoring after research/approval.
 - `buy candidate`: high-interest idea, but not a trade instruction.
 - `bought`: user already bought it or confirms it belongs in current holdings.
@@ -103,7 +102,7 @@ python -m stock_research sheet-intake selected-rows --rows-json rows.json --writ
 
 Default behavior imports only rows whose `action` normalizes to `research`.
 
-The command writes:
+The command writes the intake/candidate-routing layer:
 
 - `agents/runs/{run_id}/market_research/sheet_intake.md`
 - `agents/runs/{run_id}/market_research/sheet_intake_candidate_leads.json`
@@ -111,6 +110,14 @@ The command writes:
 - optional human-review queue rows when `--queue-review` is used
 
 It does not add stocks to monitoring, current holdings, or rejected state.
+
+Important distinction: `candidate_research_summary.md` and other candidate-routing artifacts are not the final reader-facing deep dive. When the user asks to review the companies before deciding monitor/reject/ignore, run the full provider + analysis + human synthesis pack workflow and write one canonical final report per company under:
+
+```text
+agents/runs/{run_id}/reports/human_synthesis/{TICKER}_final_human_report.md
+```
+
+The Sheet `Repo link` should then be updated to those final reports.
 
 When the user explicitly wants to skip the separate HRQ approval step for the just-created rows and immediately plan verification, use:
 
@@ -124,6 +131,8 @@ That writes `candidate_verification_manifest.json` and `candidate_verification_p
 
 After a selected row is researched:
 
+- Backfill blank overview cells (`Name`, `Industry`, `Mcap`, `Forward PE`, `P/S`, `Forecast`, and `Comment`) from verified repo artifacts when the row started as ticker-only. Keep this concise; detailed evidence stays in the repo and is linked from `Repo link`.
+- If the user requested a deep-dive review, link the canonical `*_final_human_report.md` in `Repo link`; do not leave `Repo link` on the intermediate candidate summary.
 - If it becomes a monitoring candidate and the user approves promotion, update `action=add to monitoring`, `Processing status=done`, and `Repo link` to the monitoring/company artifact.
 - If the user bought it, update `action=bought`, `Processing status=done`, and ensure the current-holdings repo files are updated.
 - If it should not be pursued, update `action=ignore` or `action=rejected`, and set `Processing status=done`; use `rejected` when the repo should preserve a cooldown trail.

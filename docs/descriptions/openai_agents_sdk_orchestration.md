@@ -263,7 +263,7 @@ The SDK runtime passes the resolved model through `RunConfig.model`, which the O
 
 - `gpt-5.5` for high-complexity autonomous OpenAI API synthesis: main orchestrator, company research, market research, opportunity assessment, and risk/thesis.
 - configured fast OpenAI tier for lower-complexity autonomous synthesis: writer, quality review, memory/evaluation, portfolio review, filing, financial/news artifact synthesis. The current lower-cost default is `gpt-5.4-mini`; keep `gpt-5.5` for strong/high-complexity synthesis.
-- `grok-4.3` through xAI for X.com-native sentiment, hype, rumors, niche lead generation, and latest X narrative shifts.
+- `grok-4.6` through xAI for X.com-native sentiment, hype, rumors, niche lead generation, and latest X narrative shifts. Execution validates model availability for the authenticated key before the search call.
 - no LLM for deterministic providers, validation, artifact hygiene, category state updates, human-review digest generation, and approval-gated writers.
 
 Codex app/automation is the preferred manual and local scheduled runner for repo commands, report review, prompt iteration, final synthesis, and file edits because it can use the user's Codex GPT-5.5 high environment. Python code cannot directly call the current Codex chat model internally, so remote/headless API-mode runs still need routed API models.

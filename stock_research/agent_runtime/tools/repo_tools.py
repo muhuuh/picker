@@ -8,6 +8,7 @@ from agents import RunContextWrapper, function_tool
 
 from stock_research.agent_runtime.context import ResearchRunContext
 from stock_research.memory import format_memory_context_for_prompt, load_memory_state
+from stock_research.text_excerpt import complete_sentence_excerpt
 
 
 def safe_run_path(context: ResearchRunContext, name: str) -> Path:
@@ -90,20 +91,19 @@ def list_evidence_packets_data(context: ResearchRunContext) -> dict[str, Any]:
 
 
 def load_evidence_packet_data(context: ResearchRunContext, packet_id_or_path: str, max_claims: int = 8, max_sources: int = 12) -> dict[str, Any]:
-    evidence_dir = context.run_dir / "evidence_packets"
-    if not evidence_dir.exists():
-        return {"error": "missing_evidence_packets_dir", "packet_id_or_path": packet_id_or_path}
-    requested = packet_id_or_path.strip()
-    candidates: list[Path] = []
-    if requested.endswith(".json"):
-        candidates.append(safe_run_path(context, requested))
-    candidates.extend(evidence_dir.glob(f"{requested}.json"))
-    candidates.extend(path for path in evidence_dir.glob("*.json") if path.name == requested or path.stem == requested)
-    candidates.extend(path for path in evidence_dir.glob("*.json") if requested and requested in path.stem)
-    path = next((candidate for candidate in candidates if candidate.exists() and evidence_dir.resolve() in candidate.resolve().parents), None)
+    path = find_evidence_packet_path(context, packet_id_or_path)
     if path is None:
         return {"error": "missing_evidence_packet", "packet_id_or_path": packet_id_or_path}
     data = json.loads(path.read_text(encoding="utf-8"))
+    claims: list[dict[str, Any]] = []
+    for claim_index, raw_claim in enumerate(list(data.get("claims", []))[:max_claims]):
+        claim = dict(raw_claim)
+        full_evidence = str(claim.get("evidence", ""))
+        claim["claim_index"] = claim_index
+        claim["evidence"] = str(claim.get("display_excerpt", "")) or complete_sentence_excerpt(full_evidence, 1200).text
+        claim["full_evidence_available"] = bool(full_evidence)
+        claim["full_evidence_length"] = len(full_evidence)
+        claims.append(claim)
     return {
         "path": str(path.relative_to(context.run_dir)).replace("\\", "/"),
         "packet_id": data.get("packet_id", ""),
@@ -112,13 +112,62 @@ def load_evidence_packet_data(context: ResearchRunContext, packet_id_or_path: st
         "subject_id": data.get("subject_id", ""),
         "time_window": data.get("time_window", ""),
         "notes": data.get("notes", ""),
+        "raw_artifact_path": data.get("raw_artifact_path", ""),
         "sources": list(data.get("sources", []))[:max_sources],
-        "claims": list(data.get("claims", []))[:max_claims],
+        "claims": claims,
         "risks": list(data.get("risks", []))[:max_claims],
         "contradictions": list(data.get("contradictions", []))[:max_claims],
         "recommended_updates": list(data.get("recommended_updates", []))[:max_claims],
         "unknowns": list(data.get("unknowns", []))[:max_claims],
     }
+
+
+def load_claim_evidence_data(context: ResearchRunContext, packet_id_or_path: str, claim_index: int) -> dict[str, Any]:
+    path = find_evidence_packet_path(context, packet_id_or_path)
+    if path is None:
+        return {"error": "missing_evidence_packet", "packet_id_or_path": packet_id_or_path}
+    data = json.loads(path.read_text(encoding="utf-8"))
+    claims = list(data.get("claims", []))
+    if claim_index < 0 or claim_index >= len(claims):
+        return {
+            "error": "claim_index_out_of_range",
+            "packet_id": data.get("packet_id", ""),
+            "claim_index": claim_index,
+            "claim_count": len(claims),
+        }
+    claim = dict(claims[claim_index])
+    return {
+        "path": str(path.relative_to(context.run_dir)).replace("\\", "/"),
+        "packet_id": data.get("packet_id", ""),
+        "provider": data.get("provider", ""),
+        "claim_index": claim_index,
+        "claim": claim.get("claim", ""),
+        "evidence": claim.get("evidence", ""),
+        "source_ids": claim.get("source_ids", []),
+        "full_evidence_path": claim.get("full_evidence_path", "") or data.get("raw_artifact_path", ""),
+        "full_evidence_selector": claim.get("full_evidence_selector", ""),
+    }
+
+
+def find_evidence_packet_path(context: ResearchRunContext, packet_id_or_path: str) -> Path | None:
+    evidence_dir = context.run_dir / "evidence_packets"
+    if not evidence_dir.exists():
+        return None
+    requested = packet_id_or_path.strip()
+    candidates: list[Path] = []
+    if requested.endswith(".json"):
+        candidates.append(safe_run_path(context, requested))
+    candidates.extend(evidence_dir.glob(f"{requested}.json"))
+    candidates.extend(path for path in evidence_dir.glob("*.json") if path.name == requested or path.stem == requested)
+    candidates.extend(path for path in evidence_dir.glob("*.json") if requested and requested in path.stem)
+    return next(
+        (
+            candidate
+            for candidate in candidates
+            if candidate.exists() and evidence_dir.resolve() in candidate.resolve().parents
+        ),
+        None,
+    )
 
 
 @function_tool
@@ -180,6 +229,16 @@ def load_evidence_packet(ctx: RunContextWrapper[ResearchRunContext], packet_id_o
 
 
 @function_tool
+def load_claim_evidence(ctx: RunContextWrapper[ResearchRunContext], packet_id_or_path: str, claim_index: int) -> str:
+    """Load preserved full evidence for one selected claim after reviewing the bounded packet summary."""
+    return json.dumps(
+        load_claim_evidence_data(ctx.context, packet_id_or_path, claim_index),
+        indent=2,
+        sort_keys=True,
+    )
+
+
+@function_tool
 def load_stock_tracking_csv(ctx: RunContextWrapper[ResearchRunContext], category: str) -> str:
     """Load a stock tracking CSV: current_holdings, monitoring, or rejected."""
     allowed = {
@@ -206,5 +265,6 @@ def repo_tools() -> list[Any]:
         load_quality_report,
         list_evidence_packets,
         load_evidence_packet,
+        load_claim_evidence,
         load_stock_tracking_csv,
     ]

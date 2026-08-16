@@ -386,3 +386,31 @@ After a weekly or manual run:
 - evidence: `stock_research/quality_report.py`, `stock_research/codex_review_pack.py`, `docs/descriptions/codex_supervised_workflow.md`, `docs/descriptions/run_summary_and_quality.md`, `C:\Users\valen\.codex\automations\biweekly-holdings-and-monitoring-research\automation.toml`, `C:\Users\valen\.codex\rules\default.rules`
 - owner: codex
 - next_review: 2026-06-18
+
+- id: eval-2026-05-24-custom-xai-artifact-names-in-synthesis-packs
+- date: 2026-05-24
+- type: evaluation
+- scope: writer
+- status: active
+- confidence: high
+- trigger/source: 2026-05-24 Sheet full deep-dive synthesis pack initially missed same-run Grok web/X artifacts named sheet_full_xai_web_* and sheet_full_xai_x_*
+- lesson: Human synthesis packs must recognize both default x_search/web_search filenames and custom-manifest xai_x/xai_web raw artifact names; otherwise final report inputs can falsely appear to be missing Grok web or X evidence even when provider tasks succeeded.
+- use_when: Building, validating, or debugging reports/human_synthesis/*_synthesis_pack.md for manual Sheet, market-research, or custom manifest runs that include xAI/Grok lanes.
+- do_not_use_when: A run genuinely has no xAI/Grok provider task or the user explicitly requested no social/web auxiliary evidence.
+- evidence: stock_research/human_synthesis_pack.py; tests/test_human_synthesis_pack.py; agents/runs/2026-05-24_sheet-full-deep-dives/reports/human_synthesis/VPG_synthesis_pack.md; agents/runs/2026-05-24_sheet-full-deep-dives/quality_report.md
+- owner: Codex
+- next_review: 2026-06-24
+
+- id: eval-2026-08-16-cross-report-reader-quality
+- date: 2026-08-16
+- type: evaluation
+- scope: writer
+- status: active
+- confidence: high
+- trigger/source: 2026-07-04 weekly final-report false-clean characterization
+- lesson: Final reader reports must be evaluated as a corpus and against executable reader-value dimensions. Use sanitized excerpts and the prior quality artifact from the real bad run, source-linked real positive examples, exact plus bounded near-duplicate detection, and complete-fragment checks. Do not use a universal word-count floor: the historical gate could be passed by padding while useful concise reports failed.
+- use_when: Building quality reports, golden tests, final report writers, or deciding whether a reader-facing run is complete.
+- do_not_use_when: Judging raw provider packet validity alone or treating a word-count floor as reader usefulness.
+- evidence: stock_research/report_characterization.py, stock_research/report_quality.py, stock_research/quality_report.py, tests/fixtures/report_quality/, tests/test_report_characterization.py, tests/test_report_quality_golden.py, agents/runs/2026-07-04_weekly/
+- owner: quality workflow
+- next_review: 2026-10-16

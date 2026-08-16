@@ -179,3 +179,45 @@ Operational memory about provider reliability, source behavior, and known gotcha
 - evidence: stock_research/providers/xai_grok.py; stock_research/manifest.py; docs/descriptions/xai_grok_provider.md; docs/plans/human_report_quality_improvement_plan.md
 - owner: provider_runner
 - next_review: 2026-06-14
+
+- id: source-2026-05-24-yfinance-extended-valuation-metrics
+- date: 2026-05-24
+- type: source_quality
+- scope: financial
+- status: active
+- confidence: high
+- trigger/source: Soitec SOI.PA Sheet correction showed yfinance raw data had forwardPE and priceToSalesTrailing12Months, but normalized packets did not expose them.
+- lesson: For yfinance snapshots, preserve extended valuation/profile fields in the evidence packet when available, including company_name, country, forward_pe, price_to_sales_ttm, revenue_ttm, EV/EBITDA, PEG, price/book, EPS, profit margin, and debt/equity. If a Sheet overview cell is blank after research, check whether the raw provider had a field that the normalizer failed to expose before marking it unavailable.
+- use_when: Financial provider extraction, Google Sheet overview backfills, and financial_compare coverage checks.
+- do_not_use_when: Treating yfinance as sufficient for high-impact buy/sell decisions without cross-provider or primary-source verification.
+- evidence: stock_research/providers/yfinance_provider.py; stock_research/financial_compare.py; agents/runs/2026-05-24_sheet-intake-soitec-soi/reports/financial_data_specialist/SOI.PA_financial_review.md
+- owner: financial-data specialist
+- next_review: 2026-08-24
+
+- id: source-2026-08-16-grok-46-resolution
+- date: 2026-08-16
+- type: source_quality
+- scope: provider
+- status: active
+- confidence: high
+- trigger/source: 2026-08-16 authenticated xAI model check and live company/industry X Search smokes
+- lesson: xAI Grok research should request grok-4.6, validate it against the authenticating key's /v1/models catalog before live execution, and record requested/resolved model, tool, reasoning effort, resolution source, and fallback reason. Never replace a missing X-search lane with generic web search.
+- use_when: Planning, executing, or reviewing xAI Grok X Search or Web Search provider tasks.
+- do_not_use_when: Selecting OpenAI synthesis models or treating Grok/X claims as verified facts.
+- evidence: stock_research/providers/xai_grok.py, stock_research/provider_runner.py, agents/runs/2026-08-16_grok-46-smoke/, docs/descriptions/xai_grok_provider.md
+- owner: provider workflow
+- next_review: 2026-11-16
+
+- id: source-2026-08-16-full-evidence-display-excerpts
+- date: 2026-08-16
+- type: source_quality
+- scope: evidence
+- status: active
+- confidence: high
+- trigger/source: Hidden truncation audit of Exa and Grok evidence packets and downstream company-news formatting
+- lesson: Canonical selected provider evidence and bounded display text are different fields. Preserve the complete selected text in Claim.evidence, generate display excerpts only at real sentence boundaries, and record the raw path/selector. Specialists should inspect bounded packet summaries, then retrieve only the full claims they promote; never turn an ellipsis or clipped word into a period.
+- use_when: Building provider adapters, evidence packets, SDK evidence tools, specialist summaries, or final-report source promotion.
+- do_not_use_when: Copying entire provider payloads into prompts without selection, or treating Grok social claims as verified facts.
+- evidence: stock_research/evidence.py, stock_research/text_excerpt.py, stock_research/providers/exa.py, stock_research/providers/xai_grok.py, stock_research/agent_runtime/tools/repo_tools.py, tests/test_evidence.py, tests/test_exa_provider.py, tests/test_xai_grok_provider.py, tests/test_agent_runtime.py
+- owner: provider and evidence workflow
+- next_review: 2026-11-16

@@ -1,6 +1,6 @@
 # Evidence Schema
 
-Last updated: 2026-05-04
+Last updated: 2026-08-16
 
 ## Purpose
 
@@ -49,6 +49,17 @@ Providers currently using this schema:
 - `artifact_path`
 - `notes`
 
+## Claim Fields
+
+- `claim`: short claim label.
+- `evidence`: canonical selected evidence text. Provider adapters must preserve it; this is not a display-length field.
+- `display_excerpt`: optional bounded, complete-sentence excerpt for packet summaries and reader navigation.
+- `full_evidence_path`: raw artifact containing the selected evidence when `display_excerpt` is shorter.
+- `full_evidence_selector`: provider-specific location inside that artifact, such as `response.results[0]` or `response.output`.
+- `source_ids`, `confidence`, `impact`, and `novelty`: normalized claim metadata.
+
+Old packets remain readable because the new display/reference fields are optional. New Exa and Grok packets preserve full selected text in `evidence` and use the additional fields for bounded context.
+
 ## Validation Rules
 
 - Every source needs a unique `source_id`.
@@ -56,6 +67,8 @@ Providers currently using this schema:
 - Every source should have either a URL or internal artifact path.
 - Social data must stay labeled as `social`; it is sentiment, not fact.
 - Missing metrics should be put in `unknowns`, not guessed.
+- A shortened `display_excerpt` should link to `full_evidence_path`.
+- Display excerpts must end at a source sentence boundary. Do not replace `...` with `.` or invent a sentence ending.
 
 ## Storage
 
@@ -66,6 +79,8 @@ agents/runs/{run_id}/evidence_packets/{packet_id}.json
 ```
 
 Raw provider output can be stored separately and linked via `raw_artifact_path`.
+
+SDK specialists first use the bounded `load_evidence_packet` summary. If a claim is material enough to promote, they can call `load_claim_evidence` with its packet id and `claim_index` to retrieve the preserved selected text. This selection-first flow bounds context without clipping canonical evidence.
 
 ## CLI
 

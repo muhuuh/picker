@@ -33,7 +33,6 @@ CANONICAL_HEADERS = [
     "available",
     "action",
     "Comment",
-    "Source / link",
     "Processing status",
     "Repo link",
     "Last checked",
@@ -61,7 +60,6 @@ class SheetIntakeRow:
     available: str = ""
     action: str = ""
     comment: str = ""
-    source_link: str = ""
     processing_status: str = ""
     repo_link: str = ""
     last_checked: str = ""
@@ -243,7 +241,6 @@ def normalize_sheet_row(row: dict[str, Any], *, fallback_row_number: int) -> She
         available=normalize_option(values.get("available", "")),
         action=normalize_action(values.get("action", "")),
         comment=values.get("comment", ""),
-        source_link=values.get("source_link", ""),
         processing_status=normalize_option(values.get("processing_status", "") or values.get("workflow_status", "")),
         repo_link=values.get("repo_link", ""),
         last_checked=values.get("last_checked", ""),
@@ -314,8 +311,6 @@ def lead_notes(row: SheetIntakeRow) -> str:
         notes.append(f"forward_pe={row.forward_pe}")
     if row.price_to_sales:
         notes.append(f"price_to_sales={row.price_to_sales}")
-    if row.source_link:
-        notes.append(f"source={row.source_link}")
     return "; ".join(notes)
 
 

@@ -35,6 +35,42 @@ class FinancialCompareTests(unittest.TestCase):
             self.assertEqual(evidence["latest_price"]["status"], "consistent")
             self.assertEqual(evidence["market_cap"]["status"], "consistent")
 
+    def test_yfinance_extended_valuation_metrics_are_compared(self):
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            run_id = "2026-05-24_sheet-intake"
+            write_input_packet(
+                root,
+                run_id,
+                "yfinance",
+                {
+                    "company_name": "Soitec SA",
+                    "last_price": 177.35,
+                    "market_cap": 6334940160,
+                    "pe_ratio": 633.39,
+                    "forward_pe": 506.09,
+                    "price_to_sales_ttm": 8.08,
+                    "revenue_ttm": 783854976,
+                    "currency": "EUR",
+                    "exchange": "PAR",
+                    "country": "France",
+                },
+            )
+
+            packet, paths = build_financial_compare_packet(
+                ticker="AAPL",
+                run_id=run_id,
+                root=root,
+                current_date=date(2026, 5, 24),
+            )
+
+            loaded = read_packet(paths[0])
+            evidence = json.loads(loaded.claims[0].evidence)
+            self.assertEqual(packet.provider, "financial_compare")
+            self.assertEqual(evidence["forward_pe"]["value"], 506.09)
+            self.assertEqual(evidence["price_to_sales_ttm"]["value"], 8.08)
+            self.assertEqual(evidence["revenue_ttm"]["value"], 783854976)
+
     def test_compare_observations_flags_material_numeric_conflicts(self):
         from stock_research.financial_compare import FinancialObservation
 

@@ -6,9 +6,54 @@ import unittest
 from unittest.mock import patch
 
 from stock_research.provider_runner import execute_provider_task, run_provider_tasks
+from stock_research.providers.xai_grok import XaiModelCatalog, XaiModelResolution
 
 
 class ProviderRunnerTests(unittest.TestCase):
+    def test_xai_task_resolves_authenticated_model_and_passes_provenance(self):
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            task = {
+                "id": "xai_stock_aapl",
+                "provider": "xai_grok",
+                "tool": "x_search",
+                "subject_type": "company",
+                "subject_id": "AAPL",
+                "args": {
+                    "prompt": "Search X for AAPL discussion.",
+                    "run_id": "2026-08-16_test",
+                    "research_kind": "stock_sentiment",
+                    "model": "grok-4.6",
+                    "reasoning_effort": "high",
+                },
+            }
+            resolution = XaiModelResolution(
+                requested_model="grok-4.6",
+                resolved_model="grok-4.6",
+                source="authenticated_model_catalog",
+            )
+            catalog = XaiModelCatalog(model_ids=("grok-4.6",), aliases=())
+            with (
+                patch("stock_research.provider_runner.resolve_xai_api_key", return_value="test-key"),
+                patch(
+                    "stock_research.provider_runner.resolve_available_xai_search_model",
+                    return_value=(resolution, catalog),
+                ) as resolve_model,
+                patch(
+                    "stock_research.provider_runner.build_xai_x_search_packet",
+                    return_value=(SimpleNamespace(packet_id="packet-1"), [root / "packet.json", root / "raw.json"]),
+                ) as build_packet,
+            ):
+                result = execute_provider_task(root, task, current_date=date(2026, 8, 16))
+
+        resolve_model.assert_called_once_with("grok-4.6", "test-key")
+        options = build_packet.call_args.kwargs["options"]
+        self.assertEqual(options.requested_model, "grok-4.6")
+        self.assertEqual(options.model, "grok-4.6")
+        self.assertEqual(options.model_resolution_source, "authenticated_model_catalog")
+        self.assertEqual(options.reasoning_effort, "high")
+        self.assertEqual(result["packet_id"], "packet-1")
+
     def test_provider_runner_dry_run_filters_provider_and_limit(self):
         manifest = {
             "manifest_id": "weekly_2026-05-09",

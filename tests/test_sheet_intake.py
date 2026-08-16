@@ -33,7 +33,6 @@ class SheetIntakeTests(unittest.TestCase):
                     "available": "Yes",
                     "action": "research",
                     "Comment": "Robotics supplier worth checking.",
-                    "Source / link": "https://example.com/robo",
                 }
             ]
         )

@@ -2,25 +2,45 @@ from datetime import date
 from pathlib import Path
 from tempfile import TemporaryDirectory
 import csv
+import json
 import unittest
 
 from stock_research.router import route_request
 
 
 class RequestRouterTests(unittest.TestCase):
-    def test_stock_request_adds_monitoring_rows_and_company_files(self):
+    def test_stock_research_request_plans_deep_research_without_monitoring_mutation(self):
         with TemporaryDirectory() as temp_dir:
             root = create_routing_scaffold(Path(temp_dir))
+            append_csv_row(root / "stock_tracking" / "monitoring" / "monitoring.csv", {"ticker": "KEEP", "status": "monitoring"})
+            protected_paths = [
+                root / "stock_tracking" / "current_holdings" / "current_holdings.csv",
+                root / "stock_tracking" / "monitoring" / "monitoring.csv",
+                root / "stock_tracking" / "rejected" / "rejected.csv",
+                root / "stock_tracking" / "stock_info_files" / "monitoring" / "KEEP.md",
+                root / "strategy" / "investment_strategy.md",
+                root / "strategy" / "research_priorities.md",
+            ]
+            before = {path: path.read_bytes() for path in protected_paths}
 
             result = route_request(root, "Research ASML and AMD", priority="high", today=date(2026, 5, 3))
 
             self.assertEqual(result.request_type, "stock_research")
+            self.assertEqual(result.request_status, "planned_on_demand")
+            self.assertEqual(result.profile_id, "company_deep_research")
             rows = read_csv(root / "stock_tracking" / "monitoring" / "monitoring.csv")
-            self.assertEqual([row["ticker"] for row in rows], ["AMD", "ASML"])
-            self.assertTrue((root / "stock_tracking" / "stock_info_files" / "monitoring" / "AMD_pending.md").exists())
-            self.assertTrue((root / "stock_tracking" / "stock_info_files" / "monitoring" / "ASML_pending.md").exists())
+            self.assertEqual([row["ticker"] for row in rows], ["KEEP"])
+            self.assertFalse((root / "stock_tracking" / "stock_info_files" / "monitoring" / "AMD_pending.md").exists())
+            self.assertEqual({path: path.read_bytes() for path in protected_paths}, before)
+            spec_path = root / result.run_spec_path
+            self.assertTrue(spec_path.exists())
+            spec = json.loads(spec_path.read_text(encoding="utf-8"))
+            self.assertEqual([subject["subject_id"] for subject in spec["subjects"]], ["AMD", "ASML"])
+            self.assertFalse(spec["profile"]["write_permissions"]["portfolio_membership"])
+            requests = (root / "docs" / "plans" / "human_research_requests.md").read_text(encoding="utf-8")
+            self.assertIn("planned_on_demand", requests)
 
-    def test_industry_request_creates_research_file_and_priority(self):
+    def test_industry_request_creates_research_file_without_recurring_priority(self):
         with TemporaryDirectory() as temp_dir:
             root = create_routing_scaffold(Path(temp_dir))
 
@@ -32,10 +52,11 @@ class RequestRouterTests(unittest.TestCase):
             )
 
             self.assertEqual(result.request_type, "industry_research")
+            self.assertEqual(result.profile_id, "industry_deep_research")
             self.assertTrue((root / "market_research" / "industries" / "european_grid_infrastructure_suppliers.md").exists())
             priorities = (root / "strategy" / "research_priorities.md").read_text(encoding="utf-8")
-            self.assertIn("RP-0002", priorities)
-            self.assertIn("European Grid Infrastructure Suppliers", priorities)
+            self.assertNotIn("RP-0002", priorities)
+            self.assertTrue((root / result.run_spec_path).exists())
 
     def test_strategy_request_adds_review_item(self):
         with TemporaryDirectory() as temp_dir:
@@ -67,6 +88,8 @@ def create_routing_scaffold(root: Path) -> Path:
     (root / "market_research" / "industries").mkdir(parents=True)
     (root / "market_research" / "themes").mkdir(parents=True)
     (root / "stock_tracking" / "monitoring").mkdir(parents=True)
+    (root / "stock_tracking" / "current_holdings").mkdir(parents=True)
+    (root / "stock_tracking" / "rejected").mkdir(parents=True)
     (root / "stock_tracking" / "stock_info_files" / "monitoring").mkdir(parents=True)
 
     (root / "docs" / "plans" / "human_research_requests.md").write_text(
@@ -101,12 +124,32 @@ def create_routing_scaffold(root: Path) -> Path:
         "ticker,company_name,exchange,country,currency,sector,industry,status,stock_info_file,source,price,market_cap,pe_ratio,date_found,date_last_updated,next_review_date,last_filing_checked,last_news_checked,last_sentiment_checked,alert_level,watch_reason,target_entry_criteria,notes\n",
         encoding="utf-8",
     )
+    (root / "stock_tracking" / "current_holdings" / "current_holdings.csv").write_text(
+        "ticker,status\nOWNED,current_holding\n",
+        encoding="utf-8",
+    )
+    (root / "stock_tracking" / "rejected" / "rejected.csv").write_text(
+        "ticker,status\nREJECTED,rejected\n",
+        encoding="utf-8",
+    )
+    (root / "stock_tracking" / "stock_info_files" / "monitoring" / "KEEP.md").write_text(
+        "# KEEP\n\nExisting monitored company.\n",
+        encoding="utf-8",
+    )
     return root
 
 
 def read_csv(path: Path) -> list[dict[str, str]]:
     with path.open("r", newline="", encoding="utf-8") as handle:
         return list(csv.DictReader(handle))
+
+
+def append_csv_row(path: Path, values: dict[str, str]) -> None:
+    with path.open("r", newline="", encoding="utf-8") as handle:
+        fieldnames = next(csv.reader(handle))
+    with path.open("a", newline="", encoding="utf-8") as handle:
+        writer = csv.DictWriter(handle, fieldnames=fieldnames)
+        writer.writerow({field: values.get(field, "") for field in fieldnames})
 
 
 if __name__ == "__main__":

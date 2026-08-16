@@ -1,6 +1,6 @@
 # Model Routing And Codex Usage
 
-Last updated: 2026-05-17
+Last updated: 2026-08-16
 
 ## Purpose
 
@@ -25,7 +25,8 @@ Current code paths:
 Current default model:
 
 - routed through `agents/model_routing.yaml` as `xai_grok_x_search`
-- current configured model: `grok-4.3`
+- requested/configured model: `grok-4.6`
+- provider execution checks `/v1/models` for the authenticating key and records the requested model, resolved model, tool, reasoning effort, and any fallback reason in the raw artifact
 
 Current use:
 
@@ -149,9 +150,9 @@ Recommended routing:
 | Financial specialist over existing packets | SDK specialist / deterministic review artifacts | medium | cheap/fast OpenAI or Codex-run synthesis |
 | Company news specialist over Exa artifacts | SDK specialist / deterministic review artifacts | medium | cheap/fast OpenAI or Codex-run synthesis |
 | Filing specialist over SEC packets | SDK specialist | medium | cheap/fast OpenAI |
-| Stock X sentiment collection | xAI/Grok provider | high | Grok 4.3 with `x_search` |
-| Industry/theme X discovery | xAI/Grok provider | high | Grok 4.3 with `x_search` |
-| Company web deep-dive gap fill | xAI/Grok provider | medium-high | Grok 4.3 with `web_search` |
+| Stock X sentiment collection | xAI/Grok provider | high | Grok 4.6 with `x_search` |
+| Industry/theme X discovery | xAI/Grok provider | high | Grok 4.6 with `x_search` |
+| Company web deep-dive gap fill | xAI/Grok provider | medium-high | Grok 4.6 with `web_search` |
 | Grok discovery synthesis from raw output | SDK specialist / report formatter | medium-high | cheap/fast OpenAI if raw Grok is rich; strong OpenAI only if synthesis quality is poor |
 | Market research final report | deterministic formatter plus optional SDK | high | `gpt-5.5` for autonomous API mode; Codex GPT-5.5 high review loop for manual mode; Grok remains source provider |
 | Opportunity assessment audit | deterministic synthesis plus optional SDK specialist | medium-high | no LLM required for audit/evidence; Codex app reads it as input |
@@ -242,7 +243,7 @@ defaults:
   openai_balanced: gpt-5.4-mini
   openai_fast: gpt-5.4-mini
   openai_nano: gpt-5.4-mini
-  xai_grok_x_search: grok-4.3
+  xai_grok_x_search: grok-4.6
   codex_manual_model: gpt-5.5
   codex_manual_reasoning: high
 
@@ -313,4 +314,7 @@ Operational rule:
 - OpenAI Agents SDK config docs: `OPENAI_API_KEY`, default client, and base URL behavior.
 - Codex SDK docs: Codex can be controlled programmatically from the local app/CLI environment.
 - xAI X Search docs: `x_search` supports handle filters, date filters, image/video understanding, and Responses API usage.
-- xAI model docs: current default general recommendation is Grok 4.3; older Grok text model slugs retire/redirect on 2026-05-15.
+- xAI Grok 4.6 docs: https://docs.x.ai/developers/grok-4-6
+- xAI X Search docs: https://docs.x.ai/developers/tools/x-search
+- xAI model-list endpoint: https://docs.x.ai/developers/rest-api-reference/inference/models
+- xAI reasoning controls: https://docs.x.ai/developers/model-capabilities/text/reasoning

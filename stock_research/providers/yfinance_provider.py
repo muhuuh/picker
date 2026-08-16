@@ -112,11 +112,22 @@ def yfinance_snapshot_to_packet(
 
 def extract_metrics(fast_info: dict[str, Any], info: dict[str, Any]) -> dict[str, Any]:
     return {
+        "company_name": first_present(info, fast_info, "longName", "shortName"),
+        "country": first_present(info, fast_info, "country"),
         "currency": first_present(fast_info, info, "currency", "financialCurrency"),
         "last_price": first_present(fast_info, info, "lastPrice", "currentPrice", "regularMarketPrice"),
         "previous_close": first_present(fast_info, info, "previousClose", "regularMarketPreviousClose"),
         "market_cap": first_present(fast_info, info, "marketCap"),
-        "pe_ratio": first_present(info, fast_info, "trailingPE", "forwardPE"),
+        "pe_ratio": first_present(info, fast_info, "trailingPE"),
+        "forward_pe": first_present(info, fast_info, "forwardPE"),
+        "peg_ratio": first_present(info, fast_info, "pegRatio", "trailingPegRatio"),
+        "price_to_sales_ttm": first_present(info, fast_info, "priceToSalesTrailing12Months"),
+        "price_to_book_ratio": first_present(info, fast_info, "priceToBook"),
+        "ev_to_ebitda_ttm": first_present(info, fast_info, "enterpriseToEbitda"),
+        "revenue_ttm": first_present(info, fast_info, "totalRevenue"),
+        "eps": first_present(info, fast_info, "trailingEps", "epsTrailingTwelveMonths"),
+        "profit_margin": first_present(info, fast_info, "profitMargins"),
+        "debt_to_equity_ttm": first_present(info, fast_info, "debtToEquity"),
         "fifty_two_week_low": first_present(fast_info, info, "yearLow", "fiftyTwoWeekLow"),
         "fifty_two_week_high": first_present(fast_info, info, "yearHigh", "fiftyTwoWeekHigh"),
         "exchange": first_present(info, fast_info, "exchange", "fullExchangeName"),
