@@ -50,6 +50,7 @@ class StockResearchCoreTests(unittest.TestCase):
         )
         manifest = build_weekly_manifest(state, date(2026, 5, 3))
         task_ids = {task["id"] for task in manifest["provider_tasks"]}
+        deferred_task_ids = {task["id"] for task in manifest["deferred_provider_tasks"]}
         analysis_task_ids = {task["id"] for task in manifest["analysis_tasks"]}
 
         self.assertIn("yfinance_company_aapl", task_ids)
@@ -60,16 +61,21 @@ class StockResearchCoreTests(unittest.TestCase):
         self.assertIn("exa_news_company_aapl", task_ids)
         self.assertIn("exa_company_search_company_aapl", task_ids)
         self.assertIn("xai_x_search_company_aapl", task_ids)
-        self.assertIn("xai_web_deep_dive_company_aapl", task_ids)
+        self.assertNotIn("xai_web_deep_dive_company_aapl", task_ids)
+        self.assertIn("xai_web_deep_dive_company_aapl", deferred_task_ids)
         self.assertIn("yfinance_company_asml", task_ids)
         self.assertIn("fmp_company_asml", task_ids)
         self.assertIn("alpha_vantage_company_asml", task_ids)
         self.assertIn("exa_news_company_asml", task_ids)
         self.assertIn("exa_company_search_company_asml", task_ids)
         self.assertIn("xai_x_search_company_asml", task_ids)
-        self.assertIn("xai_web_deep_dive_company_asml", task_ids)
+        self.assertNotIn("xai_web_deep_dive_company_asml", task_ids)
+        self.assertIn("xai_web_deep_dive_company_asml", deferred_task_ids)
         self.assertNotIn("polygon_company_asml", task_ids)
         self.assertNotIn("sec_company_asml", task_ids)
+        provider_tasks = {task["id"]: task for task in manifest["provider_tasks"]}
+        self.assertEqual(provider_tasks["exa_news_company_aapl"]["args"]["start_published_date"], "2026-04-25")
+        self.assertEqual(provider_tasks["exa_news_company_aapl"]["args"]["end_published_date"], "2026-05-09")
         self.assertIn("financial_compare_aapl", analysis_task_ids)
         self.assertIn("financial_compare_asml", analysis_task_ids)
         self.assertIn("financial_review_aapl", analysis_task_ids)
@@ -149,6 +155,83 @@ class StockResearchCoreTests(unittest.TestCase):
         )
         self.assertEqual(analysis_tasks["financial_review_human_hir_0100_amd"]["tool"], "financial_review")
         self.assertEqual(analysis_tasks["financial_review_human_hir_0100_amd"]["depends_on"], ["financial_compare_human_hir_0100_amd"])
+
+    def test_manifest_deduplicates_portfolio_industry_tasks_and_records_provider_roles(self):
+        state = repo_state_for_manifest(
+            current_rows=[
+                {
+                    "ticker": "AMBA",
+                    "company_name": "Ambarella Inc.",
+                    "sector": "Technology",
+                    "industry": "Semiconductor Equipment & Materials",
+                    "date_last_updated": "2026-05-01",
+                },
+                {
+                    "ticker": "AXTI",
+                    "company_name": "AXT Inc.",
+                    "sector": "Technology",
+                    "industry": "Semiconductor Equipment & Materials",
+                    "date_last_updated": "2026-05-01",
+                },
+            ],
+        )
+
+        manifest = build_weekly_manifest(state, date(2026, 5, 3))
+        tasks = {task["id"]: task for task in manifest["provider_tasks"]}
+        cluster = next(
+            item
+            for item in manifest["recurring_coverage"]["industry_clusters"]
+            if item["cluster_id"] == "semiconductors_and_ai_hardware"
+        )
+
+        self.assertEqual(cluster["member_tickers"], ["AMBA", "AXTI"])
+        self.assertEqual(
+            len(
+                [
+                    task
+                    for task in manifest["provider_tasks"]
+                    if task["id"] == "exa_portfolio_industry_semiconductors_and_ai_hardware"
+                ]
+            ),
+            1,
+        )
+        self.assertEqual(
+            tasks["exa_portfolio_industry_semiconductors_and_ai_hardware"]["provider_role"],
+            "web_news_and_primary_source_discovery",
+        )
+        self.assertEqual(
+            tasks["xai_x_search_portfolio_industry_semiconductors_and_ai_hardware"]["provider_role"],
+            "x_community_and_expert_signal",
+        )
+        self.assertEqual(
+            tasks["xai_x_search_portfolio_industry_semiconductors_and_ai_hardware"]["args"]["model"],
+            "grok-4.6",
+        )
+        self.assertEqual(
+            tasks["exa_portfolio_industry_semiconductors_and_ai_hardware"]["args"]["start_published_date"],
+            "2026-04-18",
+        )
+        self.assertIn("AMBA, AXTI", tasks["exa_portfolio_industry_semiconductors_and_ai_hardware"]["reason"])
+
+    def test_manifest_is_deterministic_and_does_not_mutate_recurring_scope_files(self):
+        state = load_repo_state(REPO_ROOT)
+        protected_paths = [
+            state.stock_tables["current_holdings"].path,
+            state.stock_tables["monitoring"].path,
+            state.stock_tables["rejected"].path,
+            REPO_ROOT / "strategy/research_priorities.md",
+            *state.stock_info_files["current_holdings"],
+            *state.stock_info_files["monitoring"],
+        ]
+        before = {path: path.read_bytes() for path in protected_paths}
+
+        first = build_weekly_manifest(state, date(2026, 8, 16))
+        second = build_weekly_manifest(state, date(2026, 8, 16))
+
+        self.assertEqual(first, second)
+        self.assertEqual(before, {path: path.read_bytes() for path in protected_paths})
+        self.assertEqual(first["recurring_coverage"]["impact_basis"], "membership_only")
+        self.assertFalse(first["recurring_coverage"]["weights_available"])
 
     def test_next_saturday_returns_same_day_when_today_is_saturday(self):
         self.assertEqual(next_saturday(date(2026, 5, 9)), date(2026, 5, 9))

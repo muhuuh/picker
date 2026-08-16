@@ -51,6 +51,8 @@ class ScheduledRunnerTests(unittest.TestCase):
             )
             self.assertIn("agents/runs/2026-05-09_weekly/codex_supervised_review_pack.md", result.steps["codex_review_pack"]["written_paths"])
             self.assertEqual(result.steps["human_review_digest"]["status"], "clear")
+            self.assertEqual(result.steps["manifest"]["comparison_status"], "not_recorded")
+            self.assertEqual(result.steps["manifest"]["recurring_companies"], 0)
 
     def test_weekly_workflow_can_execute_orchestrator_with_injected_executor(self):
         with TemporaryDirectory() as temp_dir:

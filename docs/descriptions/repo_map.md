@@ -1,6 +1,6 @@
 # Repo Map
 
-Last updated: 2026-05-18
+Last updated: 2026-08-16
 
 ## Purpose
 
@@ -34,6 +34,7 @@ This file tells Codex, the orchestrator, and future agents where to find and upd
 - `strategy/screening_criteria.md`: candidate screening rules.
 - `strategy/risk_rules.md`: risk and approval rules.
 - `strategy/research_priorities.md`: recurring industries, themes, technologies, geographies, and ideas to research.
+- `strategy/portfolio_industry_coverage.json`: stable mapping from already tracked tickers to deduplicated portfolio-industry research clusters; it does not define portfolio membership.
 
 ## Stock Tracking
 
@@ -68,6 +69,8 @@ This file tells Codex, the orchestrator, and future agents where to find and upd
 - `docs/descriptions/model_routing_and_codex_usage.md`: current LLM call sites, task complexity levels, and Codex app vs API runtime boundary.
 - `agents/model_routing.yaml`: repo-local model tiers and route assignments for OpenAI API, xAI/Grok, and Codex manual-mode guidance.
 - `stock_research/research_profiles.py`: importable contracts for recurring portfolio updates, company deep research, industry deep research, and candidate discovery, including explicit write permissions.
+- `stock_research/recurring_coverage.py`: read-only recurring holdings/monitoring coverage, freshness, portfolio-industry clustering, provider roles, and explicit accepted-run baseline.
+- `agents/recurring_research_state.json`: explicit accepted recurring portfolio-update pointer; latest generated runs are never inferred as accepted.
 - `docs/plans/openai_agents_sdk_orchestration_backlog.md`: dedicated backlog for OpenAI Agents SDK runtime implementation.
 - `docs/scratchpads/openai_agents_sdk_orchestration_scratchpad.md`: dedicated scratchpad for SDK orchestration findings and decisions.
 - `docs/descriptions/evidence_schema.md`: shared source/evidence packet schema for all providers and specialists.
@@ -122,7 +125,7 @@ Use CLI commands for manual operation, scheduler entrypoints, validation, smoke 
 - `python -m stock_research summary`: print repo state summary.
 - `python -m stock_research validate`: validate CSV schemas and required files.
 - `python -m stock_research stale`: scan stock rows for stale dates.
-- `python -m stock_research manifest`: generate weekly run manifest.
+- `python -m stock_research manifest`: generate the weekly-style portfolio-update manifest, including the recurring company/industry coverage contract and executable versus deferred provider tasks.
 - `python -m stock_research memory summary`: summarize operational memory.
 - `python -m stock_research memory validate`: validate operational memory files and item fields.
 - `python -m stock_research memory context --task TASK`: print task-relevant memory files and active lessons.

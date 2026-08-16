@@ -17,6 +17,8 @@ The importable contracts live in `stock_research/research_profiles.py`.
 | `industry_deep_research` | On-demand industry or theme research | `reports/industry_deep_research/{subject_id}_deep_research.md` | Does not create a recurring strategy priority |
 | `candidate_discovery` | Discovery and approval-gated verification | `market_research/{subject_id}_manual_market_research.md` | Leads remain outside monitoring until verified and explicitly approved |
 
+The `portfolio_update` manifest also embeds the read-only recurring coverage contract documented in `docs/descriptions/recurring_coverage_manifest.md`. Holdings and monitoring CSVs determine company scope; the separate mapping config only groups those tracked companies into shared industry research lanes.
+
 Each profile declares:
 
 - supported subject types;

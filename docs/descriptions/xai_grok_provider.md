@@ -24,7 +24,7 @@ Rechecked on 2026-08-16 for the Grok 4.6 migration and authenticated model resol
 
 Use `XAI_API_KEY` with Grok and the built-in `x_search` tool for X-native work.
 
-Use Grok `web_search` for auxiliary company deep dives when the workflow needs current business context, latest web news, analyst-context gaps, and research checks similar to a human analyst briefing.
+Use Grok `web_search` for auxiliary company deep dives only when the workflow has identified a current business, news, analyst-context, or verification gap.
 
 Do not use the direct X.com / Twitter API v2 recent search/counts endpoints for this repo.
 
@@ -98,9 +98,11 @@ Official xAI docs currently list these `web_search` parameters: `allowed_domains
 Weekly manifests should plan `xai_grok` provider tasks by default:
 
 - current holdings and monitoring stocks: Grok `x_search` stock sentiment;
-- current holdings and monitoring stocks: Grok `web_search` company deep-dive context as an auxiliary gap-filling lane;
+- each deduplicated portfolio-industry cluster: one shared Grok 4.6 `x_search` industry pulse;
 - research priorities: Grok `x_search` industry/theme sentiment;
 - human stock/industry/theme requests: routed to Grok `x_search`.
+
+Per-ticker Grok `web_search` plans are stored under `deferred_provider_tasks` with `execution_policy: gap_triggered`. The normal provider runner executes only `provider_tasks`, so these web deep dives do not run unless a later gap-detection step explicitly promotes them. This preserves Grok's X-native advantage and avoids duplicating Exa/company/financial research.
 
 Discovery-specific usage:
 

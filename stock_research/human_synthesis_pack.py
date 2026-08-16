@@ -208,8 +208,6 @@ def validate_pack_inputs(ticker: str, assessment: dict[str, Any], artifacts: lis
             findings.append(f"{ticker} synthesis pack has no usable company-news specialist status.")
         if social.get("status") == "available" and not social.get("x_pulse"):
             findings.append(f"{ticker} synthesis pack has Grok/X data but no X pulse narrative.")
-    if not any("web-search deep-dive" in item["purpose"] and item["exists"] for item in artifacts):
-        findings.append(f"{ticker} synthesis pack has no same-run Grok web-search deep-dive; latest-news/analyst gaps need separate verification.")
     return findings
 
 
@@ -235,8 +233,8 @@ def format_human_synthesis_pack_markdown(
         "## Synthesis Instructions",
         "",
         "1. Write the final human-facing report from scratch; do not paste sections together.",
-        "2. Use the established final-report shape from the accepted AMBA report; do not invent a new report format unless the user explicitly asks.",
-        "3. After the run/date metadata, include this provenance paragraph adapted to the ticker: `This report is a Codex-written synthesis from the synthesis pack, deterministic audit report, company-news and financial specialist outputs, raw Grok/X sentiment, the live Grok web deep dive, and the current company file. It is written as the human-facing read. The deterministic opportunity assessment remains the audit artifact.`",
+        "2. Use the established AMBA report only as a format exemplar; do not invent a new report format unless the user explicitly asks.",
+        provenance_instruction(pack),
         "4. Required sections, in this order: Bottom Line; What [Company] Actually Does; Why The Setup Changed; X Sentiment And What It Is Really Saying; Financial And Valuation Read; Bull Case; Bear Case; What Would Change The Thesis; Next Research Checks; Final Assessment; Sources.",
         "5. Coverage rule: preserve material investor insight, but do not target a word count. Stable or low-signal names should be brief; evidence-rich material changes should receive more space.",
         "6. Required insight coverage: source-backed developments, market/industry context, X pulse and trend evolution, recurring bull and bear social claims, notable accounts/posts or source-quality context, rumors/unverified claims, non-obvious or under-discussed angles, valuation/analyst gaps, decision table or scorecard, thesis changers, and concrete next checks.",
@@ -280,6 +278,24 @@ def format_human_synthesis_pack_markdown(
     else:
         lines.append("- None.")
     return "\n".join(lines).rstrip() + "\n"
+
+
+def provenance_instruction(pack: HumanSynthesisPack) -> str:
+    has_grok_web = any(
+        item.get("exists") and "web-search deep-dive" in str(item.get("purpose", ""))
+        for item in pack.artifacts
+    )
+    optional_web = (
+        " A same-run Grok web gap-fill artifact is present, so identify it as auxiliary context."
+        if has_grok_web
+        else " No same-run Grok web gap-fill ran, so do not claim or imply that it did."
+    )
+    return (
+        "3. After the run/date metadata, include a provenance paragraph beginning `This report is a Codex-written "
+        "synthesis from` and name only inputs that actually exist in the artifact map. End by stating `The deterministic "
+        "opportunity assessment remains the audit artifact.`"
+        + optional_web
+    )
 
 
 def evidence_summary(assessment: dict[str, Any]) -> dict[str, Any]:

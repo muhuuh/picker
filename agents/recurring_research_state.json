@@ -1,0 +1,9 @@
+{
+  "schema_version": 1,
+  "portfolio_update": {
+    "accepted_run_id": "",
+    "accepted_at": "",
+    "accepted_by": "",
+    "note": "No run has yet been explicitly accepted under the recurring portfolio-update contract."
+  }
+}

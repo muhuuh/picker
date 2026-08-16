@@ -102,6 +102,58 @@ LPKF has an interesting packaging story, but the report did not follow the estab
         self.assertTrue(any("audit artifact" in finding.lower() for finding in findings))
         self.assertTrue(any("established synthesis sections" in finding.lower() for finding in findings))
 
+    def test_final_report_provenance_can_truthfully_omit_deferred_grok_web(self):
+        markdown = """
+# AMBA Final Human Report
+
+This report is a Codex-written synthesis from the synthesis pack, deterministic audit report, company-news and financial specialist outputs, raw Grok/X sentiment, and the current company file. The deterministic opportunity assessment remains the audit artifact.
+
+## Bottom Line
+
+No material change was verified in the bounded period.
+
+## What Ambarella Actually Does
+
+Ambarella supplies edge-vision processors.
+
+## Why The Setup Changed
+
+The setup did not materially change in this period.
+
+## X Sentiment And What It Is Really Saying
+
+The X pulse remained mixed and is treated as social signal.
+
+## Financial And Valuation Read
+
+No material verified valuation change was found.
+
+## Bull Case
+
+Edge demand remains the key upside case.
+
+## Bear Case
+
+Conversion remains the key risk.
+
+## What Would Change The Thesis
+
+Named production wins would change confidence.
+
+## Next Research Checks
+
+Review the next filing.
+
+## Final Assessment
+
+Keep the thesis unchanged pending new evidence.
+
+## Sources
+
+- [Synthesis pack](agents/runs/2026-08-16_weekly/reports/human_synthesis/AMBA_synthesis_pack.md)
+"""
+        self.assertEqual(validate_human_facing_markdown(markdown), [])
+
     def test_flags_truncation_dead_citations_raw_dict_and_status_only_sentiment(self):
         markdown = """
 # Bad Report

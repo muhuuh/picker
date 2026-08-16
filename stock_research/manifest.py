@@ -9,6 +9,7 @@ from .repo import RepoState
 from .validation import parse_date
 from .model_routing import resolve_model_for_route
 from .providers.xai_grok import company_deep_dive_prompt, industry_sentiment_prompt, latest_news_prompt, stock_sentiment_prompt
+from .recurring_coverage import build_recurring_coverage
 
 
 ACTIVE_HUMAN_REQUEST_STATUSES = {"new", "triaged", "queued_for_weekly_run", "in_progress"}
@@ -20,12 +21,14 @@ def build_weekly_manifest(state: RepoState, today: date | None = None) -> dict[s
     run_date = next_saturday(current_date)
     human_requests = active_human_requests(state.human_requests)
     priorities = active_research_priorities(state.research_priorities)
+    recurring_coverage = build_recurring_coverage(state, current_date)
 
     manifest = {
-        "manifest_version": 1,
+        "manifest_version": 2,
         "manifest_id": f"weekly_{run_date.isoformat()}",
         "generated_at": datetime.combine(current_date, datetime.min.time()).isoformat(),
         "run_type": "weekly",
+        "research_profile": "portfolio_update",
         "run_date": run_date.isoformat(),
         "scope": ["US", "Europe"],
         "inputs": {
@@ -41,14 +44,19 @@ def build_weekly_manifest(state: RepoState, today: date | None = None) -> dict[s
             "human_review_items": open_review_items(state.human_review_items),
         },
         "tracked_tickers": tracked_tickers(state),
+        "recurring_coverage": recurring_coverage,
         "cooldown": rejected_cooldown_summary(state, current_date),
-        "tasks": build_tasks(human_requests, priorities),
-        "provider_tasks": build_provider_tasks(state, human_requests, priorities, run_date),
+        "tasks": build_tasks(human_requests, priorities, recurring_coverage),
+        "provider_tasks": build_provider_tasks(state, human_requests, priorities, run_date, recurring_coverage),
+        "deferred_provider_tasks": build_deferred_provider_tasks(state, run_date),
         "analysis_tasks": build_analysis_tasks(state, human_requests, run_date),
         "outputs": {
             "run_summary": f"agents/runs/{run_date.isoformat()}_weekly/run_summary.md",
             "quality_report": f"agents/runs/{run_date.isoformat()}_weekly/quality_report.md",
             "manifest": f"agents/runs/{run_date.isoformat()}_weekly/manifest.json",
+            "portfolio_executive_update": (
+                f"agents/runs/{run_date.isoformat()}_weekly/reports/portfolio_update/portfolio_executive_update.md"
+            ),
         },
     }
     return manifest
@@ -119,7 +127,11 @@ def rejected_cooldown_summary(state: RepoState, today: date) -> dict[str, list[d
     return {"in_cooldown": in_cooldown, "eligible": eligible, "missing_dates": missing_dates}
 
 
-def build_tasks(human_requests: list[dict[str, str]], priorities: list[dict[str, str]]) -> list[dict[str, str]]:
+def build_tasks(
+    human_requests: list[dict[str, str]],
+    priorities: list[dict[str, str]],
+    recurring_coverage: dict[str, Any] | None = None,
+) -> list[dict[str, str]]:
     tasks = [
         {"id": "validate_repo_state", "kind": "deterministic", "reason": "Always validate repo state before research."},
         {"id": "scan_current_holdings", "kind": "research", "reason": "Weekly tracked-stock alert coverage."},
@@ -140,6 +152,17 @@ def build_tasks(human_requests: list[dict[str, str]], priorities: list[dict[str,
                 "id": "scan_research_priorities",
                 "kind": "research",
                 "reason": f"{len(priorities)} active research priority item(s).",
+            }
+        )
+    industry_clusters = list((recurring_coverage or {}).get("industry_clusters", []))
+    if industry_clusters:
+        tasks.append(
+            {
+                "id": "scan_portfolio_industries",
+                "kind": "research",
+                "reason": (
+                    f"Research {len(industry_clusters)} deduplicated portfolio-industry cluster(s) tied to tracked stocks."
+                ),
             }
         )
     return tasks
@@ -359,12 +382,12 @@ def build_provider_tasks(
     human_requests: list[dict[str, str]],
     priorities: list[dict[str, str]],
     run_date: date,
+    recurring_coverage: dict[str, Any] | None = None,
 ) -> list[dict[str, Any]]:
     run_id = f"{run_date.isoformat()}_weekly"
     xai_stock_model = resolve_model_for_route(state.root, "xai_stock_sentiment").model
     xai_industry_model = resolve_model_for_route(state.root, "xai_industry_discovery").model
     xai_latest_news_model = resolve_model_for_route(state.root, "xai_latest_news").model
-    xai_company_deep_dive_model = resolve_model_for_route(state.root, "xai_company_deep_dive").model
     tasks: list[dict[str, Any]] = []
     seen_task_ids: set[str] = set()
 
@@ -468,6 +491,7 @@ def build_provider_tasks(
                         "query": company_news_query(ticker, company),
                         "run_id": run_id,
                         "num_results": 8 if bucket == "current_holdings" else 5,
+                        **published_window_args(run_date, days=14),
                     },
                     reason=f"Default Exa company-news scan for {bucket} ticker {label}.",
                     priority="high" if bucket == "current_holdings" else "medium",
@@ -517,27 +541,61 @@ def build_provider_tasks(
                     source_bucket=bucket,
                 ),
             )
-            add_task(
-                tasks,
-                seen_task_ids,
-                provider_task(
-                    task_id=f"xai_web_deep_dive_company_{slugify(ticker)}",
-                    provider="xai_grok",
-                    tool="web_search",
-                    subject_type="company",
-                    subject_id=ticker,
-                    args={
-                        "prompt": company_deep_dive_prompt(ticker, company),
-                        "run_id": run_id,
-                        "research_kind": "company_deep_dive",
-                        "model": xai_company_deep_dive_model,
-                    },
-                    reason=f"Default Grok web_search company deep-dive scan for {bucket} ticker {label}; use as auxiliary context and verify material facts.",
-                    priority="medium" if bucket == "current_holdings" else "low",
-                    source_bucket=bucket,
-                    follow_up=["Verify Grok web facts against Exa contents, filings, financial providers, or company sources before thesis updates."],
-                ),
-            )
+
+    for cluster in list((recurring_coverage or {}).get("industry_clusters", [])):
+        cluster_id = str(cluster.get("cluster_id", "")).strip()
+        label = str(cluster.get("label", "")).strip()
+        member_tickers = [str(ticker) for ticker in cluster.get("member_tickers", []) if str(ticker).strip()]
+        if not cluster_id or not label or not member_tickers:
+            continue
+        member_text = ", ".join(member_tickers)
+        add_task(
+            tasks,
+            seen_task_ids,
+            provider_task(
+                task_id=f"exa_portfolio_industry_{slugify(cluster_id)}",
+                provider="exa",
+                tool="search",
+                subject_type="industry",
+                subject_id=cluster_id,
+                args={
+                    "mode": "news",
+                    "query": str(cluster.get("exa_query", label)),
+                    "run_id": run_id,
+                    "num_results": 8,
+                    **published_window_args(run_date, days=21),
+                },
+                reason=f"Portfolio-industry Exa scan for {label}, shared by tracked tickers {member_text}.",
+                priority="high" if "current_holdings" in cluster.get("membership_buckets", []) else "medium",
+                source_bucket="portfolio_industries",
+                provider_role="web_news_and_primary_source_discovery",
+                follow_up=["Use selected Exa contents or primary sources to verify material claims before synthesis."],
+            ),
+        )
+        add_task(
+            tasks,
+            seen_task_ids,
+            provider_task(
+                task_id=f"xai_x_search_portfolio_industry_{slugify(cluster_id)}",
+                provider="xai_grok",
+                tool="x_search",
+                subject_type="industry",
+                subject_id=cluster_id,
+                args={
+                    "prompt": industry_sentiment_prompt(str(cluster.get("grok_topic", label))),
+                    "run_id": run_id,
+                    "research_kind": "industry_sentiment",
+                    "model": xai_industry_model,
+                    **x_search_window_args(run_date, days=21),
+                    "enable_image_understanding": True,
+                },
+                reason=f"Portfolio-industry Grok 4.6 X pulse for {label}, shared by tracked tickers {member_text}.",
+                priority="high" if "current_holdings" in cluster.get("membership_buckets", []) else "medium",
+                source_bucket="portfolio_industries",
+                provider_role="x_community_and_expert_signal",
+                follow_up=["Route factual X claims to Exa, filings, company IR, or financial providers before thesis use."],
+            ),
+        )
 
     for priority in priorities:
         topic = priority.get("Topic", "").strip()
@@ -560,6 +618,7 @@ def build_provider_tasks(
                     "query": research_priority_query(priority),
                     "run_id": run_id,
                     "num_results": 8,
+                    **published_window_args(run_date, days=21),
                 },
                 reason=f"Default Exa scan for active research priority: {topic}.",
                 priority=priority.get("Priority", "").strip().lower() or "medium",
@@ -623,6 +682,57 @@ def build_provider_tasks(
     return tasks
 
 
+def build_deferred_provider_tasks(state: RepoState, run_date: date) -> list[dict[str, Any]]:
+    """Plan auxiliary provider work that must not execute in the default recurring kickoff."""
+
+    run_id = f"{run_date.isoformat()}_weekly"
+    model = resolve_model_for_route(state.root, "xai_company_deep_dive").model
+    tasks: list[dict[str, Any]] = []
+    seen_task_ids: set[str] = set()
+    for bucket in TRACKED_STOCK_TABLES:
+        for row in state.stock_tables[bucket].rows:
+            ticker = normalize_ticker(row.get("ticker", ""))
+            if not ticker:
+                continue
+            company = row.get("company_name", "").strip()
+            label = company_label(ticker, company)
+            task = provider_task(
+                task_id=f"xai_web_deep_dive_company_{slugify(ticker)}",
+                provider="xai_grok",
+                tool="web_search",
+                subject_type="company",
+                subject_id=ticker,
+                args={
+                    "prompt": company_deep_dive_prompt(ticker, company),
+                    "run_id": run_id,
+                    "research_kind": "company_deep_dive",
+                    "model": model,
+                },
+                reason=(
+                    f"Deferred Grok web_search gap fill for {bucket} ticker {label}; do not run when Exa, filings, "
+                    "company IR, and financial evidence already cover the material questions."
+                ),
+                priority="medium" if bucket == "current_holdings" else "low",
+                source_bucket=bucket,
+                provider_role="auxiliary_gap_filling",
+                conditions=[
+                    "Execute only after deterministic review identifies a material business/news/analyst context gap.",
+                    "Do not use Grok web output as verified fact without independent evidence.",
+                ],
+                follow_up=[
+                    "Verify material facts against Exa contents, filings, financial providers, or company sources."
+                ],
+            )
+            task["execution_policy"] = "gap_triggered"
+            task["trigger_signals"] = [
+                "material company context missing after default lanes",
+                "conflicting analyst or business-model context needs auxiliary discovery",
+                "explicit user request for a Grok web deep dive",
+            ]
+            add_task(tasks, seen_task_ids, task)
+    return tasks
+
+
 def provider_tasks_for_human_request(
     request: dict[str, str],
     run_id: str,
@@ -681,6 +791,7 @@ def provider_tasks_for_human_request(
                         "query": f"{ticker_upper} latest material company news earnings guidance risk stock",
                         "run_id": run_id,
                         "num_results": 8,
+                        **published_window_args_from_run_id(run_id, days=14),
                     },
                     reason=f"Human input queue stock research request {request_id}.",
                     priority=priority,
@@ -737,7 +848,13 @@ def provider_tasks_for_human_request(
                         tool="search",
                         subject_type="industry",
                         subject_id=subject_id,
-                        args={"mode": "industry", "query": topic, "run_id": run_id, "num_results": 8},
+                        args={
+                            "mode": "industry",
+                            "query": topic,
+                            "run_id": run_id,
+                            "num_results": 8,
+                            **published_window_args_from_run_id(run_id, days=21),
+                        },
                         reason=f"Human input queue industry request {request_id}.",
                         priority=priority,
                         source_bucket="human_input_queue",
@@ -800,6 +917,7 @@ def provider_tasks_for_human_request(
                             "query": f"{topic} latest news public companies investment implications",
                             "run_id": run_id,
                             "num_results": 8,
+                            **published_window_args_from_run_id(run_id, days=14),
                         },
                         reason=f"Human input queue theme-news request {request_id}.",
                         priority=priority,
@@ -838,6 +956,7 @@ def provider_task(
     reason: str,
     priority: str = "medium",
     source_bucket: str = "",
+    provider_role: str = "",
     conditions: list[str] | None = None,
     follow_up: list[str] | None = None,
 ) -> dict[str, Any]:
@@ -851,11 +970,26 @@ def provider_task(
         "args": args,
         "priority": normalize_priority(priority),
         "source_bucket": source_bucket,
+        "provider_role": provider_role or provider_role_for(provider, tool),
         "reason": reason,
         "conditions": conditions or [],
         "follow_up": follow_up or [],
         "expected_artifacts": ["raw_provider_json", "evidence_packet"],
     }
+
+
+def provider_role_for(provider: str, tool: str) -> str:
+    if provider == "xai_grok" and tool == "x_search":
+        return "x_community_and_expert_signal"
+    if provider == "xai_grok" and tool == "web_search":
+        return "auxiliary_gap_filling"
+    if provider == "exa":
+        return "web_news_and_primary_source_discovery"
+    if provider == "sec_edgar":
+        return "official_filings"
+    if provider in {"yfinance", "fmp", "polygon", "alpha_vantage"}:
+        return "normalized_financial_cross_check"
+    return "provider_evidence"
 
 
 def add_task(tasks: list[dict[str, Any]], seen_task_ids: set[str], task: dict[str, Any]) -> None:
@@ -942,12 +1076,25 @@ def x_search_window_args(run_date: date, days: int) -> dict[str, str]:
     return {"from_date": start.isoformat(), "to_date": run_date.isoformat()}
 
 
+def published_window_args(run_date: date, days: int) -> dict[str, str]:
+    start = run_date - timedelta(days=days)
+    return {"start_published_date": start.isoformat(), "end_published_date": run_date.isoformat()}
+
+
 def x_search_window_args_from_run_id(run_id: str, days: int) -> dict[str, str]:
     try:
         run_date = date.fromisoformat(run_id.split("_", 1)[0])
     except ValueError:
         return {}
     return x_search_window_args(run_date, days)
+
+
+def published_window_args_from_run_id(run_id: str, days: int) -> dict[str, str]:
+    try:
+        run_date = date.fromisoformat(run_id.split("_", 1)[0])
+    except ValueError:
+        return {}
+    return published_window_args(run_date, days)
 
 
 def slugify(value: str) -> str:

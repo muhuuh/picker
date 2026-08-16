@@ -2,7 +2,7 @@
 
 Last updated: 2026-08-16
 
-Status: P0.1a test credibility and P0.4 evidence preservation are implemented and fully verified; P0.2 state boundaries and P0.3 Grok 4.6 routing remain verified; P0.5 is next
+Status: P0.1-P0.5 foundations are implemented and fully verified; the next slice is P1 change detection and higher-yield Exa/Grok selection
 
 Scratchpad: `docs/scratchpads/portfolio_research_quality_scratchpad.md`
 
@@ -230,24 +230,26 @@ Acceptance:
 - No reader report contains a source fragment cut mid-sentence.
 - Every shortened display excerpt links to the preserved full evidence.
 
-#### P0.5 Define Portfolio And Industry Source Of Truth
+#### P0.5 Define Recurring Portfolio Scope And Industry Mapping
 
-- [ ] Keep repo CSVs as portfolio membership source of truth and document the Sheet as intake only.
-- [ ] Decide with the user whether to store approximate portfolio weights; keep broker credentials/account data out of the repo.
-- [ ] Add or derive stable sector/industry/theme tags for each holding and monitored stock.
-- [ ] Define the portfolio-industry set used by recurring runs, including deduplication of overlapping themes.
-- [ ] Add freshness fields or a derived freshness status so CSV metadata is not mistaken for live data.
+- [x] Keep repo CSVs as recurring portfolio membership scope and document the Sheet as intake only.
+- [x] Keep v1 impact membership-based without portfolio weights; do not store broker credentials/account data, and leave approximate weights as a later explicit product decision.
+- [x] Add or derive stable sector/industry/theme tags for each holding and monitored stock.
+- [x] Define the portfolio-industry set used by recurring runs, including deduplication of overlapping themes.
+- [x] Add a derived freshness status so CSV metadata is not mistaken for live provider coverage.
 
 Acceptance:
 
 - The recurring manifest can explain exactly which companies and industries it covers and why.
 - Portfolio membership and idea intake cannot be confused.
 
+Completion update (2026-08-16): the current 12 tracked companies map to five deduplicated portfolio-industry clusters. A deterministic manifest creates five Exa and five Grok 4.6 X cluster tasks, defers all 12 generic Grok web tasks, records explicit freshness/provider roles/membership-only impact, and refuses to use the latest generated run as an accepted baseline. The synthesis-pack contract truthfully treats Grok web as optional. The full suite passes 299/299.
+
 ### P1 - Improve Raw Research Quality And Recurring Update Logic
 
 #### P1.1 Add Change Detection And Materiality
 
-- [ ] Define the `last accepted run` pointer separately from the latest generated run.
+- [x] Define the `last accepted run` pointer separately from the latest generated run.
 - [ ] Build deterministic deltas for news, filings, financial metrics, X narratives/accounts, risks, and thesis checkpoints.
 - [ ] Classify changes as material, notable, background, duplicate, or stale.
 - [ ] Require evidence for `no material change` so silence is not confused with failed coverage.
@@ -261,7 +263,7 @@ Acceptance:
 
 #### P1.2 Improve Exa Research Selection
 
-- [ ] Add explicit publication windows to recurring company and industry news searches.
+- [x] Add explicit publication windows to recurring company and industry news searches.
 - [ ] Split searches by intent where helpful: official/IR/filing, reputable news, industry/trade press, analyst/context.
 - [ ] Rank results by materiality, source tier, recency, company identity, and diversity before contents extraction.
 - [ ] Deduplicate syndicated copies of the same release or story.
@@ -282,7 +284,7 @@ Acceptance:
 - [ ] Deduplicate repeated accounts/posts and coordinated/copied narratives.
 - [ ] Score account usefulness based on repeated verified value and explicit user feedback, not follower count alone.
 - [ ] Route factual claims from Grok/X into Exa/filing/IR/financial verification tasks before final thesis use.
-- [ ] Make generic Grok web deep dives optional or gap-triggered; prioritize Grok's X-native advantage.
+- [x] Make generic Grok web deep dives optional or gap-triggered; prioritize Grok's X-native advantage.
 
 Acceptance:
 
@@ -291,10 +293,10 @@ Acceptance:
 
 #### P1.4 Build Portfolio-Industry Coverage
 
-- [ ] Group holdings into portfolio-relevant industries/themes from durable tags.
-- [ ] Run one focused Exa industry/news lane and one Grok/X industry pulse per material cluster, not duplicate broad searches per company.
+- [x] Group holdings into portfolio-relevant industries/themes from durable tags.
+- [x] Run one focused Exa industry/news lane and one Grok/X industry pulse per material cluster, not duplicate broad searches per company.
 - [ ] Add cross-company read-throughs: shared customers, suppliers, competitors, regulation, capex cycles, and demand signals.
-- [ ] Highlight concentration and correlated risks when portfolio weights are available; otherwise state that impact is membership-based only.
+- [x] Highlight concentration and correlated risks when portfolio weights are available; otherwise state that impact is membership-based only.
 - [ ] Decide whether broad candidate discovery stays in this run or moves to a separate cadence.
 
 Acceptance:

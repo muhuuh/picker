@@ -1,10 +1,10 @@
 # Google Sheet Stock Intake
 
-Last updated: 2026-05-24
+Last updated: 2026-08-16
 
 ## Purpose
 
-The Google Sheet `new_stock_overview` is a quick capture inbox for stocks the user comes across. It is for fast triage and memory, not for durable portfolio state.
+The Google Sheet `new_stock_overview` is a quick capture inbox for stocks the user comes across. It is for fast triage and memory, not recurring portfolio membership. Provider specialists and search APIs still determine research evidence; this distinction only determines which ideas enter the scheduled company scope.
 
 Source sheet:
 
@@ -141,7 +141,7 @@ After a selected row is researched:
 
 ## Guardrails
 
-- The Sheet is a capture inbox, not the source of truth.
+- The Sheet is a capture inbox, not recurring membership scope. Only explicit approved workflows can add a Sheet idea to monitoring or holdings.
 - Do not treat `buy candidate` as an automatic buy decision.
 - Do not promote a row to monitoring without repo verification and an explicit user decision.
 - Do not treat `available=no` as blocking research, but it should block buy/promotion decisions until availability changes.

@@ -173,12 +173,12 @@ Operational memory about provider reliability, source behavior, and known gotcha
 - status: active
 - confidence: medium
 - trigger/source: Comparison of user-provided Grok 4.3 PDF reports with repo AMBA/KRKNF artifacts on 2026-05-17
-- lesson: Grok web-style deep dives can fill business, industry, latest-news, analyst-context, and research-check gaps that X-only sentiment scans do not cover, but material facts from that lane remain auxiliary until verified through Exa contents, filings, company sources, or financial providers.
+- lesson: Grok web-style deep dives can fill identified business, industry, latest-news, analyst-context, and research-check gaps that X-only sentiment scans do not cover. They should be gap-triggered rather than default per-ticker recurring tasks, and material facts from that lane remain auxiliary until verified through Exa contents, filings, company sources, or financial providers.
 - use_when: Planning provider tasks or interpreting xAI Grok web_search company deep-dive artifacts.
 - do_not_use_when: Replacing primary financial metrics, filings, or verified company/source-backed facts.
 - evidence: stock_research/providers/xai_grok.py; stock_research/manifest.py; docs/descriptions/xai_grok_provider.md; docs/plans/human_report_quality_improvement_plan.md
 - owner: provider_runner
-- next_review: 2026-06-14
+- next_review: 2026-11-16
 
 - id: source-2026-05-24-yfinance-extended-valuation-metrics
 - date: 2026-05-24

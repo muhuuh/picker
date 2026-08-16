@@ -24,6 +24,7 @@ Last updated: 2026-08-16
 - [x] Implement and live-verify P0.3 Grok 4.6 routing and provenance.
 - [x] Complete P0.1a test-credibility hardening and restore a clean full-suite run.
 - [x] Complete P0.4 full-evidence preservation, safe excerpts, and selected full-claim retrieval.
+- [x] Complete P0.5 recurring portfolio scope, industry mapping, provider planning, and accepted-baseline foundation.
 
 ## Current Product Map
 
@@ -41,7 +42,7 @@ Last updated: 2026-08-16
 
 ### Product Shape
 
-- The recurring manifest is company-centric. It scans every holding/monitoring ticker but does not automatically derive and synthesize the industries represented by the portfolio.
+- The recurring manifest now derives five deduplicated portfolio-industry clusters for the current 12 tracked companies and plans one shared Exa plus one shared Grok/X lane per cluster. Cross-company read-through synthesis is still pending.
 - The only active recurring research priority is broad `US and Europe stock discovery`; this is not a portfolio-industry coverage model.
 - The recurring output creates a long final report for all 12 tracked names every run, even when little changed. That encourages re-explaining background instead of surfacing material deltas.
 - The current docs disagree about which artifact is the primary reader surface: `final_digest.md`, opportunity assessments, per-ticker final reports, and `codex_supervised_review.md` are each described as primary in different places.
@@ -52,8 +53,8 @@ Last updated: 2026-08-16
 - Previous xAI routing used `grok-4.3` in config, provider defaults, manifest fallbacks, tests, and docs.
 - xAI documentation updated on 2026-08-12 now explicitly documents `grok-4.6`, X Search, Web Search, and `reasoning_effort`. The authenticated `/v1/models` check on 2026-08-16 confirmed that the configured account exposes `grok-4.6` directly.
 - The repo now requests `grok-4.6`, checks availability with the authenticating key before live research, records requested/resolved model, tool, reasoning effort, resolution source, and fallback reason, and refuses to silently replace an unavailable X-search lane with generic web search.
-- Grok is correctly used for X-native research, but the default workflow also runs a full Grok web deep dive for every ticker. That overlaps with Exa/company/financial lanes and increases synthesis volume.
-- Exa company-news searches have no explicit publication-date window in the recurring manifest.
+- Grok is correctly used for X-native research. Generic per-ticker Grok web deep dives are now deferred gap-triggered tasks rather than default executable tasks.
+- Recurring Exa company-news searches now use explicit 14-day publication windows; shared portfolio-industry searches use 21-day windows.
 - Exa contents follow-up selects the first three returned URLs, not a source-diverse, materiality-ranked set. Syndicated or low-authority results can crowd out filings, IR, or strong reporting.
 - Prior behavior shortened Exa evidence to 800/1,000 characters and Grok packet evidence to 4,000 characters. Canonical selected text is now preserved; bounded packet summaries use separate complete-sentence excerpts and raw path/selectors.
 - Prior behavior replaced visible ellipses with periods. The formatter now refuses incomplete source text or stops at the last real sentence boundary; selected full evidence remains available through the SDK claim tool.
@@ -102,7 +103,8 @@ Last updated: 2026-08-16
 
 ## Next Steps
 
-- Implement P0.5 portfolio/industry source-of-truth rules next.
+- Implement P1.1 deterministic claim-level change detection and materiality using the explicit accepted-run baseline.
+- Continue P1.2 Exa source ranking/diversity and P1.3 structured Grok/X selection around that delta logic.
 - Complete the manifest/report builders behind the new profile contracts when implementing the recurring and on-demand product flows.
 - Keep portfolio weights, normal report reading time, material-change deep-report behavior, and discovery cadence as explicit user/product decisions.
 - Keep the automation paused until the new recurring report passes the golden comparison and a fresh dry run.
@@ -169,3 +171,14 @@ Last updated: 2026-08-16
 - Historical full-run recheck: 53 findings in under two seconds locally (25 exact boilerplate, 3 near-boilerplate, 14 per-file report defects, 11 reader-value completeness failures).
 - Verification: focused 55-test set passed; report characterization 5/5 passed after bounding semantic comparisons; final full declared-dependency suite passed 289/289.
 - Environment note: the restricted sandbox does not expose the normal Python user site, so SDK collection was verified outside that sandbox after installing the already-declared project dependencies. No new runtime dependency was added.
+
+## 2026-08-16 P0.5 Recurring Coverage Manifest Update
+
+- Added a read-only recurring coverage builder using holdings and monitoring CSVs as membership scope; rejected stocks and Sheet ideas remain excluded.
+- Added five configured portfolio-industry clusters with deterministic fallbacks for future unmapped tracked stocks. Overlapping tickers share one cluster research lane.
+- The manifest now records company coverage reasons, CSV freshness, membership-only impact, provider roles, and explicit accepted-run state. The known-bad latest July run is visible but is not treated as accepted.
+- Recurring Exa company news uses a 14-day publication window; each material cluster gets one 21-day Exa industry/news task and one 21-day Grok 4.6 X pulse.
+- Generic Grok web deep dives moved to non-executable, gap-triggered deferred tasks. Material web claims still require verification.
+- Run summaries and Codex review packs now expose the compact coverage contract to the synthesis layer.
+- Verification passed: focused coverage/core/runner/report-handoff tests, 299/299 full-suite tests, `compileall`, repo validation, operational-memory validation, deterministic current-manifest audit, and `git diff --check`.
+- Repo validation retains one unrelated warning: the existing rejected-company cooldown has expired, so that candidate is eligible for review again.

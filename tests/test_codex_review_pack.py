@@ -30,6 +30,8 @@ class CodexReviewPackTests(unittest.TestCase):
                 "python -m stock_research quality-report --run-id 2026-05-16_weekly --write --require-final-reports",
             )
             self.assertTrue(any("--require-final-reports" in instruction for instruction in pack.codex_instructions))
+            self.assertTrue(any("recurring_coverage" in instruction for instruction in pack.codex_instructions))
+            self.assertEqual(pack.required_artifacts[0]["path"], f"agents/runs/{run_id}/manifest.json")
 
 
 def seed_required_pack_artifacts(root: Path, run_id: str) -> None:
@@ -37,6 +39,7 @@ def seed_required_pack_artifacts(root: Path, run_id: str) -> None:
     (root / "stock_tracking").mkdir()
     run_dir = root / "agents" / "runs" / run_id
     run_dir.mkdir(parents=True, exist_ok=True)
+    (run_dir / "manifest.json").write_text('{"recurring_coverage": {}}\n', encoding="utf-8")
     for filename in ("quality_report.md", "run_summary.md", "finalization.md", "memory_reflection.md"):
         (run_dir / filename).write_text("# ok\n", encoding="utf-8")
     (run_dir / "final_digest.json").write_text('{"ticker_count": 1, "quality_findings": []}\n', encoding="utf-8")

@@ -17,6 +17,7 @@ class RunSummary:
     generated_at: str
     metrics: dict[str, Any]
     tracked_tickers: dict[str, list[str]]
+    recurring_coverage: dict[str, Any]
     provider_packet_counts: dict[str, int]
     financial_reviews: list[dict[str, Any]]
     company_news_reviews: list[dict[str, Any]]
@@ -56,6 +57,7 @@ def build_run_summary(root: Path | None, run_id: str, current_date: date | None 
         generated_at=today.isoformat(),
         metrics=metrics,
         tracked_tickers=manifest.get("tracked_tickers", {}) if isinstance(manifest, dict) else {},
+        recurring_coverage=summarize_recurring_coverage(manifest),
         provider_packet_counts=provider_counts,
         financial_reviews=financial_reviews,
         company_news_reviews=company_news_reviews,
@@ -79,6 +81,7 @@ def run_summary_to_dict(summary: RunSummary) -> dict[str, Any]:
         "generated_at": summary.generated_at,
         "metrics": summary.metrics,
         "tracked_tickers": summary.tracked_tickers,
+        "recurring_coverage": summary.recurring_coverage,
         "provider_packet_counts": summary.provider_packet_counts,
         "financial_reviews": summary.financial_reviews,
         "company_news_reviews": summary.company_news_reviews,
@@ -103,6 +106,27 @@ def format_run_summary_markdown(summary: RunSummary) -> str:
             lines.append(f"- {bucket}: {', '.join(tickers) if tickers else 'none'}")
     else:
         lines.append("- No tracked tickers in manifest.")
+    lines.extend(["", "## Recurring Coverage", ""])
+    if summary.recurring_coverage:
+        coverage = summary.recurring_coverage
+        lines.extend(
+            [
+                f"- profile: {coverage.get('profile', 'unknown')}",
+                f"- companies: {coverage.get('company_count', 0)}",
+                f"- industry clusters: {coverage.get('industry_cluster_count', 0)}",
+                f"- impact basis: {coverage.get('impact_basis', 'unknown')}",
+                f"- accepted comparison baseline: {coverage.get('comparison_run_id') or 'none'} ({coverage.get('comparison_status', 'unknown')})",
+                f"- latest generated run: {coverage.get('latest_generated_run_id') or 'none'}",
+            ]
+        )
+        clusters = coverage.get("industry_clusters") or []
+        if clusters:
+            lines.append("- cluster membership:")
+            for cluster in clusters:
+                members = ", ".join(cluster.get("member_tickers") or []) or "none"
+                lines.append(f"  - {cluster.get('label', cluster.get('cluster_id', 'unknown'))}: {members}")
+    else:
+        lines.append("- No recurring coverage contract found in manifest.")
     lines.extend(["", "## Provider Packet Counts", ""])
     if summary.provider_packet_counts:
         for provider, count in sorted(summary.provider_packet_counts.items()):
@@ -132,6 +156,36 @@ def format_run_summary_markdown(summary: RunSummary) -> str:
     else:
         lines.append("- No deterministic open items found.")
     return "\n".join(lines).rstrip() + "\n"
+
+
+def summarize_recurring_coverage(manifest: dict[str, Any] | Any) -> dict[str, Any]:
+    if not isinstance(manifest, dict):
+        return {}
+    coverage = manifest.get("recurring_coverage")
+    if not isinstance(coverage, dict):
+        return {}
+    baseline = coverage.get("comparison_baseline") or {}
+    clusters = coverage.get("industry_clusters") or []
+    return {
+        "profile": manifest.get("research_profile", "portfolio_update"),
+        "company_count": len(coverage.get("companies") or []),
+        "industry_cluster_count": len(clusters),
+        "impact_basis": coverage.get("impact_basis", "unknown"),
+        "weights_available": bool(coverage.get("weights_available")),
+        "comparison_policy": baseline.get("policy", "unknown"),
+        "comparison_status": baseline.get("status", "unknown"),
+        "comparison_run_id": baseline.get("comparison_run_id", ""),
+        "latest_generated_run_id": baseline.get("latest_generated_run_id", ""),
+        "industry_clusters": [
+            {
+                "cluster_id": cluster.get("cluster_id", ""),
+                "label": cluster.get("label", ""),
+                "member_tickers": list(cluster.get("member_tickers") or []),
+            }
+            for cluster in clusters
+            if isinstance(cluster, dict)
+        ],
+    }
 
 
 def load_run_packets(run_dir: Path) -> list[tuple[Path, EvidencePacket]]:

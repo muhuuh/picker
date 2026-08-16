@@ -1,10 +1,12 @@
 # Scheduled Runner
 
-Last updated: 2026-05-18
+Last updated: 2026-08-16
 
 ## Purpose
 
 The scheduled runner is the tracked-stock workflow wrapper. The command is still named `run-weekly` because it builds weekly-style run artifacts, but the first Codex app automation runs it every two weeks. It chains the already-built repo loaders, manifest generation, provider task runner, analysis task runner, run summary, quality report, memory finalization, bounded memory-writer review, company-file factual sync, category state updates, final digest, human synthesis packs, human-review digest, and Codex-supervised review pack.
+
+Manifest generation first builds a read-only `recurring_coverage` contract. Holdings and monitoring CSVs define company membership; `strategy/portfolio_industry_coverage.json` groups only those companies into shared research clusters; the Sheet remains intake only. This contract controls research scope and routing, not factual conclusions. Specialists and provider APIs still gather the raw evidence.
 
 Implementation: `stock_research/scheduled_runner.py`.
 
@@ -117,6 +119,7 @@ When SDK orchestration is enabled, the runner first runs generic company-researc
 ```text
 load repo state
   -> build weekly manifest
+     -> record company coverage reasons, freshness, provider roles, industry clusters, and explicit accepted comparison baseline
   -> provider tasks (dry-run unless --execute-providers)
   -> analysis tasks (dry-run unless --execute-analysis)
   -> run_summary
@@ -161,6 +164,8 @@ When `--write` is used:
 - `agents/runs/{run_id}/trace_links.md` when `--execute-orchestrator` is used
 - `agents/runs/{run_id}/run_metrics.md` when `--execute-orchestrator` is used
 - `agents/runs/{run_id}/orchestration_report.md`
+
+The manifest distinguishes executable `provider_tasks` from gap-triggered `deferred_provider_tasks`. The normal runner executes only the former. Per-ticker generic Grok web deep dives are deferred; company/industry Exa publication windows and shared Grok 4.6 X cluster windows are explicit. The orchestration report exposes recurring company/cluster counts and accepted-baseline status.
 
 Generated JSON files remain ignored local runtime artifacts. They should not be committed. After the run is finalized, memory drafts are handled, open review references are resolved, and canonical final human reports exist, local JSON can be cleaned with:
 

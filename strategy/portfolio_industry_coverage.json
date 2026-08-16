@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "clusters": [
+    {
+      "id": "advanced_electronics_manufacturing",
+      "label": "Advanced electronics manufacturing",
+      "description": "Laser processing, electronics production, and advanced packaging/manufacturing exposure.",
+      "ticker_tags": ["LPK.DE"],
+      "industry_tags": [],
+      "sector_tags": [],
+      "themes": ["advanced packaging", "electronics manufacturing", "laser processing"],
+      "exa_query": "advanced electronics manufacturing laser processing semiconductor packaging latest material developments public companies",
+      "grok_topic": "advanced electronics manufacturing laser processing and semiconductor packaging public companies"
+    },
+    {
+      "id": "ai_compute_cloud_and_data_centers",
+      "label": "AI compute, cloud, and data-center infrastructure",
+      "description": "Compute capacity, cloud platforms, data-center power, and rugged or enterprise AI infrastructure.",
+      "ticker_tags": ["GOOGL", "IREN", "NBIS", "OSS", "PENG"],
+      "industry_tags": [],
+      "sector_tags": [],
+      "themes": ["AI compute", "cloud infrastructure", "data-center capacity", "power availability"],
+      "exa_query": "AI compute cloud data center infrastructure power capacity latest material developments public companies",
+      "grok_topic": "AI compute cloud and data-center infrastructure investor expert discussion"
+    },
+    {
+      "id": "defense_autonomy_and_edge_systems",
+      "label": "Defense autonomy and edge systems",
+      "description": "Uncrewed systems, defense demand, and low-power or rugged edge-compute deployments.",
+      "ticker_tags": ["AMBA", "AVAV", "OSS"],
+      "industry_tags": [],
+      "sector_tags": [],
+      "themes": ["autonomy", "defense technology", "edge AI", "uncrewed systems"],
+      "exa_query": "defense autonomy uncrewed systems edge AI latest contracts regulation demand public companies",
+      "grok_topic": "defense autonomy uncrewed systems and edge AI investor expert discussion"
+    },
+    {
+      "id": "semiconductors_and_ai_hardware",
+      "label": "Semiconductors and AI hardware",
+      "description": "Memory, compound-semiconductor materials, edge-AI silicon, RF, and semiconductor production technology.",
+      "ticker_tags": ["AMBA", "AXTI", "LPK.DE", "MU", "SIVE.ST"],
+      "industry_tags": [],
+      "sector_tags": [],
+      "themes": ["AI hardware", "compound semiconductors", "edge AI", "memory", "semiconductor supply chain"],
+      "exa_query": "semiconductors AI hardware memory compound semiconductor supply chain latest material developments public companies",
+      "grok_topic": "semiconductors AI hardware memory and compound-semiconductor investor expert discussion"
+    },
+    {
+      "id": "solar_and_energy_manufacturing",
+      "label": "Solar and energy manufacturing",
+      "description": "Solar-cell manufacturing, domestic energy supply chains, policy support, and project execution.",
+      "ticker_tags": ["TE"],
+      "industry_tags": [],
+      "sector_tags": [],
+      "themes": ["domestic manufacturing", "energy policy", "solar supply chain"],
+      "exa_query": "solar energy manufacturing domestic supply chain policy latest material developments public companies",
+      "grok_topic": "solar and energy manufacturing policy and supply-chain investor expert discussion"
+    }
+  ]
+}

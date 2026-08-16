@@ -2,7 +2,7 @@
 
 This repo is for automated stock tracking, investment research, and agent workflow development.
 
-The current implementation is a deterministic Python foundation. It reads the repo state, validates stock tracking files, loads human research requests and research priorities, checks rejected-stock cooldown state, scans for stale tracking rows, and builds a weekly run manifest.
+The current implementation is a deterministic Python foundation. It reads the repo state, validates stock tracking files, loads human research requests and research priorities, checks rejected-stock cooldown state, scans for stale tracking rows, and builds a weekly run manifest with an explicit recurring company/portfolio-industry coverage contract.
 
 ## Current Scope
 
@@ -52,6 +52,8 @@ Write a weekly manifest:
 ```powershell
 python -m stock_research manifest --write
 ```
+
+The recurring manifest uses holdings and monitoring CSVs as company scope, excludes rejected stocks and Sheet ideas, groups tracked names through `strategy/portfolio_industry_coverage.json`, and records coverage reasons, freshness, provider roles, membership-only impact, and an explicitly accepted comparison baseline. Company Exa news uses a 14-day publication window; each portfolio-industry cluster gets one shared 21-day Exa lane and one Grok 4.6 X pulse. Generic Grok web deep dives are deferred and gap-triggered. See `docs/descriptions/recurring_coverage_manifest.md`.
 
 Dry-run planned provider tasks from a manifest:
 

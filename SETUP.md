@@ -181,6 +181,8 @@ C:\Python313\python.exe -m stock_research run-weekly --write --execute-providers
 
 This is Codex-supervised mode. It intentionally omits `--execute-orchestrator`, writes `agents/runs/{run_id}/codex_supervised_review_pack.md` plus per-ticker `reports/human_synthesis/*_synthesis_pack.md`, and expects Codex app automation to write `agents/runs/{run_id}/codex_supervised_review.md` after reading the pack and linked artifacts. Codex app should also write or refresh the canonical `reports/human_synthesis/{TICKER}_final_human_report.md` for every synthesis pack. Those final human reports are the reader-facing per-ticker company/opportunity reports; the deterministic opportunity assessments are audit trails. After Codex writes them, run `python -m stock_research quality-report --run-id RUN_ID --write --require-final-reports` and fix any missing, orphaned, shallow, or malformed final report before treating the run as complete. The active Codex exec-policy rules allow both the main scheduled command and the direct post-Codex quality-report command.
 
+Before providers run, the manifest builds `recurring_coverage` from `stock_tracking/current_holdings/current_holdings.csv` and `stock_tracking/monitoring/monitoring.csv`. The Google Sheet remains intake only. `strategy/portfolio_industry_coverage.json` groups tracked companies into shared research clusters but never changes membership. `agents/recurring_research_state.json` holds the explicit accepted-run pointer; an empty pointer is valid and the latest generated run is never substituted. Portfolio impact is membership-based until the user explicitly chooses to store approximate weights. See `docs/descriptions/recurring_coverage_manifest.md`.
+
 Codex automation sandbox rules live at:
 
 ```text

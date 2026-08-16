@@ -440,12 +440,19 @@ def build_steps(
     human_review_digest: HumanReviewDigest | None,
     codex_review_pack: CodexReviewPack | None,
 ) -> dict[str, Any]:
+    recurring_coverage = manifest.get("recurring_coverage") or {}
+    comparison_baseline = recurring_coverage.get("comparison_baseline") or {}
     return {
         "manifest": {
             "status": "written" if manifest_path else "built",
             "path": str(manifest_path) if manifest_path else "",
             "provider_tasks": len(manifest.get("provider_tasks", [])),
+            "deferred_provider_tasks": len(manifest.get("deferred_provider_tasks", [])),
             "analysis_tasks": len(manifest.get("analysis_tasks", [])),
+            "recurring_companies": len(recurring_coverage.get("companies", [])),
+            "industry_clusters": len(recurring_coverage.get("industry_clusters", [])),
+            "comparison_status": comparison_baseline.get("status", "not_recorded"),
+            "comparison_run_id": comparison_baseline.get("comparison_run_id", ""),
         },
         "provider_tasks": provider_result,
         "analysis_tasks": analysis_result,
@@ -872,7 +879,8 @@ def format_scheduled_run_report_markdown(result: ScheduledRunResult) -> str:
         "",
         "## Step Summary",
         "",
-        f"- manifest: {result.steps['manifest']['status']} ({result.steps['manifest']['provider_tasks']} provider task(s), {result.steps['manifest']['analysis_tasks']} analysis task(s))",
+        f"- manifest: {result.steps['manifest']['status']} ({result.steps['manifest']['provider_tasks']} executable provider task(s), {result.steps['manifest'].get('deferred_provider_tasks', 0)} deferred provider task(s), {result.steps['manifest']['analysis_tasks']} analysis task(s))",
+        f"- recurring_coverage: {result.steps['manifest'].get('recurring_companies', 0)} company/companies across {result.steps['manifest'].get('industry_clusters', 0)} industry cluster(s); accepted comparison baseline: {result.steps['manifest'].get('comparison_run_id') or 'none'} ({result.steps['manifest'].get('comparison_status', 'not_recorded')})",
         f"- provider_tasks: {result.steps['provider_tasks']['mode']} ({len(result.steps['provider_tasks'].get('executed', []))} executed, {len(result.steps['provider_tasks'].get('errors', []))} error(s))",
         f"- analysis_tasks: {result.steps['analysis_tasks']['mode']} ({len(result.steps['analysis_tasks'].get('executed', []))} executed, {len(result.steps['analysis_tasks'].get('errors', []))} error(s), {len(result.steps['analysis_tasks'].get('skipped', []))} skipped)",
         f"- quality_report: {result.steps['quality_report'].get('metrics', {}).get('findings', 'not_written')} finding(s)",

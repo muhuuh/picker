@@ -33,6 +33,7 @@ def build_codex_review_pack(root: Path | None, run_id: str) -> CodexReviewPack:
     expected_output_path = f"agents/runs/{run_id}/codex_supervised_review.md"
 
     required_artifacts = [
+        artifact(repo_root, run_dir / "manifest.json", "Recurring portfolio scope, industry clusters, provider roles, freshness, and accepted comparison baseline."),
         artifact(repo_root, run_dir / "final_digest.md", "Primary quick-read digest. Start here."),
         artifact(repo_root, run_dir / "quality_report.md", "Deterministic quality findings and provider/report coverage."),
         artifact(repo_root, run_dir / "run_summary.md", "Provider, evidence, and run coverage summary."),
@@ -200,6 +201,7 @@ def codex_supervised_instructions(run_id: str, expected_output_path: str) -> lis
     return [
         "Use Codex GPT-5.5 high as the outer orchestrator. Do not run the OpenAI API SDK orchestrator unless the user explicitly asks for remote/headless fallback or SDK debugging.",
         "Read this review pack first, then read every existing required artifact and every human synthesis pack listed below. Use opportunity assessments as audit/evidence artifacts, not as final prose to patch together.",
+        "Read `manifest.json` recurring_coverage before synthesis. Use its company coverage reasons, deduplicated industry clusters, freshness, provider roles, and explicit accepted comparison baseline. Never substitute the latest generated run for an accepted baseline.",
         "Write or update the Codex-supervised final review at "
         f"`{expected_output_path}`. This file is the human-facing synthesis for the scheduled run.",
         "For every human synthesis pack, write or refresh the matching canonical `reports/human_synthesis/{TICKER}_final_human_report.md` target from first principles. This is the reader-facing company/opportunity report; `reports/opportunity_assessment/` is the deterministic audit trail.",

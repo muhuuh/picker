@@ -21,9 +21,13 @@ class RunSummaryTests(unittest.TestCase):
             self.assertEqual(summary.metrics["evidence_packets"], 1)
             self.assertEqual(summary.financial_reviews[0]["ticker"], "AAPL")
             self.assertEqual(summary.financial_reviews[0]["status"], "ready_for_company_update")
+            self.assertEqual(summary.recurring_coverage["industry_cluster_count"], 1)
+            self.assertEqual(summary.recurring_coverage["comparison_status"], "not_recorded")
             self.assertTrue(json_path.exists())
             self.assertTrue(md_path.exists())
-            self.assertIn("Run Summary", md_path.read_text(encoding="utf-8"))
+            markdown = md_path.read_text(encoding="utf-8")
+            self.assertIn("Run Summary", markdown)
+            self.assertIn("Semiconductors: AAPL", markdown)
 
 
 def seed_repo(root: Path) -> Path:
@@ -38,6 +42,25 @@ def write_manifest(root: Path) -> None:
         "provider_tasks": [{"id": "yfinance_company_aapl"}],
         "analysis_tasks": [{"id": "financial_review_aapl"}],
         "tracked_tickers": {"monitoring": ["AAPL"]},
+        "research_profile": "portfolio_update",
+        "recurring_coverage": {
+            "companies": [{"ticker": "AAPL"}],
+            "industry_clusters": [
+                {
+                    "cluster_id": "semiconductors",
+                    "label": "Semiconductors",
+                    "member_tickers": ["AAPL"],
+                }
+            ],
+            "impact_basis": "membership_only",
+            "weights_available": False,
+            "comparison_baseline": {
+                "policy": "explicit_acceptance_only",
+                "status": "not_recorded",
+                "comparison_run_id": "",
+                "latest_generated_run_id": "2026-05-02_weekly",
+            },
+        },
     }
     (root / "agents/runs/2026-05-09_weekly/manifest.json").write_text(json.dumps(manifest), encoding="utf-8")
 

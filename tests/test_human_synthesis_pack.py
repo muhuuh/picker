@@ -20,7 +20,7 @@ class HumanSynthesisPackTests(unittest.TestCase):
             pack = result.packs[0]
             pack_text = (root / pack.synthesis_pack_path).read_text(encoding="utf-8")
             self.assertIn("Write the final human-facing report from scratch", pack_text)
-            self.assertIn("Use the established final-report shape from the accepted AMBA report", pack_text)
+            self.assertIn("Use the established AMBA report only as a format exemplar", pack_text)
             self.assertIn("The deterministic opportunity assessment remains the audit artifact", pack_text)
             self.assertIn("What [Company] Actually Does", pack_text)
             self.assertIn("preserve material investor insight, but do not target a word count", pack_text)
@@ -29,6 +29,20 @@ class HumanSynthesisPackTests(unittest.TestCase):
             self.assertIn("deterministic opportunity assessment is an evidence and audit layer", pack_text)
             self.assertIn("Auxiliary Grok Web Inputs", pack_text)
             self.assertIn("Expected final report", pack_text)
+
+    def test_missing_deferred_grok_web_is_not_a_pack_failure_or_false_provenance_instruction(self):
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            run_id = "2026-08-16_weekly"
+            seed_synthesis_inputs(root, run_id, "AMBA", include_grok_web=False)
+
+            result = build_human_synthesis_packs(root, run_id, tickers=["AMBA"], write=True)
+
+            self.assertEqual(result.status, "ready")
+            self.assertEqual(result.packs[0].quality_findings, [])
+            pack_text = (root / result.packs[0].synthesis_pack_path).read_text(encoding="utf-8")
+            self.assertIn("No same-run Grok web gap-fill ran", pack_text)
+            self.assertNotIn("the live Grok web deep dive", pack_text)
 
     def test_collects_slugged_grok_artifacts_for_dotted_ticker(self):
         with TemporaryDirectory() as temp_dir:
@@ -52,7 +66,7 @@ class HumanSynthesisPackTests(unittest.TestCase):
             self.assertIn("sheet_full_xai_web_lpk_de.json", pack_text)
 
 
-def seed_synthesis_inputs(root: Path, run_id: str, ticker: str) -> None:
+def seed_synthesis_inputs(root: Path, run_id: str, ticker: str, *, include_grok_web: bool = True) -> None:
     (root / "AGENTS.md").write_text("# AGENTS\n", encoding="utf-8")
     (root / "stock_tracking" / "stock_info_files" / "current_holdings").mkdir(parents=True)
     (root / "stock_tracking" / "stock_info_files" / "current_holdings" / f"{ticker}.md").write_text(
@@ -68,7 +82,8 @@ def seed_synthesis_inputs(root: Path, run_id: str, ticker: str) -> None:
     (run_dir / "reports" / "opportunity_assessment" / f"{ticker}_opportunity_assessment.md").write_text("# audit\n", encoding="utf-8")
     (run_dir / "reports" / "financial_data_specialist" / f"{ticker}_financial_review.md").write_text("# financial\n", encoding="utf-8")
     (run_dir / "reports" / "company_news_specialist" / f"{ticker}_company_news_review.md").write_text("# news\n", encoding="utf-8")
-    (run_dir / "raw" / "xai_grok" / "web_search_company_deep_dive_amba.json").write_text("{}", encoding="utf-8")
+    if include_grok_web:
+        (run_dir / "raw" / "xai_grok" / "web_search_company_deep_dive_amba.json").write_text("{}", encoding="utf-8")
     assessment = {
         "ticker": ticker,
         "opportunity_view": "watch_closely",
@@ -91,12 +106,16 @@ def seed_synthesis_inputs(root: Path, run_id: str, ticker: str) -> None:
             "bullish_claims": ["Low-power vision SoCs fit robotics constraints."],
             "bearish_claims": ["Robotics revenue proof is still thin."],
         },
-        "grok_web_snapshot": {
-            "status": "available",
-            "business_technology_overview": "Low-power edge-AI SoCs.",
-            "financial_snapshot": "Market cap around $3.5B.",
-            "analyst_forecasts": "Average target around $96.",
-        },
+        "grok_web_snapshot": (
+            {
+                "status": "available",
+                "business_technology_overview": "Low-power edge-AI SoCs.",
+                "financial_snapshot": "Market cap around $3.5B.",
+                "analyst_forecasts": "Average target around $96.",
+            }
+            if include_grok_web
+            else {"status": "missing"}
+        ),
         "positives": ["Edge-AI mix is now material."],
         "negatives": ["Valuation needs growth proof."],
         "watch_items": ["Verify named robotics design wins."],

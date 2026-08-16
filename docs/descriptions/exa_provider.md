@@ -64,6 +64,8 @@ This is now represented in weekly manifest `provider_tasks`. The provider task r
 python -m stock_research provider-tasks --manifest agents\runs\2026-05-09_weekly\manifest.json --provider exa
 ```
 
+Recurring portfolio-update manifests apply explicit publication windows: 14 days for company news and 21 days for each deduplicated portfolio-industry cluster. Each cluster receives one shared Exa industry/news task rather than a copy per member ticker. The cluster membership and reason are recorded in `recurring_coverage`.
+
 Specialist-agent selection rules:
 
 - Company news specialist: `news`, then `contents` for top relevant results.

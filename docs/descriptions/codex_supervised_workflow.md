@@ -1,6 +1,6 @@
 # Codex-Supervised Workflow
 
-Last updated: 2026-05-18
+Last updated: 2026-08-16
 
 ## Purpose
 
@@ -39,6 +39,8 @@ agents/runs/{run_id}/codex_supervised_review_pack.json
 ```
 
 The review pack is the handoff contract from deterministic Python to Codex. Codex must read it before writing the final review.
+
+The pack requires `manifest.json`. Before synthesis, Codex must read its `recurring_coverage` section for company coverage reasons, deduplicated portfolio-industry clusters, repo-metadata freshness, provider roles, membership-only impact, and the explicitly accepted comparison baseline. `latest_generated_run_id` is informational and must not replace an empty or missing accepted baseline.
 
 The pack points Codex to:
 
@@ -99,9 +101,9 @@ Per-ticker opportunity assessments are not the final reading experience. They ar
 
 ## Established Per-Ticker Final Report Shape
 
-The accepted baseline is the 2026-05-16 AMBA final human report. Manual one-off research and scheduled automation must use the same final-report contract; Codex should not create a new report name or ad hoc structure when the user asks for automation-style research.
+The 2026-05-16 AMBA final human report is a format exemplar, not the recurring comparison baseline. Manual one-off research and scheduled automation must use the same final-report contract; Codex should not create a new report name or ad hoc structure when the user asks for automation-style research.
 
-Each `reports/human_synthesis/{TICKER}_final_human_report.md` must start with a provenance paragraph stating that it is a Codex-written synthesis from the synthesis pack, deterministic audit report, company-news and financial specialist outputs, raw Grok/X sentiment, Grok web deep dive, and the current company file. It must also state that the deterministic opportunity assessment remains the audit artifact.
+Each `reports/human_synthesis/{TICKER}_final_human_report.md` must start with a provenance paragraph stating that it is a Codex-written synthesis and naming only inputs that actually exist. It must identify the deterministic opportunity assessment as the audit artifact. Mention a Grok web deep dive only when a same-run gap-triggered artifact is present; never imply that the deferred lane ran by default.
 
 Required sections:
 

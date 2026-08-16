@@ -515,3 +515,13 @@ Use this file for information we should not lose across sessions.
   - decision/fact: Provider evidence packets preserve complete selected Exa/Grok evidence in `Claim.evidence` and keep bounded complete-sentence `display_excerpt` text separate. Shortened views carry a raw artifact path/selector, and SDK specialists load bounded summaries before retrieving an individual full claim; ellipses or clipped tails must never be repaired into fabricated sentences.
   - evidence artifact path(s): `stock_research/evidence.py`, `stock_research/text_excerpt.py`, `stock_research/providers/exa.py`, `stock_research/providers/xai_grok.py`, `stock_research/agent_runtime/tools/repo_tools.py`, `docs/descriptions/evidence_schema.md`
   - status: active
+
+- 2026-08-16:
+  - decision/fact: Recurring coverage planning is separate from research evidence. Holdings and monitoring CSVs determine which companies enter the scheduled update; `strategy/portfolio_industry_coverage.json` only maps those tracked names into deduplicated industry/theme clusters, and the Google Sheet remains intake. The manifest records membership-based impact because portfolio weights are not stored. Specialist providers still produce the raw facts, financial data, web evidence, and X/community signal.
+  - evidence artifact path(s): `stock_research/recurring_coverage.py`, `strategy/portfolio_industry_coverage.json`, `docs/descriptions/recurring_coverage_manifest.md`, `tests/test_recurring_coverage.py`
+  - status: active
+
+- 2026-08-16:
+  - decision/fact: A recurring report comparison baseline must be explicitly accepted in `agents/recurring_research_state.json`. The latest generated weekly run is reported separately and must never be silently substituted, including when the newest report is known to be poor. The initial recurring-coverage contract intentionally has no accepted run.
+  - evidence artifact path(s): `agents/recurring_research_state.json`, `stock_research/recurring_coverage.py`, `stock_research/run_summary.py`, `stock_research/codex_review_pack.py`, `tests/test_recurring_coverage.py`
+  - status: active

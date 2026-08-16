@@ -740,3 +740,17 @@ Operational memory for workflow routing, orchestration, run ordering, and user c
 - evidence: stock_research/research_profiles.py, stock_research/router.py, docs/descriptions/research_profiles.md, tests/test_research_profiles.py, tests/test_request_router.py
 - owner: orchestrator workflow
 - next_review: 2026-10-16
+
+- id: orchestrator-2026-08-16-recurring-coverage-contract
+- date: 2026-08-16
+- type: procedural
+- scope: orchestrator
+- status: active
+- confidence: high
+- trigger/source: Recurring portfolio coverage manifest implementation and clarification that specialist agents/providers still own evidence gathering.
+- lesson: Before recurring research, build a deterministic read-only coverage contract from holdings and monitoring membership. Use a separate mapping only to deduplicate portfolio-industry lanes; do not treat it as factual research or let it add Sheet/rejected ideas. Record the accepted comparison run explicitly and never infer the latest generated run as accepted. When weights are absent, describe impact as membership-based only.
+- use_when: Building recurring manifests, planning provider fanout, writing run summaries, or synthesizing portfolio updates.
+- do_not_use_when: Answering an on-demand company/industry request or deciding factual claims; use the relevant research profile and provider evidence instead.
+- evidence: stock_research/recurring_coverage.py; stock_research/manifest.py; strategy/portfolio_industry_coverage.json; agents/recurring_research_state.json; docs/descriptions/recurring_coverage_manifest.md
+- owner: orchestrator workflow
+- next_review: 2026-11-16

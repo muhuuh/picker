@@ -31,10 +31,13 @@ The run summary currently captures:
 - planned provider and analysis task counts,
 - evidence packet counts,
 - tracked tickers,
+- compact recurring coverage: company/industry counts, deduplicated cluster membership, membership-only impact, and accepted-versus-latest run status,
 - provider packet counts,
 - financial review statuses,
 - company news review statuses,
 - deterministic open items.
+
+The run summary intentionally reports `latest_generated_run_id` separately from `comparison_run_id`. Only the explicitly accepted recurring run can be used as the comparison baseline. See `docs/descriptions/recurring_coverage_manifest.md`.
 
 ## Quality Report
 
@@ -78,7 +81,7 @@ agents/runs/{run_id}/reports/human_synthesis/{TICKER}_synthesis_pack.json
 agents/runs/{run_id}/reports/human_synthesis/{TICKER}_synthesis_pack.md
 ```
 
-These packs are the handoff for Codex app final-report writing. They collect the deterministic opportunity assessment, financial/news reviews, Grok/X social signal, auxiliary Grok web context, and company-file links, then instruct Codex to write the human report from first principles. The opportunity assessment remains useful for audit and source coverage; it should not be treated as the final reader experience.
+These packs are the handoff for Codex app final-report writing. They collect the deterministic opportunity assessment, financial/news reviews, Grok/X social signal, optional auxiliary Grok web context when a gap-triggered task ran, and company-file links, then instruct Codex to write the human report from first principles. Missing deferred Grok web evidence is not a pack failure. The opportunity assessment remains useful for audit and source coverage; it should not be treated as the final reader experience.
 
 The quality gate checks the generated `*_final_human_report.md` reader artifacts, not the `*_synthesis_pack.md` inputs.
 
